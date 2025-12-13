@@ -14,6 +14,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -40,8 +41,8 @@ const THEME = {
 const DataContext = createContext(null);
 
 const DataProvider = ({ children }) => {
-  // Load data from file directly via require
-  const [data, setData] = useState(require('./assets/json/service-account.json'));
+  // Load data from file directly via require, and deep copy to ensure no reference issues
+  const [data, setData] = useState(JSON.parse(JSON.stringify(require('./assets/json/engineer-profile-template.json'))));
 
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
@@ -102,41 +103,289 @@ const SwitchRow = ({ label, value, path }) => {
   );
 };
 
-const RecursiveField = ({ data, depth = 0, path = [] }) => {
-  const [expanded, setExpanded] = useState(depth < 1);
+const SKILL_LEVELS = {
+  0: "経験なし",
+  1: "実務経験は無いが個人活動で経験あり",
+  2: "実務で基礎的なタスクを遂行可能",
+  3: "実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる",
+  4: "専門的な知識やスキルを有し他者を育成/指導できる"
+};
+const SKILL_LEVEL_TEXTS = Object.values(SKILL_LEVELS);
+
+const SkillSelector = ({ value, path }) => {
+  const context = useContext(DataContext);
+  if (!context) return null;
+  const { updateValue } = context;
+
+  // Determine current level from the value object { "LevelText": true }
+  let currentLevel = 0; // Default to 0
+  if (value && typeof value === 'object') {
+    // Check keys, ignoring metadata like '_displayType'
+    const entry = Object.entries(value).find(([key, val]) =>
+      key !== '_displayType' && val === true && SKILL_LEVEL_TEXTS.includes(key)
+    );
+    if (entry) {
+      const levelNum = Object.keys(SKILL_LEVELS).find(num => SKILL_LEVELS[num] === entry[0]);
+      if (levelNum !== undefined) currentLevel = parseInt(levelNum, 10);
+    }
+  }
+
+  const handleSelect = (level) => {
+    const text = SKILL_LEVELS[level];
+    // Create new object with selected level set to true, preserving metadata
+    const newValue = { [text]: true };
+    // Preserve _displayType if it exists
+    if (value && value._displayType) {
+      newValue._displayType = value._displayType;
+    }
+    updateValue(path, newValue);
+  };
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+        {[0, 1, 2, 3, 4].map((level) => (
+          <TouchableOpacity
+            key={level}
+            onPress={() => handleSelect(level)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: currentLevel === level ? THEME.accent : '#E2E8F0',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: currentLevel === level ? '#FFF' : THEME.text, fontWeight: 'bold' }}>
+              {level}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={{ backgroundColor: THEME.inputBg, padding: 8, borderRadius: 6 }}>
+        <Text style={{ color: THEME.text, fontSize: 12 }}>{SKILL_LEVELS[currentLevel]}</Text>
+      </View>
+    </View>
+  );
+};
+
+// Component for exclusive selection (Single Select Group)
+const SingleSelectGroup = ({ value, path }) => {
+  const { data, updateValue } = useContext(DataContext);
+
+  const handleToggle = (key) => {
+    // Check if we are inside '現職種' to apply specific exclusive logic
+    const rootKeyIndex = path.indexOf('現職種');
+
+    if (rootKeyIndex !== -1) {
+      // Scope update to the '現職種' root
+      const rootPath = path.slice(0, rootKeyIndex + 1);
+
+      const getAt = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : null), obj);
+      const rootData = getAt(data, rootPath);
+
+      if (!rootData) {
+        console.warn('Root data not found for path:', rootPath);
+        return;
+      }
+
+      // Deep copy the root data
+      const newRootData = JSON.parse(JSON.stringify(rootData));
+
+      const currentTargetVal = !!value[key];
+      const nextVal = !currentTargetVal;
+
+      if (nextVal) {
+        // --- Toggling ON ---
+
+        // 1. Identify the target job object within newRootData
+        // The path coming in is absolute. rootPath is ['現職種'].
+        // relativePath is ['技術職', 'サーバサイドエンジニア'] etc.
+        const relativePath = path.slice(rootKeyIndex + 1);
+        let targetJobObj = newRootData;
+        for (const p of relativePath) {
+          targetJobObj = targetJobObj[p];
+        }
+
+        if (targetJobObj) {
+          // 2. Local Reset: Turn off ALL booleans in this job object first
+          Object.keys(targetJobObj).forEach(k => {
+            if (typeof targetJobObj[k] === 'boolean') {
+              targetJobObj[k] = false;
+            }
+          });
+
+          // 3. Global Reset: Turn off the SAME key (e.g., 'sub1') in ALL other jobs (entire '現職種' tree)
+          const resetKeyGlobal = (obj, targetKey) => {
+            // If this obj is a job object (has metadata or specific structure), we scan it
+            // We just recursively scan everything.
+            if (obj && typeof obj === 'object') {
+              Object.keys(obj).forEach(k => {
+                if (k === targetKey && typeof obj[k] === 'boolean') {
+                  obj[k] = false;
+                } else {
+                  resetKeyGlobal(obj[k], targetKey);
+                }
+              });
+            }
+          };
+          resetKeyGlobal(newRootData, key);
+
+          // 4. Set the target to true
+          // Note: resetKeyGlobal set targetJobObj[key] to false as well, which is fine
+          // because we set it to true now.
+          targetJobObj[key] = true;
+        }
+
+      } else {
+        // --- Toggling OFF ---
+        // Just turn it off in the target job object
+        const relativePath = path.slice(rootKeyIndex + 1);
+        let targetJobObj = newRootData;
+        for (const p of relativePath) {
+          targetJobObj = targetJobObj[p];
+        }
+        if (targetJobObj) {
+          targetJobObj[key] = false;
+        }
+      }
+
+      updateValue(rootPath, newRootData);
+
+    } else {
+      // Fallback for local exclusive group behavior (radio button style)
+      const newObject = { ...value };
+      const currentVal = !!newObject[key];
+      const nextVal = !currentVal;
+
+      if (nextVal) {
+        Object.keys(newObject).forEach(k => {
+          if (k !== '_displayType' && typeof newObject[k] === 'boolean') {
+            newObject[k] = (k === key);
+          }
+        });
+      } else {
+        newObject[key] = false;
+      }
+      updateValue(path, newObject);
+    }
+  };
+
+  return (
+    <View>
+      {Object.keys(value).map(key => {
+        if (key === '_displayType') return null;
+        // Only render boolean fields as switches
+        if (typeof value[key] !== 'boolean') return null;
+
+        return (
+          <View key={key} style={styles.switchContainer}>
+            <Text style={styles.label}>{key}</Text>
+            <Switch
+              trackColor={{ false: THEME.cardBorder, true: THEME.accent }}
+              thumbColor={'#FFFFFF'}
+              onValueChange={() => handleToggle(key)}
+              value={!!value[key]}
+            />
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+const AccordionItem = ({ label, data, depth, path }) => {
+  // Determine initial expanded state:
+  // Depth 0 (Root items like "スキル経験", "志向"): Open by default
+  // Depth > 0 (Nested items like "OS", "Webサーバー"): Closed by default
+  const [expanded, setExpanded] = useState(depth === 0);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
   };
 
+  const isEmpty = Object.keys(data).length === 0;
+
+  return (
+    <View style={[styles.card, { marginLeft: depth * 8, borderColor: depth === 0 ? THEME.accent : THEME.cardBorder }]}>
+      <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
+        <View style={styles.headerTitleRow}>
+          <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
+          <Text style={styles.sectionTitle}>{label}</Text>
+        </View>
+        <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
+      </TouchableOpacity>
+      {expanded && (
+        <View style={styles.content}>
+          {isEmpty ? <Text style={styles.emptyText}>(No Data)</Text> : <RecursiveField data={data} depth={depth + 1} path={path} />}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const RecursiveField = ({ data, depth = 0, path = [] }) => {
   if (!data || typeof data !== 'object') return null;
 
   return (
     <View style={{ width: '100%' }}>
       {Object.keys(data).map((key) => {
+        // Skip metadata keys in the loop
+        if (key === '_displayType') return null;
+
         const value = data[key];
         const currentPath = [...path, key];
         const isObject = value !== null && typeof value === 'object';
         const isBool = typeof value === 'boolean';
 
+        // Check if 'value' is a skill level object or single select group
+        let isSkillLevelObj = false;
+        let isSingleSelectGroup = false;
+
         if (isObject) {
-          const isEmpty = Object.keys(value).length === 0;
+          // Priority check: explicit UI type
+          if (value._displayType === 'skillLevelSelect') {
+            isSkillLevelObj = true;
+          } else if (value._displayType === 'singleSelectGroup') {
+            isSingleSelectGroup = true;
+          } else {
+            // Fallback: Check structure if metadata is missing
+            const valKeys = Object.keys(value).filter(k => k !== '_displayType');
+            if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
+              isSkillLevelObj = true;
+            }
+          }
+        }
+
+        if (isSkillLevelObj) {
           return (
-            <View key={key} style={[styles.card, { marginLeft: depth * 8, borderColor: depth === 0 ? THEME.accent : THEME.cardBorder }]}>
-              <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
-                <View style={styles.headerTitleRow}>
-                  <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
-                  <Text style={styles.sectionTitle}>{key}</Text>
-                </View>
-                <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
-              </TouchableOpacity>
-              {expanded && (
-                <View style={styles.content}>
-                  {isEmpty ? <Text style={styles.emptyText}>(No Data)</Text> : <RecursiveField data={value} depth={depth + 1} path={currentPath} />}
-                </View>
-              )}
+            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
+              <Text style={styles.label}>{key}</Text>
+              <SkillSelector value={value} path={currentPath} />
             </View>
+          );
+        }
+
+        if (isSingleSelectGroup) {
+          return (
+            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
+              <Text style={styles.label}>{key}</Text>
+              <SingleSelectGroup value={value} path={currentPath} />
+            </View>
+          );
+        }
+
+        if (isObject) {
+          return (
+            <AccordionItem
+              key={key}
+              label={key}
+              data={value}
+              depth={depth}
+              path={currentPath}
+            />
           );
         }
 
@@ -179,44 +428,76 @@ const DataConsumerApp = () => {
   // Calculate tabs from data keys (follows JSON definition order)
   const topLevelKeys = Object.keys(data).filter(key => typeof data[key] === 'object');
 
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'success' | 'error'
+
   const handleSave = async () => {
+    if (saveStatus === 'saving') return;
+    setSaveStatus('saving');
+
     try {
-      Alert.alert("保存中...", "データをクラウドに保存しています");
-      const start = Date.now();
-
-      // 1. Generate Prefix: CyyyyMMdd
+      // 1. Generate new ID
+      // Format: CyyyyMMddnnnn (e.g., C202512120001)
       const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const prefix = `C${yyyy}${mm}${dd}`;
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const datePrefix = `C${year}${month}${day}`;
 
-      // 2. Query for existing IDs of today
-      // Note: We removed orderBy and limit to avoid needing a custom index in Firestore.
-      // We will filter client-side.
+      // Query solely by ID prefix is hard in Firestore without a specific field or range query. 
+      // Instead, let's try to find the latest ID by sorting.
+      // Since we can't easily regex-query, we will query for IDs >= datePrefix and < datePrefix + 1
+      // However, document IDs are strings.
+      // A simpler, robust way often used is to store a separate counter or just query recent docs.
+      // Given the requirement and constraints, let's try to query the collection ordered by __name__ (doc ID)
+      // This might require an index?
+
+      // Let's optimize: Just blindly try to find if today's IDs exist.
+      // Actually, we can just query for all docs starting with this prefix? Firestore doesn't support 'startsWith' natively easily.
+      // We will use a range query on documentId().
+
+      // Query for existing IDs of today
+      // To avoid "Index Required" errors, we render a simple range query without sorting in Firestore.
+      // We will calculate the max ID client-side.
       const q = query(
         collection(db, "individual"),
-        where(documentId(), ">=", prefix + "0000"),
-        where(documentId(), "<=", prefix + "9999")
+        where(documentId(), ">=", datePrefix + "0000"),
+        where(documentId(), "<=", datePrefix + "9999")
       );
 
       const querySnapshot = await getDocs(q);
-      let maxNum = 0;
 
+      let maxNum = 0;
       querySnapshot.forEach((doc) => {
         const id = doc.id;
+        // Extract the number part (last 4 digits)
         const numPart = parseInt(id.slice(-4), 10);
         if (!isNaN(numPart) && numPart > maxNum) {
           maxNum = numPart;
         }
       });
 
-      const newId = `${prefix}${String(maxNum + 1).padStart(4, '0')}`;
+      const nextNum = maxNum + 1;
+      const newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
 
-      console.log(`Generate ID: ${newId}`);
+      // 3. Prepare data for saving (clean up metadata)
+      const cleanData = (input) => {
+        if (input === null || typeof input !== 'object') {
+          return input;
+        }
+        if (Array.isArray(input)) {
+          return input.map(cleanData);
+        }
+        const output = {};
+        Object.keys(input).forEach(key => {
+          if (!key.startsWith('_')) {
+            output[key] = cleanData(input[key]);
+          }
+        });
+        return output;
+      };
 
-      // 3. Update local data object with new ID (for saving)
-      const dataToSave = { ...data, id_individual: newId };
+      const cleanedData = cleanData(data);
+      const dataToSave = { ...cleanedData, id_individual: newId };
 
       // 4. Save to Firestore
       await setDoc(doc(db, "individual", newId), dataToSave);
@@ -225,11 +506,12 @@ const DataConsumerApp = () => {
       // Use the context helper to update the ID
       updateValue(['id_individual'], newId);
 
-      Alert.alert("保存完了", `ID: ${newId}\nFirestoreへの保存が完了しました。`);
-
-    } catch (e) {
-      console.error(e);
-      Alert.alert("エラー", "保存に失敗しました: " + e.message);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000); // Reset after 2 seconds
+    } catch (error) {
+      console.error("Error saving document: ", error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
 
@@ -241,8 +523,24 @@ const DataConsumerApp = () => {
           <Text style={styles.appTitle}>エンジニア個人登録</Text>
           <Text style={styles.appSubtitle}>ID: {data.id_individual || 'New'}</Text>
         </View>
-        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>保存</Text>
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            saveStatus === 'success' && styles.saveButtonSuccess,
+            saveStatus === 'error' && styles.saveButtonError
+          ]}
+          onPress={handleSave}
+          disabled={saveStatus === 'saving'}
+        >
+          {saveStatus === 'saving' ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : saveStatus === 'success' ? (
+            <Text style={styles.saveButtonText}>完了</Text>
+          ) : saveStatus === 'error' ? (
+            <Text style={styles.saveButtonText}>エラー</Text>
+          ) : (
+            <Text style={styles.saveButtonText}>保存</Text>
+          )}
         </TouchableOpacity>
       </View>
       <Tab.Navigator
@@ -294,8 +592,10 @@ const styles = StyleSheet.create({
   },
   appTitle: { color: THEME.text, fontSize: 18, fontWeight: '800' },
   appSubtitle: { color: THEME.subText, fontSize: 12, marginTop: 2 },
-  saveButton: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: THEME.inputBg, borderRadius: 6, borderWidth: 1, borderColor: THEME.cardBorder },
-  saveButtonText: { color: THEME.accent, fontWeight: '700', fontSize: 14 },
+  saveButton: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: THEME.accent, borderRadius: 6, borderWidth: 1, borderColor: THEME.accent },
+  saveButtonSuccess: { backgroundColor: THEME.success, borderColor: THEME.success },
+  saveButtonError: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
+  saveButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   card: { backgroundColor: THEME.cardBg, borderRadius: 12, borderWidth: 1, borderColor: THEME.cardBorder, marginBottom: 12, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
@@ -309,3 +609,4 @@ const styles = StyleSheet.create({
   textInput: { backgroundColor: THEME.inputBg, borderRadius: 8, borderWidth: 1, borderColor: THEME.cardBorder, color: THEME.text, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: THEME.cardBg, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: THEME.cardBorder },
 });
+
