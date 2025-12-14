@@ -112,6 +112,13 @@ const SKILL_LEVELS = {
 };
 const SKILL_LEVEL_TEXTS = Object.values(SKILL_LEVELS);
 
+const CONNECTION_LEVELS = {
+  1: "Lv1通常つながり(相互フォロー)",
+  2: "Lv2準アルムナイ(現/元非正社員or半年以上の同僚関係)",
+  3: "Lv3正アルムナイ(現/元正社員or2年以上の同僚関係)"
+};
+const CONNECTION_LEVEL_TEXTS = Object.values(CONNECTION_LEVELS);
+
 const SkillSelector = ({ value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
@@ -165,6 +172,81 @@ const SkillSelector = ({ value, path }) => {
       </View>
       <View style={{ backgroundColor: THEME.inputBg, padding: 8, borderRadius: 6 }}>
         <Text style={{ color: THEME.text, fontSize: 12 }}>{SKILL_LEVELS[currentLevel]}</Text>
+      </View>
+    </View>
+  );
+};
+
+const ConnectionLevelSelector = ({ value, path }) => {
+  const context = useContext(DataContext);
+  if (!context) return null;
+  const { updateValue } = context;
+
+  // Determine current level
+  let currentLevel = 0;
+  if (value && typeof value === 'object') {
+    const entry = Object.entries(value).find(([key, val]) =>
+      key !== '_displayType' && val === true && CONNECTION_LEVEL_TEXTS.includes(key)
+    );
+    if (entry) {
+      const levelNum = Object.keys(CONNECTION_LEVELS).find(num => CONNECTION_LEVELS[num] === entry[0]);
+      if (levelNum !== undefined) currentLevel = parseInt(levelNum, 10);
+    }
+  }
+
+  const handleSelect = (level) => {
+    const text = CONNECTION_LEVELS[level];
+    // Create new object with selected level set to true
+    // Logic similar to SkillSelector: reset others, set this one to true
+    // We must preserve _displayType
+    const newValue = { [text]: true };
+    if (value && value._displayType) {
+      newValue._displayType = value._displayType;
+    }
+    // Also include other levels as false for completeness if needed? 
+    // SkillSelector example implies replacing the whole object with just the true key is fine, 
+    // assuming the backend/cleanData handles the rest or the UI re-initializes.
+    // However, to match the JSON structure exactly, we might want to include all keys.
+    // Let's stick to the SkillSelector pattern: { NewText: true, _displayType: ... }
+    // If the backend expects all keys to be present, this might be an issue.
+    // But based on "Same behavior as SkillSelector", this should be fine.
+
+    // Wait, SkillSelector: const newValue = { [text]: true };
+    // It replaces the whole object. If the original JSON had all keys, they are gone.
+    // Let's check the SkillSelector behavior again. 
+    // Ah, SkillSelector replaces the object. If the UI relies on finding the key to determine level, it works.
+    // But if the JSON template expects all keys...
+    // The user said: "selected level... is true... others are false".
+    // If we replace the object, the "others" are undefined (effectively falsey).
+    // Let's ensure we keep the same behavior as SkillSelector for consistency.
+
+    updateValue(path, newValue);
+  };
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 12, marginBottom: 8 }}>
+        {[1, 2, 3].map((level) => (
+          <TouchableOpacity
+            key={level}
+            onPress={() => handleSelect(level)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: currentLevel === level ? THEME.accent : '#E2E8F0',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: currentLevel === level ? '#FFF' : THEME.text, fontWeight: 'bold' }}>
+              {level}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={{ backgroundColor: THEME.inputBg, padding: 8, borderRadius: 6 }}>
+        <Text style={{ color: THEME.text, fontSize: 12 }}>{currentLevel > 0 ? CONNECTION_LEVELS[currentLevel] : '未選択'}</Text>
       </View>
     </View>
   );
@@ -350,6 +432,10 @@ const RecursiveField = ({ data, depth = 0, path = [] }) => {
             isSkillLevelObj = true;
           } else if (value._displayType === 'singleSelectGroup') {
             isSingleSelectGroup = true;
+          } else if (value._displayType === 'connectionLevelSelect') {
+            // We will handle this in a specific block below, or use a new flag
+            // Let's add a flag
+            var isConnectionLevelObj = true;
           } else {
             // Fallback: Check structure if metadata is missing
             const valKeys = Object.keys(value).filter(k => k !== '_displayType');
@@ -373,6 +459,15 @@ const RecursiveField = ({ data, depth = 0, path = [] }) => {
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
               <Text style={styles.label}>{key}</Text>
               <SingleSelectGroup value={value} path={currentPath} />
+            </View>
+          );
+        }
+
+        if (typeof isConnectionLevelObj !== 'undefined' && isConnectionLevelObj) {
+          return (
+            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
+              <Text style={styles.label}>{key}</Text>
+              <ConnectionLevelSelector value={value} path={currentPath} />
             </View>
           );
         }
