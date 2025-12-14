@@ -16,6 +16,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { SKILL_LEVELS, SKILL_LEVEL_TEXTS, CONNECTION_LEVELS, CONNECTION_LEVEL_TEXTS } from './constants';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -70,7 +72,46 @@ const Tab = createMaterialTopTabNavigator();
 const InputRow = ({ label, value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
-  const { updateValue } = context;
+  const { data, updateValue } = context;
+
+  const isZipCode = label === '郵便番号';
+
+  const handleTextChange = async (text) => {
+    if (isZipCode) {
+      // Allow only numbers
+      const numericText = text.replace(/[^0-9]/g, '');
+      updateValue(path, numericText);
+
+      // Verify length for Japanese Zip Code
+      if (numericText.length === 7) {
+        // Find '国' sibling
+        const parentPath = path.slice(0, -1);
+        const countryPath = [...parentPath, '国'];
+        const getValue = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : undefined), obj);
+        const country = getValue(data, countryPath);
+
+        if (country === '日本') {
+          try {
+            const response = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${numericText}`);
+            const json = await response.json();
+            if (json.status === 200 && json.results) {
+              const result = json.results[0];
+              updateValue([...parentPath, '都道府県or州など'], result.address1);
+              updateValue([...parentPath, '市区町村'], result.address2);
+              updateValue([...parentPath, '番地'], result.address3);
+            } else {
+              Alert.alert('検索エラー', '該当する郵便番号が見つかりませんでした。');
+            }
+          } catch (e) {
+            console.error(e);
+            Alert.alert('通信エラー', '住所情報の取得に失敗しました。');
+          }
+        }
+      }
+    } else {
+      updateValue(path, text);
+    }
+  };
 
   return (
     <View style={styles.inputContainer}>
@@ -78,8 +119,10 @@ const InputRow = ({ label, value, path }) => {
       <TextInput
         style={styles.textInput}
         value={String(value)}
-        onChangeText={(text) => updateValue(path, text)}
+        onChangeText={handleTextChange}
         placeholderTextColor={THEME.subText}
+        keyboardType={isZipCode ? 'numeric' : 'default'}
+        maxLength={isZipCode ? 7 : undefined}
       />
     </View>
   );
@@ -103,21 +146,7 @@ const SwitchRow = ({ label, value, path }) => {
   );
 };
 
-const SKILL_LEVELS = {
-  0: "経験なし",
-  1: "実務経験は無いが個人活動で経験あり",
-  2: "実務で基礎的なタスクを遂行可能",
-  3: "実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる",
-  4: "専門的な知識やスキルを有し他者を育成/指導できる"
-};
-const SKILL_LEVEL_TEXTS = Object.values(SKILL_LEVELS);
 
-const CONNECTION_LEVELS = {
-  1: "Lv1通常つながり(相互フォロー)",
-  2: "Lv2準アルムナイ(現/元非正社員or半年以上の同僚関係)",
-  3: "Lv3正アルムナイ(現/元正社員or2年以上の同僚関係)"
-};
-const CONNECTION_LEVEL_TEXTS = Object.values(CONNECTION_LEVELS);
 
 const SkillSelector = ({ value, path }) => {
   const context = useContext(DataContext);
@@ -248,6 +277,114 @@ const ConnectionLevelSelector = ({ value, path }) => {
       <View style={{ backgroundColor: THEME.inputBg, padding: 8, borderRadius: 6 }}>
         <Text style={{ color: THEME.text, fontSize: 12 }}>{currentLevel > 0 ? CONNECTION_LEVELS[currentLevel] : '未選択'}</Text>
       </View>
+    </View>
+  );
+};
+
+
+
+const MonthYearPickerInput = ({ label, valueObj, path }) => {
+  const context = useContext(DataContext);
+  if (!context) return null;
+  const { updateValue } = context;
+
+  const [show, setShow] = useState(false);
+
+  // Parse YYYYMM (number)
+  const yyyymm = valueObj?.value || 202001;
+  const safeYyyymm = typeof yyyymm === 'number' ? yyyymm : 202001;
+
+  const year = Math.floor(safeYyyymm / 100);
+  const month = (safeYyyymm % 100) - 1; // 0-indexed
+  const safeYear = year > 1900 && year < 2100 ? year : 2020;
+  const safeMonth = month >= 0 && month < 12 ? month : 0;
+
+  const dateValue = new Date(safeYear, safeMonth, 1);
+
+  const onChange = (event, selectedDate) => {
+    setShow(false);
+    if (selectedDate && event.type !== 'dismissed') {
+      const y = selectedDate.getFullYear();
+      const m = selectedDate.getMonth() + 1;
+      const newVal = y * 100 + m;
+      const newValueObj = { ...valueObj, value: newVal };
+      updateValue(path, newValueObj);
+    }
+  };
+
+  return (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity onPress={() => setShow(true)} style={[styles.textInput, { justifyContent: 'center' }]}>
+        <Text style={{ color: THEME.text }}>
+          {`${safeYear}年 ${safeMonth + 1}月`}
+        </Text>
+      </TouchableOpacity>
+      {show && (
+        <DateTimePicker
+          value={dateValue}
+          mode="date"
+          display="default"
+          onChange={onChange}
+          locale="ja-JP"
+        />
+      )}
+    </View>
+  );
+};
+
+
+
+const DatePickerInput = ({ label, valueObj, path }) => {
+  const context = useContext(DataContext);
+  if (!context) return null;
+  const { updateValue } = context;
+
+  const [show, setShow] = useState(false);
+
+  // Parse YYYYMMDD (number)
+  const yyyymmdd = valueObj?.value || 19900101;
+  const safeYyyymmdd = typeof yyyymmdd === 'number' ? yyyymmdd : 19900101;
+
+  const year = Math.floor(safeYyyymmdd / 10000);
+  const month = Math.floor((safeYyyymmdd % 10000) / 100) - 1; // 0-indexed
+  const day = safeYyyymmdd % 100;
+
+  const safeYear = year > 1900 && year < 2100 ? year : 1990;
+  const safeMonth = month >= 0 && month < 12 ? month : 0;
+  const safeDay = day >= 1 && day <= 31 ? day : 1;
+
+  const dateValue = new Date(safeYear, safeMonth, safeDay);
+
+  const onChange = (event, selectedDate) => {
+    setShow(false);
+    if (selectedDate && event.type !== 'dismissed') {
+      const y = selectedDate.getFullYear();
+      const m = selectedDate.getMonth() + 1;
+      const d = selectedDate.getDate();
+      const newVal = y * 10000 + m * 100 + d;
+      const newValueObj = { ...valueObj, value: newVal };
+      updateValue(path, newValueObj);
+    }
+  };
+
+  return (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity onPress={() => setShow(true)} style={[styles.textInput, { justifyContent: 'center' }]}>
+        <Text style={{ color: THEME.text }}>
+          {`${safeYear}年 ${safeMonth + 1}月 ${safeDay}日`}
+        </Text>
+      </TouchableOpacity>
+      {show && (
+        <DateTimePicker
+          value={dateValue}
+          mode="date"
+          display="default"
+          onChange={onChange}
+          locale="ja-JP"
+        />
+      )}
     </View>
   );
 };
@@ -436,6 +573,10 @@ const RecursiveField = ({ data, depth = 0, path = [] }) => {
             // We will handle this in a specific block below, or use a new flag
             // Let's add a flag
             var isConnectionLevelObj = true;
+          } else if (value._displayType === 'monthYearPicker') {
+            var isMonthYearPicker = true;
+          } else if (value._displayType === 'datePicker') {
+            var isDatePicker = true;
           } else {
             // Fallback: Check structure if metadata is missing
             const valKeys = Object.keys(value).filter(k => k !== '_displayType');
@@ -468,6 +609,22 @@ const RecursiveField = ({ data, depth = 0, path = [] }) => {
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
               <Text style={styles.label}>{key}</Text>
               <ConnectionLevelSelector value={value} path={currentPath} />
+            </View>
+          );
+        }
+
+        if (typeof isMonthYearPicker !== 'undefined' && isMonthYearPicker) {
+          return (
+            <View key={key} style={{ marginLeft: depth * 12 }}>
+              <MonthYearPickerInput label={key} valueObj={value} path={currentPath} />
+            </View>
+          );
+        }
+
+        if (typeof isDatePicker !== 'undefined' && isDatePicker) {
+          return (
+            <View key={key} style={{ marginLeft: depth * 12 }}>
+              <DatePickerInput label={key} valueObj={value} path={currentPath} />
             </View>
           );
         }
