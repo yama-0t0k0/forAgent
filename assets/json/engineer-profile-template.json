@@ -60,6 +60,14 @@
     "経験社数": {
       "非正規雇用": 0,
       "正規雇用": 3
+    },
+    "決済情報登録状況": {
+      "value": false,
+      "_displayType": "readOnlyStatus"
+    },
+    "繋がり情報登録状況": {
+      "value": true,
+      "_displayType": "readOnlyStatus"
     }
   },
   "スキル経験": {

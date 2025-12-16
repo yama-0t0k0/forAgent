@@ -10,6 +10,7 @@ import { ConnectionLevelSelector } from './ConnectionLevelSelector';
 import { MonthYearPickerInput } from './MonthYearPickerInput';
 import { DatePickerInput } from './DatePickerInput';
 import { SingleSelectGroup } from './SingleSelectGroup';
+import { StatusRow } from './StatusRow';
 
 const AccordionItem = ({ label, data, depth, path }) => {
   const [expanded, setExpanded] = useState(depth === 0);
@@ -58,6 +59,7 @@ export const RecursiveField = ({ data, depth = 0, path = [] }) => {
         let isConnectionLevelObj = false;
         let isMonthYearPicker = false;
         let isDatePicker = false;
+        let isReadOnlyStatus = false;
 
         if (isObject) {
           if (value._displayType === 'skillLevelSelect') {
@@ -70,6 +72,8 @@ export const RecursiveField = ({ data, depth = 0, path = [] }) => {
             isMonthYearPicker = true;
           } else if (value._displayType === 'datePicker') {
             isDatePicker = true;
+          } else if (value._displayType === 'readOnlyStatus') {
+            isReadOnlyStatus = true;
           } else {
             const valKeys = Object.keys(value).filter(k => k !== '_displayType');
             if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
@@ -117,6 +121,14 @@ export const RecursiveField = ({ data, depth = 0, path = [] }) => {
           return (
             <View key={key} style={{ marginLeft: depth * 12 }}>
               <DatePickerInput label={key} valueObj={value} path={currentPath} />
+            </View>
+          );
+        }
+
+        if (isReadOnlyStatus) {
+          return (
+            <View key={key} style={{ marginLeft: depth * 12 }}>
+              <StatusRow label={key} valueObj={value} />
             </View>
           );
         }
