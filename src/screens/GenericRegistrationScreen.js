@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { View, ScrollView, Text, TouchableOpacity, ActivityIndicator, StyleSheet, StatusBar, Platform, UIManager } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+// import { NavigationContainer } from '@react-navigation/native';
 import { DataContext } from '../context/DataContext';
 import { RecursiveField } from '../components/RecursiveField';
 import { THEME } from '../constants/theme';
@@ -28,7 +28,7 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
-export const MainScreen = () => {
+export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C' }) => {
   const { data, updateValue } = useContext(DataContext);
   const [saveStatus, setSaveStatus] = useState('idle');
 
@@ -39,10 +39,10 @@ export const MainScreen = () => {
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
-      const datePrefix = `C${year}${month}${day}`;
+      const datePrefix = `${idPrefixChar}${year}${month}${day}`;
 
       const q = query(
-        collection(db, "individual"),
+        collection(db, collectionName),
         where(documentId(), ">=", datePrefix + "0000"),
         where(documentId(), "<=", datePrefix + "9999")
       );
@@ -78,11 +78,11 @@ export const MainScreen = () => {
       };
 
       const cleanedData = cleanData(data);
-      const dataToSave = { ...cleanedData, id_individual: newId };
+      const dataToSave = { ...cleanedData, [idField]: newId };
 
-      await setDoc(doc(db, "individual", newId), dataToSave);
+      await setDoc(doc(db, collectionName, newId), dataToSave);
 
-      updateValue(['id_individual'], newId);
+      updateValue([idField], newId);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
@@ -93,16 +93,16 @@ export const MainScreen = () => {
   };
 
   const topLevelKeys = useMemo(() => {
-    return Object.keys(data).filter(key => key !== 'id_individual' && key !== '_displayType');
-  }, [data]);
-
+    if (!data) return [];
+    return Object.keys(data).filter(key => key !== idField && key !== '_displayType');
+  }, [data, idField]);
   return (
-    <NavigationContainer>
+    <View style={{ flex: 1 }}>
       <View style={styles.appHeader}>
         <View>
-          <Text style={styles.appTitle}>エンジニア個人登録</Text>
+          <Text style={styles.appTitle}>{title}</Text>
           <Text style={styles.appSubtitle}>
-            ID: {data.id_individual || 'New'}
+            ID: {data[idField] || 'New'}
           </Text>
         </View>
         <TouchableOpacity
@@ -133,7 +133,7 @@ export const MainScreen = () => {
           />
         ))}
       </Tab.Navigator>
-    </NavigationContainer>
+    </View>
   );
 };
 

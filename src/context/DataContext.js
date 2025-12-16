@@ -2,9 +2,9 @@ import React, { createContext, useState, useCallback } from 'react';
 
 export const DataContext = createContext(null);
 
-export const DataProvider = ({ children }) => {
+export const DataProvider = ({ children, initialData }) => {
   // Load data from file directly via require, and deep copy to ensure no reference issues
-  const [data, setData] = useState(JSON.parse(JSON.stringify(require('../../assets/json/engineer-profile-template.json'))));
+  const [data, setData] = useState(initialData ? JSON.parse(JSON.stringify(initialData)) : {});
 
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
