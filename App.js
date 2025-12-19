@@ -42,52 +42,7 @@ export default function App() {
       <SafeAreaView style={{ flex: 1, backgroundColor: THEME.background }}>
         <StatusBar barStyle="dark-content" />
         <NavigationContainer>
-          {appMode === 'engineer' ? (
-            <EngineerRegistrationWrapper />
-          ) : appMode === 'company' ? (
-            <CompanyRegistrationWrapper />
-          ) : (
-            <Tab.Navigator
-              screenOptions={{
-                headerShown: false,
-                tabBarStyle: {
-                  backgroundColor: THEME.background,
-                  borderTopColor: THEME.cardBorder,
-                  height: 40, // Compact height
-                  paddingBottom: 0,
-                  paddingTop: 0,
-                },
-                tabBarActiveTintColor: THEME.accent,
-                tabBarInactiveTintColor: THEME.subText,
-                tabBarLabelStyle: {
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginBottom: 0,
-                  position: 'absolute', // Center the label vertically
-                  top: 10,
-                  bottom: 10, // Ensure it's centered
-                  left: 0,
-                  right: 0,
-                  textAlign: 'center',
-                  textAlignVertical: 'center',
-                },
-                tabBarIconStyle: {
-                  display: 'none',
-                },
-              }}
-            >
-              <Tab.Screen
-                name="Engineer"
-                component={EngineerRegistrationWrapper}
-                options={{ title: 'エンジニア登録' }}
-              />
-              <Tab.Screen
-                name="Company"
-                component={CompanyRegistrationWrapper}
-                options={{ title: '企業登録' }}
-              />
-            </Tab.Navigator>
-          )}
+          <EngineerRegistrationWrapper />
         </NavigationContainer>
       </SafeAreaView>
     </SafeAreaProvider>
