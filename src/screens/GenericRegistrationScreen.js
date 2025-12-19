@@ -8,6 +8,9 @@ import { THEME } from '../constants/theme';
 import { db } from '../../firebaseConfig';
 import { collection, query, where, getDocs, setDoc, doc, documentId } from 'firebase/firestore';
 
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
 const Tab = createMaterialTopTabNavigator();
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -30,6 +33,7 @@ const CategoryScreen = ({ route }) => {
 
 export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C' }) => {
   const { data, updateValue } = useContext(DataContext);
+  const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
 
   const handleSave = async () => {
@@ -84,7 +88,12 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
 
       updateValue([idField], newId);
       setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+
+      // Auto-navigate back to MyPage after success
+      setTimeout(() => {
+        setSaveStatus('idle');
+        navigation.goBack();
+      }, 1500);
     } catch (error) {
       console.error("Error saving document: ", error);
       setSaveStatus('error');
@@ -96,8 +105,13 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
     if (!data) return [];
     return Object.keys(data).filter(key => key !== idField && key !== '_displayType');
   }, [data, idField]);
+
+  const handleGoHome = () => {
+    navigation.navigate('MyPage');
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: THEME.background }}>
       <View style={styles.appHeader}>
         <View>
           <Text style={styles.appTitle}>{title}</Text>
@@ -133,15 +147,42 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
           />
         ))}
       </Tab.Navigator>
+
+      {/* Bottom Navigation (Replica of MyPageScreen) */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
+          <Text style={styles.navText}>キャリア</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
+          <Text style={styles.navText}>コネクション</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleGoHome}>
+          <View style={styles.activeIconContainer}>
+            <Ionicons name="home" size={26} color={THEME.background} />
+          </View>
+          <Text style={styles.navTextActive}>ホーム</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="book-outline" size={28} color={THEME.subText} />
+          <Text style={styles.navText}>学習</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleGoHome}>
+          <Ionicons name="grid-outline" size={28} color={THEME.accent} />
+          <Text style={[styles.navText, { color: THEME.accent, fontWeight: '800' }]}>メニュー</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, backgroundColor: THEME.background },
-  scrollContent: { padding: 16, paddingBottom: 40 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   appHeader: {
     padding: 16,
+    paddingTop: Platform.OS === 'ios' ? 40 : 16,
     backgroundColor: THEME.background,
     borderBottomWidth: 1,
     borderBottomColor: THEME.cardBorder,
@@ -151,8 +192,43 @@ const styles = StyleSheet.create({
   },
   appTitle: { color: THEME.text, fontSize: 18, fontWeight: '800' },
   appSubtitle: { color: THEME.subText, fontSize: 12, marginTop: 2 },
-  saveButton: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: THEME.accent, borderRadius: 6 },
+  saveButton: { paddingVertical: 6, paddingHorizontal: 16, backgroundColor: THEME.accent, borderRadius: 20 },
   saveButtonSuccess: { backgroundColor: THEME.success },
   saveButtonError: { backgroundColor: '#EF4444' },
-  saveButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  bottomNav: {
+    flexDirection: 'row',
+    backgroundColor: THEME.cardBg,
+    height: 85,
+    borderTopWidth: 1,
+    borderTopColor: THEME.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingBottom: 20,
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  activeIconContainer: {
+    width: 38,
+    height: 38,
+    backgroundColor: THEME.accent,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  navText: {
+    color: THEME.subText,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  navTextActive: {
+    color: THEME.accent,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
 });
