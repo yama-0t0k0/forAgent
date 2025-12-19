@@ -168,7 +168,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
           <Ionicons name="book-outline" size={28} color={THEME.subText} />
           <Text style={styles.navText}>学習</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleGoHome}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
           <Ionicons name="grid-outline" size={28} color={THEME.accent} />
           <Text style={[styles.navText, { color: THEME.accent, fontWeight: '800' }]}>メニュー</Text>
         </TouchableOpacity>

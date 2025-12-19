@@ -150,7 +150,7 @@ export const ImageEditScreen = () => {
                     <Ionicons name="book-outline" size={28} color={THEME.subText} />
                     <Text style={styles.navText}>学習</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Registration')}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
                     <Ionicons name="grid-outline" size={28} color={THEME.subText} />
                     <Text style={styles.navText}>メニュー</Text>
                 </TouchableOpacity>
