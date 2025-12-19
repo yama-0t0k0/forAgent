@@ -48,6 +48,11 @@ export const MyPageScreen = () => {
                 >
                     <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
                         <View style={styles.topProfileContainer}>
+                            {/* Edit Icon Button for images/profile */}
+                            <TouchableOpacity style={styles.editIconButton} onPress={handleEdit}>
+                                <Ionicons name="create-outline" size={24} color="#FFF" />
+                            </TouchableOpacity>
+
                             {/* 2. Top-right repositioned button */}
                             <View style={styles.profileActionRow}>
                                 <TouchableOpacity style={styles.miniResumeButton}>
@@ -181,8 +186,15 @@ const styles = StyleSheet.create({
     },
     topProfileContainer: {
         paddingHorizontal: 15,
-        paddingTop: 10,
+        paddingTop: 5,
         width: '100%',
+    },
+    editIconButton: {
+        alignSelf: 'flex-end',
+        marginBottom: 2,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        borderRadius: 15,
+        padding: 4,
     },
     profileActionRow: {
         marginBottom: 5,
