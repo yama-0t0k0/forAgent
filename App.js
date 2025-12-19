@@ -7,35 +7,19 @@ import { DataProvider } from './src/context/DataContext';
 import { GenericRegistrationScreen } from './src/screens/GenericRegistrationScreen';
 import { THEME } from './src/constants/theme';
 
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MyPageScreen } from './src/screens/MyPageScreen';
-
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-
-const EngineerNavigator = () => (
-  <Stack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Registration">
-      {(props) => (
-        <GenericRegistrationScreen
-          {...props}
-          title="エンジニア個人登録"
-          collectionName="individual"
-          idField="id_individual"
-          idPrefixChar="C"
-        />
-      )}
-    </Stack.Screen>
-    <Stack.Screen name="MyPage" component={MyPageScreen} />
-  </Stack.Navigator>
-);
 
 const EngineerRegistrationWrapper = () => (
   <DataProvider initialData={ENGINEER_TEMPLATE}>
-    <EngineerNavigator />
+    <GenericRegistrationScreen
+      title="エンジニア個人登録"
+      collectionName="individual"
+      idField="id_individual"
+      idPrefixChar="C"
+    />
   </DataProvider>
 );
 
@@ -58,7 +42,52 @@ export default function App() {
       <SafeAreaView style={{ flex: 1, backgroundColor: THEME.background }}>
         <StatusBar barStyle="dark-content" />
         <NavigationContainer>
-          <EngineerRegistrationWrapper />
+          {appMode === 'engineer' ? (
+            <EngineerRegistrationWrapper />
+          ) : appMode === 'company' ? (
+            <CompanyRegistrationWrapper />
+          ) : (
+            <Tab.Navigator
+              screenOptions={{
+                headerShown: false,
+                tabBarStyle: {
+                  backgroundColor: THEME.background,
+                  borderTopColor: THEME.cardBorder,
+                  height: 40, // Compact height
+                  paddingBottom: 0,
+                  paddingTop: 0,
+                },
+                tabBarActiveTintColor: THEME.accent,
+                tabBarInactiveTintColor: THEME.subText,
+                tabBarLabelStyle: {
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 0,
+                  position: 'absolute', // Center the label vertically
+                  top: 10,
+                  bottom: 10, // Ensure it's centered
+                  left: 0,
+                  right: 0,
+                  textAlign: 'center',
+                  textAlignVertical: 'center',
+                },
+                tabBarIconStyle: {
+                  display: 'none',
+                },
+              }}
+            >
+              <Tab.Screen
+                name="Engineer"
+                component={EngineerRegistrationWrapper}
+                options={{ title: 'エンジニア登録' }}
+              />
+              <Tab.Screen
+                name="Company"
+                component={CompanyRegistrationWrapper}
+                options={{ title: '企業登録' }}
+              />
+            </Tab.Navigator>
+          )}
         </NavigationContainer>
       </SafeAreaView>
     </SafeAreaProvider>

@@ -28,7 +28,7 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
-export const GenericRegistrationScreen = ({ navigation, collectionName, idField, title, idPrefixChar = 'C' }) => {
+export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C' }) => {
   const { data, updateValue } = useContext(DataContext);
   const [saveStatus, setSaveStatus] = useState('idle');
 
@@ -84,12 +84,7 @@ export const GenericRegistrationScreen = ({ navigation, collectionName, idField,
 
       updateValue([idField], newId);
       setSaveStatus('success');
-      setTimeout(() => {
-        setSaveStatus('idle');
-        if (navigation) {
-          navigation.navigate('MyPage');
-        }
-      }, 1000);
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
       console.error("Error saving document: ", error);
       setSaveStatus('error');

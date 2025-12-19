@@ -3,7 +3,7 @@ module.exports = ({ config }) => {
   let appName = "my-expo-app";
 
   if (appMode === 'engineer') {
-    appName = "個人マイページ";
+    appName = "エンジニア個人登録";
   } else if (appMode === 'company') {
     appName = "企業プロフィール登録";
   }
