@@ -8,7 +8,8 @@
     "start:company": "EXPO_PUBLIC_APP_MODE=company expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "push:safe": "bash githooks/safe_push.sh"
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "8.4.4",
