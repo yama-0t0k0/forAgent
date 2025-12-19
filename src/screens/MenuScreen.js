@@ -12,23 +12,20 @@ export const MenuScreen = () => {
             title: '個人設定',
             items: [
                 { id: 'profile', label: 'プロフィール編集', icon: 'person-outline', target: 'Registration' },
-                { id: 'account', label: 'アカウント情報', icon: 'id-card-outline' },
+                { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },
                 { id: 'payment', label: '決済情報', icon: 'card-outline' },
-                { id: 'connections', label: 'つながり管理', icon: 'people-outline' },
             ]
         },
         {
             title: 'アプリ設定',
             items: [
-                { id: 'notifications', label: '通知設定', icon: 'notifications-outline' },
-                { id: 'security', label: 'セキュリティ・プライバシー', icon: 'lock-closed-outline' },
                 { id: 'display', label: 'デザイン・表示設定', icon: 'color-palette-outline' },
             ]
         },
         {
             title: 'その他',
             items: [
-                { id: 'help', label: 'ヘルプ・サポート', icon: 'help-circle-outline' },
+                { id: 'help', label: 'ヘルプ / お問合せ', icon: 'help-circle-outline' },
                 { id: 'terms', label: '利用規約', icon: 'document-text-outline' },
                 { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: '#EF4444' },
             ]
@@ -38,6 +35,10 @@ export const MenuScreen = () => {
     const handlePress = (item) => {
         if (item.target) {
             navigation.navigate(item.target, { isEdit: true });
+        } else if (item.id === 'help') {
+            // Pointing to Chat (MyPage bottom-right) would be via MyPage for now 
+            // but the instruction says "transition to Chat on MyPage"
+            navigation.navigate('MyPage');
         } else {
             // Placeholder for other actions
             console.log(`Pressed ${item.label}`);
@@ -88,7 +89,7 @@ export const MenuScreen = () => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem}>
                     <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>コネクション</Text>
+                    <Text style={styles.navText}>つながり</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
                     <Ionicons name="home-outline" size={26} color={THEME.subText} />

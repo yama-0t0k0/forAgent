@@ -48,10 +48,15 @@ export const MyPageScreen = () => {
                 >
                     <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
                         <View style={styles.topProfileContainer}>
-                            {/* Edit Icon Button for images/profile */}
-                            <TouchableOpacity style={styles.editIconButton} onPress={() => navigation.navigate('ImageEdit')}>
-                                <Ionicons name="create-outline" size={24} color="#FFF" />
-                            </TouchableOpacity>
+                            {/* Header Action Buttons (Notifications and Image Edit) */}
+                            <View style={styles.headerActionContainer}>
+                                <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
+                                    <Ionicons name="notifications-outline" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
+                                    <Ionicons name="create-outline" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
 
                             {/* 2. Top-right repositioned button */}
                             <View style={styles.profileActionRow}>
@@ -139,7 +144,7 @@ export const MyPageScreen = () => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem}>
                     <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>コネクション</Text>
+                    <Text style={styles.navText}>つながり</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem}>
                     <View style={styles.activeIconContainer}>
@@ -189,8 +194,12 @@ const styles = StyleSheet.create({
         paddingTop: 5,
         width: '100%',
     },
-    editIconButton: {
+    headerActionContainer: {
+        flexDirection: 'row',
         alignSelf: 'flex-end',
+        gap: 10,
+    },
+    headerIconButton: {
         marginBottom: 2,
         backgroundColor: 'rgba(0,0,0,0.2)',
         borderRadius: 15,

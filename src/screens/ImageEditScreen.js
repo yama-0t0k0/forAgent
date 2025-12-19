@@ -138,7 +138,7 @@ export const ImageEditScreen = () => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem}>
                     <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>コネクション</Text>
+                    <Text style={styles.navText}>つながり</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
                     <View style={styles.activeIconContainer}>
