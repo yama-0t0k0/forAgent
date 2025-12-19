@@ -81,6 +81,16 @@ fetch_remote_changes() {
     fi
 }
 
+# Files that should NEVER be synced from main because they contain yama-specific overrides
+PROTECT_FILES=(
+    "App.js"
+    "package.json"
+    "package-lock.json"
+    "src/screens/MyPageScreen.js"
+    "githooks/safe_push.sh"
+    "githooks/safe_pull.sh"
+)
+
 # Function to identify files to sync from main to yama
 identify_missing_files() {
     echo "🔍 Identifying files to sync from '$SOURCE_BRANCH' to '$TARGET_BRANCH'..."
@@ -88,39 +98,42 @@ identify_missing_files() {
     # Get all differences between branches
     ALL_DIFFS=$(git diff --name-status HEAD..origin/$SOURCE_BRANCH)
     
-    # Get files that are Added (A) or Modified (M) in main compared to yama
-    # We ignore Deleted (D) files to preserve yama-specific files
-    SYNC_FILES=$(echo "$ALL_DIFFS" | grep -E "^[AM]" | cut -f2 || true)
+    # Identify files to sync (Added or Modified in main)
+    RAW_SYNC_FILES=$(echo "$ALL_DIFFS" | grep -E "^[AM]" | cut -f2 || true)
     
-    if [ -z "$SYNC_FILES" ]; then
+    if [ -z "$RAW_SYNC_FILES" ]; then
         echo "✅ No files to sync. '$TARGET_BRANCH' is up to date with '$SOURCE_BRANCH'!"
-        
-        # Show what differences exist (if any)
-        if [ ! -z "$ALL_DIFFS" ]; then
-            echo ""
-            echo "📊 Other differences (ignored):"
-            DELETED_FILES=$(echo "$ALL_DIFFS" | grep "^D" || true)
-            if [ ! -z "$DELETED_FILES" ]; then
-                echo "$DELETED_FILES" | head -5
-                DELETED_COUNT=$(echo "$DELETED_FILES" | wc -l | tr -d ' ')
-                if [ "$DELETED_COUNT" -gt 5 ]; then
-                    echo "... and more deleted files (preserved in $TARGET_BRANCH)"
-                fi
+        exit 0
+    fi
+
+    # Filter out protected files
+    SYNC_FILES=""
+    for file in $RAW_SYNC_FILES; do
+        is_protected=false
+        for protected in "${PROTECT_FILES[@]}"; do
+            if [ "$file" == "$protected" ]; then
+                is_protected=true
+                echo "🛡️  Skipping protected file: $file"
+                break
             fi
+        done
+        if [ "$is_protected" = false ]; then
+            SYNC_FILES+="$file"$'\n'
         fi
+    done
+    
+    # Final cleanup of sync files list
+    SYNC_FILES=$(echo "$SYNC_FILES" | sed '/^$/d')
+
+    if [ -z "$SYNC_FILES" ]; then
+        echo "✅ No un-protected files to sync."
         exit 0
     fi
     
     # Count files to sync
     SYNC_COUNT=$(echo "$SYNC_FILES" | wc -l | tr -d ' ')
-    ADDED_COUNT=$(echo "$ALL_DIFFS" | grep "^A" | wc -l | tr -d ' ' || echo "0")
-    MODIFIED_COUNT=$(echo "$ALL_DIFFS" | grep "^M" | wc -l | tr -d ' ' || echo "0")
-    DELETED_COUNT=$(echo "$ALL_DIFFS" | grep "^D" | wc -l | tr -d ' ' || echo "0")
     
-    echo "📋 Files to sync: $SYNC_COUNT"
-    echo "  - Added files (A): $ADDED_COUNT"
-    echo "  - Modified files (M): $MODIFIED_COUNT"
-    echo "  - Deleted files (D): $DELETED_COUNT (ignored - preserved in $TARGET_BRANCH)"
+    echo "📋 Files to sync (excluding protected): $SYNC_COUNT"
     echo ""
     echo "Files to be synced:"
     echo "$SYNC_FILES" | head -10
