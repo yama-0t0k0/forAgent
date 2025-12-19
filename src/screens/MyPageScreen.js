@@ -42,14 +42,14 @@ export const MyPageScreen = () => {
             <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
-                    source={RAINFOREST_BG}
+                    source={basicInfo['背景画像URL'] ? { uri: basicInfo['背景画像URL'] } : RAINFOREST_BG}
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
                     <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
                         <View style={styles.topProfileContainer}>
                             {/* Edit Icon Button for images/profile */}
-                            <TouchableOpacity style={styles.editIconButton} onPress={handleEdit}>
+                            <TouchableOpacity style={styles.editIconButton} onPress={() => navigation.navigate('ImageEdit')}>
                                 <Ionicons name="create-outline" size={24} color="#FFF" />
                             </TouchableOpacity>
 
@@ -64,7 +64,7 @@ export const MyPageScreen = () => {
                             <View style={styles.profileRow}>
                                 <View style={styles.photoContainer}>
                                     <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                        source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                         style={styles.profileImage}
                                     />
                                 </View>

@@ -9,6 +9,7 @@ import { THEME } from './src/constants/theme';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MyPageScreen } from './src/screens/MyPageScreen';
+import { ImageEditScreen } from './src/screens/ImageEditScreen';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
@@ -30,6 +31,7 @@ const EngineerNavigator = () => (
       )}
     </Stack.Screen>
     <Stack.Screen name="MyPage" component={MyPageScreen} />
+    <Stack.Screen name="ImageEdit" component={ImageEditScreen} />
   </Stack.Navigator>
 );
 
