@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
-import { DataContext } from '../../core/state/DataContext';
-import { THEME } from '../../core/theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';

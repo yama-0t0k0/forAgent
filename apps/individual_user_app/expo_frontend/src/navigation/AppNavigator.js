@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MyPageScreen } from '../features/profile/MyPageScreen';
 import { ImageEditScreen } from '../features/profile/ImageEditScreen';
 import { MenuScreen } from '../features/profile/MenuScreen';
-import { GenericRegistrationScreen } from '../features/registration/GenericRegistrationScreen';
+import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 
 const Stack = createNativeStackNavigator();
 

@@ -1,18 +1,13 @@
 module.exports = ({ config }) => {
   return {
     ...config,
-    name: "エンジニア個人マイページ",
-    slug: "my-expo-app",
+    name: "企業プロフィール登録",
+    slug: "corporate-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
-    plugins: [
-      "expo-asset",
-      "expo-router",
-      "expo-web-browser"
-    ],
     splash: {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

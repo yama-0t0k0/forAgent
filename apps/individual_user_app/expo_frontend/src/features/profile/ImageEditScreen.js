@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
-import { DataContext } from '../../core/state/DataContext';
-import { THEME } from '../../core/theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from '../../../firebaseConfig';
+import { db } from '@shared/src/core/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
 export const ImageEditScreen = () => {

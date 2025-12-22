@@ -5,7 +5,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { DataContext } from '../../core/state/DataContext';
 import { RecursiveField } from '../../core/components/RecursiveField';
 import { THEME } from '../../core/theme/theme';
-import { db } from '../../../firebaseConfig';
+import { db } from '../../core/firebaseConfig';
 import { collection, query, where, getDocs, setDoc, doc, documentId } from 'firebase/firestore';
 
 import { Ionicons } from '@expo/vector-icons';

@@ -193,8 +193,8 @@ check_project_dir() {
     fi
     
     PROJECT_NAME=$(grep -m 1 '"name":' package.json | cut -d '"' -f 4)
-    if [ "$PROJECT_NAME" != "my-expo-app" ]; then
-        echo "❌ Error: Incorrect project name '$PROJECT_NAME'. This script is for 'my-expo-app'."
+    if [ "$PROJECT_NAME" != "engineer-registration-app-yama" ]; then
+        echo "❌ Error: Incorrect project name '$PROJECT_NAME'. This script is for 'engineer-registration-app-yama'."
         exit 1
     fi
     echo "✅ Correct project directory verified"

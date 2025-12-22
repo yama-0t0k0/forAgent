@@ -3,8 +3,8 @@ import { StatusBar } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { DataProvider } from './src/core/state/DataContext';
-import { THEME } from './src/core/theme/theme';
+import { DataProvider } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
