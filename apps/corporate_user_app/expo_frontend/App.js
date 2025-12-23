@@ -10,6 +10,8 @@ import { GenericRegistrationScreen } from '@shared/src/features/registration/Gen
 import { CompanyPageScreen } from './src/features/company_profile/CompanyPageScreen';
 import { MenuScreen } from './src/features/company_profile/MenuScreen';
 import { ImageEditScreen } from './src/features/company_profile/ImageEditScreen';
+import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
+import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
 
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();
@@ -18,6 +20,11 @@ const CorporateRegistrationWrapper = () => (
     <DataProvider initialData={COMPANY_TEMPLATE}>
         <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="CompanyPage">
             <Stack.Screen name="CompanyPage" component={CompanyPageScreen} />
+            <Stack.Screen name="TechStack" component={TechStackScreen} />
+            <Stack.Screen name="Jobs" component={UnderConstructionScreen} initialParams={{ title: '求人' }} />
+            <Stack.Screen name="Connections" component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
+            <Stack.Screen name="Blog" component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
+            <Stack.Screen name="Events" component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="ImageEdit" component={ImageEditScreen} />
             <Stack.Screen name="Registration">

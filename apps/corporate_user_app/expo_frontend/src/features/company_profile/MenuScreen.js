@@ -82,23 +82,23 @@ export const MenuScreen = () => {
 
             {/* Bottom Navigation */}
             <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CompanyPage')}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Jobs')}>
                     <Ionicons name="briefcase-outline" size={24} color={THEME.subText} />
                     <Text style={styles.navText}>求人</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Connections')}>
                     <Ionicons name="people-circle-outline" size={24} color={THEME.subText} />
                     <Text style={styles.navText}>つながり</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('TechStack')}>
                     <Ionicons name="code-slash-outline" size={24} color={THEME.subText} />
                     <Text style={styles.navText}>使用技術</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Blog')}>
                     <Ionicons name="newspaper-outline" size={24} color={THEME.subText} />
                     <Text style={styles.navText}>ブログ</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Events')}>
                     <Ionicons name="calendar-outline" size={24} color={THEME.subText} />
                     <Text style={styles.navText}>イベント</Text>
                 </TouchableOpacity>
