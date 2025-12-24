@@ -1,7 +1,9 @@
-import React, { useMemo, useContext } from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
+import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,16 +23,6 @@ export const JobDescriptionScreen = () => {
 
     // Extract data from DataContext (which is loaded from jd.json in App.js)
     const positionName = data['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
-
-    // Heatmap grid (90 tiles) - Hardcoded pattern matching individual_user_app for now
-    const skillGrid = useMemo(() => {
-        return Array(90).fill(0).map((_, i) => ({
-            id: i,
-            color: i % 4 === 0 ? THEME.accent :
-                i % 4 === 1 ? '#7DD3FC' :
-                    i % 4 === 2 ? '#38BDF8' : '#0369A1'
-        }));
-    }, []);
 
     return (
         <View style={styles.container}>
@@ -64,17 +56,13 @@ export const JobDescriptionScreen = () => {
                     <View style={styles.badgeSection}>
                         <View style={styles.tradingCardRow}>
                             {BADGE_ITEMS.map((item, index) => (
-                                <View key={index} style={styles.tradingCard}>
-                                    <Text style={styles.cardLabel}>{item.label}</Text>
-                                    <View style={styles.glassBadge}>
-                                        <Text style={styles.cardSkillName}>{item.skills[index] || item.skills[0]}</Text>
-                                        <Ionicons
-                                            name={item.icon}
-                                            size={18}
-                                            color={THEME.accent}
-                                        />
-                                    </View>
-                                </View>
+                                <GlassCard
+                                    key={index}
+                                    label={item.label}
+                                    skillName={item.skills[index] || item.skills[0]}
+                                    iconName={item.icon}
+                                    width={(width - 45) / 3}
+                                />
                             ))}
                         </View>
                     </View>
@@ -88,11 +76,7 @@ export const JobDescriptionScreen = () => {
                             </View>
                         </View>
 
-                        <View style={styles.heatmapGrid}>
-                            {skillGrid.map((item) => (
-                                <View key={item.id} style={[styles.heatmapTile, { backgroundColor: item.color }]} />
-                            ))}
-                        </View>
+                        <HeatmapGrid containerWidth={width - 40} />
 
                         <View style={styles.chatBotCallout}>
                             <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
@@ -182,38 +166,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
-    tradingCard: {
-        width: (width - 45) / 3,
-        alignItems: 'center',
-    },
-    cardLabel: {
-        color: THEME.subText, // Changed from white as background is gone
-        fontSize: 10,
-        fontWeight: '800',
-        marginBottom: 5,
-    },
-    glassBadge: {
-        width: '100%',
-        aspectRatio: 1.1,
-        backgroundColor: 'rgba(255, 255, 255, 0.8)', // More opaque since no dark bg
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E0F2FE',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 2,
-    },
-    cardSkillName: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#0284C7',
-        marginBottom: 4,
-        textAlign: 'center',
-    },
     heatmapSection: {
         paddingHorizontal: 15,
         marginTop: 10,
@@ -235,19 +187,6 @@ const styles = StyleSheet.create({
         backgroundColor: THEME.cardBorder,
         padding: 3,
         borderRadius: 5,
-    },
-    heatmapGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        width: '100%',
-        justifyContent: 'flex-start',
-    },
-    heatmapTile: {
-        width: (width - 40) / 9 - 4,
-        height: (width - 40) / 9 - 4,
-        margin: 2,
-        borderRadius: 4,
-        opacity: 0.75,
     },
     chatBotCallout: {
         position: 'absolute',

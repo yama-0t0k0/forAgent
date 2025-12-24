@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
+import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,13 +57,7 @@ export const MyPageScreen = () => {
         fetchNames();
     }, []);
 
-    // Heatmap grid (9 columns x 10 rows = 90 tiles) - 1.5x larger than 14-col version
-    const skillGrid = Array(90).fill(0).map((_, i) => ({
-        id: i,
-        color: i % 4 === 0 ? THEME.accent :
-            i % 4 === 1 ? '#7DD3FC' :
-                i % 4 === 2 ? '#38BDF8' : '#0369A1'
-    }));
+    // Heatmap grid logic moved to HeatmapGrid component
 
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true });
@@ -126,17 +122,16 @@ export const MyPageScreen = () => {
                         {['コアスキル', 'サブスキル1', 'サブスキル2'].map((label, index) => {
                             const skills = ['サーバサイド', 'iOS', 'AWS'];
                             return (
-                                <View key={index} style={styles.tradingCard}>
-                                    <Text style={styles.cardLabel}>{label}</Text>
-                                    <View style={styles.glassBadge}>
-                                        <Text style={styles.cardSkillName}>{skills[index]}</Text>
-                                        <Ionicons
-                                            name={index === 0 ? "star" : index === 1 ? "medal" : "trophy"}
-                                            size={18}
-                                            color={THEME.accent}
-                                        />
-                                    </View>
-                                </View>
+                                <GlassCard
+                                    key={index}
+                                    label={label}
+                                    skillName={skills[index]}
+                                    iconName={index === 0 ? "star" : index === 1 ? "medal" : "trophy"}
+                                    width={(width - 45) / 3}
+                                    labelStyle={styles.cardLabel}
+                                    badgeStyle={styles.glassBadge}
+                                    skillNameStyle={styles.cardSkillName}
+                                />
                             );
                         })}
                     </View>
@@ -151,11 +146,7 @@ export const MyPageScreen = () => {
                         </View>
                     </View>
 
-                    <View style={styles.heatmapGrid}>
-                        {skillGrid.map((item) => (
-                            <View key={item.id} style={[styles.heatmapTile, { backgroundColor: item.color }]} />
-                        ))}
-                    </View>
+                    <HeatmapGrid containerWidth={width - 40} />
 
                     <View style={styles.chatBotCallout}>
                         <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
@@ -318,10 +309,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
-    tradingCard: {
-        width: (width - 45) / 3,
-        alignItems: 'center',
-    },
     cardLabel: {
         color: '#FFF',
         fontSize: 10,
@@ -374,19 +361,6 @@ const styles = StyleSheet.create({
         backgroundColor: THEME.cardBorder,
         padding: 3,
         borderRadius: 5,
-    },
-    heatmapGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        width: '100%',
-        justifyContent: 'flex-start', // Unified alignment
-    },
-    heatmapTile: {
-        width: (width - 40) / 9 - 4, // 9 columns, approx 1.5x larger than 14-col
-        height: (width - 40) / 9 - 4,
-        margin: 2,
-        borderRadius: 4,
-        opacity: 0.75,
     },
     chatBotCalloutOverlap: {
         position: 'absolute',
