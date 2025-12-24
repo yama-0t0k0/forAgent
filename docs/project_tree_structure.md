@@ -103,7 +103,19 @@
 ---
 *最終更新: 2025年12月 - モジュラーモノリス再定義版*
 
-## 📝 変更ログ (Architecture Change Log)
+## 📝 変更ログ (Dev Log)
+
+### 2025年12月24日: 個人登録フローのFirestore連携とドキュメント整備
+- **Firestoreデータ連携 (Individual App)**:
+    - **MyPageScreen.js**: `/individual/C000000000000` のデータをFirestoreから取得し、ネームプレートやヒートマップに反映するよう改修。
+    - **App.js**: アプリ起動時にFirestoreデータをプリロードし、登録画面 (`GenericRegistrationScreen`) の初期値として注入するロジックを実装。
+    - **データソース明示化**: UI上にデータ取得元（Firestore / Template）を示すインジケーターを追加。
+- **登録フォームのUI改善**:
+    - **RecursiveField.js**: `Object.keys` を `Object.entries` に変更し、テンプレートJSON (`engineer-profile-template.json`) のキー順序通りに入力項目を描画するよう修正。
+- **Job Description App UI同期**:
+    - **JobDescriptionScreen.js**: MyPageScreenと同様のスタイルでヒートマップを実装し、アプリ間でのデザイン一貫性を確保。
+- **ドキュメント整備**:
+    - **dev_basicinfo.md**: パッケージ管理の方針を「バックエンド (Dart/Melos)」と「フロントエンド (NPM Workspaces)」に明確に分離して記述。
 
 ### 2025年12月: Corporate App UI刷新と構造最適化
 モジュラーモノリス構造への準拠を進めるため、以下の構造変更と実装を実施。
