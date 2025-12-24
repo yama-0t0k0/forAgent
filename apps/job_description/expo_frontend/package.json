@@ -1,0 +1,17 @@
+{
+  "name": "job-description-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "expo start --tunnel --clear"
+  },
+  "dependencies": {
+    "expo": "~54.0.29",
+    "expo-asset": "~12.0.12",
+    "expo-constants": "~18.0.12",
+    "expo-linking": "~8.0.11",
+    "expo-router": "~6.0.21",
+    "@shared/common-frontend": "*"
+  }
+}
