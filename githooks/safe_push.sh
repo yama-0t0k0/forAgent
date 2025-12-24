@@ -65,65 +65,70 @@ check_git_repo() {
     fi
 }
 
-# Function to check for untracked files
-check_untracked_files() {
-    echo "🔍 Checking for untracked files..."
+# Function to synchronize with remote
+sync_remote() {
+    echo "� Synchronizing with remote..."
+    git fetch origin "$TARGET_BRANCH"
     
-    UNTRACKED_FILES=$(git ls-files --others --exclude-standard)
+    LOCAL_HASH=$(git rev-parse HEAD)
+    REMOTE_HASH=$(git rev-parse "origin/$TARGET_BRANCH")
+    BASE_HASH=$(git merge-base HEAD "origin/$TARGET_BRANCH")
     
-    if [ -n "$UNTRACKED_FILES" ]; then
-        echo "⚠️  Found untracked files:"
-        echo "$UNTRACKED_FILES"
-        echo ""
-        
-        if [ "$AUTO_MODE" = true ]; then
-            git add .
-            echo "✅ All files added to staging area (auto mode)"
+    if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+        echo "✅ Local branch is up to date with remote"
+    elif [ "$LOCAL_HASH" = "$BASE_HASH" ]; then
+        echo "⚠️  Local branch is behind remote. Pulling changes..."
+        if git pull --rebase origin "$TARGET_BRANCH"; then
+            echo "✅ Successfully pulled and rebased changes"
         else
-            read -p "Add all untracked files? (y/N): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                git add .
-                echo "✅ All files added to staging area"
-            else
-                echo "❌ Please handle untracked files manually"
-                exit 1
-            fi
+            echo "❌ Error: Failed to pull changes. Please resolve conflicts manually."
+            exit 1
         fi
+    elif [ "$REMOTE_HASH" = "$BASE_HASH" ]; then
+        echo "✅ Local branch is ahead of remote (safe to push)"
     else
-        echo "✅ No untracked files found"
+        echo "⚠️  Branches have diverged. Pulling changes..."
+        if git pull --rebase origin "$TARGET_BRANCH"; then
+            echo "✅ Successfully pulled and rebased changes"
+        else
+            echo "❌ Error: Failed to pull changes. Please resolve conflicts manually."
+            exit 1
+        fi
     fi
 }
 
-# Function to check for unstaged changes
-check_unstaged_changes() {
-    echo "🔍 Checking for unstaged changes..."
+# Function to handle all changes (untracked, modified, deleted)
+handle_changes() {
+    echo "🔍 Checking working directory status..."
+    git status
+    echo ""
     
-    MODIFIED_FILES=$(git diff --name-only)
-    
-    if [ -n "$MODIFIED_FILES" ]; then
-        echo "⚠️  Found unstaged changes:"
-        echo "$MODIFIED_FILES"
-        echo ""
-        
-        if [ "$AUTO_MODE" = true ]; then
-            git add .
-            echo "✅ All changes staged (auto mode)"
-        else
-            read -p "Stage all changes? (y/N): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                git add .
-                echo "✅ All changes staged"
-            else
-                echo "❌ Please stage changes manually"
-                exit 1
-            fi
-        fi
-    else
-        echo "✅ No unstaged changes found"
+    if [ -z "$(git status --porcelain)" ]; then
+        echo "✅ Working directory clean"
+        return 0
     fi
+
+    echo "📦 Preparing changes..."
+    if [ "$AUTO_MODE" = true ]; then
+        git add -A
+        echo "✅ All changes (including deletions and untracked files) staged (auto mode)"
+    else
+        read -p "Stage ALL changes (including deletions)? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git add -A
+            echo "✅ All changes staged"
+        else
+            echo "❌ Manual staging requested. Exiting safe push."
+            exit 1
+        fi
+    fi
+    
+    echo "🔍 Verifying staged changes..."
+    git status
+    echo ""
 }
+
 
 # Function to check for staged changes
 check_staged_changes() {
@@ -206,8 +211,8 @@ main() {
     check_project_dir
     check_git_repo
     ensure_yama_branch
-    check_untracked_files
-    check_unstaged_changes
+    sync_remote
+    handle_changes
     check_staged_changes
     commit_changes
     push_changes
