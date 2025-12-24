@@ -1,10 +1,12 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { db } from '@shared/src/core/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,6 +16,8 @@ const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 export const MyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
+    const [remoteNames, setRemoteNames] = useState(null);
+    const [remoteEmail, setRemoteEmail] = useState('');
 
     // Extract data safely
     const basicInfo = data['基本情報'] || {};
@@ -24,6 +28,32 @@ export const MyPageScreen = () => {
         kanjiFamily: basicInfo['姓'] || '',
     };
     const email = basicInfo['メール'] || '';
+
+    useEffect(() => {
+        const fetchNames = async () => {
+            try {
+                const snap = await getDoc(doc(db, 'individual', 'C000000000000'));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    const b = d['基本情報'] || {};
+                    const first = b['名'] || '';
+                    const family = b['姓'] || '';
+                    const mail = b['メール'] || '';
+                    if (first || family) {
+                        console.log('names fetched', { first, family });
+                        setRemoteNames({ first, family });
+                    }
+                    if (mail) {
+                        console.log('email fetched', { mail });
+                        setRemoteEmail(mail);
+                    }
+                }
+            } catch (e) {
+                console.log('failed to fetch names', e);
+            }
+        };
+        fetchNames();
+    }, []);
 
     // Heatmap grid (9 columns x 10 rows = 90 tiles) - 1.5x larger than 14-col version
     const skillGrid = Array(90).fill(0).map((_, i) => ({
@@ -74,9 +104,10 @@ export const MyPageScreen = () => {
                                     />
                                 </View>
                                 <View style={styles.namePlate}>
-                                    <Text style={styles.nameText}>{names.kanjiFamily} {names.kanjiFirst}</Text>
+                                    <Text style={styles.nameText}>{(remoteNames?.family || names.kanjiFamily)} {(remoteNames?.first || names.kanjiFirst)}</Text>
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                    <Text style={styles.emailText}>{email}</Text>
+                                    <Text style={styles.emailText}>{remoteEmail || email}</Text>
+                                    <Text style={styles.dataSourceText}>{remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート'}</Text>
 
                                     {/* Relocated Chatbot button */}
                                     <TouchableOpacity style={styles.chatBotCalloutOverlap}>
@@ -177,6 +208,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: THEME.background,
+    },
+    dataSourceText: {
+        fontSize: 10,
+        color: THEME.subText,
+        marginTop: 2,
     },
     scrollContent: {
         paddingBottom: 0,
