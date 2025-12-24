@@ -6,6 +6,7 @@ import { MenuScreen } from '../features/profile/MenuScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 
 const Stack = createNativeStackNavigator();
+const ENGINEER_TEMPLATE = require('../../assets/json/engineer-profile-template.json');
 
 export const AppNavigator = () => (
     <Stack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
@@ -17,6 +18,7 @@ export const AppNavigator = () => (
                     collectionName="individual"
                     idField="id_individual"
                     idPrefixChar="C"
+                    orderTemplate={ENGINEER_TEMPLATE}
                 />
             )}
         </Stack.Screen>

@@ -18,20 +18,20 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const CategoryScreen = ({ route }) => {
-  const { rootKey } = route.params;
+  const { rootKey, orderTemplateRoot } = route.params;
   const { data } = useContext(DataContext);
   const rootData = data[rootKey];
 
   return (
     <View style={styles.screenContainer}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <RecursiveField data={rootData} depth={0} path={[rootKey]} />
+        <RecursiveField data={rootData} depth={0} path={[rootKey]} orderTemplate={orderTemplateRoot} />
       </ScrollView>
     </View>
   );
 };
 
-export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage' }) => {
+export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -103,8 +103,13 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
 
   const topLevelKeys = useMemo(() => {
     if (!data) return [];
-    return Object.keys(data).filter(key => key !== idField && key !== '_displayType');
-  }, [data, idField]);
+    const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
+    if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+    const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
+    const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
+    const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
+    return [...inTpl, ...notInTpl];
+  }, [data, idField, orderTemplate]);
 
   const handleGoHome = () => {
     navigation.navigate(homeRouteName);
@@ -143,7 +148,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
             key={key}
             name={key}
             component={CategoryScreen}
-            initialParams={{ rootKey: key }}
+            initialParams={{ rootKey: key, orderTemplateRoot: orderTemplate ? orderTemplate[key] : null }}
           />
         ))}
       </Tab.Navigator>

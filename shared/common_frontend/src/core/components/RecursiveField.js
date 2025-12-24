@@ -12,7 +12,7 @@ import { DatePickerInput } from './DatePickerInput';
 import { SingleSelectGroup } from './SingleSelectGroup';
 import { StatusRow } from './StatusRow';
 
-const AccordionItem = ({ label, data, depth, path }) => {
+const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const [expanded, setExpanded] = useState(depth === 0);
 
   const toggleExpand = () => {
@@ -33,21 +33,28 @@ const AccordionItem = ({ label, data, depth, path }) => {
       </TouchableOpacity>
       {expanded && (
         <View style={styles.content}>
-          {isEmpty ? <Text style={styles.emptyText}>(No Data)</Text> : <RecursiveField data={data} depth={depth + 1} path={path} />}
+          {isEmpty ? <Text style={styles.emptyText}>(No Data)</Text> : <RecursiveField data={data} depth={depth + 1} path={path} orderTemplate={orderTemplate} />}
         </View>
       )}
     </View>
   );
 };
 
-export const RecursiveField = ({ data, depth = 0, path = [] }) => {
+export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = null }) => {
   if (!data || typeof data !== 'object') return null;
+
+  const rawKeys = Object.keys(data).filter(k => k !== '_displayType');
+  let orderedKeys = rawKeys;
+  if (orderTemplate && typeof orderTemplate === 'object') {
+    const templateKeys = Object.keys(orderTemplate).filter(k => k !== '_displayType');
+    const inTemplate = rawKeys.filter(k => templateKeys.includes(k)).sort((a, b) => templateKeys.indexOf(a) - templateKeys.indexOf(b));
+    const notInTemplate = rawKeys.filter(k => !templateKeys.includes(k));
+    orderedKeys = [...inTemplate, ...notInTemplate];
+  }
 
   return (
     <View style={{ width: '100%' }}>
-      {Object.keys(data).map((key) => {
-        // Skip metadata keys in the loop
-        if (key === '_displayType') return null;
+      {orderedKeys.map((key) => {
 
         const value = data[key];
         const currentPath = [...path, key];
@@ -134,7 +141,7 @@ export const RecursiveField = ({ data, depth = 0, path = [] }) => {
         }
 
         if (isObject) {
-          return <AccordionItem key={key} label={key} data={value} depth={depth} path={currentPath} />;
+          return <AccordionItem key={key} label={key} data={value} depth={depth} path={currentPath} orderTemplate={orderTemplate ? orderTemplate[key] : null} />;
         }
 
         if (isBool) {
