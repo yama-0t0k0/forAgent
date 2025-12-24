@@ -1,7 +1,7 @@
 module.exports = ({ config }) => {
   return {
     ...config,
-    name: "エンジニア個人マイページ",
+    name: "JD（求人）",
     slug: "my-expo-app",
     version: "1.0.0",
     orientation: "portrait",
