@@ -1,71 +1,57 @@
-// 機能概要:
-// - 求人詳細画面 (Job Description Screen)
-// - 求職者（エンジニア）とのマッチングに使用される「スキル・志向ヒートマップ」を表示
-// - jd.jsonのデータを基に、職種名やスキル要件を可視化
-// - 不要な装飾（背景画像、ユーザー写真等）を排除し、求人情報にフォーカスしたUI
-//
-// 主要機能:
-// - ポジション名（職種）の表示
-// - スキル要件のヒートマップ表示
-// - 求人内容編集機能（編集ボタン）
-// - 求人詳細情報の閲覧（ボタン）
-//
-// ディレクトリ構造:
-// ├── src/
-// │   ├── features/
-// │   │   └── job_description/
-// │   │       └── JobDescriptionScreen.js (本ファイル)
-//
-// 依存関係:
-// - @shared/src/core/theme/theme (テーマ設定)
-// - assets/json/jd.json (求人データ)
-
-import React, { useState } from 'react';
+import React, { useMemo, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-// Load local JSON data directly for this screen
-const jdData = require('../../../../assets/json/jd.json');
-
 const { width } = Dimensions.get('window');
+
+// Mock data for badges (can be replaced with real data later)
+const BADGE_ITEMS = [
+    { label: '必須スキル', icon: 'star', skills: ['サーバサイド', 'クラウド', 'CI/CD'] },
+    { label: '歓迎スキル1', icon: 'medal', skills: ['サーバサイド', 'クラウド', 'CI/CD'] },
+    { label: '歓迎スキル2', icon: 'trophy', skills: ['サーバサイド', 'クラウド', 'CI/CD'] },
+];
 
 export const JobDescriptionScreen = () => {
     const navigation = useNavigation();
+    const { data } = useContext(DataContext);
 
-    // Extract data from jd.json
-    // "求人基本項目" -> "ポジション名"
-    const positionName = jdData['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
+    // Extract data from DataContext (which is loaded from jd.json in App.js)
+    const positionName = data['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
 
-    // Heatmap grid (90 tiles) - Mock visualization for now
-    // Ideally this would be colored based on jdData['スキル経験'] match logic
-    const skillGrid = Array(90).fill(0).map((_, i) => ({
-        id: i,
-        color: i % 4 === 0 ? THEME.accent :
-            i % 4 === 1 ? '#7DD3FC' :
-                i % 4 === 2 ? '#38BDF8' : '#0369A1'
-    }));
+    // Heatmap grid (90 tiles) - Hardcoded pattern matching individual_user_app for now
+    const skillGrid = useMemo(() => {
+        return Array(90).fill(0).map((_, i) => ({
+            id: i,
+            color: i % 4 === 0 ? THEME.accent :
+                i % 4 === 1 ? '#7DD3FC' :
+                    i % 4 === 2 ? '#38BDF8' : '#0369A1'
+        }));
+    }, []);
 
     return (
         <View style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
+            {/* Using SafeAreaView here to handle notches correctly without ImageBackground */}
+            <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
                 <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                     
-                    {/* 1. Header Area - Minimalist, no background image */}
+                    {/* 1. Header Area - Cleaned up */}
                     <View style={styles.headerContainer}>
-                        {/* Edit Button (Top Right) - Kept per instruction */}
+                        {/* Edit Button (Top Right) - Retained */}
                         <View style={styles.headerActionContainer}>
                              <TouchableOpacity 
                                 style={styles.editButton} 
-                                onPress={() => console.log('Edit Job Description')}
+                                onPress={() => navigation.navigate('JobEdit')}
+                                activeOpacity={0.7}
                             >
                                 <Ionicons name="create-outline" size={24} color={THEME.text} />
                             </TouchableOpacity>
                         </View>
 
-                        {/* Position Name Plate (Reused NamePlate style) */}
+                        {/* NamePlate repurposed as Position Name */}
                         <View style={styles.namePlateContainer}>
                             <View style={styles.namePlate}>
                                 <Text style={styles.positionLabel}>募集中ポジション</Text>
@@ -74,27 +60,22 @@ export const JobDescriptionScreen = () => {
                         </View>
                     </View>
 
-                    {/* 2. Glassmorphism Badges (Skill Requirements) */}
-                    {/* Kept as per "everything ABOVE badges is deleted" implication */}
+                    {/* 2. Glassmorphism Badges */}
                     <View style={styles.badgeSection}>
                         <View style={styles.tradingCardRow}>
-                            {['必須スキル', '歓迎スキル1', '歓迎スキル2'].map((label, index) => {
-                                const skills = ['サーバサイド', 'クラウド', 'CI/CD']; // Mock data
-                                const icons = ["star", "medal", "trophy"];
-                                return (
-                                    <View key={index} style={styles.tradingCard}>
-                                        <Text style={styles.cardLabel}>{label}</Text>
-                                        <View style={styles.glassBadge}>
-                                            <Text style={styles.cardSkillName}>{skills[index]}</Text>
-                                            <Ionicons
-                                                name={icons[index]}
-                                                size={18}
-                                                color={THEME.accent}
-                                            />
-                                        </View>
+                            {BADGE_ITEMS.map((item, index) => (
+                                <View key={index} style={styles.tradingCard}>
+                                    <Text style={styles.cardLabel}>{item.label}</Text>
+                                    <View style={styles.glassBadge}>
+                                        <Text style={styles.cardSkillName}>{item.skills[index] || item.skills[0]}</Text>
+                                        <Ionicons
+                                            name={item.icon}
+                                            size={18}
+                                            color={THEME.accent}
+                                        />
                                     </View>
-                                );
-                            })}
+                                </View>
+                            ))}
                         </View>
                     </View>
 
@@ -113,11 +94,6 @@ export const JobDescriptionScreen = () => {
                             ))}
                         </View>
 
-                         {/* Chatbot Callout (kept for consistency with heatmap UI?) 
-                             Instruction didn't explicitly delete heatmap internal elements, 
-                             but "everything above badges" was the main deletion target. 
-                             I'll keep it as it's part of the heatmap "feature". 
-                         */}
                         <View style={styles.chatBotCallout}>
                             <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
                             <Text style={styles.labelYellow}>AI分析</Text>
@@ -125,13 +101,13 @@ export const JobDescriptionScreen = () => {
                     </View>
 
                     {/* Whitespace buffer */}
-                    <View style={{ height: 40 }} />
+                    <View style={{ height: 80 }} />
 
                 </ScrollView>
 
-                {/* 4. Center Button (Renamed to Job Detail) - No Footer */}
+                {/* 4. Bottom Button (Renamed to Job Detail) - No Footer Navigation */}
                 <View style={styles.bottomButtonContainer}>
-                    <TouchableOpacity style={styles.centerButton}>
+                    <TouchableOpacity style={styles.centerButton} activeOpacity={0.8}>
                         <Text style={styles.centerButtonText}>求人詳細</Text>
                         <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
                     </TouchableOpacity>
