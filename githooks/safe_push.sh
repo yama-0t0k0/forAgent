@@ -69,6 +69,61 @@ collect_issue_info() {
     fi
 }
 
+# Function to detect labels based on content
+detect_labels() {
+    LABELS=""
+    local content="${COMMIT_MESSAGE} ${PROMPT_SUMMARY}"
+    # Convert to lowercase for case-insensitive matching
+    local lower_content=$(echo "$content" | tr '[:upper:]' '[:lower:]')
+    
+    # Check for bug/fix
+    if [[ "$lower_content" =~ "fix" ]] || \
+       [[ "$lower_content" =~ "bug" ]] || \
+       [[ "$lower_content" =~ "resolve" ]] || \
+       [[ "$lower_content" =~ "error" ]] || \
+       [[ "$lower_content" =~ "fail" ]] || \
+       [[ "$lower_content" =~ "修正" ]] || \
+       [[ "$lower_content" =~ "バグ" ]] || \
+       [[ "$lower_content" =~ "エラー" ]]; then
+        LABELS="${LABELS}bug,"
+    fi
+    
+    # Check for enhancement/feature
+    if [[ "$lower_content" =~ "feat" ]] || \
+       [[ "$lower_content" =~ "add" ]] || \
+       [[ "$lower_content" =~ "new" ]] || \
+       [[ "$lower_content" =~ "create" ]] || \
+       [[ "$lower_content" =~ "implement" ]] || \
+       [[ "$lower_content" =~ "update" ]] || \
+       [[ "$lower_content" =~ "improve" ]] || \
+       [[ "$lower_content" =~ "追加" ]] || \
+       [[ "$lower_content" =~ "機能" ]] || \
+       [[ "$lower_content" =~ "作成" ]] || \
+       [[ "$lower_content" =~ "実装" ]] || \
+       [[ "$lower_content" =~ "更新" ]] || \
+       [[ "$lower_content" =~ "改善" ]]; then
+        LABELS="${LABELS}enhancement,"
+    fi
+    
+    # Check for documentation
+    if [[ "$lower_content" =~ "doc" ]] || \
+       [[ "$lower_content" =~ "readme" ]] || \
+       [[ "$lower_content" =~ "postmortem" ]] || \
+       [[ "$lower_content" =~ "ドキュメント" ]] || \
+       [[ "$lower_content" =~ "資料" ]]; then
+        LABELS="${LABELS}documentation,"
+    fi
+    
+    # Remove trailing comma
+    LABELS=${LABELS%,}
+    
+    if [ -n "$LABELS" ]; then
+        echo "🏷️  Detected labels: $LABELS"
+    else
+        echo "ℹ️  No specific labels detected."
+    fi
+}
+
 echo "🚀 Universal Safe Push Script for UI-centric Development"
 echo "=================================================="
 if [ "$AUTO_MODE" = true ]; then
@@ -298,7 +353,17 @@ $NEXT_TASKS
     # Repository URL specified by user
     REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
     
-    if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"; then
+    # Detect labels
+    detect_labels
+    
+    GH_CMD="gh issue create --repo $REPO_URL --title \"$ISSUE_TITLE\" --body \"$ISSUE_BODY\""
+    
+    if [ -n "$LABELS" ]; then
+        GH_CMD="$GH_CMD --label \"$LABELS\""
+    fi
+    
+    # Execute gh command
+    if eval "$GH_CMD"; then
         echo "✅ Issue created successfully"
     else
         echo "❌ Failed to create issue"
