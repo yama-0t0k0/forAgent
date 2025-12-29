@@ -19,6 +19,14 @@ parse_arguments() {
                 AUTO_MODE=true
                 shift
                 ;;
+            --prompt)
+                PROMPT_SUMMARY="$2"
+                shift 2
+                ;;
+            --next)
+                NEXT_TASKS="$2"
+                shift 2
+                ;;
             *)
                 if [ -z "$COMMIT_MESSAGE" ]; then
                     COMMIT_MESSAGE="$1"
@@ -27,6 +35,38 @@ parse_arguments() {
                 ;;
         esac
     done
+}
+
+# Function to collect additional information for Issue
+collect_issue_info() {
+    if [ "$AUTO_MODE" = true ]; then
+        if [ -z "$PROMPT_SUMMARY" ]; then
+            PROMPT_SUMMARY="Automated update via safe_push.sh"
+        fi
+        if [ -z "$NEXT_TASKS" ]; then
+            NEXT_TASKS="Check CI/CD pipeline and verify deployment."
+        fi
+        return
+    fi
+
+    echo ""
+    echo "📝 Collecting additional information for Issue..."
+    
+    if [ -z "$PROMPT_SUMMARY" ]; then
+        echo "Please enter the summary of the prompt/instruction for this work:"
+        read -r PROMPT_SUMMARY
+        if [ -z "$PROMPT_SUMMARY" ]; then
+            PROMPT_SUMMARY="No prompt summary provided."
+        fi
+    fi
+    
+    if [ -z "$NEXT_TASKS" ]; then
+        echo "Please enter recommended next tasks:"
+        read -r NEXT_TASKS
+        if [ -z "$NEXT_TASKS" ]; then
+            NEXT_TASKS="No specific next tasks."
+        fi
+    fi
 }
 
 echo "🚀 Universal Safe Push Script for UI-centric Development"
@@ -189,6 +229,82 @@ push_changes() {
     fi
 }
 
+# Function to capture diff info and create GitHub Issue
+create_push_issue() {
+    echo ""
+    echo "📋 Creating GitHub Issue for this push..."
+
+    # Check if gh command exists
+    if ! command -v gh &> /dev/null; then
+        echo "⚠️  'gh' command not found. Skipping issue creation."
+        return
+    fi
+
+    # Check if logged in to gh
+    if ! gh auth status &> /dev/null; then
+        echo "⚠️  Not logged in to GitHub CLI. Skipping issue creation."
+        return
+    fi
+
+    # Use captured PREV_PUSH_HASH
+    if [ -z "$PREV_PUSH_HASH" ]; then
+         echo "⚠️  Could not determine previous remote hash. Skipping issue creation."
+         return
+    fi
+
+    CURRENT_HASH=$(git rev-parse HEAD)
+
+    if [ "$PREV_PUSH_HASH" = "$CURRENT_HASH" ]; then
+        echo "ℹ️  No new commits pushed (Hashes match). Skipping issue creation."
+        return
+    fi
+    
+    # Diff Stat
+    DIFF_STAT=$(git diff --stat ${PREV_PUSH_HASH}..${CURRENT_HASH})
+    # Diff Log
+    DIFF_LOG=$(git log --pretty=format:"- %h %s (%an)" ${PREV_PUSH_HASH}..${CURRENT_HASH})
+    
+    if [ -z "$DIFF_LOG" ]; then
+         echo "ℹ️  Diff log is empty. Skipping issue creation."
+         return
+    fi
+
+    ISSUE_TITLE="Push: $COMMIT_MESSAGE"
+    ISSUE_BODY="## 📝 Context
+### 💡 Prompt Summary
+$PROMPT_SUMMARY
+
+### 📋 Changes in this Push
+- **Date**: $(date '+%Y-%m-%d %H:%M:%S')
+- **Branch**: $TARGET_BRANCH
+- **Author**: $(git config user.name)
+- **Previous Hash**: \`$PREV_PUSH_HASH\`
+- **Current Hash**: \`$CURRENT_HASH\`
+
+#### Commits
+$DIFF_LOG
+
+#### Changed Files
+\`\`\`
+$DIFF_STAT
+\`\`\`
+
+### 🚀 Recommended Next Tasks
+$NEXT_TASKS
+"
+
+    echo "Creating issue on yama-0t0k0/engineer-registration-app..."
+    
+    # Repository URL specified by user
+    REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
+    
+    if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"; then
+        echo "✅ Issue created successfully"
+    else
+        echo "❌ Failed to create issue"
+    fi
+}
+
 # Function to check if we are in the correct project directory
 check_project_dir() {
     echo "🔍 Checking project directory..."
@@ -214,8 +330,14 @@ main() {
     sync_remote
     handle_changes
     check_staged_changes
+    collect_issue_info
     commit_changes
+    
+    # Capture remote hash before pushing
+    PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")
+    
     push_changes
+    create_push_issue
     
     echo ""
     echo "🎉 Safe push completed successfully!"
