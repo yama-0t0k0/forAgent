@@ -356,17 +356,25 @@ $NEXT_TASKS
     # Detect labels
     detect_labels
     
-    GH_CMD="gh issue create --repo $REPO_URL --title \"$ISSUE_TITLE\" --body \"$ISSUE_BODY\""
+    # Escape quotes in ISSUE_TITLE and ISSUE_BODY for safe eval
+    # Note: Complex multiline strings with eval are risky. 
+    # Better approach is to build the command arguments array or use printf.
+    # However, for simplicity in shell script without arrays (sh compatibility) or with arrays (bash):
+    
+    # Using gh directly with arguments is safer than eval.
     
     if [ -n "$LABELS" ]; then
-        GH_CMD="$GH_CMD --label \"$LABELS\""
-    fi
-    
-    # Execute gh command
-    if eval "$GH_CMD"; then
-        echo "✅ Issue created successfully"
+        if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "$LABELS"; then
+            echo "✅ Issue created successfully"
+        else
+            echo "❌ Failed to create issue"
+        fi
     else
-        echo "❌ Failed to create issue"
+        if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"; then
+            echo "✅ Issue created successfully"
+        else
+            echo "❌ Failed to create issue"
+        fi
     fi
 }
 
