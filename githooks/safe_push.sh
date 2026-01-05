@@ -267,8 +267,13 @@ check_staged_changes() {
     STAGED_FILES=$(git diff --cached --name-only)
     
     if [ -z "$STAGED_FILES" ]; then
-        echo "❌ No staged changes found. Nothing to commit."
-        exit 1
+        if [ "$DRY_RUN" = true ]; then
+            echo "⚠️  No staged changes found, but continuing due to --dry-run."
+            return 0
+        else
+            echo "❌ No staged changes found. Nothing to commit."
+            exit 1
+        fi
     else
         echo "✅ Found staged changes:"
         echo "$STAGED_FILES"
