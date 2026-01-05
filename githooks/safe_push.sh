@@ -328,11 +328,11 @@ create_push_issue() {
     echo ""
     echo "📋 Creating GitHub Issue for this push..."
 
-    # Compute since date (last 30 days) for context listing
-    if date -v-30d '+%Y-%m-%d' >/dev/null 2>&1; then
-        SINCE_DATE=$(date -v-30d '+%Y-%m-%d')
+    # Compute since date (last 3 days) for context listing
+    if date -v-3d '+%Y-%m-%d' >/dev/null 2>&1; then
+        SINCE_DATE=$(date -v-3d '+%Y-%m-%d')
     else
-        SINCE_DATE=$(date -d '30 days ago' '+%Y-%m-%d')
+        SINCE_DATE=$(date -d '3 days ago' '+%Y-%m-%d')
     fi
 
     # Check if gh command exists
@@ -401,7 +401,7 @@ $DIFF_LOG
 ### 🚀 Recommended Next Tasks
 $NEXT_TASKS
 
-### 📚 Recent Issues (Last 30 days)
+### 📚 Recent Issues (Last 3 days)
 $RECENT_CONTEXT
 "
 
