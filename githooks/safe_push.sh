@@ -328,12 +328,8 @@ generate_auto_summary() {
     local prev=$1
     local curr=$2
     local files=$(git diff --name-only ${prev}..${curr})
-    if [ -z "$files" ]; then
-        echo "変更はありません。"
-        return
-    fi
-    
-    echo "以下のファイルに変更がありました："
+    local files_count=$(echo "$files" | wc -l | tr -d ' ')
+    echo "修正: ${files_count}件のファイルを更新"
     echo "$files" | sed 's/^/- /'
 }
 
