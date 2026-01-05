@@ -10,6 +10,7 @@ set -e  # Exit on any error
 # Global variables
 AUTO_MODE=true
 TARGET_BRANCH="yama"
+DRY_RUN=false
 
 # Parse command line arguments
 parse_arguments() {
@@ -26,6 +27,18 @@ parse_arguments() {
             --next)
                 NEXT_TASKS="$2"
                 shift 2
+                ;;
+            --intent)
+                INTENT_DESCRIPTION="$2"
+                shift 2
+                ;;
+            --context)
+                CONTEXT_NOTES="$2"
+                shift 2
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
                 ;;
             *)
                 if [ -z "$COMMIT_MESSAGE" ]; then
@@ -46,6 +59,12 @@ collect_issue_info() {
         if [ -z "$NEXT_TASKS" ]; then
             NEXT_TASKS="Check CI/CD pipeline and verify deployment."
         fi
+        if [ -z "$INTENT_DESCRIPTION" ]; then
+            INTENT_DESCRIPTION="Describe the purpose and reasoning behind this change."
+        fi
+        if [ -z "$CONTEXT_NOTES" ]; then
+            CONTEXT_NOTES="Key context: modules touched, constraints, stakeholder needs, and dependencies."
+        fi
         return
     fi
 
@@ -65,6 +84,22 @@ collect_issue_info() {
         read -r NEXT_TASKS
         if [ -z "$NEXT_TASKS" ]; then
             NEXT_TASKS="No specific next tasks."
+        fi
+    fi
+    
+    if [ -z "$INTENT_DESCRIPTION" ]; then
+        echo "Please enter the intent/purpose of this work:"
+        read -r INTENT_DESCRIPTION
+        if [ -z "$INTENT_DESCRIPTION" ]; then
+            INTENT_DESCRIPTION="No intent provided."
+        fi
+    fi
+    
+    if [ -z "$CONTEXT_NOTES" ]; then
+        echo "Please enter background/context details:"
+        read -r CONTEXT_NOTES
+        if [ -z "$CONTEXT_NOTES" ]; then
+            CONTEXT_NOTES="No context provided."
         fi
     fi
 }
@@ -289,6 +324,13 @@ create_push_issue() {
     echo ""
     echo "📋 Creating GitHub Issue for this push..."
 
+    # Compute since date (last 30 days) for context listing
+    if date -v-30d '+%Y-%m-%d' >/dev/null 2>&1; then
+        SINCE_DATE=$(date -v-30d '+%Y-%m-%d')
+    else
+        SINCE_DATE=$(date -d '30 days ago' '+%Y-%m-%d')
+    fi
+
     # Check if gh command exists
     if ! command -v gh &> /dev/null; then
         echo "⚠️  'gh' command not found. Skipping issue creation."
@@ -303,13 +345,12 @@ create_push_issue() {
 
     # Use captured PREV_PUSH_HASH
     if [ -z "$PREV_PUSH_HASH" ]; then
-         echo "⚠️  Could not determine previous remote hash. Skipping issue creation."
-         return
+         PREV_PUSH_HASH=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
     fi
 
     CURRENT_HASH=$(git rev-parse HEAD)
 
-    if [ "$PREV_PUSH_HASH" = "$CURRENT_HASH" ]; then
+    if [ "$PREV_PUSH_HASH" = "$CURRENT_HASH" ] && [ "$DRY_RUN" != true ]; then
         echo "ℹ️  No new commits pushed (Hashes match). Skipping issue creation."
         return
     fi
@@ -325,9 +366,20 @@ create_push_issue() {
     fi
 
     ISSUE_TITLE="Push: $COMMIT_MESSAGE"
+    # Recent issues in last 30 days for context building
+    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 50 --search "created:>=$SINCE_DATE" --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null)
+    if [ -z "$RECENT_CONTEXT" ]; then
+        RECENT_CONTEXT="(No recent issues found since $SINCE_DATE)"
+    fi
     ISSUE_BODY="## 📝 Context
 ### 💡 Prompt Summary
 $PROMPT_SUMMARY
+
+### 🧭 Intent / 目的・意図
+$INTENT_DESCRIPTION
+
+### 🧠 Background / 背景・コンテキスト
+$CONTEXT_NOTES
 
 ### 📋 Changes in this Push
 - **Date**: $(date '+%Y-%m-%d %H:%M:%S')
@@ -346,6 +398,9 @@ $DIFF_STAT
 
 ### 🚀 Recommended Next Tasks
 $NEXT_TASKS
+
+### 📚 Recent Issues (Last 30 days)
+$RECENT_CONTEXT
 "
 
     echo "Creating issue on yama-0t0k0/engineer-registration-app..."
@@ -363,6 +418,14 @@ $NEXT_TASKS
     
     # Using gh directly with arguments is safer than eval.
     
+    if [ "$DRY_RUN" = true ]; then
+        echo ""
+        echo "🔎 Issue Preview (dry-run)"
+        echo "Title: $ISSUE_TITLE"
+        echo "$ISSUE_BODY"
+        return
+    fi
+
     if [ -n "$LABELS" ]; then
         if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "$LABELS"; then
             echo "✅ Issue created successfully"
@@ -409,8 +472,12 @@ main() {
     # Capture remote hash before pushing
     PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")
     
-    push_changes
-    create_push_issue
+    if [ "$DRY_RUN" = true ]; then
+        create_push_issue
+    else
+        push_changes
+        create_push_issue
+    fi
     
     echo ""
     echo "🎉 Safe push completed successfully!"

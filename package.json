@@ -10,6 +10,7 @@
     "scripts": {
         "start:individual": "EXPO_USE_METRO_WORKSPACE=1 npm start --workspace=individual-user-app",
         "start:corporate": "EXPO_USE_METRO_WORKSPACE=1 npm start --workspace=corporate-user-app",
+        "start:fmjs": "EXPO_USE_METRO_WORKSPACE=1 npm start --workspace=fmjs",
         "push": "bash githooks/safe_push.sh"
     },
     "dependencies": {

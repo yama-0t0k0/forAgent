@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["../../../shared/common_frontend/*"]
+    },
+    "jsx": "react-native"
+  },
+  "exclude": ["node_modules", ".expo"]
+}
