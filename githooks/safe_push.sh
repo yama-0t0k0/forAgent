@@ -24,6 +24,10 @@ parse_arguments() {
                 PROMPT_SUMMARY="$2"
                 shift 2
                 ;;
+            --outcome)
+                OUTCOME_SUMMARY="$2"
+                shift 2
+                ;;
             --next)
                 NEXT_TASKS="$2"
                 shift 2
@@ -323,16 +327,6 @@ push_changes() {
     fi
 }
 
-# Function to generate a simple Japanese summary of changes if none provided
-generate_auto_summary() {
-    local prev=$1
-    local curr=$2
-    local files=$(git diff --name-only ${prev}..${curr})
-    local files_count=$(echo "$files" | wc -l | tr -d ' ')
-    echo "修正: ${files_count}件のファイルを更新"
-    echo "$files" | sed 's/^/- /'
-}
-
 # Function to capture diff info and create GitHub Issue
 create_push_issue() {
     echo ""
@@ -364,18 +358,15 @@ create_push_issue() {
 
     CURRENT_HASH=$(git rev-parse HEAD)
 
-    # If no prompt summary is provided, generate one from the diff
-    if [ "$PROMPT_SUMMARY" = "Automated update via safe_push.sh" ] || [ -z "$PROMPT_SUMMARY" ]; then
-        PROMPT_SUMMARY=$(generate_auto_summary "$PREV_PUSH_HASH" "$CURRENT_HASH")
-    fi
+    # Use defaults if not provided (should be provided by AI agent in practice)
+    WORK_PURPOSE=${PROMPT_SUMMARY:-"今回の変更の目的を記述してください。"}
+    WORK_OUTCOME=${OUTCOME_SUMMARY:-"今回の変更によって得られた成果（アウトカム）を記述してください。"}
 
-    # Refine Title
-    # Remove "Push: " prefix and summarize if it's an auto-commit
-    if [[ "$COMMIT_MESSAGE" == Auto\ commit:* ]]; then
-        # Use a short version of prompt summary for title if available
-        SHORT_SUMMARY=$(echo "$PROMPT_SUMMARY" | head -n 1 | cut -c 1-50)
-        ISSUE_TITLE="$SHORT_SUMMARY"
-    else
+    # Refine Title: Use the first line of the purpose as the title
+    ISSUE_TITLE=$(echo "$WORK_PURPOSE" | head -n 1 | sed 's/^目的：//' | cut -c 1-60)
+    
+    # Fallback to commit message if title is too generic
+    if [ "$ISSUE_TITLE" = "今回の変更の目的を記述してください。" ] || [ -z "$ISSUE_TITLE" ]; then
         ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: //')
     fi
 
@@ -394,17 +385,20 @@ create_push_issue() {
         RECENT_CONTEXT="(過去3日間に最近のIssueは見つかりませんでした: $SINCE_DATE)"
     fi
 
-    ISSUE_BODY="## 📝 Context / 文脈
-### 💡 Prompt Summary / 指示概要
-$PROMPT_SUMMARY
+    ISSUE_BODY="## 🎯 Purpose & Outcome / 変更の目的と成果
+### 🎯 Purpose / 今回の変更の目的
+$WORK_PURPOSE
 
-### 🧭 Intent / 目的・意図
-${INTENT_DESCRIPTION:-"この変更の目的と理由を記述してください。"}
+### 🏆 Outcome / その結果・成果
+$WORK_OUTCOME
 
+---
+
+## 📝 Context / 文脈
 ### 🧠 Background / 背景・コンテキスト
-${CONTEXT_NOTES:-"修正したモジュール、制約事項、依存関係などの主要な背景情報。"}
+${CONTEXT_NOTES:-"修正したモジュール、技術的な制約、依存関係などの背景情報。"}
 
-### 📋 Changes in this Push / 今回の変更内容
+### 📋 Changes in this Push / 今回の配布内容
 - **Date / 日時**: $(date '+%Y-%m-%d %H:%M:%S')
 - **Branch / ブランチ**: $TARGET_BRANCH
 - **Author / 作成者**: $(git config user.name)
