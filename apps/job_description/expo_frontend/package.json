@@ -4,7 +4,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "expo start --tunnel --clear"
+    "start": "npx expo start --clear"
   },
   "dependencies": {
     "expo": "~54.0.29",
