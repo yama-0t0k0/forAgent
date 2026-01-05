@@ -71,7 +71,7 @@ collect_issue_info() {
             INTENT_DESCRIPTION="この変更の目的、または解決しようとしている問題の概要を記述してください。"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="修正したファイル、技術的な制約、依存関係などの背景情報。"
+            CONTEXT_NOTES="プロジェクトの継続的な文脈（現在のフェーズ、主要な設計判断、未解決の課題など）を箇条書きで記述してください。"
         fi
         return
     fi
