@@ -24,6 +24,10 @@ parse_arguments() {
                 PROMPT_SUMMARY="$2"
                 shift 2
                 ;;
+            --title)
+                EXPLICIT_TITLE="$2"
+                shift 2
+                ;;
             --outcome)
                 OUTCOME_SUMMARY="$2"
                 shift 2
@@ -362,12 +366,19 @@ create_push_issue() {
     WORK_PURPOSE=${PROMPT_SUMMARY:-"今回の変更の目的を記述してください。"}
     WORK_OUTCOME=${OUTCOME_SUMMARY:-"今回の変更によって得られた成果（アウトカム）を記述してください。"}
 
-    # Refine Title: Use the first line of the purpose as the title
-    ISSUE_TITLE=$(echo "$WORK_PURPOSE" | head -n 1 | sed 's/^目的：//' | cut -c 1-60)
+    # Refine Title: 
+    # 1. Use explicit --title if provided
+    # 2. Otherwise, summarize from WORK_PURPOSE (Max 50 chars)
+    if [ -n "$EXPLICIT_TITLE" ]; then
+        ISSUE_TITLE=$(echo "$EXPLICIT_TITLE" | cut -c 1-50)
+    else
+        # Remove common prefixes and get the first line, then trim to 50 chars
+        ISSUE_TITLE=$(echo "$WORK_PURPOSE" | head -n 1 | sed 's/^[目的指示概要]*：//' | cut -c 1-50)
+    fi
     
-    # Fallback to commit message if title is too generic
+    # Fallback to commit message if title is still empty or default
     if [ "$ISSUE_TITLE" = "今回の変更の目的を記述してください。" ] || [ -z "$ISSUE_TITLE" ]; then
-        ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: //')
+        ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: // ' | cut -c 1-50)
     fi
 
     # Diff Stat
