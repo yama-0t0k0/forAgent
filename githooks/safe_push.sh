@@ -323,10 +323,24 @@ push_changes() {
     fi
 }
 
+# Function to generate a simple Japanese summary of changes if none provided
+generate_auto_summary() {
+    local prev=$1
+    local curr=$2
+    local files=$(git diff --name-only ${prev}..${curr})
+    if [ -z "$files" ]; then
+        echo "変更はありません。"
+        return
+    fi
+    
+    echo "以下のファイルに変更がありました："
+    echo "$files" | sed 's/^/- /'
+}
+
 # Function to capture diff info and create GitHub Issue
 create_push_issue() {
     echo ""
-    echo "📋 Creating GitHub Issue for this push..."
+    echo "📋 GitHub Issue を作成しています..."
 
     # Compute since date (last 3 days) for context listing
     if date -v-3d '+%Y-%m-%d' >/dev/null 2>&1; then
@@ -337,13 +351,13 @@ create_push_issue() {
 
     # Check if gh command exists
     if ! command -v gh &> /dev/null; then
-        echo "⚠️  'gh' command not found. Skipping issue creation."
+        echo "⚠️  'gh' コマンドが見つかりません。Issue作成をスキップします。"
         return
     fi
 
     # Check if logged in to gh
     if ! gh auth status &> /dev/null; then
-        echo "⚠️  Not logged in to GitHub CLI. Skipping issue creation."
+        echo "⚠️  GitHub CLI にログインしていません。Issue作成をスキップします。"
         return
     fi
 
@@ -354,58 +368,69 @@ create_push_issue() {
 
     CURRENT_HASH=$(git rev-parse HEAD)
 
-    if [ "$PREV_PUSH_HASH" = "$CURRENT_HASH" ] && [ "$DRY_RUN" != true ]; then
-        echo "ℹ️  No new commits pushed (Hashes match). Creating issue anyway (requested always-on behavior)."
+    # If no prompt summary is provided, generate one from the diff
+    if [ "$PROMPT_SUMMARY" = "Automated update via safe_push.sh" ] || [ -z "$PROMPT_SUMMARY" ]; then
+        PROMPT_SUMMARY=$(generate_auto_summary "$PREV_PUSH_HASH" "$CURRENT_HASH")
     fi
-    
+
+    # Refine Title
+    # Remove "Push: " prefix and summarize if it's an auto-commit
+    if [[ "$COMMIT_MESSAGE" == Auto\ commit:* ]]; then
+        # Use a short version of prompt summary for title if available
+        SHORT_SUMMARY=$(echo "$PROMPT_SUMMARY" | head -n 1 | cut -c 1-50)
+        ISSUE_TITLE="$SHORT_SUMMARY"
+    else
+        ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: //')
+    fi
+
     # Diff Stat
     DIFF_STAT=$(git diff --stat ${PREV_PUSH_HASH}..${CURRENT_HASH})
     # Diff Log
     DIFF_LOG=$(git log --pretty=format:"- %h %s (%an)" ${PREV_PUSH_HASH}..${CURRENT_HASH})
     
     if [ -z "$DIFF_LOG" ]; then
-         DIFF_LOG="(No new commits in this push)"
+         DIFF_LOG="(このPushに新しいコミットはありません)"
     fi
 
-    ISSUE_TITLE="Push: $COMMIT_MESSAGE"
-    # Recent issues in last 30 days for context building
+    # Recent issues in last 3 days for context building
     RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 50 --search "created:>=$SINCE_DATE" --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null)
     if [ -z "$RECENT_CONTEXT" ]; then
-        RECENT_CONTEXT="(No recent issues found since $SINCE_DATE)"
+        RECENT_CONTEXT="(過去3日間に最近のIssueは見つかりませんでした: $SINCE_DATE)"
     fi
-    ISSUE_BODY="## 📝 Context
-### 💡 Prompt Summary
+
+    ISSUE_BODY="## 📝 Context / 文脈
+### 💡 Prompt Summary / 指示概要
 $PROMPT_SUMMARY
 
 ### 🧭 Intent / 目的・意図
-$INTENT_DESCRIPTION
+${INTENT_DESCRIPTION:-"この変更の目的と理由を記述してください。"}
 
 ### 🧠 Background / 背景・コンテキスト
-$CONTEXT_NOTES
+${CONTEXT_NOTES:-"修正したモジュール、制約事項、依存関係などの主要な背景情報。"}
 
-### 📋 Changes in this Push
-- **Date**: $(date '+%Y-%m-%d %H:%M:%S')
-- **Branch**: $TARGET_BRANCH
-- **Author**: $(git config user.name)
-- **Previous Hash**: \`$PREV_PUSH_HASH\`
-- **Current Hash**: \`$CURRENT_HASH\`
+### 📋 Changes in this Push / 今回の変更内容
+- **Date / 日時**: $(date '+%Y-%m-%d %H:%M:%S')
+- **Branch / ブランチ**: $TARGET_BRANCH
+- **Author / 作成者**: $(git config user.name)
+- **Previous Hash / 前回ハッシュ**: \`$PREV_PUSH_HASH\`
+- **Current Hash / 今回ハッシュ**: \`$CURRENT_HASH\`
 
-#### Commits
+#### Commits / コミットログ
 $DIFF_LOG
 
- #### Changed Files
- \`\`\`
- ${DIFF_STAT:-"(No file diffs)"}
- \`\`\`
+#### Changed Files / 変更ファイル
+\`\`\`
+${DIFF_STAT:-"(差分なし)"}
+\`\`\`
 
-### 🚀 Recommended Next Tasks
-$NEXT_TASKS
+### 🚀 Recommended Next Tasks / 推奨される次回のタスク
+${NEXT_TASKS:-"CI/CDパイプラインの確認、デプロイ後の動作検証など。"}
 
-### 📚 Recent Issues (Last 3 days)
+### 📚 Recent Issues (Last 3 days) / 直近のIssue
 $RECENT_CONTEXT
 "
 
-    echo "Creating issue on yama-0t0k0/engineer-registration-app..."
+    echo "Issue を作成しています... ($REPO_URL)"
     
     # Repository URL specified by user
     REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
@@ -413,32 +438,27 @@ $RECENT_CONTEXT
     # Detect labels
     detect_labels
     
-    # Escape quotes in ISSUE_TITLE and ISSUE_BODY for safe eval
-    # Note: Complex multiline strings with eval are risky. 
-    # Better approach is to build the command arguments array or use printf.
-    # However, for simplicity in shell script without arrays (sh compatibility) or with arrays (bash):
-    
-    # Using gh directly with arguments is safer than eval.
-    
     if [ "$DRY_RUN" = true ]; then
         echo ""
-        echo "🔎 Issue Preview (dry-run)"
+        echo "🔎 Issue プレビュー (ドライラン)"
         echo "Title: $ISSUE_TITLE"
+        echo "----------------------------------------"
         echo "$ISSUE_BODY"
+        echo "----------------------------------------"
         return
     fi
 
     if [ -n "$LABELS" ]; then
         if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "$LABELS"; then
-            echo "✅ Issue created successfully"
+            echo "✅ Issue が正常に作成されました"
         else
-            echo "❌ Failed to create issue"
+            echo "❌ Issue の作成に失敗しました"
         fi
     else
         if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"; then
-            echo "✅ Issue created successfully"
+            echo "✅ Issue が正常に作成されました"
         else
-            echo "❌ Failed to create issue"
+            echo "❌ Issue の作成に失敗しました"
         fi
     fi
 }
