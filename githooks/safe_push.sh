@@ -60,10 +60,10 @@ collect_issue_info() {
             NEXT_TASKS="Check CI/CD pipeline and verify deployment."
         fi
         if [ -z "$INTENT_DESCRIPTION" ]; then
-            INTENT_DESCRIPTION="Describe the purpose and reasoning behind this change."
+            INTENT_DESCRIPTION="この変更の目的、または解決しようとしている問題の概要を記述してください。"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="Key context: modules touched, constraints, stakeholder needs, and dependencies."
+            CONTEXT_NOTES="修正したファイル、技術的な制約、依存関係などの背景情報。"
         fi
         return
     fi
