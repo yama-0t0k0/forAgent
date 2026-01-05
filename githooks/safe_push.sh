@@ -267,17 +267,12 @@ check_staged_changes() {
     STAGED_FILES=$(git diff --cached --name-only)
     
     if [ -z "$STAGED_FILES" ]; then
-        if [ "$DRY_RUN" = true ]; then
-            echo "⚠️  No staged changes found, but continuing due to --dry-run."
-            return 0
-        else
-            echo "❌ No staged changes found. Nothing to commit."
-            exit 1
-        fi
-    else
-        echo "✅ Found staged changes:"
-        echo "$STAGED_FILES"
+        echo "⚠️  No staged changes found. Continuing (always-on Issue creation)."
+        return 0
     fi
+    
+    echo "✅ Found staged changes:"
+    echo "$STAGED_FILES"
 }
 
 # Function to commit changes
@@ -299,8 +294,12 @@ commit_changes() {
         exit 1
     fi
     
-    git commit -m "$COMMIT_MESSAGE"
-    echo "✅ Changes committed successfully"
+    if git diff --cached --quiet; then
+        echo "ℹ️  No staged changes to commit. Skipping commit step."
+    else
+        git commit -m "$COMMIT_MESSAGE"
+        echo "✅ Changes committed successfully"
+    fi
 }
 
 # Function to push changes
@@ -356,8 +355,7 @@ create_push_issue() {
     CURRENT_HASH=$(git rev-parse HEAD)
 
     if [ "$PREV_PUSH_HASH" = "$CURRENT_HASH" ] && [ "$DRY_RUN" != true ]; then
-        echo "ℹ️  No new commits pushed (Hashes match). Skipping issue creation."
-        return
+        echo "ℹ️  No new commits pushed (Hashes match). Creating issue anyway (requested always-on behavior)."
     fi
     
     # Diff Stat
@@ -366,8 +364,7 @@ create_push_issue() {
     DIFF_LOG=$(git log --pretty=format:"- %h %s (%an)" ${PREV_PUSH_HASH}..${CURRENT_HASH})
     
     if [ -z "$DIFF_LOG" ]; then
-         echo "ℹ️  Diff log is empty. Skipping issue creation."
-         return
+         DIFF_LOG="(No new commits in this push)"
     fi
 
     ISSUE_TITLE="Push: $COMMIT_MESSAGE"
@@ -396,10 +393,10 @@ $CONTEXT_NOTES
 #### Commits
 $DIFF_LOG
 
-#### Changed Files
-\`\`\`
-$DIFF_STAT
-\`\`\`
+ #### Changed Files
+ \`\`\`
+ ${DIFF_STAT:-"(No file diffs)"}
+ \`\`\`
 
 ### 🚀 Recommended Next Tasks
 $NEXT_TASKS
