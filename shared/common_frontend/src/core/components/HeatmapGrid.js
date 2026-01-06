@@ -16,20 +16,30 @@ import { THEME } from '@shared/src/core/theme/theme';
 
 const { width } = Dimensions.get('window');
 
-export const HeatmapGrid = ({ 
-  itemCount = 90, 
+export const HeatmapGrid = ({
+  itemCount = 90,
   columns = 9,
   containerWidth = width - 30, // Default to screen width - padding (15*2)
+  dataValues = null, // Array of numbers from 0.0 to 1.0
 }) => {
-  
+
+  const getColor = (value) => {
+    if (value === 0) return '#E2E8F0'; // light gray
+    if (value <= 0.2) return '#BAE6FD'; // sky-200
+    if (value <= 0.5) return '#7DD3FC'; // sky-300
+    if (value <= 0.8) return THEME.accent; // sky-500
+    return '#0369A1'; // sky-700
+  };
+
   const gridData = useMemo(() => {
-    return Array(itemCount).fill(0).map((_, i) => ({
-      id: i,
-      color: i % 4 === 0 ? THEME.accent :
-             i % 4 === 1 ? '#7DD3FC' :
-             i % 4 === 2 ? '#38BDF8' : '#0369A1'
-    }));
-  }, [itemCount]);
+    return Array(itemCount).fill(0).map((_, i) => {
+      const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : (i % 4 === 0 ? 0.8 : i % 4 === 1 ? 0.3 : i % 4 === 2 ? 0.5 : 1.0);
+      return {
+        id: i,
+        color: getColor(value)
+      };
+    });
+  }, [itemCount, dataValues]);
 
   // Calculate tile size dynamically based on available width and columns
   // Subtract margin (2 * 2 = 4 per tile)
@@ -38,16 +48,16 @@ export const HeatmapGrid = ({
   return (
     <View style={styles.heatmapGrid}>
       {gridData.map((item) => (
-        <View 
-          key={item.id} 
+        <View
+          key={item.id}
           style={[
-            styles.heatmapTile, 
-            { 
+            styles.heatmapTile,
+            {
               backgroundColor: item.color,
               width: tileSize,
               height: tileSize
             }
-          ]} 
+          ]}
         />
       ))}
     </View>

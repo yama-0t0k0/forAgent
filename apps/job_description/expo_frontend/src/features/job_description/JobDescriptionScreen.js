@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
@@ -7,6 +7,9 @@ import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@shared/src/core/firebaseConfig';
+import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 
 const { width } = Dimensions.get('window');
 
@@ -19,23 +22,45 @@ const BADGE_ITEMS = [
 
 export const JobDescriptionScreen = () => {
     const navigation = useNavigation();
-    const { data } = useContext(DataContext);
+    const { data: localData } = useContext(DataContext);
+    const [firestoreData, setFirestoreData] = useState(null);
+    const [heatmapValues, setHeatmapValues] = useState(null);
 
-    // Extract data from DataContext (which is loaded from jd.json in App.js)
-    const positionName = data['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
+    // Fetch actual data from Firestore
+    useEffect(() => {
+        const docRef = doc(db, 'job_description', 'B00000', 'JD_Number', '02');
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const jdData = docSnap.data();
+                setFirestoreData(jdData);
+
+                // Calculate heatmap values
+                const values = HeatmapCalculator.calculate(jdData);
+                setHeatmapValues(values);
+            }
+        }, (error) => {
+            console.error("Firestore error:", error);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // Use firestore data if available, otherwise fallback to local data (context)
+    const activeData = firestoreData || localData;
+    const positionName = activeData['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
 
     return (
         <View style={styles.container}>
             {/* Using SafeAreaView here to handle notches correctly without ImageBackground */}
             <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
                 <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-                    
+
                     {/* 1. Header Area - Cleaned up */}
                     <View style={styles.headerContainer}>
                         {/* Edit Button (Top Right) - Retained */}
                         <View style={styles.headerActionContainer}>
-                             <TouchableOpacity 
-                                style={styles.editButton} 
+                            <TouchableOpacity
+                                style={styles.editButton}
                                 onPress={() => navigation.navigate('JobEdit')}
                                 activeOpacity={0.7}
                             >
@@ -76,7 +101,10 @@ export const JobDescriptionScreen = () => {
                             </View>
                         </View>
 
-                        <HeatmapGrid containerWidth={width - 40} />
+                        <HeatmapGrid
+                            containerWidth={width - 40}
+                            dataValues={heatmapValues}
+                        />
 
                         <View style={styles.chatBotCallout}>
                             <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
