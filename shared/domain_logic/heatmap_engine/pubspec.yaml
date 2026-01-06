@@ -1,0 +1,19 @@
+name: heatmap_engine
+description: Pure Dart engine for heatmap calculation and mapping.
+version: 1.0.0
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  domain_models:
+    path: ../../domain_models
+  common_logic:
+    path: ../../common_logic
+  equatable: ^2.0.5
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^3.0.0

@@ -11,6 +11,9 @@ workspace:
   - apps/individual_user_app/dart_backend
   - apps/job_description/dart_backend
   - shared/domain_models
+  - shared/common_logic
+  - shared/common_backend
+  - shared/domain_logic/heatmap_engine
 
 dev_dependencies:
   melos: ^7.3.0
@@ -21,8 +24,9 @@ melos:
       run: melos exec -- dart analyze
       description: Run static analysis on all Dart packages
     test:
-      run: melos exec -- dart test
-      description: Run tests for all Dart packages
+      run: |
+        melos exec -- "[ -d test ] && ( (grep -q 'sdk: flutter' pubspec.yaml && flutter test) || dart test ) || echo 'No tests found, skipping...'"
+      description: Run tests for all Dart packages (smartly switching between dart/flutter test)
     format:
       run: melos exec -- dart format .
       description: Format all Dart code

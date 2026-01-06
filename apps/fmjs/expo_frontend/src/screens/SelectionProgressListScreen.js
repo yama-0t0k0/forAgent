@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Modal, ScrollView, Button } from 'react-native';
 import { db } from '@shared/src/core/firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
+import SelectionFlowEditor from '../components/SelectionFlowEditor';
 
 const getActiveKey = (obj) => {
   if (!obj) return '-';
@@ -265,6 +266,34 @@ const SelectionProgressListScreen = () => {
             <View style={{ marginTop: 12 }}>
               {renderFeedbackSection(selectedItem['選考進捗'])}
             </View>
+            <SelectionFlowEditor
+              initialData={selectedItem['選考進捗']}
+              onSave={async (newPhases) => {
+                console.log("Saving new phases:", newPhases);
+                // Update local state for immediate feedback
+                const updatedItem = {
+                  ...selectedItem,
+                  '選考進捗': {
+                    ...selectedItem['選考進捗'],
+                    phases: newPhases
+                  }
+                };
+                setSelectedItem(updatedItem);
+
+                // Update Firestore if project ID exists
+                if (selectedItem.id) {
+                  try {
+                    const docRef = doc(db, 'FeeMgmtAndJobStatDB', selectedItem.id);
+                    await updateDoc(docRef, {
+                      '選考進捗.phases': newPhases
+                    });
+                    Alert.alert("保存", "選考フローを保存しました。");
+                  } catch (error) {
+                    console.error("Error updating selection flow:", error);
+                  }
+                }
+              }}
+            />
           </View>
         );
       case 'fee':
