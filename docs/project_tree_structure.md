@@ -60,6 +60,13 @@
 │       ├── templates/                      # Issue/PR テンプレート
 │       └── workflows/                      # CI/CD (GitHub Actions)
 │
+├── githooks/                               # Gitフック (自動化スクリプト)
+│   └── safe_push.sh                        # 安全なプッシュのためのラッパースクリプト
+│
+├── scripts/                                # 開発支援・運用スクリプト
+│   ├── start_expo.sh                       # Expoアプリ起動支援
+│   └── local_ci.sh                         # ローカルCI実行スクリプト
+│
 ├── docs/                                   # プロジェクトドキュメント
 │   ├── purpose.md
 │   ├── dev_basicinfo.md
@@ -92,6 +99,15 @@
 
 - **firebase**: Firestore のセキュリティルール、インデックス設定、および複数のアプリに跨る共通の Cloud Functions を管理。
 - **github**: プルリクエストやイシューのテンプレート、および CI/CD (ビルド・デプロイ) を自動化するワークフロー定義。
+
+## 🔧 開発支援ツール (Scripts & Hooks)
+ローカル開発の効率化と品質担保を目的としたスクリプト群です。
+
+- **githooks**:
+  - `safe_push.sh`: リモートへのプッシュ前にローカルCIを自動実行し、Issueの自動生成・更新を行うワークフロースクリプト。
+- **scripts**:
+  - `local_ci.sh`: 全アプリに対してLint、Type Check、Test、Build Config検証を一括実行するスクリプト。
+  - `start_expo.sh`: ポート競合の解決やキャッシュクリアなど、Expo開発サーバーの起動を支援するユーティリティ。
 
 ---
 
