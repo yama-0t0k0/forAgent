@@ -107,5 +107,22 @@ export const HeatmapMapper = {
             return this.aspirationMapping[key] ?? null;
         }
         return this.skillMapping[key] ?? null;
+    },
+
+    /**
+     * 指定されたタイル番号に対応するキー（ラベル）を取得します。
+     * @param {number} index
+     * @returns {string|null}
+     */
+    getLabel(index) {
+        // スキルから検索
+        for (const [key, val] of Object.entries(this.skillMapping)) {
+            if (val === index) return key;
+        }
+        // 志向から検索
+        for (const [key, val] of Object.entries(this.aspirationMapping)) {
+            if (val === index) return key;
+        }
+        return null;
     }
 };
