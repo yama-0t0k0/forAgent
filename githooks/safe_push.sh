@@ -484,6 +484,18 @@ check_project_dir() {
 main() {
     parse_arguments "$@"
     check_project_dir
+    
+    # Run Local CI Pipeline
+    if [ -x "./scripts/local_ci.sh" ]; then
+        echo "🛡️  Running Local CI Pipeline..."
+        ./scripts/local_ci.sh
+    elif [ -f "./scripts/local_ci.sh" ]; then
+        echo "🛡️  Running Local CI Pipeline..."
+        bash ./scripts/local_ci.sh
+    else
+        echo "⚠️  scripts/local_ci.sh not found. Skipping CI checks."
+    fi
+
     check_git_repo
     ensure_yama_branch
     sync_remote

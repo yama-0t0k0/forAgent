@@ -4,7 +4,9 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "npx expo start --clear"
+    "start": "npx expo start --clear",
+    "lint": "echo 'Note: ESLint not installed yet.'",
+    "test": "echo 'Note: Jest not installed yet.'"
   },
   "dependencies": {
     "expo": "~54.0.29",
