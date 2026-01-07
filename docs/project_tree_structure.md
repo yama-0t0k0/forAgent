@@ -45,7 +45,7 @@
 │       └── dart_backend/                   # トランザクション・ライフサイクル管理
 │
 ├── shared/                                 # 全アプリ共通資産
-│   ├── common_frontend/                    # Expo 共通コンポーネント (UI Kit)
+│   ├── common_frontend/                    # Expo 共通コンポーネント & Logic Utils (UI Kit)
 │   ├── common_backend/                     # Firebase共通設定、Dart共通Utils
 │   ├── domain_models/                      # JSON定義 (Individual, Company, JD, FMJS)
 │   └── domain_logic/                       # ★核心ロジック (Shared Logic)
@@ -104,6 +104,16 @@
 *最終更新: 2025年12月 - モジュラーモノリス再定義版*
 
 ## 📝 変更ログ (Dev Log)
+
+### 2026年1月6日: ヒートマップエンジンの統合とFirestore検証 (Job Description App)
+- **ヒートマップロジックのJS移植**:
+    - **HeatmapCalculator.js**: Dart版のスコア計算ロジック（`SKILL_SCORES`, `ASPIRATION_SCORES`）をJavaScriptへ移植し、`shared/common_frontend/src/core/utils/` に配置。
+    - **HeatmapMapper.js**: スキル名・志向名をヒートマップのグリッドインデックス（0-89）に変換するマッピングロジックを実装。
+- **UIコンポーネントの強化**:
+    - **HeatmapGrid.js**: 動的に計算されたスコア配列（`number[]`）を受け取り、濃度（opacity）として反映するよう改修。
+- **Firestore連携と検証**:
+    - **seed_firestore.js**: `job_description/B00000` にヒートマップ描画用データを投入。空のヒートマップになる問題をシードデータの拡張により解決。
+    - **JobDescriptionScreen.js**: 実際のJDデータをFirestoreから取得し、動的にヒートマップを描画できることを検証完了（Integrated Verification）。
 
 ### 2025年12月24日: 個人登録フローのFirestore連携とドキュメント整備
 - **Firestoreデータ連携 (Individual App)**:
