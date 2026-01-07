@@ -73,20 +73,36 @@ export const HeatmapGrid = ({
 
     // Tooltip settings
     const tooltipWidth = 140;
-    
+    const tooltipHeightApprox = 90; // 目安の高さ
+
     // Center alignment
     let left = (col * totalTileSize) + (totalTileSize / 2) - (tooltipWidth / 2);
     
     // Boundary checks
     left = Math.max(0, Math.min(containerWidth - tooltipWidth, left));
 
+    // Determine vertical position (Show above if in the last 2 rows)
+    const totalRows = Math.ceil(itemCount / columns);
+    const showAbove = row >= totalRows - 2;
+
+    let top;
+    if (showAbove) {
+      // Show above the tile (tile top - tooltip height - arrow margin)
+      top = (row * totalTileSize) - tooltipHeightApprox - 8;
+    } else {
+      // Show below the tile (tile bottom + arrow margin)
+      top = (row + 1) * totalTileSize + 8;
+    }
+
     setSelectedTile({
       id: item.id,
       label,
       level,
-      // Position just below the tile row
-      top: (row + 1) * totalTileSize - 4, // slight overlap for connection feeling
+      top,
       left,
+      showAbove,
+      // Calculate arrow position relative to the tooltip
+      arrowLeft: (col * totalTileSize) + (totalTileSize / 2) - left - 6, // 6 is half arrow width
     });
   };
 
@@ -120,6 +136,13 @@ export const HeatmapGrid = ({
             width: 140
           }
         ]}>
+          {/* Arrow */}
+          <View style={[
+            styles.tooltipArrow,
+            selectedTile.showAbove ? styles.arrowDown : styles.arrowUp,
+            { left: selectedTile.arrowLeft }
+          ]} />
+          
           <Text style={styles.tooltipTitle}>{selectedTile.label}</Text>
           <View style={styles.separator} />
           <Text style={styles.tooltipText}>Level: {selectedTile.level}</Text>
@@ -160,6 +183,27 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 6, // for arrowUp
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: 'rgba(30, 41, 59, 0.95)',
+  },
+  arrowUp: {
+    top: -6,
+    transform: [{ rotate: '0deg' }],
+  },
+  arrowDown: {
+    bottom: -6,
+    transform: [{ rotate: '180deg' }],
   },
   tooltipTitle: {
     color: '#fff',
