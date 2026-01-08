@@ -180,7 +180,7 @@ graph TD
 classDiagram
     class Company {
       会社概要
-      魅力/特徴
+      魅力特徴
       決済
       繋がり
     }
@@ -210,7 +210,7 @@ classDiagram
       招待権限
     }
     Company --> 会社概要
-    Company --> 魅力/特徴
+    Company --> 魅力特徴
     Company --> 決済
     Company --> 繋がり
 ```
