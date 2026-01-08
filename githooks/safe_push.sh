@@ -442,7 +442,9 @@ $RECENT_CONTEXT
         echo "   Opening default editor..."
         sleep 2
         
-        TEMP_FILE=$(mktemp /tmp/safe_push_issue.XXXXXX.md)
+        TEMP_BASE=$(mktemp /tmp/safe_push_issue.XXXXXX)
+        TEMP_FILE="${TEMP_BASE}.md"
+        mv "$TEMP_BASE" "$TEMP_FILE"
         echo "$ISSUE_BODY" > "$TEMP_FILE"
         
         # Open editor (fallback to nano if EDITOR is not set)
