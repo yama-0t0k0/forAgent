@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 
 const { width, height } = Dimensions.get('window');
 
@@ -20,6 +21,7 @@ export const MyPageScreen = () => {
     const navigation = useNavigation();
     const [remoteNames, setRemoteNames] = useState(null);
     const [remoteEmail, setRemoteEmail] = useState('');
+    const [heatmapValues, setHeatmapValues] = useState(null);
 
     // Extract data safely
     const basicInfo = data['基本情報'] || {};
@@ -49,6 +51,8 @@ export const MyPageScreen = () => {
                         console.log('email fetched', { mail });
                         setRemoteEmail(mail);
                     }
+                    const values = HeatmapCalculator.calculate(d);
+                    setHeatmapValues(values);
                 }
             } catch (e) {
                 console.log('failed to fetch names', e);
@@ -57,6 +61,13 @@ export const MyPageScreen = () => {
         fetchNames();
     }, []);
 
+    // Fallback: calculate heatmap from local context data when remote not yet available
+    useEffect(() => {
+        if (!heatmapValues && data) {
+            const values = HeatmapCalculator.calculate(data);
+            setHeatmapValues(values);
+        }
+    }, [data, heatmapValues]);
     // Heatmap grid logic moved to HeatmapGrid component
 
     const handleEdit = () => {
@@ -138,20 +149,20 @@ export const MyPageScreen = () => {
                 </View>
 
                 {/* 5. Heatmap Section (40% height, Visible Grid) */}
-                <View style={styles.heatmapSection}>
-                    <View style={styles.heatmapHeader}>
-                        <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
-                        <View style={styles.chatBotIconSmall}>
-                            <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
+                    <View style={styles.heatmapSection}>
+                        <View style={styles.heatmapHeader}>
+                            <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
+                            <View style={styles.chatBotIconSmall}>
+                                <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
+                            </View>
                         </View>
-                    </View>
 
-                    <HeatmapGrid containerWidth={width - 40} />
+                        <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
 
-                    <View style={styles.chatBotCallout}>
-                        <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
-                        <Text style={styles.labelYellow}>チャットボット</Text>
-                    </View>
+                        <View style={styles.chatBotCallout}>
+                            <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                            <Text style={styles.labelYellow}>チャットボット</Text>
+                        </View>
                 </View>
 
                 {/* Whitespace buffer before footer */}
