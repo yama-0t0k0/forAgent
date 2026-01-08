@@ -437,9 +437,13 @@ $RECENT_CONTEXT
 "
 
     # --- Validation & Interactive Edit ---
+    # Construct a validation body that excludes auto-generated context (like Recent Issues)
+    # to prevent false positives where past issue titles trigger the placeholder check.
+    VALIDATION_BODY="${USER_PROMPT} ${WORK_PURPOSE} ${WORK_OUTCOME} ${CONTEXT_NOTES} ${NEXT_TASKS}"
+    
     # Check for placeholders or default text
-    if [[ "$ISSUE_BODY" == *"記述してください"* ]] || \
-       [[ "$ISSUE_BODY" == *"Automated update via safe_push.sh"* ]]; then
+    if [[ "$VALIDATION_BODY" == *"記述してください"* ]] || \
+       [[ "$VALIDATION_BODY" == *"Automated update via safe_push.sh"* ]]; then
         
         echo ""
         echo "⚠️  Quality Control: Issue body contains placeholder text."
