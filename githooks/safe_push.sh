@@ -440,8 +440,11 @@ $RECENT_CONTEXT
         echo "⚠️  Quality Control: Issue body contains placeholder text."
         
         if [ "$AUTO_MODE" = true ]; then
-             echo "🤖 Auto mode detected: Skipping interactive edit."
-             echo "⚠️  Warning: Issue will be created with placeholder text."
+             echo "🤖 Auto mode detected with placeholder text."
+             echo "❌ Error: You must provide description arguments in auto mode."
+             echo "   Usage example: ./safe_push.sh --prompt 'Add feature X' --intent 'Improve UX' --outcome 'Better performance'"
+             echo "   'ポカ避け' triggered: Aborting issue creation to maintain documentation quality."
+             exit 1
         else
             echo "   To ensure quality, please refine the issue description."
             echo "   Opening default editor..."
