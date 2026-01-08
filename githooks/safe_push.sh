@@ -316,13 +316,13 @@ push_changes() {
     echo "🚀 Pushing changes to remote repository..."
     
     if [ "$AUTO_MODE" = true ]; then
-        git push origin "$TARGET_BRANCH"
+        ALLOW_PUSH=1 git push origin "$TARGET_BRANCH"
         echo "✅ Changes pushed successfully to '$TARGET_BRANCH' (auto mode)"
     else
         read -p "Push to branch '$TARGET_BRANCH'? (Y/n): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-            git push origin "$TARGET_BRANCH"
+            ALLOW_PUSH=1 git push origin "$TARGET_BRANCH"
             echo "✅ Changes pushed successfully to '$TARGET_BRANCH'"
         else
             echo "❌ Push cancelled"
