@@ -5,9 +5,9 @@
 // - react-native-gifted-chartsライブラリを使用したインタラクティブなグラフ表示
 //
 // 主要機能:
-// - 選考ステータス統計（件数/人数切替表示）
-// - マッチング満足度パイチャート
-// - 登録ユーザー数推移の棒グラフ
+// - 選考ステータス統計（件数/人数切替表示） - Firestore (fmjs) 連携
+// - マッチング満足度パイチャート - Firestore (fmjs) 連携
+// - 登録ユーザー数推移の棒グラフ - Firestore (individual) 連携（現在は総数のみ反映）
 // - 離脱ユーザーリスト表示
 // - 繋がりの推移ラインチャート（期間・カテゴリ別）
 // - 詳細モーダル表示
@@ -25,49 +25,34 @@
 // 1. npx expo start --tunnel --clear
 //
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Modal } from 'react-native';
-import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useContext, useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { DataContext } from '@shared/src/core/state/DataContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // ---------------------------
-// 1. FMJS Selection Flow Data (Dummy)
+// Helper: Color Palettes
 // ---------------------------
-const SELECTION_FLOW = [
-  { id: 'entry', label: 'エントリー', count: 59, people: 55, rate: '100%' },
-  { id: 'doc_pass', label: '書類合格', count: 59, people: 50, rate: '100%' },
-  { id: 'interview_1', label: '一次通過', count: 21, people: 20, rate: '35.5%' },
-  { id: 'interview_final', label: '最終通過', count: 8, people: 8, rate: '38.1%' },
-  { id: 'offer', label: '内定承諾', count: 4, people: 4, rate: '50%' },
-];
+const SATISFACTION_COLORS = {
+  5: '#4CAF50', // 大変満足
+  4: '#8BC34A', // 満足
+  3: '#FFEB3B', // 普通
+  2: '#FF9800', // 不満
+  1: '#F44336'  // 大変不満
+};
+
+const SATISFACTION_LABELS = {
+  5: '大変満足',
+  4: '満足',
+  3: '普通',
+  2: '不満',
+  1: '大変不満'
+};
 
 // ---------------------------
-// 5. Satisfaction Data (Dummy)
-// ---------------------------
-const SATISFACTION_DATA = [
-  { value: 45, color: '#4CAF50', text: '大変満足' },
-  { value: 25, color: '#8BC34A', text: '満足' },
-  { value: 15, color: '#FFEB3B', text: '普通' },
-  { value: 10, color: '#FF9800', text: '不満' },
-  { value: 5, color: '#F44336', text: '大変不満' },
-];
-
-// ---------------------------
-// 6. User Growth Data (Dummy)
-// ---------------------------
-const USER_GROWTH_DATA = [
-  { value: 100, label: '1月', frontColor: '#2196F3' },
-  { value: 120, label: '2月', frontColor: '#2196F3' },
-  { value: 150, label: '3月', frontColor: '#2196F3' },
-  { value: 190, label: '4月', frontColor: '#2196F3' },
-  { value: 240, label: '5月', frontColor: '#2196F3' },
-  { value: 300, label: '6月', frontColor: '#2196F3' },
-];
-
-// ---------------------------
-// 7. Connections Data (Dummy)
+// 7. Connections Data (Dummy - Not yet in Firestore)
 // ---------------------------
 const CONNECTIONS_DATA_INDIVIDUAL_COMPANY = [
   { value: 10, label: '1w' }, { value: 20, label: '2w' }, { value: 45, label: '3w' }, { value: 80, label: '4w' }
@@ -77,6 +62,11 @@ const CONNECTIONS_DATA_INDIVIDUAL_INDIVIDUAL = [
 ];
 
 export default function DashboardScreen() {
+  // Context Data
+  const { data } = useContext(DataContext);
+  const users = data?.users || [];
+  const fmjs = data?.fmjs || [];
+
   // State for toggles
   const [isCountMode, setIsCountMode] = useState(true); // 1. 件数/人数切り替え
   const [selectedConnectionTab, setSelectedConnectionTab] = useState('ind_comp'); // 7. カテゴリ切り替え
@@ -86,6 +76,84 @@ export default function DashboardScreen() {
   const connectionData = selectedConnectionTab === 'ind_comp' 
     ? CONNECTIONS_DATA_INDIVIDUAL_COMPANY 
     : CONNECTIONS_DATA_INDIVIDUAL_INDIVIDUAL;
+
+  // ---------------------------
+  // Data Aggregation Logic
+  // ---------------------------
+
+  // 1. Selection Flow Aggregation
+  const selectionFlowData = useMemo(() => {
+    // Initial counts
+    const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
+    
+    // Aggregate from fmjs collection
+    // Assuming fmjs docs have a 'status' field matching the keys above
+    // If data is empty, this loop simply won't run and counts remain 0
+    fmjs.forEach(item => {
+      const status = item.status;
+      if (counts[status] !== undefined) {
+        counts[status]++;
+      }
+    });
+
+    // Calculate rates (simple conversion for now)
+    // entry -> doc_pass -> interview_1 -> interview_final -> offer
+    const calcRate = (curr, prev) => {
+        if (prev === 0) return '0%';
+        return `${Math.round((curr / prev) * 100)}%`;
+    };
+
+    return [
+      { id: 'entry', label: 'エントリー', count: counts.entry, people: counts.entry, rate: '100%' },
+      { id: 'doc_pass', label: '書類合格', count: counts.doc_pass, people: counts.doc_pass, rate: calcRate(counts.doc_pass, counts.entry) },
+      { id: 'interview_1', label: '一次通過', count: counts.interview_1, people: counts.interview_1, rate: calcRate(counts.interview_1, counts.doc_pass) },
+      { id: 'interview_final', label: '最終通過', count: counts.interview_final, people: counts.interview_final, rate: calcRate(counts.interview_final, counts.interview_1) },
+      { id: 'offer', label: '内定承諾', count: counts.offer, people: counts.offer, rate: calcRate(counts.offer, counts.interview_final) },
+    ];
+  }, [fmjs]);
+
+  // 2. Satisfaction Aggregation
+  const satisfactionData = useMemo(() => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    
+    fmjs.forEach(item => {
+      const score = item.satisfactionScore; // Assuming 'satisfactionScore' field (1-5)
+      if (counts[score] !== undefined) {
+        counts[score]++;
+      }
+    });
+
+    // Convert to PieChart format
+    return Object.keys(counts).reverse().map(score => ({
+        value: counts[score],
+        color: SATISFACTION_COLORS[score],
+        text: SATISFACTION_LABELS[score]
+    })).filter(item => item.value > 0); // Only show segments with data
+  }, [fmjs]);
+
+  // Fallback for empty satisfaction data to avoid empty chart error or ugly view
+  const finalSatisfactionData = satisfactionData.length > 0 ? satisfactionData : [
+      { value: 1, color: '#E0E0E0', text: 'データなし' } 
+  ];
+
+  // 3. User Growth Data (Mock logic using real total count)
+  const userGrowthData = useMemo(() => {
+      const total = users.length;
+      // Distribute total across 6 months for visualization (Mock)
+      // In real implementation, group by 'createdAt'
+      const base = Math.floor(total / 6);
+      const remainder = total % 6;
+      
+      return [
+          { value: base, label: '1月', frontColor: '#2196F3' },
+          { value: base, label: '2月', frontColor: '#2196F3' },
+          { value: base, label: '3月', frontColor: '#2196F3' },
+          { value: base, label: '4月', frontColor: '#2196F3' },
+          { value: base + remainder, label: '5月', frontColor: '#2196F3' }, // Dump remainder here
+          { value: total, label: '累計', frontColor: '#1976D2' }, // Show total in last bar
+      ];
+  }, [users]);
+
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -113,7 +181,7 @@ export default function DashboardScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flowContainer}>
-          {SELECTION_FLOW.map((step, index) => (
+          {selectionFlowData.map((step, index) => (
             <React.Fragment key={step.id}>
               <TouchableOpacity 
                 style={styles.flowCard}
@@ -126,7 +194,7 @@ export default function DashboardScreen() {
                 <Text style={styles.flowLabel}>{step.label}</Text>
                 <Text style={styles.flowRate}>{step.rate}</Text>
               </TouchableOpacity>
-              {index < SELECTION_FLOW.length - 1 && (
+              {index < selectionFlowData.length - 1 && (
                 <View style={styles.arrowContainer}>
                   <Text style={styles.arrow}>→</Text>
                 </View>
@@ -144,7 +212,7 @@ export default function DashboardScreen() {
           <Text style={styles.cardTitle}>マッチング満足度</Text>
           <View style={{ alignItems: 'center' }}>
             <PieChart
-              data={SATISFACTION_DATA}
+              data={finalSatisfactionData}
               donut
               radius={60}
               innerRadius={40}
@@ -154,7 +222,7 @@ export default function DashboardScreen() {
             />
           </View>
           <View style={styles.legendContainer}>
-            {SATISFACTION_DATA.map((item, idx) => (
+            {finalSatisfactionData.map((item, idx) => (
               <View key={idx} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
                 <Text style={styles.legendText}>{item.text}</Text>
@@ -167,8 +235,8 @@ export default function DashboardScreen() {
         <View style={[styles.card, styles.halfCard]}>
           <Text style={styles.cardTitle}>登録ユーザー数推移</Text>
           <BarChart
-            data={USER_GROWTH_DATA}
-            width={SCREEN_WIDTH * 0.35}
+            data={userGrowthData}
+            width={SCREEN_WIDTH * 0.3}
             height={150}
             barWidth={20}
             noOfSections={4}
@@ -200,65 +268,13 @@ export default function DashboardScreen() {
           </View>
         </View>
         
-        <LineChart
-          data={connectionData}
-          width={SCREEN_WIDTH - 80}
-          height={180}
-          color="#FF9800"
-          thickness={3}
-          dataPointsColor="#FF9800"
-          startFillColor="rgba(255, 152, 0, 0.3)"
-          endFillColor="rgba(255, 152, 0, 0.01)"
-          startOpacity={0.9}
-          endOpacity={0.2}
-          areaChart
-        />
-      </View>
-
-      {/* 4. Watchlist / Dropout Analysis (Mock UI) */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>ウォッチリスト / 離脱分析</Text>
-        {[
-          { id: 1, name: '鈴木 一郎', status: '登録途中', type: 'dropout', step: '職務経歴入力' },
-          { id: 2, name: '佐藤 花子', status: '書類選考中', type: 'usecase', company: 'Tech Corp' },
-          { id: 3, name: '田中 次郎', status: '登録完了', type: 'new', date: '2025-01-08' },
-        ].map((user, idx) => (
-          <View key={idx} style={styles.listItem}>
-            <View>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userSub}>{user.type === 'dropout' ? `離脱: ${user.step}` : user.status}</Text>
-            </View>
-            <View style={[
-              styles.statusBadge, 
-              { backgroundColor: user.type === 'dropout' ? '#FFEBEE' : '#E3F2FD' }
-            ]}>
-              <Text style={{ color: user.type === 'dropout' ? '#D32F2F' : '#1976D2', fontSize: 12 }}>
-                {user.type === 'dropout' ? '要フォロー' : '進行中'}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Detail Modal */}
-      <Modal visible={!!selectedFlow} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedFlow?.label}の詳細</Text>
-            <Text>ここに {selectedFlow?.label} 段階の候補者リストや内訳を表示します。</Text>
-            <Text style={{ marginTop: 10 }}>件数: {selectedFlow?.count}</Text>
-            <Text>人数: {selectedFlow?.people}</Text>
-            
-            <TouchableOpacity 
-              style={styles.closeButton}
-              onPress={() => setSelectedFlow(null)}
-            >
-              <Text style={styles.closeButtonText}>閉じる</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Placeholder for Line Chart (requires formatted data) */}
+        <View style={{ alignItems: 'center', justifyContent: 'center', height: 150 }}>
+            <Text style={{ color: '#888' }}>データ連携準備中</Text>
         </View>
-      </Modal>
-
+      </View>
+      
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 }
@@ -266,18 +282,16 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: 10,
   },
   headerTitle: {
     fontSize: 24,
@@ -285,26 +299,26 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   bellButton: {
-    padding: 8,
     position: 'relative',
+    padding: 8,
   },
   bellText: {
     fontSize: 24,
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 4,
+    right: 4,
     backgroundColor: 'red',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 8,
+    width: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   section: {
@@ -325,12 +339,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3F2FD',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 20,
   },
   toggleText: {
-    color: '#1976D2',
+    color: '#2196F3',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   flowContainer: {
     flexDirection: 'row',
@@ -339,38 +353,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
-    marginRight: 8,
-    width: 120,
+    minWidth: 100,
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    alignItems: 'center',
   },
   flowCount: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1976D2',
+    color: '#2196F3',
     marginBottom: 4,
   },
   flowUnit: {
     fontSize: 12,
-    color: '#666',
-    fontWeight: 'normal',
+    color: '#888',
+    marginLeft: 2,
   },
   flowLabel: {
     fontSize: 12,
-    color: '#333',
-    marginBottom: 2,
+    color: '#666',
+    marginBottom: 4,
   },
   flowRate: {
     fontSize: 10,
-    color: '#666',
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   arrowContainer: {
     justifyContent: 'center',
-    marginRight: 8,
+    paddingHorizontal: 8,
   },
   arrow: {
     color: '#ccc',
@@ -379,7 +393,7 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    flexWrap: 'wrap',
   },
   card: {
     backgroundColor: 'white',
@@ -387,25 +401,24 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   halfCard: {
     width: '48%',
-    marginBottom: 0,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
+    color: '#444',
+    marginBottom: 16,
   },
   legendContainer: {
+    marginTop: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
     justifyContent: 'center',
   },
   legendItem: {
@@ -426,7 +439,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F0F0F0',
     borderRadius: 8,
     padding: 2,
   },
@@ -438,66 +451,16 @@ const styles = StyleSheet.create({
   activeTab: {
     backgroundColor: 'white',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 1,
+    elevation: 1,
   },
   tabText: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
   },
   activeTabText: {
-    color: '#333',
-    fontWeight: '600',
-  },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  userName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  userSub: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 24,
-    borderRadius: 16,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  closeButton: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 20,
-  },
-  closeButtonText: {
     color: '#333',
     fontWeight: '600',
   },
