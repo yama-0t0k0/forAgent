@@ -68,10 +68,10 @@ collect_issue_info() {
             NEXT_TASKS="Check CI/CD pipeline and verify deployment."
         fi
         if [ -z "$INTENT_DESCRIPTION" ]; then
-            INTENT_DESCRIPTION="この変更の目的、または解決しようとしている問題の概要を記述してください。"
+            INTENT_DESCRIPTION="特になし"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="プロジェクトの継続的な文脈（現在のフェーズ、主要な設計判断、未解決の課題など）を箇条書きで記述してください。"
+            CONTEXT_NOTES="特になし"
         fi
         return
     fi
