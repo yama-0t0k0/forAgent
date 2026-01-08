@@ -363,8 +363,9 @@ create_push_issue() {
     CURRENT_HASH=$(git rev-parse HEAD)
 
     # Use defaults if not provided (should be provided by AI agent in practice)
-    WORK_PURPOSE=${PROMPT_SUMMARY:-"今回の変更の目的を記述してください。"}
-    WORK_OUTCOME=${OUTCOME_SUMMARY:-"今回の変更によって得られた成果（アウトカム）を記述してください。"}
+    USER_PROMPT=${PROMPT_SUMMARY:-"（指示内容を記述してください）"}
+    WORK_PURPOSE=${INTENT_DESCRIPTION:-"（変更の目的を記述してください）"}
+    WORK_OUTCOME=${OUTCOME_SUMMARY:-"（実行結果を記述してください）"}
 
     # Refine Title: 
     # 1. Use explicit --title if provided
@@ -377,7 +378,7 @@ create_push_issue() {
     fi
     
     # Fallback to commit message if title is still empty or default
-    if [ "$ISSUE_TITLE" = "今回の変更の目的を記述してください。" ] || [ -z "$ISSUE_TITLE" ]; then
+    if [ "$ISSUE_TITLE" = "（変更の目的を記述してください）" ] || [ -z "$ISSUE_TITLE" ]; then
         ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: // ' | cut -c 1-50)
     fi
 
@@ -396,11 +397,15 @@ create_push_issue() {
         RECENT_CONTEXT="(過去3日間に最近のIssueは見つかりませんでした: $SINCE_DATE)"
     fi
 
-    ISSUE_BODY="## 🎯 Purpose & Outcome / 変更の目的と成果
-### 🎯 Purpose / 今回の変更の目的
+    ISSUE_BODY="## 🤖 AI Development Cycle
+
+### 📝 User Prompt / 指示内容
+$USER_PROMPT
+
+### 🎯 Intent / 変更の目的
 $WORK_PURPOSE
 
-### 🏆 Outcome / その結果・成果
+### 🏆 Outcome / 実行結果
 $WORK_OUTCOME
 
 ---
