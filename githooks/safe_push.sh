@@ -438,32 +438,38 @@ $RECENT_CONTEXT
         
         echo ""
         echo "⚠️  Quality Control: Issue body contains placeholder text."
-        echo "   To ensure quality, please refine the issue description."
-        echo "   Opening default editor..."
-        sleep 2
         
-        TEMP_BASE=$(mktemp /tmp/safe_push_issue.XXXXXX)
-        TEMP_FILE="${TEMP_BASE}.md"
-        mv "$TEMP_BASE" "$TEMP_FILE"
-        echo "$ISSUE_BODY" > "$TEMP_FILE"
-        
-        # Open editor (fallback to nano if EDITOR is not set)
-        ${EDITOR:-nano} "$TEMP_FILE"
-        
-        # Read back the edited content
-        ISSUE_BODY=$(cat "$TEMP_FILE")
-        rm "$TEMP_FILE"
-        
-        # Strict Re-validation
-        if [[ "$ISSUE_BODY" == *"記述してください"* ]] || \
-           [[ "$ISSUE_BODY" == *"Automated update via safe_push.sh"* ]]; then
-             echo ""
-             echo "❌ Error: Placeholder text still present after edit."
-             echo "   'ポカ避け' triggered: Aborting process to maintain documentation quality."
-             exit 1
+        if [ "$AUTO_MODE" = true ]; then
+             echo "🤖 Auto mode detected: Skipping interactive edit."
+             echo "⚠️  Warning: Issue will be created with placeholder text."
+        else
+            echo "   To ensure quality, please refine the issue description."
+            echo "   Opening default editor..."
+            sleep 2
+            
+            TEMP_BASE=$(mktemp /tmp/safe_push_issue.XXXXXX)
+            TEMP_FILE="${TEMP_BASE}.md"
+            mv "$TEMP_BASE" "$TEMP_FILE"
+            echo "$ISSUE_BODY" > "$TEMP_FILE"
+            
+            # Open editor (fallback to nano if EDITOR is not set)
+            ${EDITOR:-nano} "$TEMP_FILE"
+            
+            # Read back the edited content
+            ISSUE_BODY=$(cat "$TEMP_FILE")
+            rm "$TEMP_FILE"
+            
+            # Strict Re-validation
+            if [[ "$ISSUE_BODY" == *"記述してください"* ]] || \
+               [[ "$ISSUE_BODY" == *"Automated update via safe_push.sh"* ]]; then
+                 echo ""
+                 echo "❌ Error: Placeholder text still present after edit."
+                 echo "   'ポカ避け' triggered: Aborting process to maintain documentation quality."
+                 exit 1
+            fi
+            
+            echo "✅ Issue content refined."
         fi
-        
-        echo "✅ Issue content refined."
     fi
     # -------------------------------------
 
