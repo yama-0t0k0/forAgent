@@ -37,8 +37,8 @@ graph LR
 
     A -->|getDoc| B
     E -->|initialData| B
-    B -->|calculate(data)| C
-    C -->|values[0..89]| D
+    B -->|calculate data| C
+    C -->|values 0..89| D
 ```
 
 ## 共有モジュール構成
