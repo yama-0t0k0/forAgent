@@ -83,7 +83,14 @@ export HOME="$(pwd)/.home"
 # CI=1 is used to force non-interactive mode, but we need to ensure it doesn't suppress URL generation.
 # Based on previous attempts, standard non-interactive might hide the QR. 
 # We will rely on ngrok API for the URL.
-npx expo start --tunnel --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
+
+# Add --web flag only for admin_app
+EXTRA_FLAGS=""
+if [ "$APP_NAME" == "admin_app" ]; then
+    EXTRA_FLAGS="--web"
+fi
+
+npx expo start --tunnel $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 
 echo "⏳ Waiting for tunnel to establish..."

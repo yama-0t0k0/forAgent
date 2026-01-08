@@ -14,22 +14,28 @@ const AdminAppWrapper = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [usersSnap, fmjsSnap] = await Promise.all([
+        const [usersSnap, corporateSnap, jdSnap, fmjsSnap] = await Promise.all([
           getDocs(collection(db, 'individual')),
-          getDocs(collection(db, 'fmjs'))
+          getDocs(collection(db, 'corporate')),
+          getDocs(collection(db, 'jd')),
+          getDocs(collection(db, 'FeeMgmtAndJobStatDB'))
         ]);
 
         const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const corporate = corporateSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const jd = jdSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const fmjs = fmjsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         setInitialData({
           users,
+          corporate,
+          jd,
           fmjs
         });
       } catch (e) {
         console.error('Failed to fetch admin data:', e);
         // Fallback to empty structure to allow UI to render even if fetch fails
-        setInitialData({ users: [], fmjs: [] });
+        setInitialData({ users: [], corporate: [], jd: [], fmjs: [] });
       } finally {
         setLoading(false);
       }
