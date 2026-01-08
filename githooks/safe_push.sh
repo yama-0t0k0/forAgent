@@ -61,14 +61,54 @@ parse_arguments() {
 # Function to collect additional information for Issue
 collect_issue_info() {
     if [ "$AUTO_MODE" = true ]; then
+        # Check for mandatory arguments in Auto Mode
+        local missing_args=false
+        
         if [ -z "$PROMPT_SUMMARY" ]; then
-            PROMPT_SUMMARY="Automated update via safe_push.sh"
-        fi
-        if [ -z "$NEXT_TASKS" ]; then
-            NEXT_TASKS="Check CI/CD pipeline and verify deployment."
+            echo "⚠️  Missing argument: --prompt (User Prompt)"
+            missing_args=true
         fi
         if [ -z "$INTENT_DESCRIPTION" ]; then
-            INTENT_DESCRIPTION="特になし"
+            echo "⚠️  Missing argument: --intent (Work Purpose)"
+            missing_args=true
+        fi
+        if [ -z "$OUTCOME_SUMMARY" ]; then
+            echo "⚠️  Missing argument: --outcome (Work Outcome)"
+            missing_args=true
+        fi
+
+        if [ "$missing_args" = true ]; then
+            echo "🤖 Auto mode is active but mandatory arguments are missing."
+            echo "   Attempting interactive input (Timeout: 10s)..."
+            
+            # Attempt interactive input with timeout to prevent CI freeze
+            if [ -z "$PROMPT_SUMMARY" ]; then
+                echo "Please enter the summary of the prompt/instruction:"
+                if ! read -t 10 -r PROMPT_SUMMARY; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
+            
+            if [ -z "$INTENT_DESCRIPTION" ]; then
+                echo "Please enter the intent/purpose of this work:"
+                if ! read -t 10 -r INTENT_DESCRIPTION; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
+            
+            if [ -z "$OUTCOME_SUMMARY" ]; then
+                echo "Please enter the outcome/result of this work:"
+                if ! read -t 10 -r OUTCOME_SUMMARY; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
+        fi
+
+        if [ -z "$NEXT_TASKS" ]; then
+            NEXT_TASKS="Check CI/CD pipeline and verify deployment."
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
             CONTEXT_NOTES="特になし"
