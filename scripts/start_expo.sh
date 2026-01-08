@@ -73,11 +73,17 @@ export EXPO_USE_METRO_WORKSPACE=1
 
 cd "$APP_PATH"
 
+# Avoid EPERM errors by using local cache and fake HOME
+mkdir -p .cache
+mkdir -p .home
+export XDG_CACHE_HOME="$(pwd)/.cache"
+export HOME="$(pwd)/.home"
+
 # Run in background to allow script to query ngrok API
 # CI=1 is used to force non-interactive mode, but we need to ensure it doesn't suppress URL generation.
 # Based on previous attempts, standard non-interactive might hide the QR. 
 # We will rely on ngrok API for the URL.
-CI=1 npx expo start --tunnel --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
+npx expo start --tunnel --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 
 echo "⏳ Waiting for tunnel to establish..."
@@ -148,15 +154,11 @@ if [ -n "$URL" ]; then
     echo "You can enter this URL manually in the Expo Go app."
     echo "=================================================="
     
-    # Keep the script running to keep the background process alive?
-    # No, if we exit, the background process might be killed depending on shell config.
-    # We should wait for the user to stop it.
-    
+    # Wait for the Expo process to finish (keep script running)
     echo "Press [CTRL+C] to stop the server."
     wait $EXPO_PID
 else
-    echo "❌ Failed to retrieve Expo URL."
-    echo "Check logs at /tmp/expo_${APP_NAME}.log"
+    echo "❌ Failed to retrieve Expo URL. Check logs at $LOG_FILE"
     # Kill the background process since it failed to produce a URL
     kill $EXPO_PID
     exit 1
