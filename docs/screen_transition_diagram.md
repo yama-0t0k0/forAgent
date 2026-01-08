@@ -8,9 +8,9 @@
 
 ```mermaid
 graph TD
-    MyPage[マイページ (MyPageScreen)] -->|編集| Registration[プロフィール編集 (GenericRegistrationScreen)]
-    MyPage -->|画像タップ| ImageEdit[画像編集 (ImageEditScreen)]
-    MyPage -->|メニュー| Menu[メニュー (MenuScreen)]
+    MyPage["マイページ (MyPageScreen)"] -->|編集| Registration["プロフィール編集 (GenericRegistrationScreen)"]
+    MyPage -->|画像タップ| ImageEdit["画像編集 (ImageEditScreen)"]
+    MyPage -->|メニュー| Menu["メニュー (MenuScreen)"]
     Registration -->|保存/キャンセル| MyPage
     ImageEdit -->|保存/キャンセル| MyPage
     Menu -->|閉じる| MyPage
@@ -22,15 +22,15 @@ graph TD
 
 ```mermaid
 graph TD
-    CompanyPage[企業トップ (CompanyPageScreen)] -->|編集| Registration[企業情報編集 (GenericRegistrationScreen)]
-    CompanyPage -->|画像タップ| ImageEdit[画像編集 (ImageEditScreen)]
-    CompanyPage -->|メニュー| Menu[メニュー (MenuScreen)]
-    CompanyPage -->|技術スタック| TechStack[技術スタック詳細 (TechStackScreen)]
+    CompanyPage["企業トップ (CompanyPageScreen)"] -->|編集| Registration["企業情報編集 (GenericRegistrationScreen)"]
+    CompanyPage -->|画像タップ| ImageEdit["画像編集 (ImageEditScreen)"]
+    CompanyPage -->|メニュー| Menu["メニュー (MenuScreen)"]
+    CompanyPage -->|技術スタック| TechStack["技術スタック詳細 (TechStackScreen)"]
     
-    CompanyPage -->|求人| Jobs[求人一覧 (UnderConstruction)]
-    CompanyPage -->|つながり| Connections[つながり (UnderConstruction)]
-    CompanyPage -->|ブログ| Blog[ブログ (UnderConstruction)]
-    CompanyPage -->|イベント| Events[イベント (UnderConstruction)]
+    CompanyPage -->|求人| Jobs["求人一覧 (UnderConstruction)"]
+    CompanyPage -->|つながり| Connections["つながり (UnderConstruction)"]
+    CompanyPage -->|ブログ| Blog["ブログ (UnderConstruction)"]
+    CompanyPage -->|イベント| Events["イベント (UnderConstruction)"]
 
     Registration -->|保存/キャンセル| CompanyPage
     ImageEdit -->|保存/キャンセル| CompanyPage
@@ -45,7 +45,7 @@ graph TD
 
 ```mermaid
 graph TD
-    Dashboard[管理ダッシュボード (DashboardScreen)]
+    Dashboard["管理ダッシュボード (DashboardScreen)"]
     subgraph Dashboard Features
         Stats[KPI統計]
         Charts[各種グラフ]
@@ -62,7 +62,7 @@ graph TD
 
 ```mermaid
 graph TD
-    JD[求人詳細 (JobDescriptionScreen)] -->|編集| Edit[求人編集 (GenericRegistrationScreen)]
+    JD["求人詳細 (JobDescriptionScreen)"] -->|編集| Edit["求人編集 (GenericRegistrationScreen)"]
     Edit -->|保存/キャンセル| JD
 ```
 
@@ -73,7 +73,7 @@ graph TD
 
 ```mermaid
 graph TD
-    List[選考進捗リスト (SelectionProgressListScreen)]
+    List["選考進捗リスト (SelectionProgressListScreen)"]
     subgraph List Features
         Kanban[カンバン/リスト表示]
         Filter[フィルタリング]
