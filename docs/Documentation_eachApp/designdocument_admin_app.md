@@ -132,6 +132,26 @@ graph TD
 - 共有マッピング: `shared/common_frontend/src/core/utils/HeatmapMapper.js`
 - 参考コンポーネント: `shared/common_frontend/src/core/components/HeatmapGrid.js`
 
+## 求人一覧UI仕様（DashboardScreen / 求人タブ）
+### 概要
+個人タブと同様のUIを採用し、求人（Job Description）の一覧においてもスキル要件の可視化と詳細閲覧のUXを提供する。
+
+### データソース
+- コレクション: `jd` (job_description / jobs / jd をマージしたもの)
+- スキルデータ参照: `スキル要件` または `スキル経験` フィールド
+
+### 一覧行の構成
+- **基本情報**: タイトル、JD番号、Company IDを表示
+- **スキルバッジ**: 求めるスキル（CORE / SUB1 / SUB2）を表示
+- **ミニヒートマップ**: スキル要件のヒートマップ（縦3×横4）を表示
+
+### 詳細モーダル仕様（JobDetailModal）
+- **画面占有率**: 画面全体の **80%**
+- **表示内容**:
+  - ヘッダー情報（JD No, タイトル, Company ID）
+  - スキルバッジ
+  - フルヒートマップ（スキル要件全体）
+
 ## 起動方法（管理者アプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行コマンド:

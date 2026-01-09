@@ -109,6 +109,10 @@ export default function DashboardScreen() {
   const [selectedUserError, setSelectedUserError] = useState(null);
   const [selectedUserCache, setSelectedUserCache] = useState({});
 
+  // Job Detail Modal State
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [selectedJobDoc, setSelectedJobDoc] = useState(null);
+
   const updateSearch = (tab, text) => {
     setSearchQueries(prev => ({ ...prev, [tab]: text }));
   };
@@ -118,6 +122,11 @@ export default function DashboardScreen() {
     setSelectedUserDoc(null);
     setSelectedUserLoading(false);
     setSelectedUserError(null);
+  };
+
+  const closeJobDetail = () => {
+    setSelectedJobId(null);
+    setSelectedJobDoc(null);
   };
 
   useEffect(() => {
@@ -736,13 +745,120 @@ export default function DashboardScreen() {
       />
       <DataList 
         data={filteredJobs}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text style={styles.itemTitle}>{item.title || 'タイトル未設定'}</Text>
-            <Text style={styles.itemSubtitle}>JD No: {item.JD_Number}</Text>
-            <Text style={styles.itemDetail}>Company ID: {item.company_ID}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          // Normalize skill data for jobs (assuming 'スキル要件' or same structure as user)
+          const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
+          
+          const skills = extractSkills(jobDataForSkills);
+          const title = item.title || 'タイトル未設定';
+          const jdNumber = item.JD_Number || '-';
+          const companyId = item.company_ID || '-';
+          
+          const hasAnySkill = skills.core.length > 0 || skills.sub1.length > 0 || skills.sub2.length > 0;
+          const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
+
+          return (
+            <TouchableOpacity 
+              style={styles.glassListItem}
+              activeOpacity={0.7}
+              onPress={() => {
+                setSelectedJobDoc(item);
+                setSelectedJobId(item.id);
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <View style={styles.listItemHeader}>
+                    <View>
+                      <Text style={styles.itemTitleModern}>{title}</Text>
+                      <Text style={styles.itemSubtitleModern}>JD No: {jdNumber}</Text>
+                      <Text style={styles.itemDetail}>Company: {companyId}</Text>
+                    </View>
+                  </View>
+                  
+                  {hasAnySkill && (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.skillScrollContainer}
+                    >
+                      {skills.core.map((skill, i) => (
+                        <GlassCard
+                          key={`core-${i}`}
+                          label={i === 0 ? "CORE" : ""}
+                          skillName={skill}
+                          width={60}
+                          style={{ marginRight: 6 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                            borderColor: THEME.accent,
+                            borderWidth: 1,
+                          }}
+                          skillNameStyle={{
+                            color: THEME.accent,
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+
+                      {skills.sub1.map((skill, i) => (
+                        <GlassCard
+                          key={`sub1-${i}`}
+                          label={i === 0 ? "Sub 1" : ""}
+                          skillName={skill}
+                          width={60}
+                          style={{ marginRight: 6 }}
+                          labelStyle={{ fontSize: 9, marginBottom: 3 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.10)',
+                            borderColor: 'rgba(14, 165, 233, 0.3)',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                          }}
+                          skillNameStyle={{
+                            color: '#0369A1',
+                            fontSize: 8,
+                            fontWeight: 'bold',
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+
+                      {skills.sub2.map((skill, i) => (
+                        <GlassCard
+                          key={`sub2-${i}`}
+                          label={i === 0 ? "Sub 2" : ""}
+                          skillName={skill}
+                          width={60}
+                          style={{ marginRight: 6 }}
+                          labelStyle={{ fontSize: 9, marginBottom: 3 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.05)',
+                            borderColor: 'rgba(14, 165, 233, 0.2)',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                          }}
+                          skillNameStyle={{
+                            color: '#075985',
+                            fontSize: 8,
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+                    </ScrollView>
+                  )}
+                </View>
+
+                {/* Heatmap Area */}
+                <View style={{ paddingLeft: 8, borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.5)' }}>
+                  <MiniHeatmap data={heatmapInfo.data} rows={heatmapInfo.rows} cols={heatmapInfo.cols} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
     </View>
   );
@@ -944,6 +1060,103 @@ export default function DashboardScreen() {
 
                       <View style={styles.detailHeatmapSection}>
                         <Text style={styles.detailHeatmapTitle}>スキル・志向ヒートマップ</Text>
+                        <View style={{ alignItems: 'center', marginTop: 10 }}>
+                          <HeatmapGrid
+                            containerWidth={SCREEN_WIDTH * 0.8 - 40}
+                            dataValues={heatmapValues}
+                          />
+                        </View>
+                      </View>
+                    </>
+                  );
+                })()}
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Job Detail Window (individual_user_app-like, in-app modal) */}
+      <Modal
+        visible={!!selectedJobId}
+        transparent
+        animationType="fade"
+        onRequestClose={closeJobDetail}
+      >
+        <Pressable style={styles.detailOverlay} onPress={closeJobDetail}>
+          <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.detailWindowHeader}>
+              <Text style={styles.detailWindowTitle}>求人詳細</Text>
+              <TouchableOpacity onPress={closeJobDetail} style={styles.detailWindowClose}>
+                <Text style={styles.detailWindowCloseText}>閉じる</Text>
+              </TouchableOpacity>
+            </View>
+
+            {selectedJobDoc && (
+              <ScrollView contentContainerStyle={styles.detailWindowScrollContent} bounces={false}>
+                {(() => {
+                  // Normalize skill data for jobs
+                  const jobDataForSkills = selectedJobDoc['スキル要件'] ? { 'スキル経験': selectedJobDoc['スキル要件'] } : selectedJobDoc;
+                  
+                  const title = selectedJobDoc.title || 'タイトル未設定';
+                  const companyId = selectedJobDoc.company_ID || '-';
+                  const jdNumber = selectedJobDoc.JD_Number || '-';
+                  
+                  const skills = extractSkills(jobDataForSkills);
+                  const coreSkill = skills.core[0] || '-';
+                  const sub1Skill = skills.sub1[0] || '-';
+                  const sub2Skill = skills.sub2[0] || '-';
+
+                  // Calculate full heatmap (skills only)
+                  const heatmapValues = HeatmapCalculator.calculateSkillsOnly(jobDataForSkills);
+
+                  return (
+                    <>
+                      <View style={[styles.detailHero, { backgroundColor: '#f0f9ff' }]}>
+                        <View style={styles.detailHeroTopRow}>
+                          <Text style={styles.detailHeroId}>JD No: {jdNumber}</Text>
+                        </View>
+
+                        <View style={styles.detailHeroProfileRow}>
+                          <View style={styles.detailNamePlate}>
+                            <Text style={styles.detailNameText}>{title}</Text>
+                            <Text style={styles.detailJobTitle}>Company ID: {companyId}</Text>
+                            <Text style={styles.detailSourceText}>データ元: Firestore (jd)</Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      <View style={styles.detailBadgeSection}>
+                        <View style={styles.detailBadgeRow}>
+                          <GlassCard
+                            label="コアスキル"
+                            skillName={coreSkill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
+                          <GlassCard
+                            label="サブスキル1"
+                            skillName={sub1Skill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
+                          <GlassCard
+                            label="サブスキル2"
+                            skillName={sub2Skill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
+                        </View>
+                      </View>
+
+                      <View style={styles.detailHeatmapSection}>
+                        <Text style={styles.detailHeatmapTitle}>スキル要件ヒートマップ</Text>
                         <View style={{ alignItems: 'center', marginTop: 10 }}>
                           <HeatmapGrid
                             containerWidth={SCREEN_WIDTH * 0.8 - 40}
