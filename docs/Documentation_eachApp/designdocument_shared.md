@@ -40,6 +40,9 @@ shared/
 - **RecursiveField.js**: JSONデータ構造に基づき、再帰的に入力フォームを生成する中核コンポーネント。
 - **GlassCard.js**: すりガラス効果を持つカードUI。
 - **InputRow.js / StatusRow.js**: 標準的な入力行コンポーネント。
+- **GenericSearchBar.js**: 検索ボックスとクイックフィルター（チップ）を備えた汎用検索コンポーネント。
+- **GenericDataList.js**: データ一覧を表示するためのFlatListラッパー。空の状態（Empty State）のハンドリングを含む。
+- **MiniHeatmap.js**: スキルや稼働状況を可視化するための小型ヒートマップコンポーネント。
 
 #### 3. Theme (`theme/theme.js`)
 - アプリ全体で統一された色定義 (`THEME`) を提供。
@@ -60,6 +63,12 @@ shared/
 - **パラメータ**:
   - `collectionName`: 保存先コレクション（例: `engineer`）
   - `idPrefixChar`: ID接頭辞（例: `C`）
+
+#### Engineer (`features/engineer`)
+- **EngineerListItem.js**: エンジニア一覧表示用のリストアイテム。スキルタグやヒートマップを表示。
+
+#### Job (`features/job`)
+- **JobListItem.js**: 求人一覧表示用のリストアイテム。募集要項やヒートマップを表示。
 
 ---
 
