@@ -376,13 +376,6 @@ create_push_issue() {
     echo ""
     echo "📋 GitHub Issue を作成しています..."
 
-    # Compute since date (last 3 days) for context listing
-    if date -v-3d '+%Y-%m-%d' >/dev/null 2>&1; then
-        SINCE_DATE=$(date -v-3d '+%Y-%m-%d')
-    else
-        SINCE_DATE=$(date -d '3 days ago' '+%Y-%m-%d')
-    fi
-
     # Check if gh command exists
     if ! command -v gh &> /dev/null; then
         echo "⚠️  'gh' コマンドが見つかりません。Issue作成をスキップします。"
@@ -431,10 +424,10 @@ create_push_issue() {
          DIFF_LOG="(このPushに新しいコミットはありません)"
     fi
 
-    # Recent issues in last 3 days for context building
-    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 50 --search "created:>=$SINCE_DATE" --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null)
+    # Recent issues (latest 20) for context building
+    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 20 --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null)
     if [ -z "$RECENT_CONTEXT" ]; then
-        RECENT_CONTEXT="(過去3日間に最近のIssueは見つかりませんでした: $SINCE_DATE)"
+        RECENT_CONTEXT="(直近のIssueは見つかりませんでした)"
     fi
 
     ISSUE_BODY="## 🤖 AI Development Cycle
@@ -472,7 +465,7 @@ ${DIFF_STAT:-"(差分なし)"}
 ### 🚀 Recommended Next Tasks / 推奨される次回のタスク
 ${NEXT_TASKS:-"CI/CDパイプラインの確認、デプロイ後の動作検証など。"}
 
-### 📚 Recent Issues (Last 3 days) / 直近のIssue
+### 📚 Recent Issues (Latest 20) / 直近のIssue(20件)
 $RECENT_CONTEXT
 "
 
