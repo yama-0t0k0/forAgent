@@ -38,22 +38,42 @@ const AdminAppWrapper = () => {
           companiesFallback1,
           companiesFallback2,
           jobsPrimary,
-          jobsFallback1,
-          jobsFallback2,
           fmjs,
         ] = await Promise.all([
           fetchDocs('individual'),
           fetchDocs('Company'),
           fetchDocs('company'),
           fetchDocs('corporate'),
-          fetchDocs('job_description'),
-          fetchDocs('jobs'),
-          fetchDocs('jd'),
+          // Fetch nested job descriptions correctly
+          (async () => {
+            try {
+              const companySnap = await getDocs(collection(db, 'job_description'));
+              const allJobs = [];
+              for (const companyDoc of companySnap.docs) {
+                const companyId = companyDoc.id;
+                const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
+                jdSnap.forEach(doc => {
+                  const data = doc.data();
+                  allJobs.push({
+                    id: `${companyId}_${doc.id}`, // Create unique ID from CompanyID + JD_Number
+                    company_ID: companyId,
+                    JD_Number: data.JD_Number || doc.id, // Ensure JD_Number exists
+                    ...data
+                  });
+                });
+              }
+              return allJobs;
+            } catch (e) {
+              console.error("Error fetching nested jobs:", e);
+              return [];
+            }
+          })(),
           fetchDocs('FeeMgmtAndJobStatDB'),
         ]);
 
         const corporate = mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
-        const jd = mergeById([jobsPrimary, jobsFallback1, jobsFallback2]);
+        // Only use the correctly fetched job descriptions, removing dummy data sources
+        const jd = jobsPrimary;
 
         setInitialData({
           users,

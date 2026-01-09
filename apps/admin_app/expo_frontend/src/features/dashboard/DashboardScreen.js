@@ -179,10 +179,19 @@ export default function DashboardScreen() {
     return new Date(year, month, day);
   };
 
+  // Helper to resolve company name from ID
+  const getCompanyName = (companyId) => {
+    if (!companyId || !data?.corporate) return '-';
+    const company = data.corporate.find(c => c.id === companyId);
+    return company?.companyName || company?.['会社概要']?.['会社名'] || companyId;
+  };
+
   // Helper to extract skills recursively
   const extractSkills = (user) => {
     const skills = { core: [], sub1: [], sub2: [] };
-    const root = user?.['スキル経験']?.['現職種']?.['技術職'];
+    // Handle both user profile structure (現職種) and job description structure (スキル経験)
+    const root = user?.['スキル経験']?.['現職種']?.['技術職'] || user?.['スキル経験'];
+    
     if (!root) return skills;
 
     const traverse = (obj) => {
@@ -750,9 +759,9 @@ export default function DashboardScreen() {
           const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
           
           const skills = extractSkills(jobDataForSkills);
-          const title = item.title || 'タイトル未設定';
+          const title = item['求人基本項目']?.['ポジション名'] || item.title || 'タイトル未設定';
           const jdNumber = item.JD_Number || '-';
-          const companyId = item.company_ID || '-';
+          const companyName = getCompanyName(item.company_ID);
           
           const hasAnySkill = skills.core.length > 0 || skills.sub1.length > 0 || skills.sub2.length > 0;
           const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
@@ -772,7 +781,7 @@ export default function DashboardScreen() {
                     <View>
                       <Text style={styles.itemTitleModern}>{title}</Text>
                       <Text style={styles.itemSubtitleModern}>JD No: {jdNumber}</Text>
-                      <Text style={styles.itemDetail}>Company: {companyId}</Text>
+                      <Text style={styles.itemDetail}>Company: {companyName}</Text>
                     </View>
                   </View>
                   
@@ -782,33 +791,35 @@ export default function DashboardScreen() {
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.skillScrollContainer}
                     >
-                      {skills.core.map((skill, i) => (
+                      {skills.core.slice(0, 1).map((skill, i) => (
                         <GlassCard
                           key={`core-${i}`}
-                          label={i === 0 ? "CORE" : ""}
+                          label="必須スキル"
                           skillName={skill}
                           width={60}
                           style={{ marginRight: 6 }}
+                          labelStyle={{ fontSize: 9, marginBottom: 3 }}
                           badgeStyle={{
-                            backgroundColor: 'rgba(14, 165, 233, 0.15)',
-                            borderColor: THEME.accent,
+                            backgroundColor: 'rgba(236, 72, 153, 0.10)',
+                            borderColor: 'rgba(236, 72, 153, 0.3)',
                             borderWidth: 1,
+                            borderRadius: 10,
                           }}
                           skillNameStyle={{
-                            color: THEME.accent,
-                            fontSize: 9,
+                            color: '#BE185D',
+                            fontSize: 8,
                             fontWeight: 'bold',
                             marginBottom: 0,
                           }}
                         />
                       ))}
 
-                      {skills.sub1.map((skill, i) => (
+                      {skills.sub1.slice(0, 1).map((skill, i) => (
                         <GlassCard
                           key={`sub1-${i}`}
-                          label={i === 0 ? "Sub 1" : ""}
+                          label="歓迎1"
                           skillName={skill}
-                          width={60}
+                          width={42}
                           style={{ marginRight: 6 }}
                           labelStyle={{ fontSize: 9, marginBottom: 3 }}
                           badgeStyle={{
@@ -826,23 +837,24 @@ export default function DashboardScreen() {
                         />
                       ))}
 
-                      {skills.sub2.map((skill, i) => (
+                      {skills.sub2.slice(0, 1).map((skill, i) => (
                         <GlassCard
                           key={`sub2-${i}`}
-                          label={i === 0 ? "Sub 2" : ""}
+                          label="歓迎2"
                           skillName={skill}
-                          width={60}
+                          width={42}
                           style={{ marginRight: 6 }}
                           labelStyle={{ fontSize: 9, marginBottom: 3 }}
                           badgeStyle={{
-                            backgroundColor: 'rgba(14, 165, 233, 0.05)',
-                            borderColor: 'rgba(14, 165, 233, 0.2)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.10)',
+                            borderColor: 'rgba(245, 158, 11, 0.3)',
                             borderWidth: 1,
                             borderRadius: 10,
                           }}
                           skillNameStyle={{
-                            color: '#075985',
+                            color: '#B45309',
                             fontSize: 8,
+                            fontWeight: 'bold',
                             marginBottom: 0,
                           }}
                         />

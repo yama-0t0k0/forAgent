@@ -137,20 +137,31 @@ graph TD
 個人タブと同様のUIを採用し、求人（Job Description）の一覧においてもスキル要件の可視化と詳細閲覧のUXを提供する。
 
 ### データソース
-- コレクション: `jd` (job_description / jobs / jd をマージしたもの)
-- スキルデータ参照: `スキル要件` または `スキル経験` フィールド
+- **コレクション**: `job_description` コレクション内のサブコレクション `JD_Number`
+- **取得ロジック**: `App.js` にて、`job_description` の全 Company ドキュメントを走査し、各 `JD_Number` サブコレクションから求人データをフラットに展開して取得する。
+- **データ構造**: `id` は `company_ID` + `_` + `JD_Number` で一意に生成される。
+- **スキルデータ参照**: `スキル経験` フィールド（`job_description` アプリとデータ構造を統一）
 
 ### 一覧行の構成
-- **基本情報**: タイトル、JD番号、Company IDを表示
-- **スキルバッジ**: 求めるスキル（CORE / SUB1 / SUB2）を表示
-- **ミニヒートマップ**: スキル要件のヒートマップ（縦3×横4）を表示
+- **基本情報**
+  - **ポジション名**: `求人基本項目.ポジション名` を表示（未設定時はフォールバック）
+  - **JD No**: `JD_Number` (2桁の数字) を表示
+  - **Company**: `company_ID` をもとに `corporate` コレクションから企業名を解決して表示
+- **スキルバッジ**
+  - `job_description` アプリのデザインを踏襲し、各カテゴリ先頭1つを表示
+  - **必須スキル (CORE)**: ラベル「必須スキル」、ピンク系スタイル、幅60px
+  - **歓迎スキル1 (SUB1)**: ラベル「歓迎1」、青系スタイル、幅42px
+  - **歓迎スキル2 (SUB2)**: ラベル「歓迎2」、オレンジ系スタイル、幅42px
+- **ミニヒートマップ**
+  - スキル要件のヒートマップ（縦3×横4）を表示
+  - `HeatmapCalculator.calculateSkillsOnly` を利用して算出
 
 ### 詳細モーダル仕様（JobDetailModal）
 - **画面占有率**: 画面全体の **80%**
 - **表示内容**:
-  - ヘッダー情報（JD No, タイトル, Company ID）
-  - スキルバッジ
-  - フルヒートマップ（スキル要件全体）
+  - ヘッダー情報（ポジション名, JD No, Company名）
+  - スキルバッジ（一覧と同様のデザイン・構成）
+  - フルヒートマップ（スキル要件全体、90タイル）
 
 ## 起動方法（管理者アプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
