@@ -20,15 +20,17 @@ const BADGE_ITEMS = [
     { label: '歓迎スキル2', icon: 'trophy', skills: ['サーバサイド', 'クラウド', 'CI/CD'] },
 ];
 
-export const JobDescriptionScreen = () => {
-    const navigation = useNavigation();
+export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
     const { data: localData } = useContext(DataContext);
     const [firestoreData, setFirestoreData] = useState(null);
     const [heatmapValues, setHeatmapValues] = useState(null);
+    const [containerWidth, setContainerWidth] = useState(width);
 
     // Fetch actual data from Firestore
     useEffect(() => {
-        const docRef = doc(db, 'job_description', 'B00000', 'JD_Number', '02');
+        if (!companyId || !jdNumber) return;
+
+        const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const jdData = docSnap.data();
@@ -43,14 +45,14 @@ export const JobDescriptionScreen = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [companyId, jdNumber]);
 
     // Use firestore data if available, otherwise fallback to local data (context)
     const activeData = firestoreData || localData;
     const positionName = activeData['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
 
     return (
-        <View style={styles.container}>
+        <View style={styles.container} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
             {/* Using SafeAreaView here to handle notches correctly without ImageBackground */}
             <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
                 <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
@@ -61,7 +63,7 @@ export const JobDescriptionScreen = () => {
                         <View style={styles.headerActionContainer}>
                             <TouchableOpacity
                                 style={styles.editButton}
-                                onPress={() => navigation.navigate('JobEdit')}
+                                onPress={onEdit}
                                 activeOpacity={0.7}
                             >
                                 <Ionicons name="create-outline" size={24} color={THEME.text} />
@@ -86,7 +88,7 @@ export const JobDescriptionScreen = () => {
                                     label={item.label}
                                     skillName={item.skills[index] || item.skills[0]}
                                     iconName={item.icon}
-                                    width={(width - 45) / 3}
+                                    width={(containerWidth - 45) / 3}
                                 />
                             ))}
                         </View>
@@ -102,7 +104,7 @@ export const JobDescriptionScreen = () => {
                         </View>
 
                         <HeatmapGrid
-                            containerWidth={width - 40}
+                            containerWidth={containerWidth - 30}
                             dataValues={heatmapValues}
                         />
 
@@ -126,6 +128,22 @@ export const JobDescriptionScreen = () => {
                 </View>
             </SafeAreaView>
         </View>
+    );
+};
+
+export const JobDescriptionScreen = ({ route, companyId: propCompanyId, jdNumber: propJdNumber }) => {
+    const navigation = useNavigation();
+
+    // Resolve IDs from props or navigation params (fallback to default for standalone dev)
+    const companyId = propCompanyId || route?.params?.companyId || 'B00000';
+    const jdNumber = propJdNumber || route?.params?.jdNumber || '02';
+
+    return (
+        <JobDescriptionContent 
+            companyId={companyId} 
+            jdNumber={jdNumber} 
+            onEdit={() => navigation.navigate('JobEdit')} 
+        />
     );
 };
 

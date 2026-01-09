@@ -11,6 +11,7 @@ import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 import { HeatmapMapper } from '@shared/src/core/utils/HeatmapMapper';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { JobDescriptionContent } from '../../../../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -1088,7 +1089,7 @@ export default function DashboardScreen() {
         </Pressable>
       </Modal>
 
-      {/* Job Detail Window (individual_user_app-like, in-app modal) */}
+      {/* Job Detail Window (JobDescription App) */}
       <Modal
         visible={!!selectedJobId}
         transparent
@@ -1096,90 +1097,21 @@ export default function DashboardScreen() {
         onRequestClose={closeJobDetail}
       >
         <Pressable style={styles.detailOverlay} onPress={closeJobDetail}>
-          <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.detailWindow, { width: '95%', height: '90%', maxWidth: 600 }]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.detailWindowHeader}>
-              <Text style={styles.detailWindowTitle}>求人詳細</Text>
+              <Text style={styles.detailWindowTitle}>求人詳細プレビュー</Text>
               <TouchableOpacity onPress={closeJobDetail} style={styles.detailWindowClose}>
                 <Text style={styles.detailWindowCloseText}>閉じる</Text>
               </TouchableOpacity>
             </View>
 
             {selectedJobDoc && (
-              <ScrollView contentContainerStyle={styles.detailWindowScrollContent} bounces={false}>
-                {(() => {
-                  // Normalize skill data for jobs
-                  const jobDataForSkills = selectedJobDoc['スキル要件'] ? { 'スキル経験': selectedJobDoc['スキル要件'] } : selectedJobDoc;
-                  
-                  const title = selectedJobDoc.title || 'タイトル未設定';
-                  const companyId = selectedJobDoc.company_ID || '-';
-                  const jdNumber = selectedJobDoc.JD_Number || '-';
-                  
-                  const skills = extractSkills(jobDataForSkills);
-                  const coreSkill = skills.core[0] || '-';
-                  const sub1Skill = skills.sub1[0] || '-';
-                  const sub2Skill = skills.sub2[0] || '-';
-
-                  // Calculate full heatmap (skills only)
-                  const heatmapValues = HeatmapCalculator.calculateSkillsOnly(jobDataForSkills);
-
-                  return (
-                    <>
-                      <View style={[styles.detailHero, { backgroundColor: '#f0f9ff' }]}>
-                        <View style={styles.detailHeroTopRow}>
-                          <Text style={styles.detailHeroId}>JD No: {jdNumber}</Text>
-                        </View>
-
-                        <View style={styles.detailHeroProfileRow}>
-                          <View style={styles.detailNamePlate}>
-                            <Text style={styles.detailNameText}>{title}</Text>
-                            <Text style={styles.detailJobTitle}>Company ID: {companyId}</Text>
-                            <Text style={styles.detailSourceText}>データ元: Firestore (jd)</Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      <View style={styles.detailBadgeSection}>
-                        <View style={styles.detailBadgeRow}>
-                          <GlassCard
-                            label="コアスキル"
-                            skillName={coreSkill}
-                            width={(styles.detailBadgeRow.width - 12) / 3}
-                            labelStyle={styles.detailCardLabel}
-                            badgeStyle={styles.detailGlassBadge}
-                            skillNameStyle={styles.detailCardSkillName}
-                          />
-                          <GlassCard
-                            label="サブスキル1"
-                            skillName={sub1Skill}
-                            width={(styles.detailBadgeRow.width - 12) / 3}
-                            labelStyle={styles.detailCardLabel}
-                            badgeStyle={styles.detailGlassBadge}
-                            skillNameStyle={styles.detailCardSkillName}
-                          />
-                          <GlassCard
-                            label="サブスキル2"
-                            skillName={sub2Skill}
-                            width={(styles.detailBadgeRow.width - 12) / 3}
-                            labelStyle={styles.detailCardLabel}
-                            badgeStyle={styles.detailGlassBadge}
-                            skillNameStyle={styles.detailCardSkillName}
-                          />
-                        </View>
-                      </View>
-
-                      <View style={styles.detailHeatmapSection}>
-                        <Text style={styles.detailHeatmapTitle}>スキル要件ヒートマップ</Text>
-                        <View style={{ alignItems: 'center', marginTop: 10 }}>
-                          <HeatmapGrid
-                            containerWidth={SCREEN_WIDTH * 0.8 - 40}
-                            dataValues={heatmapValues}
-                          />
-                        </View>
-                      </View>
-                    </>
-                  );
-                })()}
-              </ScrollView>
+              <View style={{ flex: 1, overflow: 'hidden' }}>
+                <JobDescriptionContent 
+                  companyId={selectedJobDoc.company_ID}
+                  jdNumber={selectedJobDoc.JD_Number}
+                />
+              </View>
             )}
           </Pressable>
         </Pressable>
