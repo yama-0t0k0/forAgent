@@ -77,6 +77,61 @@ graph TD
 - **ロジック**: `satisfactionScore` (1-5) を集計し、分布を表示。
 - **目的**: サービスの質（Quality of Match）を担保する。
 
+## 個人一覧UI仕様（DashboardScreen / 個人タブ）
+### 目的
+- 個人ユーザーの一覧に「スキル傾向の要約」を同一行内で表示し、詳細閲覧への導線を短縮する
+
+### 一覧行の構成
+- **タップ操作**
+  - 行全体をタップするとユーザー詳細モーダル（UserDetailModal）を表示する
+  - 行内のミニヒートマップのタイルをタップするとツールチップを表示する（行タップは発火しない）
+- **スキルバッジ表示**
+  - CORE / SUB1 / SUB2 を同一行で横方向に並べ、横スクロール可能
+  - バッジ表示は Firestore の `スキル経験` を元に抽出する
+- **ミニヒートマップ表示**
+  - 一覧行右側に、全90タイル（10×9）から抽出した「高密度領域」を縮小表示する
+
+### ミニヒートマップのデータ参照範囲
+- **一覧表示では `スキル経験` のみ参照**する（`志向` は参照しない）
+  - 実装: `HeatmapCalculator.calculateSkillsOnly(data)` を利用
+
+### ミニヒートマップの抽出アルゴリズム（高密度領域）
+- 全90タイル（10×9）のグリッドを対象にスコア（0.0〜1.0）を計算し、スライディングウィンドウで合計値が最大となる領域を抽出する
+- 抽出サイズ: **縦3 × 横4**
+- 抽出結果は「一覧に表示する順（3×4の配列）」と「元のタイルID（0〜89）」を保持し、ツールチップ表示時のラベル取得に利用する
+
+### ミニヒートマップの表示仕様
+- タイル数: **縦3 × 横4**
+- タイルサイズ: `HeatmapGrid` の計算式（containerWidth/columns - margin）を基準にし、一覧用に縮小係数（0.7倍）を適用
+- 色: shared の `HeatmapGrid` と同じ閾値で色分け（0 / 0.2 / 0.5 / 0.8）
+
+### ツールチップ仕様（ミニヒートマップ）
+- 目的: タップしたタイルに対応するスキル種別とレベルを表示する
+- 表示内容（一覧用）:
+  - スキル名（HeatmapMapper.getLabel(tileId)）
+  - レベル（Lv0〜Lv4）
+- 表示位置:
+  - タップしたタイルのすぐ上に表示されるようオフセットを調整
+  - 吹き出しの先端（矢印）が、タップしたタイル中心を指すように `arrowLeft` を算出して配置する
+  - 画面端ではツールチップの左右位置をクリップし、表示崩れを抑制する
+
+## 詳細モーダル仕様（UserDetailModal）
+### 概要
+一覧行をタップした際に表示される、個人ユーザーの詳細情報画面。`individual_user_app` のマイページ相当の情報を管理者向けに表示する。
+
+### レイアウト仕様
+- **画面占有率**: 画面全体の **80%**（`width: SCREEN_WIDTH * 0.8`, `height: SCREEN_HEIGHT * 0.8`）とし、背景はオーバーレイ表示とする
+- **構成要素**:
+  1. **ヒーローヘッダー**: ユーザーID、プロフィール画像、氏名、職種、Emailを表示
+  2. **スキルバッジ**: CORE / SUB1 / SUB2 のスキルカードを横並びで表示（モーダル幅に合わせてリサイズ）
+  3. **フルヒートマップ**: `HeatmapGrid` コンポーネントを使用し、全90タイルのスキル・志向情報を表示（モーダル幅の80%基準で表示）
+
+### 関連ファイル
+- 画面: `apps/admin_app/expo_frontend/src/features/dashboard/DashboardScreen.js`
+- 共有ロジック: `shared/common_frontend/src/core/utils/HeatmapCalculator.js`
+- 共有マッピング: `shared/common_frontend/src/core/utils/HeatmapMapper.js`
+- 参考コンポーネント: `shared/common_frontend/src/core/components/HeatmapGrid.js`
+
 ## 起動方法（管理者アプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行コマンド:

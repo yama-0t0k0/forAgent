@@ -1,5 +1,5 @@
-import React, { useState, useContext, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, TextInput, FlatList, Modal } from 'react-native';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, TextInput, FlatList, Modal, Pressable, ActivityIndicator, Image, ImageBackground } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,8 +9,11 @@ import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 import { HeatmapMapper } from '@shared/src/core/utils/HeatmapMapper';
+import { db } from '@shared/src/core/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 // ---------------------------
 // Constants & Config
@@ -100,11 +103,58 @@ export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalFilter, setModalFilter] = useState(null); // e.g., { type: 'status', value: 'entry' }
   const [modalTitle, setModalTitle] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedUserDoc, setSelectedUserDoc] = useState(null);
+  const [selectedUserLoading, setSelectedUserLoading] = useState(false);
+  const [selectedUserError, setSelectedUserError] = useState(null);
+  const [selectedUserCache, setSelectedUserCache] = useState({});
 
   const updateSearch = (tab, text) => {
     setSearchQueries(prev => ({ ...prev, [tab]: text }));
   };
+
+  const closeUserDetail = () => {
+    setSelectedUserId(null);
+    setSelectedUserDoc(null);
+    setSelectedUserLoading(false);
+    setSelectedUserError(null);
+  };
+
+  useEffect(() => {
+    const run = async () => {
+      if (!selectedUserId) return;
+
+      const cached = selectedUserCache[selectedUserId];
+      if (cached) {
+        setSelectedUserDoc(cached);
+        setSelectedUserLoading(false);
+        setSelectedUserError(null);
+        return;
+      }
+
+      setSelectedUserLoading(true);
+      setSelectedUserError(null);
+      setSelectedUserDoc(null);
+
+      try {
+        const snap = await getDoc(doc(db, 'individual', selectedUserId));
+        if (!snap.exists()) {
+          setSelectedUserError(`individual/${selectedUserId} が見つかりませんでした`);
+          setSelectedUserLoading(false);
+          return;
+        }
+        const d = snap.data();
+        setSelectedUserDoc(d);
+        setSelectedUserCache(prev => ({ ...prev, [selectedUserId]: d }));
+        setSelectedUserLoading(false);
+      } catch (e) {
+        setSelectedUserError('個人データの取得に失敗しました');
+        setSelectedUserLoading(false);
+      }
+    };
+
+    run();
+  }, [selectedUserId, selectedUserCache]);
 
   // ---------------------------
   // Data Aggregation & Filtering
@@ -549,7 +599,7 @@ export default function DashboardScreen() {
             <TouchableOpacity 
               style={styles.glassListItem}
               activeOpacity={0.7}
-              onPress={() => setSelectedUser(item)}
+              onPress={() => setSelectedUserId(item.id)}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ flex: 1, marginRight: 8 }}>
@@ -788,72 +838,126 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* User Detail Modal */}
-      <Modal visible={!!selectedUser} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSelectedUser(null)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>ユーザー詳細</Text>
-            <TouchableOpacity onPress={() => setSelectedUser(null)} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>閉じる</Text>
-            </TouchableOpacity>
-          </View>
-          {selectedUser && (
-            <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 50}}>
-              <View style={styles.detailHeader}>
-                <Text style={styles.detailName}>
-                  {(selectedUser['基本情報']?.['姓'] && selectedUser['基本情報']?.['名']) 
-                    ? `${selectedUser['基本情報']['姓']} ${selectedUser['基本情報']['名']}`
-                    : (selectedUser.name || '名称未設定')}
-                </Text>
-                <Text style={styles.detailId}>ID: {selectedUser.id}</Text>
-                <Text style={styles.detailInfo}>{selectedUser['基本情報']?.['住所']?.['都道府県or州など'] || '住所未設定'}</Text>
-              </View>
+      {/* User Detail Window (individual_user_app-like, in-app modal) */}
+      <Modal
+        visible={!!selectedUserId}
+        transparent
+        animationType="fade"
+        onRequestClose={closeUserDetail}
+      >
+        <Pressable style={styles.detailOverlay} onPress={closeUserDetail}>
+          <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.detailWindowHeader}>
+              <Text style={styles.detailWindowTitle}>個人ユーザー詳細</Text>
+              <TouchableOpacity onPress={closeUserDetail} style={styles.detailWindowClose}>
+                <Text style={styles.detailWindowCloseText}>閉じる</Text>
+              </TouchableOpacity>
+            </View>
 
-              <Text style={styles.sectionTitle}>スキル・志向性ヒートマップ</Text>
-              <View style={{alignItems: 'center', marginVertical: 10}}>
-                <HeatmapGrid 
-                  dataValues={HeatmapCalculator.calculate(selectedUser)}
-                  containerWidth={SCREEN_WIDTH - 40}
-                />
+            {selectedUserLoading && (
+              <View style={styles.detailWindowLoading}>
+                <ActivityIndicator size="large" color={THEME.accent} />
+                <Text style={styles.detailWindowLoadingText}>読み込み中...</Text>
               </View>
+            )}
 
-              <Text style={styles.sectionTitle}>保有スキル</Text>
-              <View style={styles.skillListContainer}>
+            {!selectedUserLoading && selectedUserError && (
+              <View style={styles.detailWindowLoading}>
+                <Text style={styles.detailWindowErrorText}>{selectedUserError}</Text>
+              </View>
+            )}
+
+            {!selectedUserLoading && !selectedUserError && selectedUserDoc && (
+              <ScrollView contentContainerStyle={styles.detailWindowScrollContent} bounces={false}>
                 {(() => {
-                  const skills = extractSkills(selectedUser);
+                  const basicInfo = selectedUserDoc['基本情報'] || {};
+                  const family = basicInfo['姓'] || '';
+                  const first = basicInfo['名'] || '';
+                  const mail = basicInfo['メール'] || basicInfo['メールアドレス'] || '';
+                  const backgroundUri = basicInfo['背景画像URL'];
+                  const profileUri = basicInfo['プロフィール画像URL'];
+
+                  const skills = extractSkills(selectedUserDoc);
+                  const coreSkill = skills.core[0] || '-';
+                  const sub1Skill = skills.sub1[0] || '-';
+                  const sub2Skill = skills.sub2[0] || '-';
+
+                  const heatmapValues = HeatmapCalculator.calculate(selectedUserDoc);
+
                   return (
                     <>
-                      {skills.core.length > 0 && (
-                        <View style={styles.skillGroup}>
-                          <Text style={styles.skillGroupTitle}>Core Skills</Text>
-                          <View style={styles.skillBadges}>
-                            {skills.core.map((s, i) => (
-                              <View key={i} style={[styles.skillBadge, {backgroundColor: '#E0F2FE', borderColor: '#0EA5E9'}]}>
-                                <Text style={[styles.skillBadgeText, {color: '#0369A1'}]}>{s}</Text>
-                              </View>
-                            ))}
+                      <ImageBackground
+                        source={backgroundUri ? { uri: backgroundUri } : undefined}
+                        style={styles.detailHero}
+                        imageStyle={styles.detailHeroImage}
+                      >
+                        <View style={styles.detailHeroTopRow}>
+                          <Text style={styles.detailHeroId}>ID: {selectedUserId}</Text>
+                        </View>
+
+                        <View style={styles.detailHeroProfileRow}>
+                          <View style={styles.detailPhotoContainer}>
+                            <Image
+                              source={{
+                                uri: profileUri || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400',
+                              }}
+                              style={styles.detailProfileImage}
+                            />
+                          </View>
+                          <View style={styles.detailNamePlate}>
+                            <Text style={styles.detailNameText}>{`${family} ${first}`.trim() || '名称未設定'}</Text>
+                            <Text style={styles.detailJobTitle}>フロントエンドエンジニア</Text>
+                            <Text style={styles.detailEmailText}>{mail || '-'}</Text>
+                            <Text style={styles.detailSourceText}>データ元: Firestore (individual)</Text>
                           </View>
                         </View>
-                      )}
-                      {(skills.sub1.length > 0 || skills.sub2.length > 0) && (
-                        <View style={styles.skillGroup}>
-                          <Text style={styles.skillGroupTitle}>Sub Skills</Text>
-                          <View style={styles.skillBadges}>
-                            {[...skills.sub1, ...skills.sub2].map((s, i) => (
-                              <View key={i} style={[styles.skillBadge, {backgroundColor: '#F0F9FF', borderColor: '#BAE6FD'}]}>
-                                <Text style={[styles.skillBadgeText, {color: '#0284C7'}]}>{s}</Text>
-                              </View>
-                            ))}
-                          </View>
+                      </ImageBackground>
+
+                      <View style={styles.detailBadgeSection}>
+                        <View style={styles.detailBadgeRow}>
+                          <GlassCard
+                            label="コアスキル"
+                            skillName={coreSkill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
+                          <GlassCard
+                            label="サブスキル1"
+                            skillName={sub1Skill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
+                          <GlassCard
+                            label="サブスキル2"
+                            skillName={sub2Skill}
+                            width={(styles.detailBadgeRow.width - 12) / 3}
+                            labelStyle={styles.detailCardLabel}
+                            badgeStyle={styles.detailGlassBadge}
+                            skillNameStyle={styles.detailCardSkillName}
+                          />
                         </View>
-                      )}
+                      </View>
+
+                      <View style={styles.detailHeatmapSection}>
+                        <Text style={styles.detailHeatmapTitle}>スキル・志向ヒートマップ</Text>
+                        <View style={{ alignItems: 'center', marginTop: 10 }}>
+                          <HeatmapGrid
+                            containerWidth={SCREEN_WIDTH * 0.8 - 40}
+                            dataValues={heatmapValues}
+                          />
+                        </View>
+                      </View>
                     </>
                   );
                 })()}
-              </View>
-            </ScrollView>
-          )}
-        </View>
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -1096,5 +1200,187 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'center',
     marginTop: 2,
-  }
+  },
+
+  detailOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(2, 6, 23, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  detailWindow: {
+    width: SCREEN_WIDTH * 0.8,
+    height: SCREEN_HEIGHT * 0.8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  detailWindowHeader: {
+    height: 54,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  detailWindowTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: THEME.text,
+  },
+  detailWindowClose: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#E0F2FE',
+  },
+  detailWindowCloseText: {
+    color: THEME.accent,
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  detailWindowLoading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  detailWindowLoadingText: {
+    color: THEME.subText,
+    fontWeight: '600',
+  },
+  detailWindowErrorText: {
+    color: '#B91C1C',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  detailWindowScrollContent: {
+    paddingBottom: 24,
+  },
+  detailHero: {
+    width: '100%',
+    height: SCREEN_HEIGHT * 0.8 * 0.32,
+    backgroundColor: '#0F172A',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+  },
+  detailHeroImage: {
+    opacity: 0.92,
+  },
+  detailHeroTopRow: {
+    position: 'absolute',
+    top: 12,
+    left: 14,
+    right: 14,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  detailHeroId: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  detailHeroProfileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailPhotoContainer: {
+    width: 84,
+    height: 84,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#fff',
+    backgroundColor: '#EEE',
+    marginRight: 10,
+  },
+  detailProfileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  detailNamePlate: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: THEME.cardBorder,
+  },
+  detailNameText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: THEME.text,
+    marginBottom: 2,
+  },
+  detailJobTitle: {
+    fontSize: 11,
+    color: THEME.accent,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  detailEmailText: {
+    fontSize: 10,
+    color: THEME.subText,
+  },
+  detailSourceText: {
+    fontSize: 10,
+    color: THEME.subText,
+    marginTop: 4,
+  },
+  detailBadgeSection: {
+    marginTop: -18,
+    paddingHorizontal: 14,
+  },
+  detailBadgeRow: {
+    width: SCREEN_WIDTH * 0.8 - 28,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailCardLabel: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    marginBottom: 5,
+    textShadowColor: 'rgba(0, 0, 0, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  detailGlassBadge: {
+    width: '100%',
+    aspectRatio: 1.1,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(186, 230, 253, 0.75)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.55)',
+  },
+  detailCardSkillName: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
+    textAlign: 'center',
+    paddingHorizontal: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  detailHeatmapSection: {
+    paddingHorizontal: 14,
+    paddingTop: 16,
+  },
+  detailHeatmapTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: THEME.text,
+  },
 });
