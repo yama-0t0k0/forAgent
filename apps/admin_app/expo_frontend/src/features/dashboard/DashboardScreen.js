@@ -2,7 +2,10 @@ import React, { useState, useContext, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, TextInput, FlatList, Modal } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import Svg, { Rect, Path } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
+import { GlassCard } from '@shared/src/core/components/GlassCard';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -113,14 +116,49 @@ export default function DashboardScreen() {
     return new Date(year, month, day);
   };
 
+  // Helper to extract skills recursively
+  const extractSkills = (user) => {
+    const skills = { core: [], sub1: [], sub2: [] };
+    const root = user?.['スキル経験']?.['現職種']?.['技術職'];
+    if (!root) return skills;
+
+    const traverse = (obj) => {
+      Object.entries(obj).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          if (value.core_skill) skills.core.push(key);
+          if (value.sub1) skills.sub1.push(key);
+          if (value.sub2) skills.sub2.push(key);
+          
+          traverse(value);
+        }
+      });
+    };
+
+    traverse(root);
+    return skills;
+  };
+
   // Individual Tab Data
   const filteredUsers = useMemo(() => {
     const query = searchQueries.individual.toLowerCase();
-    return (data?.users || []).filter(u => 
-      (u.id && u.id.toLowerCase().includes(query)) ||
-      (u.name && u.name.toLowerCase().includes(query)) ||
-      (u.email && u.email.toLowerCase().includes(query))
-    ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Newest first
+    return (data?.users || []).filter(u => {
+      const basicInfo = u['基本情報'] || {};
+      const address = basicInfo['住所'] || {};
+      const education = basicInfo['学歴詳細'] || {};
+      
+      const searchableText = [
+        u.id,
+        u.name,
+        u.email,
+        basicInfo['姓'],
+        basicInfo['名'],
+        basicInfo['メールアドレス'],
+        address['都道府県or州など'],
+        education['学校名']
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      return searchableText.includes(query);
+    }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Newest first
   }, [data?.users, searchQueries.individual]);
 
   // Company Tab Data
@@ -315,7 +353,7 @@ export default function DashboardScreen() {
       <SearchSection 
         searchQuery={searchQueries.individual} 
         setSearchQuery={(t) => updateSearch('individual', t)}
-        placeholder="名前、メール、IDで検索"
+        placeholder="名前、住所、学校名、IDなどで検索"
         quickFilters={[
           { label: '今月登録', value: 'this_month' },
           { label: 'エンジニア', value: 'engineer' }
@@ -324,13 +362,71 @@ export default function DashboardScreen() {
       />
       <DataList 
         data={filteredUsers}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text style={styles.itemTitle}>{item.name || '名称未設定'}</Text>
-            <Text style={styles.itemSubtitle}>ID: {item.id}</Text>
-            <Text style={styles.itemDetail}>{item.email}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const skills = extractSkills(item);
+          const fullName = (item['基本情報']?.['姓'] && item['基本情報']?.['名']) 
+            ? `${item['基本情報']['姓']} ${item['基本情報']['名']}`
+            : (item.name || '名称未設定');
+          
+          const hasAnySkill = skills.core.length > 0 || skills.sub1.length > 0 || skills.sub2.length > 0;
+
+          return (
+            <View style={styles.glassListItem}>
+              <View style={styles.listItemHeader}>
+                <View>
+                  <Text style={styles.itemTitleModern}>{fullName}</Text>
+                  <Text style={styles.itemSubtitleModern}>ID: {item.id}</Text>
+                </View>
+                <View style={styles.statusBadgeModern}>
+                   <Text style={styles.statusTextModern}>詳細</Text>
+                </View>
+              </View>
+              
+              {hasAnySkill && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.skillScrollContainer}>
+                  {/* Core Skills - Largest */}
+                  {skills.core.map((skill, i) => (
+                    <GlassCard
+                      key={`core-${i}`}
+                      label={i === 0 ? "CORE" : ""}
+                      skillName={skill}
+                      width={60}
+                      style={{ marginRight: 6 }}
+                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.15)', borderColor: THEME.accent, aspectRatio: 1, borderWidth: 1 }}
+                      skillNameStyle={{ color: THEME.accent, fontSize: 9, fontWeight: 'bold', marginBottom: 0 }}
+                    />
+                  ))}
+                  
+                  {/* Sub1 Skills - Medium */}
+                  {skills.sub1.map((skill, i) => (
+                    <GlassCard
+                      key={`sub1-${i}`}
+                      label={i === 0 ? "Sub 1" : ""}
+                      skillName={skill}
+                      width={50}
+                      style={{ marginRight: 6 }}
+                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderColor: 'rgba(14, 165, 233, 0.3)', aspectRatio: 1, borderWidth: 1 }}
+                      skillNameStyle={{ color: '#0369A1', fontSize: 8.5, fontWeight: 'bold', marginBottom: 0 }}
+                    />
+                  ))}
+
+                  {/* Sub2 Skills - Smallest (Same size as Sub1 for readability) */}
+                  {skills.sub2.map((skill, i) => (
+                    <GlassCard
+                      key={`sub2-${i}`}
+                      label={i === 0 ? "Sub 2" : ""}
+                      skillName={skill}
+                      width={50}
+                      style={{ marginRight: 6 }}
+                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', borderColor: 'rgba(14, 165, 233, 0.2)', aspectRatio: 1, borderWidth: 1 }}
+                      skillNameStyle={{ color: '#075985', fontSize: 8.5, marginBottom: 0 }}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          );
+        }}
       />
     </View>
   );
@@ -480,78 +576,170 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 50 },
+  container: { flex: 1, backgroundColor: THEME.background, paddingTop: 50 },
   header: { paddingHorizontal: 20, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: THEME.text },
   notificationContainer: { position: 'relative', padding: 5 },
   badge: { position: 'absolute', top: 0, right: 0, backgroundColor: 'red', borderRadius: 10, width: 18, height: 18, justifyContent: 'center', alignItems: 'center' },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
 
   // Tab Bar
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', elevation: 2 },
-  tabItem: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent', minHeight: 48, justifyContent: 'center' },
-  activeTabItem: { borderBottomColor: '#2196F3' },
-  tabText: { fontSize: 14, color: '#666' },
-  activeTabText: { color: '#2196F3', fontWeight: 'bold' },
+  tabBar: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.8)', marginHorizontal: 20, borderRadius: 16, padding: 4, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
+  tabItem: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, justifyContent: 'center' },
+  activeTabItem: { backgroundColor: '#fff', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  tabText: { fontSize: 13, color: THEME.subText, fontWeight: '600' },
+  activeTabText: { color: THEME.accent, fontWeight: 'bold' },
   
   contentArea: { flex: 1 },
-  tabContent: { flex: 1, padding: 15 },
+  tabContent: { flex: 1, padding: 20 },
   
   // New Dashboard Styles
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#444' },
-  displayBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  displayBadgeText: { color: '#2196F3', fontSize: 12, fontWeight: 'bold' },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
+  displayBadge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  displayBadgeText: { color: THEME.accent, fontSize: 12, fontWeight: 'bold' },
   
-  flowContainer: { flexDirection: 'row', marginBottom: 20 },
-  whiteCard: { backgroundColor: '#fff', padding: 15, borderRadius: 12, minWidth: 100, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  cardCount: { fontSize: 22, fontWeight: 'bold', color: '#2196F3', marginBottom: 2 },
-  unitText: { fontSize: 12, color: '#666', fontWeight: 'normal' },
-  cardLabel: { fontSize: 12, color: '#666', marginBottom: 2 },
-  cardRate: { fontSize: 11, color: '#999' },
+  // Search
+  searchContainer: { marginBottom: 20 },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: THEME.text,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
+  },
+  quickFilterContainer: { flexDirection: 'row', marginTop: 12 },
+  quickFilterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  quickFilterText: { fontSize: 12, color: THEME.subText, fontWeight: '600' },
+
+  // List Item (Legacy)
+  listItem: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  itemTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+  itemSubtitle: { fontSize: 12, color: '#666', marginBottom: 4 },
+  itemDetail: { fontSize: 12, color: '#999' },
+  statusBadge: { marginTop: 8, fontSize: 12, color: '#2196F3', fontWeight: 'bold' },
+
+  // Glass List Item (Modern)
+  glassListItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#fff',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  listItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  itemTitleModern: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: THEME.text,
+    marginBottom: 2,
+  },
+  itemSubtitleModern: {
+    fontSize: 12,
+    color: THEME.subText,
+    fontWeight: '500',
+  },
+  statusBadgeModern: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusTextModern: {
+    color: THEME.accent,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  skillScrollContainer: {
+    paddingVertical: 4,
+    paddingLeft: 10,
+    alignItems: 'flex-end', // Align bottom to emphasize height difference
+  },
+
+  // Other components
+  flowContainer: { marginBottom: 20 },
+  whiteCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    minWidth: 100,
+    marginRight: 10,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardCount: { fontSize: 24, fontWeight: 'bold', color: THEME.text, marginBottom: 4 },
+  unitText: { fontSize: 12, color: THEME.subText, fontWeight: 'normal' },
+  cardLabel: { fontSize: 12, color: THEME.subText, marginBottom: 4 },
+  cardRate: { fontSize: 11, color: THEME.success, fontWeight: 'bold' },
+  arrowContainer: { justifyContent: 'center', marginRight: 10 },
+  arrow: { color: '#CBD5E1', fontSize: 20 },
   
-  arrowContainer: { justifyContent: 'center', paddingHorizontal: 10 },
-  arrow: { color: '#ccc', fontSize: 20 },
-  
-  rowContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  halfCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-  fullCard: { backgroundColor: '#fff', borderRadius: 16, padding: 15, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-  
-  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#333', marginBottom: 10 },
+  rowContainer: { flexDirection: 'row', marginBottom: 20 },
+  halfCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
+  fullCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
+  cardTitle: { fontSize: 15, fontWeight: 'bold', color: THEME.text, marginBottom: 15 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   
-  legendContainer: { marginTop: 5 },
+  segmentControl: { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 2 },
+  segmentActive: { backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
+  segmentInactive: { paddingHorizontal: 12, paddingVertical: 4 },
+  segmentTextActive: { fontSize: 11, fontWeight: 'bold', color: THEME.text },
+  segmentTextInactive: { fontSize: 11, color: THEME.subText },
+  
+  legendContainer: { marginTop: 10 },
   legendRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 4 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', marginRight: 10 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 6 },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
-  legendText: { fontSize: 10, color: '#666' },
-  
-  segmentControl: { flexDirection: 'row', backgroundColor: '#f5f5f5', borderRadius: 8, padding: 2 },
-  segmentActive: { backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, shadowColor: '#000', shadowOffset: {width:0,height:1}, shadowOpacity:0.1, shadowRadius:1, elevation: 1 },
-  segmentInactive: { paddingHorizontal: 10, paddingVertical: 4 },
-  segmentTextActive: { fontSize: 12, color: '#333', fontWeight: 'bold' },
-  segmentTextInactive: { fontSize: 12, color: '#999' },
+  legendText: { fontSize: 10, color: THEME.subText },
 
-  // Search
-  searchContainer: { marginBottom: 10 },
-  searchInput: { backgroundColor: '#fff', padding: 10, borderRadius: 8, marginBottom: 8 },
-  quickFilterContainer: { flexDirection: 'row' },
-  quickFilterChip: { backgroundColor: '#e0e0e0', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8 },
-  quickFilterText: { fontSize: 12, color: '#333' },
-  
-  // List
   listContainer: { paddingBottom: 20 },
-  listItem: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 10, elevation: 1 },
-  itemTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  itemSubtitle: { fontSize: 14, color: '#666', marginBottom: 2 },
-  itemDetail: { fontSize: 12, color: '#999' },
-  statusBadge: { marginTop: 4, fontSize: 12, color: '#2196F3', fontWeight: 'bold' },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#999' },
+  emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
   
   // Modal
-  modalContainer: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#fff' },
-  modalTitle: { fontSize: 18, fontWeight: 'bold' },
+  modalContainer: { flex: 1, backgroundColor: '#F8FAFC', paddingTop: 20 },
+  modalHeader: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#fff' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
   closeButton: { padding: 8 },
-  closeButtonText: { color: '#2196F3', fontSize: 16 },
+  closeButtonText: { color: THEME.accent, fontWeight: 'bold' },
 });

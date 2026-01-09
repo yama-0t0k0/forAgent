@@ -30,11 +30,13 @@ export const GlassCard = ({
       {label && <Text style={[styles.cardLabel, labelStyle]}>{label}</Text>}
       <View style={[styles.glassBadge, badgeStyle]}>
         <Text style={[styles.cardSkillName, skillNameStyle]}>{skillName}</Text>
-        <Ionicons
-          name={iconName}
-          size={18}
-          color={THEME.accent}
-        />
+        {iconName && (
+          <Ionicons
+            name={iconName}
+            size={18}
+            color={THEME.accent}
+          />
+        )}
       </View>
     </View>
   );
