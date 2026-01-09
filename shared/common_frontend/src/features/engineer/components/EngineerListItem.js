@@ -88,9 +88,9 @@ export const EngineerListItem = ({
         {heatmapData && (
           <View pointerEvents="box-none">
             <MiniHeatmap 
-              data={heatmapData} 
-              rows={3} 
-              cols={3} 
+              data={heatmapData.data} 
+              rows={heatmapData.rows || 3} 
+              cols={heatmapData.cols || 3} 
             />
           </View>
         )}
