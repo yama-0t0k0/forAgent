@@ -14,17 +14,46 @@ const AdminAppWrapper = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [usersSnap, corporateSnap, jdSnap, fmjsSnap] = await Promise.all([
-          getDocs(collection(db, 'individual')),
-          getDocs(collection(db, 'corporate')),
-          getDocs(collection(db, 'jd')),
-          getDocs(collection(db, 'FeeMgmtAndJobStatDB'))
+        const fetchDocs = async (collectionName) => {
+          try {
+            const snap = await getDocs(collection(db, collectionName));
+            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          } catch (e) {
+            return [];
+          }
+        };
+
+        const mergeById = (arrays) => {
+          const map = new Map();
+          arrays.flat().forEach((item) => {
+            if (!item?.id) return;
+            if (!map.has(item.id)) map.set(item.id, item);
+          });
+          return Array.from(map.values());
+        };
+
+        const [
+          users,
+          companiesPrimary,
+          companiesFallback1,
+          companiesFallback2,
+          jobsPrimary,
+          jobsFallback1,
+          jobsFallback2,
+          fmjs,
+        ] = await Promise.all([
+          fetchDocs('individual'),
+          fetchDocs('Company'),
+          fetchDocs('company'),
+          fetchDocs('corporate'),
+          fetchDocs('job_description'),
+          fetchDocs('jobs'),
+          fetchDocs('jd'),
+          fetchDocs('FeeMgmtAndJobStatDB'),
         ]);
 
-        const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const corporate = corporateSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const jd = jdSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const fmjs = fmjsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const corporate = mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
+        const jd = mergeById([jobsPrimary, jobsFallback1, jobsFallback2]);
 
         setInitialData({
           users,
