@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
-import { DataList } from '../common/DataList';
+import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { styles } from '../../dashboardStyles';
 
 export const DrillDownModal = ({ visible, title, data, onClose }) => (
@@ -12,7 +12,7 @@ export const DrillDownModal = ({ visible, title, data, onClose }) => (
           <Text style={styles.closeButtonText}>閉じる</Text>
         </TouchableOpacity>
       </View>
-      <DataList 
+      <GenericDataList 
         data={data}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
@@ -21,7 +21,9 @@ export const DrillDownModal = ({ visible, title, data, onClose }) => (
             <Text style={styles.itemDetail}>更新日: {item.UpdateTimestamp_yyyymmddtttttt}</Text>
           </View>
         )}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   </Modal>
 );
+

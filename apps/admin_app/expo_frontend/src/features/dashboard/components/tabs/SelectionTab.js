@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { SearchSection } from '../common/SearchSection';
-import { DataList } from '../common/DataList';
+import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
+import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { styles } from '../../dashboardStyles';
 
 export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }) => (
   <View style={styles.tabContent}>
-    <SearchSection 
+    <GenericSearchBar 
       searchQuery={searchQuery} 
       setSearchQuery={setSearchQuery}
       placeholder="JobStatID、個人IDで検索"
@@ -15,8 +15,9 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
         { label: '内定', value: 'offer' }
       ]}
       onApplyFilter={(val) => console.log('Filter:', val)}
+      style={styles.searchContainer}
     />
-    <DataList 
+    <GenericDataList 
       data={filteredSelections}
       renderItem={({ item }) => (
         <View style={styles.listItem}>
@@ -28,6 +29,8 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
           </Text>
         </View>
       )}
+      contentContainerStyle={styles.listContainer}
     />
   </View>
 );
+

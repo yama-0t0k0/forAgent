@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import { HeatmapMapper } from '@shared/src/core/utils/HeatmapMapper';
-import { THEME } from '@shared/src/core/theme/theme';
-import { styles } from '../../dashboardStyles';
+import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
+import { HeatmapMapper } from '../utils/HeatmapMapper';
+import { THEME } from '../theme/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -128,3 +127,42 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  tooltip: {
+    backgroundColor: '#1E293B',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tooltipTitle: {
+    color: '#F1F5F9',
+    fontWeight: 'bold',
+  },
+  tooltipText: {
+    color: '#CBD5E1',
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
+  arrowUp: {
+    top: -6,
+    borderBottomWidth: 6,
+    borderBottomColor: '#1E293B',
+  },
+  arrowDown: {
+    bottom: -6,
+    borderTopWidth: 6,
+    borderTopColor: '#1E293B',
+  },
+});
