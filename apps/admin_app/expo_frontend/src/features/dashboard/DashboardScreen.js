@@ -6,6 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
+import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { HeatmapMapper } from '@shared/src/core/utils/HeatmapMapper';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -97,6 +100,7 @@ export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalFilter, setModalFilter] = useState(null); // e.g., { type: 'status', value: 'entry' }
   const [modalTitle, setModalTitle] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const updateSearch = (tab, text) => {
     setSearchQueries(prev => ({ ...prev, [tab]: text }));
@@ -136,6 +140,176 @@ export default function DashboardScreen() {
 
     traverse(root);
     return skills;
+  };
+
+  // Helper to calculate high density heatmap area
+  const getHighDensityHeatmapData = (userData) => {
+    // Use skills-only calculation as requested
+    const fullGrid = HeatmapCalculator.calculateSkillsOnly(userData);
+    const ROWS = 10;
+    const COLS = 9;
+    const WINDOW_ROWS = 3; // 縦3 (Requested: 3)
+    const WINDOW_COLS = 4; // 横4 (Requested: 4)
+
+    let maxScore = -1;
+    let bestStartRow = 0;
+    let bestStartCol = 0;
+
+    // Sliding window to find highest density
+    for (let r = 0; r <= ROWS - WINDOW_ROWS; r++) {
+      for (let c = 0; c <= COLS - WINDOW_COLS; c++) {
+        let currentScore = 0;
+        for (let wr = 0; wr < WINDOW_ROWS; wr++) {
+          for (let wc = 0; wc < WINDOW_COLS; wc++) {
+            const index = (r + wr) * COLS + (c + wc);
+            currentScore += fullGrid[index] || 0;
+          }
+        }
+        if (currentScore > maxScore) {
+          maxScore = currentScore;
+          bestStartRow = r;
+          bestStartCol = c;
+        }
+      }
+    }
+
+    // Extract data for the best window
+    const windowData = [];
+    for (let wr = 0; wr < WINDOW_ROWS; wr++) {
+      for (let wc = 0; wc < WINDOW_COLS; wc++) {
+        const index = (bestStartRow + wr) * COLS + (bestStartCol + wc);
+        windowData.push({
+          value: fullGrid[index] || 0,
+          id: index // Keep original index for label lookup
+        });
+      }
+    }
+
+    return { data: windowData, rows: WINDOW_ROWS, cols: WINDOW_COLS };
+  };
+
+  // Mini Heatmap Component
+  const MiniHeatmap = ({ data, rows, cols }) => {
+    const [selectedTile, setSelectedTile] = useState(null);
+
+    // Calculate tile size based on individual_user_app logic, then reduced to 70%
+    // containerWidth = width - 40 (padding)
+    // tileSize = (containerWidth / 9) - 4 (margin)
+    const baseTileSize = ((SCREEN_WIDTH - 40) / 9) - 4;
+    const standardTileSize = baseTileSize * 0.7; // 70% size
+    
+    const getColor = (value) => {
+      if (value === 0) return '#E2E8F0';
+      if (value <= 0.2) return '#BAE6FD';
+      if (value <= 0.5) return '#7DD3FC';
+      if (value <= 0.8) return THEME.accent;
+      return '#0369A1';
+    };
+
+    const handlePress = (item, index) => {
+      if (selectedTile && selectedTile.id === item.id) {
+        setSelectedTile(null);
+        return;
+      }
+
+      const label = HeatmapMapper.getLabel(item.id) || `Tile ${item.id}`;
+      
+      // Calculate level (0-4)
+      let level = 0;
+      const v = item.value;
+      if (v > 0.8) level = 4;
+      else if (v > 0.5) level = 3;
+      else if (v > 0.2) level = 2;
+      else if (v > 0) level = 1;
+
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      
+      // Calculate approximate position
+      const totalTileSize = standardTileSize + 2; // 2px margin (1px each side)
+      
+      // Tooltip settings
+      const tooltipWidth = 90;
+      const tooltipHeightApprox = 44;
+      
+      // Center horizontally relative to tile
+      let left = (col * totalTileSize) + (totalTileSize / 2) - (tooltipWidth / 2);
+      
+      // Constrain to container width (approx)
+      const containerWidth = cols * totalTileSize;
+      left = Math.max(-20, Math.min(containerWidth - tooltipWidth + 20, left)); // Allow some overflow
+      
+      const showAbove = row >= Math.max(0, rows - 2);
+      const top = showAbove
+        ? (row * totalTileSize) - tooltipHeightApprox - 8
+        : ((row + 1) * totalTileSize) + 8;
+
+      setSelectedTile({
+        id: item.id,
+        label,
+        level,
+        top,
+        left,
+        showAbove,
+        arrowLeft: (col * totalTileSize) + (totalTileSize / 2) - left - 6,
+      });
+    };
+
+    return (
+      <View style={{ position: 'relative', width: cols * (standardTileSize + 2) }} onStartShouldSetResponder={() => true}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {data.map((item, i) => (
+            <TouchableOpacity
+              key={i}
+              style={{
+                width: standardTileSize,
+                height: standardTileSize,
+                backgroundColor: getColor(item.value),
+                margin: 1,
+                borderRadius: 4, // Match HeatmapGrid
+                borderWidth: selectedTile?.id === item.id ? 2 : 0,
+                borderColor: '#334155',
+                zIndex: 1
+              }}
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent list item press
+                handlePress(item, i);
+              }}
+              activeOpacity={0.7}
+            />
+          ))}
+        </View>
+
+        {selectedTile && (
+          <View style={[
+            styles.tooltip, 
+            { 
+              top: selectedTile.top,
+              left: selectedTile.left,
+              width: 90,
+              padding: 6,
+              borderRadius: 6,
+              position: 'absolute',
+              zIndex: 999
+            }
+          ]}>
+            <View
+              style={[
+                styles.tooltipArrow,
+                selectedTile.showAbove ? styles.arrowDown : styles.arrowUp,
+                { left: selectedTile.arrowLeft },
+              ]}
+            />
+            <Text style={[styles.tooltipTitle, { fontSize: 10, marginBottom: 2 }]} numberOfLines={1}>
+              {selectedTile.label}
+            </Text>
+            <Text style={[styles.tooltipText, { fontSize: 10 }]}>
+              Lv {selectedTile.level}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
   };
 
   // Individual Tab Data
@@ -369,62 +543,104 @@ export default function DashboardScreen() {
             : (item.name || '名称未設定');
           
           const hasAnySkill = skills.core.length > 0 || skills.sub1.length > 0 || skills.sub2.length > 0;
+          const heatmapInfo = getHighDensityHeatmapData(item);
 
           return (
-            <View style={styles.glassListItem}>
-              <View style={styles.listItemHeader}>
-                <View>
-                  <Text style={styles.itemTitleModern}>{fullName}</Text>
-                  <Text style={styles.itemSubtitleModern}>ID: {item.id}</Text>
+            <TouchableOpacity 
+              style={styles.glassListItem}
+              activeOpacity={0.7}
+              onPress={() => setSelectedUser(item)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <View style={styles.listItemHeader}>
+                    <View>
+                      <Text style={styles.itemTitleModern}>{fullName}</Text>
+                      <Text style={styles.itemSubtitleModern}>ID: {item.id}</Text>
+                    </View>
+                  </View>
+                  
+                  {hasAnySkill && (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.skillScrollContainer}
+                    >
+                      {skills.core.map((skill, i) => (
+                        <GlassCard
+                          key={`core-${i}`}
+                          label={i === 0 ? "CORE" : ""}
+                          skillName={skill}
+                          width={60}
+                          style={{ marginRight: 6 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                            borderColor: THEME.accent,
+                            borderWidth: 1,
+                          }}
+                          skillNameStyle={{
+                            color: THEME.accent,
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+
+                      {skills.sub1.map((skill, i) => (
+                        <GlassCard
+                          key={`sub1-${i}`}
+                          label={i === 0 ? "Sub 1" : ""}
+                          skillName={skill}
+                          width={42}
+                          style={{ marginRight: 6 }}
+                          labelStyle={{ fontSize: 9, marginBottom: 3 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.10)',
+                            borderColor: 'rgba(14, 165, 233, 0.3)',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                          }}
+                          skillNameStyle={{
+                            color: '#0369A1',
+                            fontSize: 8,
+                            fontWeight: 'bold',
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+
+                      {skills.sub2.map((skill, i) => (
+                        <GlassCard
+                          key={`sub2-${i}`}
+                          label={i === 0 ? "Sub 2" : ""}
+                          skillName={skill}
+                          width={42}
+                          style={{ marginRight: 6 }}
+                          labelStyle={{ fontSize: 9, marginBottom: 3 }}
+                          badgeStyle={{
+                            backgroundColor: 'rgba(14, 165, 233, 0.05)',
+                            borderColor: 'rgba(14, 165, 233, 0.2)',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                          }}
+                          skillNameStyle={{
+                            color: '#075985',
+                            fontSize: 8,
+                            marginBottom: 0,
+                          }}
+                        />
+                      ))}
+                    </ScrollView>
+                  )}
                 </View>
-                <View style={styles.statusBadgeModern}>
-                   <Text style={styles.statusTextModern}>詳細</Text>
+
+                {/* Heatmap Area */}
+                <View style={{ paddingLeft: 8, borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.5)' }}>
+                  <MiniHeatmap data={heatmapInfo.data} rows={heatmapInfo.rows} cols={heatmapInfo.cols} />
                 </View>
               </View>
-              
-              {hasAnySkill && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.skillScrollContainer}>
-                  {/* Core Skills - Largest */}
-                  {skills.core.map((skill, i) => (
-                    <GlassCard
-                      key={`core-${i}`}
-                      label={i === 0 ? "CORE" : ""}
-                      skillName={skill}
-                      width={60}
-                      style={{ marginRight: 6 }}
-                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.15)', borderColor: THEME.accent, aspectRatio: 1, borderWidth: 1 }}
-                      skillNameStyle={{ color: THEME.accent, fontSize: 9, fontWeight: 'bold', marginBottom: 0 }}
-                    />
-                  ))}
-                  
-                  {/* Sub1 Skills - Medium */}
-                  {skills.sub1.map((skill, i) => (
-                    <GlassCard
-                      key={`sub1-${i}`}
-                      label={i === 0 ? "Sub 1" : ""}
-                      skillName={skill}
-                      width={50}
-                      style={{ marginRight: 6 }}
-                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderColor: 'rgba(14, 165, 233, 0.3)', aspectRatio: 1, borderWidth: 1 }}
-                      skillNameStyle={{ color: '#0369A1', fontSize: 8.5, fontWeight: 'bold', marginBottom: 0 }}
-                    />
-                  ))}
-
-                  {/* Sub2 Skills - Smallest (Same size as Sub1 for readability) */}
-                  {skills.sub2.map((skill, i) => (
-                    <GlassCard
-                      key={`sub2-${i}`}
-                      label={i === 0 ? "Sub 2" : ""}
-                      skillName={skill}
-                      width={50}
-                      style={{ marginRight: 6 }}
-                      badgeStyle={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', borderColor: 'rgba(14, 165, 233, 0.2)', aspectRatio: 1, borderWidth: 1 }}
-                      skillNameStyle={{ color: '#075985', fontSize: 8.5, marginBottom: 0 }}
-                    />
-                  ))}
-                </ScrollView>
-              )}
-            </View>
+            </TouchableOpacity>
           );
         }}
       />
@@ -571,6 +787,74 @@ export default function DashboardScreen() {
           />
         </View>
       </Modal>
+
+      {/* User Detail Modal */}
+      <Modal visible={!!selectedUser} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSelectedUser(null)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>ユーザー詳細</Text>
+            <TouchableOpacity onPress={() => setSelectedUser(null)} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>閉じる</Text>
+            </TouchableOpacity>
+          </View>
+          {selectedUser && (
+            <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 50}}>
+              <View style={styles.detailHeader}>
+                <Text style={styles.detailName}>
+                  {(selectedUser['基本情報']?.['姓'] && selectedUser['基本情報']?.['名']) 
+                    ? `${selectedUser['基本情報']['姓']} ${selectedUser['基本情報']['名']}`
+                    : (selectedUser.name || '名称未設定')}
+                </Text>
+                <Text style={styles.detailId}>ID: {selectedUser.id}</Text>
+                <Text style={styles.detailInfo}>{selectedUser['基本情報']?.['住所']?.['都道府県or州など'] || '住所未設定'}</Text>
+              </View>
+
+              <Text style={styles.sectionTitle}>スキル・志向性ヒートマップ</Text>
+              <View style={{alignItems: 'center', marginVertical: 10}}>
+                <HeatmapGrid 
+                  dataValues={HeatmapCalculator.calculate(selectedUser)}
+                  containerWidth={SCREEN_WIDTH - 40}
+                />
+              </View>
+
+              <Text style={styles.sectionTitle}>保有スキル</Text>
+              <View style={styles.skillListContainer}>
+                {(() => {
+                  const skills = extractSkills(selectedUser);
+                  return (
+                    <>
+                      {skills.core.length > 0 && (
+                        <View style={styles.skillGroup}>
+                          <Text style={styles.skillGroupTitle}>Core Skills</Text>
+                          <View style={styles.skillBadges}>
+                            {skills.core.map((s, i) => (
+                              <View key={i} style={[styles.skillBadge, {backgroundColor: '#E0F2FE', borderColor: '#0EA5E9'}]}>
+                                <Text style={[styles.skillBadgeText, {color: '#0369A1'}]}>{s}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                      {(skills.sub1.length > 0 || skills.sub2.length > 0) && (
+                        <View style={styles.skillGroup}>
+                          <Text style={styles.skillGroupTitle}>Sub Skills</Text>
+                          <View style={styles.skillBadges}>
+                            {[...skills.sub1, ...skills.sub2].map((s, i) => (
+                              <View key={i} style={[styles.skillBadge, {backgroundColor: '#F0F9FF', borderColor: '#BAE6FD'}]}>
+                                <Text style={[styles.skillBadgeText, {color: '#0284C7'}]}>{s}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                    </>
+                  );
+                })()}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -690,7 +974,7 @@ const styles = StyleSheet.create({
   skillScrollContainer: {
     paddingVertical: 4,
     paddingLeft: 10,
-    alignItems: 'flex-end', // Align bottom to emphasize height difference
+    alignItems: 'flex-start',
   },
 
   // Other components
@@ -742,4 +1026,75 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
   closeButton: { padding: 8 },
   closeButtonText: { color: THEME.accent, fontWeight: 'bold' },
+  
+  // User Detail
+  detailHeader: { marginBottom: 20, alignItems: 'center' },
+  detailName: { fontSize: 22, fontWeight: 'bold', color: THEME.text, marginBottom: 4 },
+  detailId: { fontSize: 14, color: THEME.subText, marginBottom: 2 },
+  detailInfo: { fontSize: 14, color: THEME.subText },
+  skillListContainer: { marginTop: 10 },
+  skillGroup: { marginBottom: 15 },
+  skillGroupTitle: { fontSize: 14, fontWeight: 'bold', color: THEME.text, marginBottom: 8 },
+  skillBadges: { flexDirection: 'row', flexWrap: 'wrap' },
+  skillBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8, marginBottom: 8, borderWidth: 1 },
+  skillBadgeText: { fontSize: 12, fontWeight: '600' },
+
+  // Tooltip Styles
+  tooltip: {
+    position: 'absolute',
+    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 100,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: 'rgba(30, 41, 59, 0.95)',
+  },
+  arrowUp: {
+    top: -6,
+    transform: [{ rotate: '0deg' }],
+  },
+  arrowDown: {
+    bottom: -6,
+    transform: [{ rotate: '180deg' }],
+  },
+  tooltipTitle: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginVertical: 4,
+  },
+  tooltipText: {
+    color: '#bae6fd',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  tooltipSubText: {
+    color: '#94a3b8',
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
+  }
 });

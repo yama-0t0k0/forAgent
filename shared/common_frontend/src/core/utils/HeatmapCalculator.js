@@ -83,6 +83,30 @@ export class HeatmapCalculator {
     }
 
     /**
+     * JSONデータ（JDまたは個人データ）から 90マスのヒートマップ配列を生成します。
+     * 「スキル経験」のみを参照します。
+     * @param {Object} data - 「スキル経験」を含むオブジェクト
+     * @returns {number[]} 90個の数値配列（0.0〜1.0）
+     */
+    static calculateSkillsOnly(data) {
+        const grid = new Array(HeatmapMapper.totalTiles).fill(0.0);
+
+        if (!data) return grid;
+
+        // スキル経験の処理
+        if (data['スキル経験']) {
+            this._evaluateSkillsRecursive(data['スキル経験'], '', (key, score) => {
+                const index = HeatmapMapper.getIndex(key, false);
+                if (index !== null) {
+                    grid[index] = Math.max(grid[index], score);
+                }
+            });
+        }
+
+        return grid;
+    }
+
+    /**
      * スキル経験を再帰的に評価します。
      * @private
      */
