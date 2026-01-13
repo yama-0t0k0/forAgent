@@ -7,11 +7,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
-import { CompanyPageScreen } from './src/features/company_profile/CompanyPageScreen';
-import { MenuScreen } from './src/features/company_profile/MenuScreen';
-import { ImageEditScreen } from './src/features/company_profile/ImageEditScreen';
-import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
-import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
+import { CompanyPageScreen } from '@shared/src/features/company_profile/screens/CompanyPageScreen';
+import { MenuScreen } from '@shared/src/features/company_profile/screens/MenuScreen';
+import { ImageEditScreen } from '@shared/src/features/company_profile/screens/ImageEditScreen';
+import { TechStackScreen } from '@shared/src/features/company_profile/screens/TechStackScreen';
+import { UnderConstructionScreen } from '@shared/src/features/company_profile/screens/UnderConstructionScreen';
 
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();

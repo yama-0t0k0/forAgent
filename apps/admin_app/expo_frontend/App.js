@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { db } from '@shared/src/core/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
+import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
+import { TechStackScreen } from '@shared/src/features/company_profile/screens/TechStackScreen';
+
+const Stack = createNativeStackNavigator();
 
 const AdminAppWrapper = () => {
   const [initialData, setInitialData] = useState(null);
@@ -102,22 +108,34 @@ const AdminAppWrapper = () => {
   }
 
   return (
-    <DataProvider initialData={initialData}>
-      <DashboardScreen />
-    </DataProvider>
+    <SafeAreaProvider>
+      <DataProvider initialData={initialData}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Dashboard">
+            <Stack.Screen 
+              name="Dashboard" 
+              component={DashboardScreen} 
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen 
+              name="CompanyDetail" 
+              component={CompanyDetailScreen} 
+              options={{ title: '会社詳細', headerBackTitle: '戻る' }}
+            />
+            <Stack.Screen 
+              name="TechStack" 
+              component={TechStackScreen} 
+              options={{ title: '使用技術詳細', headerBackTitle: '戻る' }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar barStyle="dark-content" />
+      </DataProvider>
+    </SafeAreaProvider>
   );
 };
 
-export default function App() {
-  return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <AdminAppWrapper />
-      </SafeAreaView>
-    </SafeAreaProvider>
-  );
-}
+export default AdminAppWrapper;
 
 const styles = StyleSheet.create({
   container: {

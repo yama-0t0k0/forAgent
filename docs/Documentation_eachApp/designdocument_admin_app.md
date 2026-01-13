@@ -163,6 +163,35 @@ graph TD
   - スキルバッジ（一覧と同様のデザイン・構成）
   - フルヒートマップ（スキル要件全体、90タイル）
 
+## 法人一覧UI仕様（DashboardScreen / 法人タブ）
+### 概要
+法人（企業）の一覧を表示し、使用技術（Tech Stack）の概要を可視化することで、企業の技術スタックを一目で把握できるようにする。
+
+### データソース
+- **コレクション**: `company` (Corporate App用), `corporate`, `Company` (Admin用)
+- **取得ロジック**: `App.js` にて各コレクションを取得し、IDベースでマージして利用。
+
+### 一覧行の構成
+- **基本情報**: 社名、ID、住所を表示。
+- **使用技術バッジ**:
+  - `corporate_user_app` の「使用技術」タブと同様のロジックで、「メイン」に設定されている技術のみを抽出して表示。
+  - 画面右側のスペースを有効活用し、縮小して表示。
+- **タップ操作**:
+  - 行をタップすると、その企業の詳細画面（`CompanyDetailScreen`）へ遷移する。
+
+## 法人詳細画面仕様（CompanyDetailScreen）
+### 概要
+法人一覧から遷移する詳細画面。`corporate_user_app` の企業プロフィール画面（`CompanyPageScreen`）を再利用して表示する。
+
+### 実装の特徴
+- **共有コンポーネントの利用**:
+  - `shared/common_frontend` 内の `CompanyPageScreen` をラップして使用。
+  - これにより、企業向けアプリと管理者向けアプリで同一のプロフィールUIを提供。
+- **データ取得とフォールバック**:
+  - 画面遷移時に渡された `companyId` を元に、Firestoreから最新の企業データを再取得する。
+  - データ構造がフラット（Admin用）な場合でも、`CompanyPageScreen` が期待するネスト構造（`会社概要` 等）へ自動的にマッピングして表示するロジックを実装済み。
+    - 例: `data['name']` -> `data['会社概要']['社名']` へのフォールバック
+
 ## 起動方法（管理者アプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行コマンド:
