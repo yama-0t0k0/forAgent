@@ -111,9 +111,9 @@ export const MyPageScreen = () => {
                                     />
                                 </View>
                                 <View style={styles.namePlate}>
-                                    <Text style={styles.nameText}>{(remoteNames?.family || names.kanjiFamily)} {(remoteNames?.first || names.kanjiFirst)}</Text>
+                                    <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                    <Text style={styles.emailText}>{remoteEmail || email}</Text>
+                                    <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
                                     <Text style={styles.dataSourceText}>{remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート'}</Text>
 
                                     {/* Relocated Chatbot button */}

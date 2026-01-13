@@ -15,63 +15,6 @@ const formatCurrency = (amount) => {
   return amount ? `¥${amount.toLocaleString()}` : '-';
 };
 
-const DUMMY_DATA = [
-  {
-    "JobStatID": "S202412310001",
-    "UpdateTimestamp_yyyymmddtttttt": 20250114140837,
-    "選考進捗": {
-      "fase_フェイズ": { "1次面接": true, "2次面接": false, "その他選考": false, "オファー面談": false, "カジュアル面談": false, "入社_請求": false, "内定": false, "内定受諾": false, "応募_書類選考": false, "最終面接": false, "短期離職_返金": false, "退職日確定": false },
-      "status_ステータス": { "選考中": true },
-      "id_individual_個人ID": "IND001",
-      "id_company_法人ID": "COMP001",
-      "JD_Number": "JD001"
-    },
-    "手数料管理簿": {
-      "手数料の額": 0,
-      "手数料の算出根拠": { "Fee": 0.4, "理論年収": 6000000 }
-    },
-    "入社後サーベイ_PostJoiningSurvey": null
-  },
-  {
-    "JobStatID": "S202412310002",
-    "UpdateTimestamp_yyyymmddtttttt": 20250115100000,
-    "選考進捗": {
-      "fase_フェイズ": { "1次面接": false, "2次面接": false, "その他選考": false, "オファー面談": false, "カジュアル面談": false, "入社_請求": false, "内定": false, "内定受諾": true, "応募_書類選考": false, "最終面接": false, "短期離職_返金": false, "退職日確定": false },
-      "status_ステータス": { "選考中": false, "内定": true },
-      "id_individual_個人ID": "IND002",
-      "id_company_法人ID": "COMP002",
-      "JD_Number": "JD002"
-    },
-    "手数料管理簿": {
-      "手数料の額": 2400000,
-      "手数料の算出根拠": { "Fee": 0.4, "理論年収": 6000000 }
-    },
-    "入社後サーベイ_PostJoiningSurvey": null
-  },
-  {
-    "JobStatID": "S202412310003",
-    "UpdateTimestamp_yyyymmddtttttt": 20250116093000,
-    "選考進捗": {
-      "fase_フェイズ": { "1次面接": false, "2次面接": false, "その他選考": false, "オファー面談": false, "カジュアル面談": false, "入社_請求": true, "内定": false, "内定受諾": false, "応募_書類選考": false, "最終面接": false, "短期離職_返金": false, "退職日確定": false },
-      "status_ステータス": { "選考中": false, "入社済み": true },
-      "id_individual_個人ID": "IND003",
-      "id_company_法人ID": "COMP003",
-      "JD_Number": "JD003"
-    },
-    "手数料管理簿": {
-      "手数料の額": 3000000,
-      "手数料の算出根拠": { "Fee": 0.35, "理論年収": 8570000 }
-    },
-    "入社後サーベイ_PostJoiningSurvey": {
-      "1ヶ月": {
-        "A. 転職プロセスの満足度": {
-          "1.転職のプロセス（求人紹介、面接対策など）に満足している。": { "5 とてもそう思う": true }
-        }
-      }
-    }
-  }
-];
-
 const SelectionProgressListScreen = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,24 +25,27 @@ const SelectionProgressListScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("Starting fetch data...");
+        console.log("Connected to Project ID:", db.app.options.projectId);
+        
         const querySnapshot = await getDocs(collection(db, 'FeeMgmtAndJobStatDB'));
+        console.log("Firestore snapshot size:", querySnapshot.size);
+        
         const list = [];
         querySnapshot.forEach((doc) => {
           list.push({ id: doc.id, ...doc.data() });
         });
-
-        // Combine Firestore data with dummy data
-        const combinedData = [...list, ...DUMMY_DATA];
+        console.log("Firestore data parsed:", JSON.stringify(list, null, 2));
 
         // Remove duplicates if any (based on JobStatID)
-        const uniqueData = Array.from(new Map(combinedData.map(item => [item.JobStatID || item.id, item])).values());
+        const uniqueData = Array.from(new Map(list.map(item => [item.JobStatID || item.id, item])).values());
+        console.log("Unique data length:", uniqueData.length);
 
         setData(uniqueData);
       } catch (error) {
-        console.error("Error fetching data: ", error);
-        Alert.alert("Error", "Failed to fetch data.");
-        // Fallback to dummy data on error
-        setData(DUMMY_DATA);
+        console.error("Error fetching data details: ", error);
+        Alert.alert("Error", "Failed to fetch data from Firestore.");
+        setData([]);
       } finally {
         setLoading(false);
       }

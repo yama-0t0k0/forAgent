@@ -68,6 +68,12 @@ graph TD
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行例:
   - `./scripts/start_expo.sh fmjs`
+- ポート: 8085（スクリプトで自動割り当て）
+
+## データ管理原則
+- **ダミーデータの使用禁止**: 
+  - 本アプリでは、ハードコードされたダミーデータ（`DUMMY_DATA` 等）の使用を固く禁じています。
+  - 常に Firestore の `FeeMgmtAndJobStatDB` コレクションからリアルタイムデータを取得して表示します。
 
 ## データスキーマ
 ### 選考進捗・手数料管理データ（例）

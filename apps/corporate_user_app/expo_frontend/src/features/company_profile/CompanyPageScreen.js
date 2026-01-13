@@ -275,8 +275,8 @@ export const CompanyPageScreen = () => {
                                 />
                             </View>
                             <View style={styles.namePlate}>
-                                <Text style={styles.nameText}>{companyName}</Text>
-                                <Text style={styles.industryText} numberOfLines={2}>{businessContent}</Text>
+                                <Text style={styles.nameText}>{String(companyName)}</Text>
+                                <Text style={styles.industryText} numberOfLines={2}>{String(businessContent)}</Text>
                                 
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: THEME.background,
         zIndex: 10,
-        height: height * 0.22, // Keep reduced height
+        height: height * 0.28, // Increased height to prevent overlap
         justifyContent: 'flex-end', // Align content to bottom
     },
     headerBackgroundContainer: {
@@ -374,6 +374,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end', // Push content down
         paddingBottom: 10,
+        zIndex: 20, // Ensure profile info is above announcement bar
     },
     topProfileContainer: {
         paddingHorizontal: 15,

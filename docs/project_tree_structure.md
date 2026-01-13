@@ -46,6 +46,9 @@
 │
 ├── shared/                                 # 全アプリ共通資産
 │   ├── common_frontend/                    # Expo 共通コンポーネント & Logic Utils (UI Kit)
+│   │   ├── src/
+│   │   │   ├── core/                       # 基本機能 (UI, State, Theme, Firebase)
+│   │   │   └── features/                   # 機能別モジュール (Profile, Company, Registration etc.)
 │   ├── common_backend/                     # Firebase共通設定、Dart共通Utils
 │   ├── domain_models/                      # JSON定義 (Individual, Company, JD, FMJS)
 │   └── domain_logic/                       # ★核心ロジック (Shared Logic)
@@ -68,6 +71,9 @@
 │   └── local_ci.sh                         # ローカルCI実行スクリプト
 │
 ├── docs/                                   # プロジェクトドキュメント
+│   ├── Documentation_eachApp/              # 各アプリ詳細設計書
+│   │   ├── designdocument_admin_app.md
+│   │   └── ...
 │   ├── purpose.md
 │   ├── dev_basicinfo.md
 │   └── project_tree_structure.md           # 本ファイル

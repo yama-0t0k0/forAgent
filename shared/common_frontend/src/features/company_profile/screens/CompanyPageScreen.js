@@ -278,8 +278,8 @@ export const CompanyPageScreen = () => {
                                 />
                             </View>
                             <View style={styles.namePlate}>
-                                <Text style={styles.nameText}>{companyName}</Text>
-                                <Text style={styles.industryText} numberOfLines={2}>{businessContent}</Text>
+                                <Text style={styles.nameText}>{String(companyName)}</Text>
+                                <Text style={styles.industryText} numberOfLines={2}>{String(businessContent)}</Text>
                                 
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
