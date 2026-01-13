@@ -146,7 +146,8 @@ export default function DashboardScreen() {
     const query = searchQueries.company.toLowerCase();
     return (data?.corporate || []).filter(c => 
       (c.id && c.id.toLowerCase().includes(query)) ||
-      (c.companyName && c.companyName.toLowerCase().includes(query))
+      (c.companyName && c.companyName.toLowerCase().includes(query)) ||
+      (c.name && c.name.toLowerCase().includes(query))
     ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   }, [data?.corporate, searchQueries.company]);
 

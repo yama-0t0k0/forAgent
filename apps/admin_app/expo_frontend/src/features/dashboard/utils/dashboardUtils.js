@@ -14,7 +14,7 @@ export const parseFmjsTimestamp = (ts) => {
 export const getCompanyName = (companyId, corporateData) => {
   if (!companyId || !corporateData) return '-';
   const company = corporateData.find(c => c.id === companyId);
-  return company?.companyName || company?.['会社概要']?.['会社名'] || companyId;
+  return company?.companyName || company?.name || company?.['会社概要']?.['会社名'] || companyId;
 };
 
 // Helper to extract skills recursively

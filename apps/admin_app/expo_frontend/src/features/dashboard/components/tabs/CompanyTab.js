@@ -21,7 +21,7 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
       data={filteredCompanies}
       renderItem={({ item }) => (
         <View style={styles.listItem}>
-          <Text style={styles.itemTitle}>{item.companyName || '名称未設定'}</Text>
+          <Text style={styles.itemTitle}>{item.companyName || item.name || '名称未設定'}</Text>
           <Text style={styles.itemSubtitle}>ID: {item.id}</Text>
           <Text style={styles.itemDetail}>{item.address || '-'}</Text>
         </View>
