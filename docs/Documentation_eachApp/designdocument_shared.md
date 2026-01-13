@@ -70,6 +70,9 @@ shared/
 #### Job (`features/job`)
 - **JobListItem.js**: 求人一覧表示用のリストアイテム。募集要項やヒートマップを表示。
 
+#### Company (`features/company`)
+- **CompanyListItem.js**: 法人一覧表示用のリストアイテム。使用技術スタック（Main）のバッジを表示。
+
 ---
 
 ## Domain Modules (Dart)

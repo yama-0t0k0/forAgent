@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
+import { CompanyListItem } from '@shared/src/features/company/components/CompanyListItem';
 import { styles } from '../../dashboardStyles';
 
 export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) => (
@@ -20,11 +21,7 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
     <GenericDataList 
       data={filteredCompanies}
       renderItem={({ item }) => (
-        <View style={styles.listItem}>
-          <Text style={styles.itemTitle}>{item.companyName || item.name || '名称未設定'}</Text>
-          <Text style={styles.itemSubtitle}>ID: {item.id}</Text>
-          <Text style={styles.itemDetail}>{item.address || '-'}</Text>
-        </View>
+        <CompanyListItem item={item} />
       )}
       contentContainerStyle={styles.listContainer}
     />
