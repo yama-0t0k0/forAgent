@@ -39,12 +39,16 @@ export const CompanyListItem = ({ item }) => {
     return techs;
   }, [item]);
 
+  // Handle both flat and nested data structures (for Admin App compatibility)
+  const companyName = item.companyName || item.name || item['会社概要']?.['社名'] || '名称未設定';
+  const address = item.address || item['会社概要']?.['住所'] || item['会社概要']?.['本社所在地'] || '-';
+
   return (
     <View style={styles.container}>
       <View style={styles.leftContent}>
-        <Text style={styles.itemTitle}>{item.companyName || item.name || '名称未設定'}</Text>
+        <Text style={styles.itemTitle}>{companyName}</Text>
         <Text style={styles.itemSubtitle}>ID: {item.id}</Text>
-        <Text style={styles.itemDetail}>{item.address || '-'}</Text>
+        <Text style={styles.itemDetail}>{address}</Text>
       </View>
       
       <View style={styles.rightContent}>
