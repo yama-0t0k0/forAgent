@@ -386,8 +386,3 @@ npm run start:individual -- --clear
 - **データ保護**: Firestore セキュリティルールによる厳格なアクセス制御。
 - **品質目標**: 品質保証方針として「軽微な警告も即解消」を徹底。
 - **検証**: Playwright による E2E テスト、Dart によるバックエンドロジックの統合検証。
-
-
-## 参考資料
-
-共有リンク: https://gemini.google.com/share/1ff4f3bb8aa3
