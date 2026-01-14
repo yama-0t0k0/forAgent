@@ -25,7 +25,7 @@ graph TD
     %% Nodes
     Dashboard[管理ダッシュボード<br/>(DashboardScreen)]
     
-    subgraph Tabs [タブ切り替え (View State)]
+    subgraph "タブ切り替え (View State)"
         OverviewTab[ホームタブ<br/>(KPI/チャート)]
         IndividualTab[個人タブ<br/>(ユーザーリスト)]
         CompanyTab[法人タブ<br/>(企業リスト)]
@@ -33,7 +33,7 @@ graph TD
         SelectionTab[選考タブ<br/>(進捗リスト)]
     end
 
-    subgraph Modals [モーダル/詳細表示 (Overlay)]
+    subgraph "モーダル/詳細表示 (Overlay)"
         DrillDownModal[[ドリルダウン<br/>モーダル]]
         UserDetailModal[[個人詳細<br/>モーダル]]
         JobDetailModal[[求人詳細<br/>モーダル]]
@@ -97,7 +97,7 @@ graph TD
     ImageEdit[画像編集画面<br/>(ImageEditScreen)]
     Registration[企業情報編集<br/>(GenericRegistrationScreen)]
 
-    subgraph TabView [タブコンテンツ (Internal State)]
+    subgraph "タブコンテンツ (Internal State)"
         TechStack[使用技術<br/>(TechStackView)]
         Jobs[求人<br/>(UnderConstruction)]
         Connections[つながり<br/>(UnderConstruction)]
@@ -153,7 +153,7 @@ graph TD
     List[選考進捗リスト<br/>(SelectionProgressListScreen)]
     DetailModal[[詳細モーダル<br/>(Modal)]]
 
-    subgraph ModalTabs [モーダル内タブ]
+    subgraph "モーダル内タブ"
         Basic[基本情報]
         Progress[選考進捗<br/>(SelectionFlowEditor)]
         Fee[手数料]
