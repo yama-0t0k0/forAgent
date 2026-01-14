@@ -49,6 +49,52 @@ if [ ! -d "$APP_PATH" ]; then
     exit 1
 fi
 
+# Function to check .env file and essential variables
+check_env() {
+    local app_dir="$1"
+    local env_file="$app_dir/.env"
+
+    echo "🔍 Checking environment configuration..."
+
+    if [ ! -f "$env_file" ]; then
+        echo "❌ Error: .env file not found in $app_dir"
+        echo "   Please create .env file with necessary Firebase configuration."
+        echo "   You can copy it from another working app or ask the administrator."
+        exit 1
+    fi
+
+    # List of required variables
+    REQUIRED_VARS=(
+        "EXPO_PUBLIC_FIREBASE_API_KEY"
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN"
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID"
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET"
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+        "EXPO_PUBLIC_FIREBASE_APP_ID"
+    )
+
+    MISSING_VARS=()
+    for var in "${REQUIRED_VARS[@]}"; do
+        if ! grep -q "$var" "$env_file"; then
+            MISSING_VARS+=("$var")
+        fi
+    done
+
+    if [ ${#MISSING_VARS[@]} -ne 0 ]; then
+        echo "❌ Error: Missing required environment variables in $env_file:"
+        for var in "${MISSING_VARS[@]}"; do
+            echo "   - $var"
+        done
+        echo "   Please ensure your .env file contains all valid Firebase configuration keys."
+        exit 1
+    fi
+    
+    echo "✅ Environment configuration verified."
+}
+
+# Run environment check
+check_env "$APP_PATH"
+
 # 2. Process Cleanup
 echo "🧹 Cleaning up existing processes..."
 

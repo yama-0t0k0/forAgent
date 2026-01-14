@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
+import { adaptCompanyData } from '../../../core/utils/CompanyAdapter';
+
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -19,23 +21,9 @@ const { width, height } = Dimensions.get('window');
 // Fallback background image (assuming it exists in the app that consumes this component or pass as prop)
 // Using a placeholder or passing it from parent is better, but for now we try to resolve it if possible or use a color
 // Modified to not require local asset directly to avoid path issues across apps
-const DEFAULT_BG_URI = 'https://via.placeholder.com/400x200?text=Background'; 
+const DEFAULT_BG_IMAGE = require('../../../assets/generated/rainforest_bg.png'); 
 
-// Mock Data for Tech Stack
-const MOCK_TECH_STACK = {
-    languages: {
-        backend: { main: 'Go', sub: 'Python' },
-        frontend: { main: 'TypeScript', sub: 'Dart' }
-    },
-    others: {
-        framework: { main: 'React Native', sub: 'Flutter' },
-        cloud: { main: 'AWS', sub: 'GCP' },
-        database: { main: 'Firestore', sub: 'PostgreSQL' },
-        tools: { main: 'GitHub', sub: 'Slack' }
-    }
-};
-
-const TechStackView = ({ features }) => {
+const TechStackView = ({ features, techStack }) => {
     const renderTechItem = (label, main, sub, iconName) => (
         <View style={styles.techItemContainer}>
             <View style={styles.techHeader}>
@@ -44,7 +32,7 @@ const TechStackView = ({ features }) => {
             </View>
             <View style={styles.techBadgeContainer}>
                 <View style={[styles.techBadge, styles.techBadgeMain]}>
-                    <Text style={styles.techBadgeTextMain}>{main}</Text>
+                    <Text style={styles.techBadgeTextMain}>{main || '-'}</Text>
                 </View>
                 {sub && (
                     <View style={[styles.techBadge, styles.techBadgeSub]}>
@@ -62,6 +50,10 @@ const TechStackView = ({ features }) => {
         setIsFeaturesExpanded(!isFeaturesExpanded);
     };
 
+    // Safe access helpers
+    const getLang = (type) => techStack?.languages?.[type] || {};
+    const getOther = (type) => techStack?.others?.[type] || {};
+
     return (
         <ScrollView contentContainerStyle={styles.tabScrollContent} bounces={false}>
             {/* 1. Tech Stack Section */}
@@ -70,15 +62,15 @@ const TechStackView = ({ features }) => {
                 <View style={styles.techGrid}>
                     <View style={styles.techColumn}>
                         <Text style={styles.subSectionTitle}>言語</Text>
-                        {renderTechItem('Backend', MOCK_TECH_STACK.languages.backend.main, MOCK_TECH_STACK.languages.backend.sub, 'server-outline')}
-                        {renderTechItem('Frontend', MOCK_TECH_STACK.languages.frontend.main, MOCK_TECH_STACK.languages.frontend.sub, 'desktop-outline')}
+                        {renderTechItem('Backend', getLang('backend').main, getLang('backend').sub, 'server-outline')}
+                        {renderTechItem('Frontend', getLang('frontend').main, getLang('frontend').sub, 'desktop-outline')}
                     </View>
                     <View style={styles.techColumn}>
                         <Text style={styles.subSectionTitle}>その他</Text>
-                        {renderTechItem('Framework', MOCK_TECH_STACK.others.framework.main, MOCK_TECH_STACK.others.framework.sub, 'layers-outline')}
-                        {renderTechItem('Cloud', MOCK_TECH_STACK.others.cloud.main, MOCK_TECH_STACK.others.cloud.sub, 'cloud-outline')}
-                        {renderTechItem('DB', MOCK_TECH_STACK.others.database.main, MOCK_TECH_STACK.others.database.sub, 'server-outline')}
-                        {renderTechItem('Tools', MOCK_TECH_STACK.others.tools.main, MOCK_TECH_STACK.others.tools.sub, 'construct-outline')}
+                        {renderTechItem('Framework', getOther('framework').main, getOther('framework').sub, 'layers-outline')}
+                        {renderTechItem('Cloud', getOther('cloud').main, getOther('cloud').sub, 'cloud-outline')}
+                        {renderTechItem('DB', getOther('database').main, getOther('database').sub, 'server-outline')}
+                        {renderTechItem('Tools', getOther('tools').main, getOther('tools').sub, 'construct-outline')}
                     </View>
                 </View>
             </View>
@@ -198,14 +190,14 @@ export const CompanyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
     
-    // Extract data
-    const companyInfo = data['会社概要'] || {};
-    const features = data['魅力/特徴'] || {};
-    // Fallback to top-level fields if '会社概要' is missing (compatibility for admin_app flat data)
-    const companyName = companyInfo['社名'] || data['name'] || data['companyName'] || `未設定(Keys:${Object.keys(data).join('|')})`;
-    const businessContent = companyInfo['事業内容'] || data['description'] || data['businessContent'] || '事業内容が設定されていません。';
-    const backgroundUrl = companyInfo['背景画像URL']; 
-    const logoUrl = companyInfo['ロゴ画像URL'];
+    // Adapt data using utility
+    const { 
+        companyName, 
+        businessContent, 
+        backgroundUrl, 
+        logoUrl,
+        raw: { companyInfo, features, techStack }
+    } = adaptCompanyData(data);
 
     // TabView State - Default to TechStack (index 2)
     const [index, setIndex] = useState(2);
@@ -226,7 +218,7 @@ export const CompanyPageScreen = () => {
                 return <UnderConstructionView title="つながり" />;
             case 'tech_stack':
                 // Pass features to TechStackView
-                return <TechStackView features={features} />;
+                return <TechStackView features={features} techStack={techStack} />;
             case 'blog':
                 return <UnderConstructionView title="ブログ" />;
             case 'events':
@@ -250,7 +242,7 @@ export const CompanyPageScreen = () => {
                 */}
                 <View style={styles.headerBackgroundContainer}>
                      <Image
-                        source={backgroundUrl ? { uri: backgroundUrl } : { uri: DEFAULT_BG_URI }}
+                        source={backgroundUrl ? { uri: backgroundUrl } : DEFAULT_BG_IMAGE}
                         style={styles.headerBackgroundImage}
                         resizeMode="cover"
                     />
