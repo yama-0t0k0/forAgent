@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "flutter-frontend-21d0a": {
+      "hosting": {
+        "admin-app": [
+          "admin-app-site-d11f0"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
