@@ -23,20 +23,20 @@
 ```mermaid
 graph TD
     %% Nodes
-    Dashboard[管理ダッシュボード<br/>(DashboardScreen)]
+    Dashboard["管理ダッシュボード<br/>(DashboardScreen)"]
     
     subgraph "タブ切り替え (View State)"
-        OverviewTab[ホームタブ<br/>(KPI/チャート)]
-        IndividualTab[個人タブ<br/>(ユーザーリスト)]
-        CompanyTab[法人タブ<br/>(企業リスト)]
-        JobTab[求人タブ<br/>(求人票リスト)]
-        SelectionTab[選考タブ<br/>(進捗リスト)]
+        OverviewTab["ホームタブ<br/>(KPI/チャート)"]
+        IndividualTab["個人タブ<br/>(ユーザーリスト)"]
+        CompanyTab["法人タブ<br/>(企業リスト)"]
+        JobTab["求人タブ<br/>(求人票リスト)"]
+        SelectionTab["選考タブ<br/>(進捗リスト)"]
     end
 
     subgraph "モーダル/詳細表示 (Overlay)"
-        DrillDownModal[[ドリルダウン<br/>モーダル]]
-        UserDetailModal[[個人詳細<br/>モーダル]]
-        JobDetailModal[[求人詳細<br/>モーダル]]
+        DrillDownModal[["ドリルダウン<br/>モーダル"]]
+        UserDetailModal[["個人詳細<br/>モーダル"]]
+        JobDetailModal[["求人詳細<br/>モーダル"]]
     end
 
     %% Transitions
@@ -68,10 +68,10 @@ graph TD
 ```mermaid
 graph TD
     %% Nodes
-    MyPage[マイページ<br/>(MyPageScreen)]
-    ImageEdit[画像編集画面<br/>(ImageEditScreen)]
-    Menu[メニュー画面<br/>(MenuScreen)]
-    Registration[プロフィール編集<br/>(GenericRegistrationScreen)]
+    MyPage["マイページ<br/>(MyPageScreen)"]
+    ImageEdit["画像編集画面<br/>(ImageEditScreen)"]
+    Menu["メニュー画面<br/>(MenuScreen)"]
+    Registration["プロフィール編集<br/>(GenericRegistrationScreen)"]
 
     %% Transitions
     MyPage -- "編集ボタン(鉛筆)タップ" --> Registration
@@ -93,17 +93,17 @@ graph TD
 ```mermaid
 graph TD
     %% Nodes
-    CompanyPage[企業トップ<br/>(CompanyPageScreen)]
-    ImageEdit[画像編集画面<br/>(ImageEditScreen)]
-    Registration[企業情報編集<br/>(GenericRegistrationScreen)]
+    CompanyPage["企業トップ<br/>(CompanyPageScreen)"]
+    ImageEdit["画像編集画面<br/>(ImageEditScreen)"]
+    Registration["企業情報編集<br/>(GenericRegistrationScreen)"]
 
     subgraph "タブコンテンツ (Internal State)"
-        TechStack[使用技術<br/>(TechStackView)]
-        Jobs[求人<br/>(UnderConstruction)]
-        Connections[つながり<br/>(UnderConstruction)]
-        Blog[ブログ<br/>(UnderConstruction)]
-        Events[イベント<br/>(UnderConstruction)]
-        MenuTab[メニュー<br/>(MenuView)]
+        TechStack["使用技術<br/>(TechStackView)"]
+        Jobs["求人<br/>(UnderConstruction)"]
+        Connections["つながり<br/>(UnderConstruction)"]
+        Blog["ブログ<br/>(UnderConstruction)"]
+        Events["イベント<br/>(UnderConstruction)"]
+        MenuTab["メニュー<br/>(MenuView)"]
     end
 
     %% Transitions
@@ -132,8 +132,8 @@ graph TD
 ```mermaid
 graph TD
     %% Nodes
-    JD[求人詳細<br/>(JobDescriptionScreen)]
-    JobEdit[求人編集<br/>(GenericRegistrationScreen)]
+    JD["求人詳細<br/>(JobDescriptionScreen)"]
+    JobEdit["求人編集<br/>(GenericRegistrationScreen)"]
 
     %% Transitions
     JD -- "編集ボタン(ペン)タップ" --> JobEdit
@@ -150,12 +150,12 @@ graph TD
 ```mermaid
 graph TD
     %% Nodes
-    List[選考進捗リスト<br/>(SelectionProgressListScreen)]
-    DetailModal[[詳細モーダル<br/>(Modal)]]
+    List["選考進捗リスト<br/>(SelectionProgressListScreen)"]
+    DetailModal[["詳細モーダル<br/>(Modal)"]]
 
     subgraph "モーダル内タブ"
         Basic[基本情報]
-        Progress[選考進捗<br/>(SelectionFlowEditor)]
+        Progress["選考進捗<br/>(SelectionFlowEditor)"]
         Fee[手数料]
         Survey[サーベイ]
     end
