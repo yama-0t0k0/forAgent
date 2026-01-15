@@ -154,11 +154,20 @@ export default function DashboardScreen() {
   // Job Tab Data
   const filteredJobs = useMemo(() => {
     const query = searchQueries.job.toLowerCase();
-    return (data?.jd || []).filter(j => 
-      (j.id && j.id.toLowerCase().includes(query)) ||
-      (j.JD_Number && j.JD_Number.toLowerCase().includes(query)) ||
-      (j.title && j.title.toLowerCase().includes(query))
-    ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return (data?.jd || []).filter(j => {
+      // 検索対象のフィールドを定義
+      const id = j.id || '';
+      const jdNumber = j.JD_Number || '';
+      const positionName = j['求人基本項目']?.['ポジション名'] || '';
+      const title = j.title || '';
+
+      return (
+        id.toLowerCase().includes(query) ||
+        jdNumber.toLowerCase().includes(query) ||
+        positionName.toLowerCase().includes(query) ||
+        title.toLowerCase().includes(query)
+      );
+    }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   }, [data?.jd, searchQueries.job]);
 
   // Selection Tab Data

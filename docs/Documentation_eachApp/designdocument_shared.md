@@ -42,7 +42,7 @@ shared/
 - **InputRow.js / StatusRow.js**: 標準的な入力行コンポーネント。
 - **GenericSearchBar.js**: 検索ボックスとクイックフィルター（チップ）を備えた汎用検索コンポーネント。
 - **GenericDataList.js**: データ一覧を表示するためのFlatListラッパー。空の状態（Empty State）のハンドリングを含む。
-- **MiniHeatmap.js**: スキルや稼働状況を可視化するための小型ヒートマップコンポーネント。
+- **MiniHeatmap.js / HeatmapGrid.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。スコア計算ロジックとジオメトリ計算は `src/core/utils` 配下の共通ロジック（HeatmapCalculator / HeatmapGeometry / HeatmapMapper）を利用し、Individual/Job/Admin の各アプリで共通動作するように設計。
 
 #### 3. Theme (`theme/theme.js`)
 - アプリ全体で統一された色定義 (`THEME`) を提供。
