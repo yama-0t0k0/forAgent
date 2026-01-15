@@ -70,6 +70,13 @@ shared/
 #### Job (`features/job`)
 - **JobListItem.js**: 求人一覧表示用のリストアイテム。募集要項やヒートマップを表示。
 
+#### Company (`features/company`)
+- **CompanyListItem.js**: 法人一覧表示用のリストアイテム。使用技術スタック（Main）のバッジを表示。
+
+#### Company Profile (`features/company_profile`)
+- **CompanyPageScreen.js**: 法人プロフィール詳細画面。AdminアプリとCorporateアプリで共有される。
+- **TechStackScreen.js**: 使用技術スタックの表示画面。
+
 ---
 
 ## Domain Modules (Dart)

@@ -13,7 +13,7 @@ export const JobListItem = ({
   style 
 }) => {
   const title = job['求人基本項目']?.['ポジション名'] || job.title || 'タイトル未設定';
-  const jdNumber = job.JD_Number || '-';
+  const jdNumber = job.JD_Number || job['求人基本項目']?.JD_Number || '-';
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
 
   return (

@@ -3,8 +3,14 @@ import React, { createContext, useState, useCallback } from 'react';
 export const DataContext = createContext(null);
 
 export const DataProvider = ({ children, initialData }) => {
-  // Load data from file directly via require, and deep copy to ensure no reference issues
+  // Use useEffect to update state when initialData changes
   const [data, setData] = useState(initialData ? JSON.parse(JSON.stringify(initialData)) : {});
+
+  React.useEffect(() => {
+    if (initialData) {
+      setData(JSON.parse(JSON.stringify(initialData)));
+    }
+  }, [initialData]);
 
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {

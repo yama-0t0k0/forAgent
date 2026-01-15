@@ -14,6 +14,9 @@ export const EngineerListItem = ({
   const fullName = (engineer['基本情報']?.['姓'] && engineer['基本情報']?.['名']) 
     ? `${engineer['基本情報']['姓']} ${engineer['基本情報']['名']}`
     : (engineer.name || '名称未設定');
+    
+  // Handle both flat and nested data for ID
+  const displayId = engineer.id || engineer['基本情報']?.id || '-';
   
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
 
@@ -28,7 +31,7 @@ export const EngineerListItem = ({
           <View style={styles.listItemHeader}>
             <View>
               <Text style={styles.itemTitleModern}>{fullName}</Text>
-              <Text style={styles.itemSubtitleModern}>ID: {engineer.id}</Text>
+              <Text style={styles.itemSubtitleModern}>ID: {displayId}</Text>
             </View>
           </View>
           

@@ -143,5 +143,35 @@
         }
       ]
     }
+  },
+  "技術スタック": {
+    "languages": {
+      "backend": {
+        "main": "Go",
+        "sub": "Python"
+      },
+      "frontend": {
+        "main": "TypeScript",
+        "sub": "Dart"
+      }
+    },
+    "others": {
+      "framework": {
+        "main": "React Native",
+        "sub": "Flutter"
+      },
+      "cloud": {
+        "main": "AWS",
+        "sub": "GCP"
+      },
+      "database": {
+        "main": "Firestore",
+        "sub": "PostgreSQL"
+      },
+      "tools": {
+        "main": "GitHub",
+        "sub": "Slack"
+      }
+    }
   }
 }

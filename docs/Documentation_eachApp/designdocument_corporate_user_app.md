@@ -91,7 +91,7 @@ graph TD
 - 実行例:
   - ./scripts/start_expo.sh corporate_user_app
 - 接続URL（例）:
-  - exp://lm8s_7u-anonymous-8082.exp.direct
+  - exp://lm8s_7u-anonymous-8083.exp.direct
 
 ## データスキーマ（推奨フォーマット）
 ### 前提

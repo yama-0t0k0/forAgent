@@ -163,6 +163,68 @@ graph TD
   - スキルバッジ（一覧と同様のデザイン・構成）
   - フルヒートマップ（スキル要件全体、90タイル）
 
+## 法人一覧UI仕様（DashboardScreen / 法人タブ）
+### 概要
+法人（企業）の一覧を表示し、使用技術（Tech Stack）の概要を可視化することで、企業の技術スタックを一目で把握できるようにする。
+
+### データソース
+- **コレクション**: `company` (Corporate App用), `corporate`, `Company` (Admin用)
+- **取得ロジック**: `App.js` にて各コレクションを取得し、IDベースでマージして利用。
+
+### 一覧行の構成
+- **基本情報**: 社名、ID、住所を表示。
+- **使用技術バッジ**:
+  - `corporate_user_app` の「使用技術」タブと同様のロジックで、「メイン」に設定されている技術のみを抽出して表示。
+  - 画面右側のスペースを有効活用し、縮小して表示。
+- **タップ操作**:
+  - 行をタップすると、その企業の詳細画面（`CompanyDetailScreen`）へ遷移する。
+
+## 法人詳細画面仕様（CompanyDetailScreen）
+### 概要
+法人一覧から遷移する詳細画面。`corporate_user_app` の企業プロフィール画面（`CompanyPageScreen`）を再利用して表示する。
+
+### 実装の特徴
+- **共有コンポーネントの利用**:
+  - `shared/common_frontend` 内の `CompanyPageScreen` をラップして使用。
+  - これにより、企業向けアプリと管理者向けアプリで同一のプロフィールUIを提供。
+- **データ取得とフォールバック**:
+  - 画面遷移時に渡された `companyId` を元に、Firestoreから最新の企業データを再取得する。
+  - データ構造がフラット（Admin用）な場合でも、`CompanyPageScreen` が期待するネスト構造（`会社概要` 等）へ自動的にマッピングして表示するロジックを実装済み。
+    - 例: `data['name']` -> `data['会社概要']['社名']` へのフォールバック
+
+## データ構造の統一方針（一覧表示の互換性）
+- 目的: 各タブ（個人・法人・求人）の一覧表示で、データ構造が「フラット」または「ネスト」のどちらでもUIが破綻しないよう統一的に扱う。
+- 対象コンポーネント:
+  - 個人一覧: [EngineerListItem.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/features/engineer/components/EngineerListItem.js)
+  - 法人一覧: [CompanyListItem.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/features/company/components/CompanyListItem.js)
+  - 求人一覧: [JobListItem.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/features/job/components/JobListItem.js)
+- 統一仕様:
+  - 文字列化の厳守: Text要素には必ず文字列を渡す（オブジェクトを渡さない）
+  - フォールバック戦略:
+    - 個人: `基本情報.姓/名` → `name` → `"名称未設定"`
+    - 法人: `会社概要.社名` → `name/companyName` → `"名称未設定"`
+    - 求人: `求人基本項目.ポジション名` → `title` → `"タイトル未設定"`
+  - ID表示の安全化:
+    - 個人: `id` → `基本情報.id` → `"-"`
+    - 法人: `id` を文字列化して表示（`String(id)`）
+    - 求人: `JD_Number` → `求人基本項目.JD_Number` → `"-"`
+  - 住所整形（法人）:
+    - `formatAddress(addr)` により、郵便番号/都道府県/市区町村/町名_番地/建物名_部屋番号等を連結して文字列化
+    - 未設定時は `"-"` を表示
+- 背景:
+  - `corporate_user_app` ではネスト構造（例: `会社概要`）が前提、一方で `admin_app` ではフラット構造が混在
+  - これにより一覧表示でレンダーエラー（Objects are not valid as a React child）が発生し得るため、上記の互換処理を各ListItemに導入
+
+## 詳細画面における文字列化方針
+- 適用対象:
+  - 法人詳細: [CompanyPageScreen（shared）](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/features/company_profile/screens/CompanyPageScreen.js)
+  - 法人詳細（Corporate App版）: [CompanyPageScreen（corporate_user_app）](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen.js)
+  - 個人マイページ: [MyPageScreen（individual_user_app）](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/individual_user_app/expo_frontend/src/features/profile/MyPageScreen.js)
+- ポリシー:
+  - Text要素に渡す値は `String(v)` で文字列化してから表示する
+  - 例: 会社名、事業内容、氏名、メール等を文字列化してレンダリング
+  - これにより、Firestoreのスキーマ差異やデータ混在時にもレンダーエラーを防ぐ
+
 ## 起動方法（管理者アプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行コマンド:
