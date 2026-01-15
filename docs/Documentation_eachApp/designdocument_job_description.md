@@ -25,6 +25,7 @@
 - フォールバックデータ: DataContext により初期テンプレート（assets/json/jd.jsonなど）を保持
 - リモートデータ: Firestoreから job_description/B00000/JD_Number/02 を取得
 - ヒートマップ計算: [HeatmapCalculator.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/utils/HeatmapCalculator.js)
+- ヒートマップジオメトリ: [HeatmapGeometry.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/utils/HeatmapGeometry.js)
 - ヒートマップ表示: [HeatmapGrid.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/components/HeatmapGrid.js)
 
 ```mermaid
@@ -46,6 +47,7 @@ graph LR
   - HeatmapGrid, GlassCard など
 - ユーティリティ: shared/common_frontend/src/core/utils
   - HeatmapCalculator（スコアリングとマッピング）
+  - HeatmapGeometry（タイルサイズ・ツールチップ座標などジオメトリ計算の共通ロジック）
   - HeatmapMapper（90タイルのラベル/インデックス対応）
 - 状態: shared/common_frontend/src/core/state/DataContext
   - initialDataの受け渡しと更新API
@@ -190,4 +192,3 @@ classDiagram
 - 末端ノードは「評価選択肢: true」または「選好: 文字列」を使用
 - 同一キーに複数選好・評価を設定した場合は最大値が採用されます
 - 不明・未設定は省略可（未設定タイルは0.0で表示）
-

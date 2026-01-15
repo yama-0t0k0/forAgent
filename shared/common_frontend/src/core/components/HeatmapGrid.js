@@ -15,6 +15,7 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { HeatmapMapper } from '../utils/HeatmapMapper';
+import { HeatmapGeometry } from '../utils/HeatmapGeometry';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,8 @@ export const HeatmapGrid = ({
   dataValues = null, // Array of numbers from 0.0 to 1.0
 }) => {
   const [selectedTile, setSelectedTile] = useState(null);
+  const [containerSize, setContainerSize] = useState({ width: containerWidth, height: 0 });
+  const [tileLayouts, setTileLayouts] = useState({});
 
   const getColor = (value) => {
     if (value === 0) return '#E2E8F0'; // light gray
@@ -45,9 +48,7 @@ export const HeatmapGrid = ({
     });
   }, [itemCount, dataValues]);
 
-  // Calculate tile size dynamically based on available width and columns
-  // Subtract margin (2 * 2 = 4 per tile)
-  const tileSize = (containerWidth / columns) - 4;
+  const tileSize = Math.floor(containerWidth / columns) - 4;
 
   const handlePress = (item, index) => {
     if (selectedTile && selectedTile.id === item.id) {
@@ -65,49 +66,32 @@ export const HeatmapGrid = ({
     else if (v > 0.2) level = 2;
     else if (v > 0) level = 1;
 
-    // Calculate position
-    const margin = 2;
-    const totalTileSize = tileSize + (margin * 2);
-    const row = Math.floor(index / columns);
-    const col = index % columns;
-
-    // Tooltip settings
-    const tooltipWidth = 140;
-    const tooltipHeightApprox = 90; // 目安の高さ
-
-    // Center alignment
-    let left = (col * totalTileSize) + (totalTileSize / 2) - (tooltipWidth / 2);
-    
-    // Boundary checks
-    left = Math.max(0, Math.min(containerWidth - tooltipWidth, left));
-
-    // Determine vertical position (Show above if in the last 2 rows)
-    const totalRows = Math.ceil(itemCount / columns);
-    const showAbove = row >= totalRows - 2;
-
-    let top;
-    if (showAbove) {
-      // Show above the tile (tile top - tooltip height - arrow margin)
-      top = (row * totalTileSize) - tooltipHeightApprox - 8;
-    } else {
-      // Show below the tile (tile bottom + arrow margin)
-      top = (row + 1) * totalTileSize + 8;
-    }
+    const pos = HeatmapGeometry.computeTooltipByFormula({
+      index,
+      itemCount,
+      columns,
+      tileSize,
+      margin: 2,
+      tooltipWidth: 140,
+      containerWidth
+    });
 
     setSelectedTile({
       id: item.id,
       label,
       level,
-      top,
-      left,
-      showAbove,
-      // Calculate arrow position relative to the tooltip
-      arrowLeft: (col * totalTileSize) + (totalTileSize / 2) - left - 6, // 6 is half arrow width
+      top: pos.top,
+      left: pos.left,
+      showAbove: pos.showAbove,
+      arrowLeft: pos.arrowLeft,
     });
   };
 
   return (
-    <View style={styles.heatmapGrid} onStartShouldSetResponder={() => true}>
+    <View style={[styles.heatmapGrid, { width: containerWidth }]} onStartShouldSetResponder={() => true} onLayout={(e) => {
+      const { width: w, height: h } = e.nativeEvent.layout;
+      setContainerSize({ width: w, height: h });
+    }}>
       {gridData.map((item, index) => (
         <TouchableOpacity
           key={item.id}
@@ -122,6 +106,13 @@ export const HeatmapGrid = ({
               zIndex: 1,
             }
           ]}
+          onLayout={(e) => {
+            const { x, y, width: w, height: h } = e.nativeEvent.layout;
+            setTileLayouts((prev) => {
+              if (prev[item.id] && prev[item.id].x === x && prev[item.id].y === y && prev[item.id].width === w && prev[item.id].height === h) return prev;
+              return { ...prev, [item.id]: { x, y, width: w, height: h } };
+            });
+          }}
           onPress={() => handlePress(item, index)}
           activeOpacity={0.7}
         />

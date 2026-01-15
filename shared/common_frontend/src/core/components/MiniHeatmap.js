@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { HeatmapMapper } from '../utils/HeatmapMapper';
 import { THEME } from '../theme/theme';
+import { HeatmapGeometry } from '../utils/HeatmapGeometry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);
 
-  // Calculate tile size based on individual_user_app logic, then reduced to 70%
-  // containerWidth = width - 40 (padding)
-  // tileSize = (containerWidth / 9) - 4 (margin)
-  const baseTileSize = ((SCREEN_WIDTH - 40) / 9) - 4;
-  const standardTileSize = baseTileSize * 0.7; // 70% size
+  const baseTileSize = HeatmapGeometry.computeStandardTileSize();
+  const standardTileSize = baseTileSize * 0.7;
   
   const getColor = (value) => {
     if (value === 0) return '#E2E8F0';
@@ -41,33 +39,27 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
     const row = Math.floor(index / cols);
     const col = index % cols;
     
-    // Calculate approximate position
-    const totalTileSize = standardTileSize + 2; // 2px margin (1px each side)
-    
-    // Tooltip settings
+    const totalTileSize = standardTileSize + 2;
     const tooltipWidth = 90;
-    const tooltipHeightApprox = 44;
-    
-    // Center horizontally relative to tile
-    let left = (col * totalTileSize) + (totalTileSize / 2) - (tooltipWidth / 2);
-    
-    // Constrain to container width (approx)
     const containerWidth = cols * totalTileSize;
-    left = Math.max(-20, Math.min(containerWidth - tooltipWidth + 20, left)); // Allow some overflow
-    
-    const showAbove = row >= Math.max(0, rows - 2);
-    const top = showAbove
-      ? (row * totalTileSize) - tooltipHeightApprox - 8
-      : ((row + 1) * totalTileSize) + 8;
+    const pos = HeatmapGeometry.computeTooltipByFormula({
+      index,
+      itemCount: rows * cols,
+      columns: cols,
+      tileSize: standardTileSize,
+      margin: 1,
+      tooltipWidth,
+      containerWidth
+    });
 
     setSelectedTile({
       id: item.id,
       label,
       level,
-      top,
-      left,
-      showAbove,
-      arrowLeft: (col * totalTileSize) + (totalTileSize / 2) - left - 6,
+      top: pos.top,
+      left: pos.left,
+      showAbove: pos.showAbove,
+      arrowLeft: pos.arrowLeft,
     });
   };
 

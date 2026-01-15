@@ -50,27 +50,39 @@ const AdminAppWrapper = () => {
           fetchDocs('Company'),
           fetchDocs('company'),
           fetchDocs('corporate'),
-          // Fetch nested job descriptions correctly
+          // Fetch nested job descriptions reliably by iterating companies
           (async () => {
             try {
-              const companySnap = await getDocs(collection(db, 'job_description'));
+              // 1. Get all company IDs first
+              const companiesSnap = await getDocs(collection(db, 'job_description'));
+              console.log(`[DEBUG] Found ${companiesSnap.size} companies in job_description`);
               const allJobs = [];
-              for (const companyDoc of companySnap.docs) {
+              
+              // 2. Fetch JD_Number subcollection for each company
+              const promises = companiesSnap.docs.map(async (companyDoc) => {
                 const companyId = companyDoc.id;
-                const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
-                jdSnap.forEach(doc => {
-                  const data = doc.data();
-                  allJobs.push({
-                    id: `${companyId}_${doc.id}`, // Create unique ID from CompanyID + JD_Number
-                    company_ID: companyId,
-                    JD_Number: data.JD_Number || doc.id, // Ensure JD_Number exists
-                    ...data
+                try {
+                  const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
+                  console.log(`[DEBUG] Company ${companyId}: Found ${jdSnap.size} JDs`);
+                  jdSnap.forEach(doc => {
+                    const data = doc.data();
+                    allJobs.push({
+                      id: `${companyId}_${doc.id}`, 
+                      company_ID: companyId,
+                      JD_Number: data.JD_Number || doc.id,
+                      ...data
+                    });
                   });
-                });
-              }
+                } catch (err) {
+                  console.error(`[DEBUG] Error fetching JDs for company ${companyId}:`, err);
+                }
+              });
+
+              await Promise.all(promises);
+              console.log(`[DEBUG] Total jobs fetched: ${allJobs.length}`);
               return allJobs;
             } catch (e) {
-              console.error("Error fetching nested jobs:", e);
+              console.error("[DEBUG] Error fetching nested jobs:", e);
               return [];
             }
           })(),

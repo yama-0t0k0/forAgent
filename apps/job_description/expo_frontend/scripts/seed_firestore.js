@@ -62,6 +62,14 @@ async function seed() {
         }
         // -------------------------
 
+        // Ensure parent company document exists
+        const companyDocRef = doc(db, 'job_description', companyId);
+        await setDoc(companyDocRef, { company_ID: companyId, last_updated: new Date() }, { merge: true });
+
+        // Add timestamps to ensure proper sorting in Admin Dashboard
+        jdData.createdAt = new Date();
+        jdData.updatedAt = new Date();
+
         const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
         await setDoc(docRef, jdData);
 
