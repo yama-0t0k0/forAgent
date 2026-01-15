@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ブランチ比較レポート: main vs yama</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .tree-line {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+
+    .tree-line::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #cbd5e1;
+    }
+
+    .tree-item::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.75rem;
+      width: 1rem;
+      height: 2px;
+      background-color: #cbd5e1;
+    }
+
+    .status-badge {
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .added {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .removed {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="p-4 md:p-8">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <header class="mb-12 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">ブランチ比較レポート</h1>
+      <div class="flex justify-center items-center gap-4 text-lg text-slate-600">
+        <span class="px-4 py-1 bg-slate-200 rounded-full font-mono text-sm">main</span>
+        <span class="text-xl">→</span>
+        <span class="px-4 py-1 bg-blue-600 text-white rounded-full font-mono text-sm">yama</span>
+      </div>
+      <p class="mt-6 text-slate-500 max-w-2xl mx-auto">
+        プロジェクト構造が単一のExpoプロジェクトから、スケーラブルな<strong>モノレポ（Monorepo）構造</strong>へと大幅に刷新されました。
+      </p>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-12">
+      <div class="card p-6 border-t-4 border-slate-400">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          main: 単一構成 (Monolith)
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          ルートディレクトリにすべてのソースコードが集約。小規模開発には適していますが、機能追加に伴う複雑化が懸念される状態。
+        </p>
+      </div>
+      <div class="card p-6 border-t-4 border-blue-500">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          yama: モノレポ構成 (Monorepo)
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Melosを活用し、アプリ・共通ロジック・インフラを分離。複数のアプリケーションを一つのリポジトリで効率的に管理可能。
+        </p>
+      </div>
+    </div>
+
+    <!-- Directory Structure Visualizer -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4">ディレクトリ構造の変化</h2>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- main Tree -->
+        <div class="bg-slate-900 text-slate-300 p-6 rounded-xl font-mono text-sm overflow-x-auto">
+          <div class="text-slate-500 mb-2 font-sans italic">// main branch</div>
+          <div>project-root/</div>
+          <div class="tree-line">
+            <div class="tree-item text-red-400">assets/</div>
+            <div class="tree-item text-red-400">src/</div>
+            <div class="tree-item">package.json</div>
+            <div class="tree-item">app.json</div>
+          </div>
+        </div>
+
+        <!-- yama Tree -->
+        <div class="bg-slate-900 text-slate-300 p-6 rounded-xl font-mono text-sm overflow-x-auto">
+          <div class="text-blue-400 mb-2 font-sans italic">// yama branch (Monorepo)</div>
+          <div>project-root/</div>
+          <div class="tree-line">
+            <div class="tree-item text-green-400 font-bold">apps/</div>
+            <div class="tree-line ml-4">
+              <div class="tree-item">admin_app/</div>
+              <div class="tree-item">individual_user_app/</div>
+              <div class="tree-item">corporate_user_app/</div>
+            </div>
+            <div class="tree-item text-green-400 font-bold">shared/</div>
+            <div class="tree-line ml-4">
+              <div class="tree-item text-blue-300">common_frontend/</div>
+              <div class="tree-item text-blue-300">common_backend/</div>
+            </div>
+            <div class="tree-item text-green-400">infrastructure/</div>
+            <div class="tree-item text-green-400">melos.yaml</div>
+            <div class="tree-item">pubspec.yaml</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detailed Comparison Table -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4">コンポーネント比較</h2>
+      <div class="overflow-hidden card">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-slate-50 border-bottom border-slate-200">
+            <tr>
+              <th class="p-4 font-semibold text-slate-700">ディレクトリ / ファイル</th>
+              <th class="p-4 font-semibold text-slate-700 text-center">main</th>
+              <th class="p-4 font-semibold text-slate-700 text-center">yama</th>
+              <th class="p-4 font-semibold text-slate-700">主要な役割・変更点</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="p-4 font-mono text-sm">apps/</td>
+              <td class="p-4 text-center">❌</td>
+              <td class="p-4 text-center"><span class="status-badge added">ADDED</span></td>
+              <td class="p-4 text-sm text-slate-600">admin, individual, corporateなど各アプリを格納</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-mono text-sm">shared/</td>
+              <td class="p-4 text-center">❌</td>
+              <td class="p-4 text-center"><span class="status-badge added">ADDED</span></td>
+              <td class="p-4 text-sm text-slate-600">共通ロジック、UI部品、データ型の集約</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-mono text-sm">infrastructure/</td>
+              <td class="p-4 text-center">❌</td>
+              <td class="p-4 text-center"><span class="status-badge added">ADDED</span></td>
+              <td class="p-4 text-sm text-slate-600">Firebase設定、Terraform、セキュリティルール</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-mono text-sm">assets/ / src/</td>
+              <td class="p-4 text-center"><span class="status-badge added">EXIST</span></td>
+              <td class="p-4 text-center"><span class="status-badge removed">MOVED</span></td>
+              <td class="p-4 text-sm text-slate-600">各 apps/ 配下の適切なプロジェクトへ移動</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-mono text-sm">melos.yaml</td>
+              <td class="p-4 text-center">❌</td>
+              <td class="p-4 text-center"><span class="status-badge added">ADDED</span></td>
+              <td class="p-4 text-sm text-slate-600">モノレポ管理ツール Melos の構成定義</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Path Mapping Visualization -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4">ソースコードのマッピング</h2>
+      <div class="grid gap-4">
+        <div
+          class="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+          <div class="flex-1 text-center md:text-left">
+            <span class="text-xs font-bold text-slate-400 block mb-1">BEFORE (main)</span>
+            <code class="text-sm bg-slate-100 p-1 rounded">/ (ルートのExpoコード)</code>
+          </div>
+          <div class="text-blue-400 text-xl font-bold">→</div>
+          <div class="flex-1 text-center md:text-right">
+            <span class="text-xs font-bold text-blue-400 block mb-1">AFTER (yama)</span>
+            <code
+              class="text-sm bg-blue-50 text-blue-700 p-1 rounded font-bold">apps/individual_user_app/expo_frontend/</code>
+          </div>
+        </div>
+        <div
+          class="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+          <div class="flex-1 text-center md:text-left">
+            <span class="text-xs font-bold text-slate-400 block mb-1">BEFORE (main)</span>
+            <code class="text-sm bg-slate-100 p-1 rounded">assets/json/company-profile-template.json</code>
+          </div>
+          <div class="text-blue-400 text-xl font-bold">→</div>
+          <div class="flex-1 text-center md:text-right">
+            <span class="text-xs font-bold text-blue-400 block mb-1">AFTER (yama)</span>
+            <code
+              class="text-sm bg-blue-50 text-blue-700 p-1 rounded font-bold">apps/corporate_user_app/expo_frontend/assets/json/</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Improvements -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4">yamaブランチでの主な進化</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Feature 1 -->
+        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+          <div
+            class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center mb-4 font-bold text-lg">
+            1</div>
+          <h3 class="font-bold text-lg mb-2">複数アプリの並行開発</h3>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>• 管理者用 (admin_app)</li>
+            <li>• 企業用 (corporate_user_app)</li>
+            <li>• 個人用 (individual_user_app)</li>
+          </ul>
+        </div>
+        <!-- Feature 2 -->
+        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+          <div
+            class="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center mb-4 font-bold text-lg">
+            2</div>
+          <h3 class="font-bold text-lg mb-2">共通化の徹底 (Shared)</h3>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>• フロントエンドのUIコンポーネント共通化</li>
+            <li>• Firebase通信・APIロジックの集約</li>
+            <li>• ドメインモデルの型定義共有</li>
+          </ul>
+        </div>
+        <!-- Feature 3 -->
+        <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+          <div
+            class="w-10 h-10 bg-emerald-600 text-white rounded-lg flex items-center justify-center mb-4 font-bold text-lg">
+            3</div>
+          <h3 class="font-bold text-lg mb-2">インフラ・テストの整備</h3>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>• Firebaseエミュレータ設定の統合管理</li>
+            <li>• Firestoreのセキュリティルールと統合テスト</li>
+            <li>• デプロイ自動化スクリプトの充実</li>
+          </ul>
+        </div>
+        <!-- Feature 4 -->
+        <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+          <div
+            class="w-10 h-10 bg-amber-600 text-white rounded-lg flex items-center justify-center mb-4 font-bold text-lg">
+            4</div>
+          <h3 class="font-bold text-lg mb-2">開発者体験 (DX) の向上</h3>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>• GitHooksによる自動チェック</li>
+            <li>• 共通ドキュメント管理 (docs/)</li>
+            <li>• Melosによる全パッケージ一括操作</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusion -->
+    <footer class="bg-slate-900 text-white p-8 rounded-2xl text-center">
+      <h2 class="text-2xl font-bold mb-4">結論: プロジェクトの進化</h2>
+      <p class="text-slate-400 mb-6 leading-relaxed">
+        `yama` ブランチへの移行により、プロジェクトは単一のアプリ開発から、複数のサービスを効率的に開発できる<strong>スケーラブルなプラットフォーム</strong>へと進化しました。<br>
+        コード共有の最大化、一貫したテスト環境、そして明確な責任境界により、今後のチーム開発において高い生産性を維持することが可能です。
+      </p>
+      <button onclick="window.print()"
+        class="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm transition-colors">
+        レポートをPDFで保存
+      </button>
+    </footer>
+  </div>
+</body>
+
+</html>
