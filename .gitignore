@@ -2,17 +2,42 @@
 
 # dependencies
 node_modules/
-**/node_modules/
 
 # Expo
 .expo/
-**/ .expo/
 dist/
-**/dist/
 web-build/
+expo-env.d.ts
 
-# Firebase
-.firebase/
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
-# Local env files
-.env*
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+.env
+
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android

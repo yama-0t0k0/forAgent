@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+<module fileurl="file://$PROJECT_DIR$/apps/admin_app/dart_backend/melos_admin_app_backend.iml" filepath="$PROJECT_DIR$/apps/admin_app/dart_backend/melos_admin_app_backend.iml"/>
+<module fileurl="file://$PROJECT_DIR$/apps/corporate_user_app/dart_backend/melos_corporate_user_app_backend.iml" filepath="$PROJECT_DIR$/apps/corporate_user_app/dart_backend/melos_corporate_user_app_backend.iml"/>
+<module fileurl="file://$PROJECT_DIR$/shared/domain_models/melos_domain_models.iml" filepath="$PROJECT_DIR$/shared/domain_models/melos_domain_models.iml"/>
+<module fileurl="file://$PROJECT_DIR$/apps/fmjs/dart_backend/melos_fmjs_backend.iml" filepath="$PROJECT_DIR$/apps/fmjs/dart_backend/melos_fmjs_backend.iml"/>
+<module fileurl="file://$PROJECT_DIR$/apps/individual_user_app/dart_backend/melos_individual_user_app_backend.iml" filepath="$PROJECT_DIR$/apps/individual_user_app/dart_backend/melos_individual_user_app_backend.iml"/>
+<module fileurl="file://$PROJECT_DIR$/apps/job_description/dart_backend/melos_job_description_backend.iml" filepath="$PROJECT_DIR$/apps/job_description/dart_backend/melos_job_description_backend.iml"/>
+<module fileurl="file://$PROJECT_DIR$/melos_engineer_registration_app.iml" filepath="$PROJECT_DIR$/melos_engineer_registration_app.iml"/>
+    </modules>
+  </component>
+</project>

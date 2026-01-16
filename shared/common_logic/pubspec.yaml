@@ -1,0 +1,16 @@
+name: common_logic
+description: Pure Dart logic for scoring and matching, independent of Flutter/Firestore.
+version: 1.0.0
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  domain_models:
+    path: ../domain_models
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^3.0.0

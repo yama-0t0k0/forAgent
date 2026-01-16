@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画面遷移図定義 - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f3f4f6;
+      scroll-behavior: smooth;
+    }
+
+    .side-nav-active {
+      color: #2563eb;
+      background-color: #eff6ff;
+      border-right: 4px solid #2563eb;
+    }
+
+    .mermaid {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .mermaid.ready {
+      opacity: 1;
+    }
+
+    .service-section {
+      scroll-margin-top: 100px;
+    }
+
+    /* 凡例のアニメーション */
+    .legend-item:hover .icon-box {
+      transform: scale(1.1);
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .icon-box {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+
+<body class="text-slate-800">
+
+  <!-- Header -->
+  <header class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg">
+          <i class="fas fa-project-diagram"></i>
+        </div>
+        <h1 class="font-bold text-lg hidden sm:block">画面遷移図定義 <span class="text-slate-400 font-normal">| UI/UX
+            Interaction Flows</span></h1>
+      </div>
+      <div class="flex gap-4">
+        <span
+          class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200 uppercase tracking-tighter font-mono">v1.2.0
+          Stable</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-6 pt-24 pb-20 flex flex-col lg:flex-row gap-10">
+
+    <!-- Sidebar Navigation -->
+    <aside class="lg:w-64 flex-shrink-0">
+      <div class="sticky top-24 space-y-1">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-2">目次</p>
+        <a href="#intro"
+          class="flex items-center gap-3 px-4 py-3 rounded-l-lg hover:bg-slate-100 transition-all text-sm font-medium">
+          <i class="fas fa-info-circle w-5"></i> 概要・凡例
+        </a>
+        <a href="#admin"
+          class="flex items-center gap-3 px-4 py-3 rounded-l-lg hover:bg-slate-100 transition-all text-sm font-medium border-r-4 border-transparent">
+          <i class="fas fa-user-shield w-5"></i> 管理者アプリ
+        </a>
+        <a href="#individual"
+          class="flex items-center gap-3 px-4 py-3 rounded-l-lg hover:bg-slate-100 transition-all text-sm font-medium border-r-4 border-transparent">
+          <i class="fas fa-user w-5"></i> 個人ユーザー
+        </a>
+        <a href="#corporate"
+          class="flex items-center gap-3 px-4 py-3 rounded-l-lg hover:bg-slate-100 transition-all text-sm font-medium border-r-4 border-transparent">
+          <i class="fas fa-building w-5"></i> 企業ユーザー
+        </a>
+        <a href="#job"
+          class="flex items-center gap-3 px-4 py-3 rounded-l-lg hover:bg-slate-100 transition-all text-sm font-medium border-r-4 border-transparent">
+          <i class="fas fa-file-alt w-5"></i> 求人・選考
+        </a>
+        <div class="pt-4 mt-4 border-t border-slate-200">
+          <a href="https://gemini.google.com/share/1ff4f3bb8aa3" target="_blank"
+            class="flex items-center justify-between px-4 py-3 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-all">
+            <span>Mermaidソースを確認</span>
+            <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 space-y-24">
+
+      <!-- Intro & Legend -->
+      <section id="intro" class="service-section">
+        <div class="bg-white rounded-3xl p-8 lg:p-12 shadow-sm border border-slate-200 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-10 opacity-5">
+            <i class="fas fa-book-open text-9xl"></i>
+          </div>
+          <h2 class="text-3xl font-bold mb-6 text-indigo-900">ドキュメントについて</h2>
+          <p class="text-slate-600 leading-relaxed text-lg mb-10 max-w-3xl">
+            本ドキュメントでは、各サービスごとに最適化されたカラーパレットを使用して画面遷移を定義しています。各ノードの色は、その画面が持つ「役割」や「状態」を直感的に示しています。
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              class="legend-item bg-slate-50 p-6 rounded-2xl border border-slate-100 transition-all hover:border-indigo-300">
+              <div
+                class="icon-box w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 mb-4">
+                <i class="fas fa-square"></i>
+              </div>
+              <h4 class="font-bold text-sm mb-1">Screen (画面)</h4>
+              <p class="text-xs text-slate-500">基本画面。サービスごとのメインカラーで着色。</p>
+            </div>
+            <div
+              class="legend-item bg-slate-50 p-6 rounded-2xl border border-slate-100 transition-all hover:border-indigo-300">
+              <div
+                class="icon-box w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 mb-4">
+                <i class="fas fa-clone"></i>
+              </div>
+              <h4 class="font-bold text-sm mb-1">Modal (モーダル)</h4>
+              <p class="text-xs text-slate-500">背景色が薄く、二重線で表現されるオーバーレイ。</p>
+            </div>
+            <div
+              class="legend-item bg-slate-50 p-6 rounded-2xl border border-slate-100 transition-all hover:border-indigo-300">
+              <div
+                class="icon-box w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 mb-4">
+                <i class="fas fa-th-large"></i>
+              </div>
+              <h4 class="font-bold text-sm mb-1">View State (内部)</h4>
+              <p class="text-xs text-slate-500">点線枠の領域。同一ページ内での表示切り替え。</p>
+            </div>
+            <div
+              class="legend-item bg-slate-50 p-6 rounded-2xl border border-slate-100 transition-all hover:border-indigo-300">
+              <div
+                class="icon-box w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 mb-4">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <h4 class="font-bold text-sm mb-1">Action (遷移)</h4>
+              <p class="text-xs text-slate-500">実線は順方向、点線は戻る動作を意味します。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. Admin -->
+      <section id="admin" class="service-section space-y-8">
+        <div class="flex items-center gap-4">
+          <span class="w-12 h-1 bg-blue-500 rounded-full"></span>
+          <h2 class="text-2xl font-bold">1. 管理者向けアプリ <span class="text-slate-400 font-normal ml-2">admin_app</span></h2>
+        </div>
+        <div class="grid lg:grid-cols-5 gap-8">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-2xl">
+              <h3 class="font-bold text-blue-900 mb-2">ブルー・スキーム: 管理・信頼</h3>
+              <p class="text-sm text-blue-800 leading-relaxed">
+                KPI管理などの「正確性」が求められるため、落ち着いたブルーを基調としています。
+              </p>
+            </div>
+          </div>
+          <div class="lg:col-span-3">
+            <div class="mermaid">
+              graph TD
+              Dashboard["管理ダッシュボード<br />(DashboardScreen)"]
+              subgraph Tabs ["タブ切り替え"]
+              OverviewTab["ホーム (KPI)"]
+              IndividualTab["個人リスト"]
+              CompanyTab["法人リスト"]
+              JobTab["求人リスト"]
+              end
+              subgraph Modals ["モーダル表示"]
+              DrillDownModal[["ドリルダウン"]]
+              UserDetailModal[["個人詳細"]]
+              JobDetailModal[["求人詳細"]]
+              end
+              Dashboard --> OverviewTab
+              Dashboard -- "切替" --> IndividualTab
+              Dashboard -- "切替" --> CompanyTab
+              Dashboard -- "切替" --> JobTab
+              OverviewTab -- "タップ" --> DrillDownModal
+              IndividualTab -- "タップ" --> UserDetailModal
+              JobTab -- "タップ" --> JobDetailModal
+              DrillDownModal -. "閉じる" .-> Dashboard
+              UserDetailModal -. "閉じる" .-> Dashboard
+
+              style Dashboard fill:#3b82f6,stroke:#1d4ed8,color:#fff,stroke-width:2px
+              style OverviewTab fill:#dbeafe,stroke:#3b82f6
+              style IndividualTab fill:#dbeafe,stroke:#3b82f6
+              style CompanyTab fill:#dbeafe,stroke:#3b82f6
+              style JobTab fill:#dbeafe,stroke:#3b82f6
+              style DrillDownModal fill:#f8fafc,stroke:#3b82f6,stroke-width:2px
+              style UserDetailModal fill:#f8fafc,stroke:#3b82f6,stroke-width:2px
+              style JobDetailModal fill:#f8fafc,stroke:#3b82f6,stroke-width:2px
+              style Tabs stroke:#3b82f6,stroke-dasharray: 5 5,fill:#f0f9ff
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Individual -->
+      <section id="individual" class="service-section space-y-8">
+        <div class="flex items-center gap-4">
+          <span class="w-12 h-1 bg-emerald-500 rounded-full"></span>
+          <h2 class="text-2xl font-bold">2. 個人ユーザー向けアプリ <span
+              class="text-slate-400 font-normal ml-2">individual_user_app</span></h2>
+        </div>
+        <div class="grid lg:grid-cols-5 gap-8">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-6 rounded-r-2xl">
+              <h3 class="font-bold text-emerald-900 mb-2">グリーン・スキーム: 成長・自己表現</h3>
+              <p class="text-sm text-emerald-800 leading-relaxed">
+                エンジニアのキャリア（成長）を表現するエメラルドグリーンを採用。
+              </p>
+            </div>
+          </div>
+          <div class="lg:col-span-3">
+            <div class="mermaid">
+              graph TD
+              MyPage["マイページ<br />(MyPageScreen)"]
+              ImageEdit["画像編集<br />(ImageEditScreen)"]
+              Menu["メニュー<br />(MenuScreen)"]
+              Registration["プロフィール編集<br />(Registration)"]
+
+              MyPage -- "編集" --> Registration
+              MyPage -- "メニュー" --> Menu
+              MyPage -- "画像編集" --> ImageEdit
+
+              Menu -. "戻る" .-> MyPage
+              ImageEdit -. "保存" .-> MyPage
+              Registration -. "保存" .-> MyPage
+
+              style MyPage fill:#10b981,stroke:#047857,color:#fff,stroke-width:2px
+              style Registration fill:#ecfdf5,stroke:#10b981
+              style ImageEdit fill:#ecfdf5,stroke:#10b981
+              style Menu fill:#ecfdf5,stroke:#10b981
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Corporate -->
+      <section id="corporate" class="service-section space-y-8">
+        <div class="flex items-center gap-4">
+          <span class="w-12 h-1 bg-indigo-500 rounded-full"></span>
+          <h2 class="text-2xl font-bold">3. 企業ユーザー向けアプリ <span
+              class="text-slate-400 font-normal ml-2">corporate_user_app</span></h2>
+        </div>
+        <div class="grid lg:grid-cols-5 gap-8">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-r-2xl">
+              <h3 class="font-bold text-indigo-900 mb-2">インディゴ・スキーム: 専門性・ビジネス</h3>
+              <p class="text-sm text-indigo-800 leading-relaxed">
+                企業としての信頼とプロフェッショナリズムを示すインディゴカラー。
+              </p>
+            </div>
+          </div>
+          <div class="lg:col-span-3">
+            <div class="mermaid">
+              graph TD
+              CompanyPage["企業トップ<br />(CompanyPageScreen)"]
+              subgraph ContentTabs ["タブコンテンツ"]
+              TechStack["使用技術"]
+              Jobs["求人 (開発中)"]
+              Connections["つながり"]
+              Blog["ブログ"]
+              MenuTab["メニュー"]
+              end
+              Registration["企業編集<br />(GenericRegistration)"]
+              CompanyPage --> TechStack
+              CompanyPage -- "タブ選択" --> Jobs
+              CompanyPage -- "タブ選択" --> MenuTab
+              MenuTab -- "編集ボタン" --> Registration
+              Registration -. "保存" .-> CompanyPage
+
+              style CompanyPage fill:#6366f1,stroke:#4338ca,color:#fff,stroke-width:2px
+              style ContentTabs fill:#f5f3ff,stroke:#6366f1,stroke-dasharray: 5 5
+              style TechStack fill:#e0e7ff,stroke:#6366f1
+              style Jobs fill:#e0e7ff,stroke:#6366f1
+              style Connections fill:#e0e7ff,stroke:#6366f1
+              style Blog fill:#e0e7ff,stroke:#6366f1
+              style MenuTab fill:#e0e7ff,stroke:#6366f1
+              style Registration fill:#fff,stroke:#6366f1
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 & 5. Job & Selection -->
+      <section id="job" class="service-section space-y-8">
+        <div class="flex items-center gap-4">
+          <span class="w-12 h-1 bg-slate-400 rounded-full"></span>
+          <h2 class="text-2xl font-bold">4 & 5. 求人詳細と選考管理 <span class="text-slate-400 font-normal ml-2">job /
+              selection_app</span></h2>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+          <!-- Job -->
+          <div class="bg-white p-8 rounded-3xl border border-slate-200">
+            <h3 class="font-bold mb-4 flex items-center gap-2 italic">
+              <i class="fas fa-file-invoice text-orange-500"></i> Job Description Flow
+            </h3>
+            <div class="mermaid">
+              graph LR
+              JD["求人詳細<br />(JobDescription)"]
+              JobEdit["求人編集<br />(GenericReg)"]
+              JD -- "編集ボタン" --> JobEdit
+              JobEdit -. "保存" .-> JD
+
+              style JD fill:#f97316,stroke:#c2410c,color:#fff
+              style JobEdit fill:#fff7ed,stroke:#f97316
+            </div>
+          </div>
+          <!-- Selection -->
+          <div class="bg-white p-8 rounded-3xl border border-slate-200">
+            <h3 class="font-bold mb-4 flex items-center gap-2 italic">
+              <i class="fas fa-tasks text-purple-500"></i> Selection Process Flow
+            </h3>
+            <div class="mermaid">
+              graph TD
+              List["選考進捗リスト"]
+              DetailModal[["詳細モーダル"]]
+              subgraph ModalTabs ["モーダル内タブ"]
+              Basic[基本情報]
+              Progress[選考進捗]
+              Fee[手数料]
+              end
+              List -- "タップ" --> DetailModal
+              DetailModal --> Basic
+              DetailModal -- "切替" --> Progress
+              DetailModal -. "閉じる" .-> List
+
+              style List fill:#a855f7,stroke:#7e22ce,color:#fff
+              style DetailModal fill:#faf5ff,stroke:#a855f7,stroke-width:2px
+              style ModalTabs fill:#fdf4ff,stroke:#a855f7,stroke-dasharray: 2 2
+              style Basic fill:#f3e8ff,stroke:#a855f7
+              style Progress fill:#f3e8ff,stroke:#a855f7
+              style Fee fill:#f3e8ff,stroke:#a855f7
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Supplementary -->
+      <section class="bg-slate-900 text-slate-100 rounded-3xl p-10 shadow-2xl">
+        <h2 class="text-xl font-bold mb-8 border-b border-slate-700 pb-4">補足事項・共通挙動</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="space-y-2">
+            <div class="text-indigo-400 text-xs font-bold uppercase tracking-widest">Shared Components</div>
+            <h4 class="font-bold">GenericRegistrationScreen</h4>
+            <p class="text-sm text-slate-400 leading-relaxed">全てのアプリで使用される共通の登録・編集画面です。図中の白背景ノードはこの画面を指します。</p>
+          </div>
+          <div class="space-y-2">
+            <div class="text-orange-400 text-xs font-bold uppercase tracking-widest">Progress State</div>
+            <h4 class="font-bold">Under Construction</h4>
+            <p class="text-sm text-slate-400 leading-relaxed">開発中の機能は視覚的に薄く表現されており、将来的な拡張性を示唆しています。</p>
+          </div>
+          <div class="space-y-2">
+            <div class="text-emerald-400 text-xs font-bold uppercase tracking-widest">Interaction</div>
+            <h4 class="font-bold">Modal Overlay</h4>
+            <p class="text-sm text-slate-400 leading-relaxed">二重線の枠（モーダル）は、操作が完了するまで親画面を「ロック」するオーバーレイを表します。</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-10 mt-20">
+    <div class="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm">
+      <p>© 2024 UI/UX Interaction Design Standards. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Mermaid Initialization with custom colors
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#ffffff',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#e2e8f0',
+        lineColor: '#64748b',
+        secondaryColor: '#f8fafc',
+        tertiaryColor: '#f1f5f9',
+        fontSize: '13px',
+        fontFamily: 'Inter, Noto Sans JP, sans-serif'
+      }
+    });
+
+    // Add "ready" class after rendering to fade in
+    window.onload = function () {
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach(el => {
+          el.classList.add('ready');
+        });
+      }, 300);
+    };
+
+    // Scroll highlight sidebar
+    window.addEventListener('scroll', function () {
+      let sections = document.querySelectorAll('.service-section');
+      let navLinks = document.querySelectorAll('aside a');
+
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 150) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('side-nav-active');
+        if (link.getAttribute('href').includes(current)) {
+          link.classList.add('side-nav-active');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "corporate-user-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "npx expo start --clear",
+    "lint": "echo 'Note: ESLint not installed yet.'",
+    "test": "echo 'Note: Jest not installed yet.'"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@shared/common-frontend": "*",
+    "expo": "~54.0.29",
+    "expo-asset": "~12.0.12",
+    "expo-constants": "~18.0.12",
+    "expo-linking": "~8.0.11",
+    "expo-router": "~6.0.21",
+    "react-native-pager-view": "6.9.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-tab-view": "^4.2.2"
+  },
+  "overrides": {
+    "react-native-pager-view": "6.9.1"
+  }
+}

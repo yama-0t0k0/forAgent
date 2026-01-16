@@ -1,0 +1,24 @@
+{
+  "name": "admin-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "npx expo start --tunnel --clear",
+    "lint": "echo 'Note: ESLint not installed yet.'",
+    "test": "echo 'Note: Jest not installed yet.'"
+  },
+  "dependencies": {
+    "@shared/common-frontend": "*",
+    "expo": "~54.0.29",
+    "expo-asset": "~12.0.12",
+    "expo-constants": "~18.0.12",
+    "expo-linear-gradient": "^15.0.8",
+    "expo-linking": "~8.0.11",
+    "expo-router": "~6.0.21",
+    "react-dom": "19.1.0",
+    "react-native-gifted-charts": "^1.4.70",
+    "react-native-svg": "^15.15.1",
+    "react-native-web": "^0.21.0"
+  }
+}
