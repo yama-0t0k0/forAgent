@@ -8,19 +8,19 @@
 // - 技術的ポイント: JSONの生成は行わず、「② Firestoreへの追加」のみ担当
 //
 // ディレクトリ構造:
-// - 本ファイル: engineer-registration-app-yama/scripts/seed_company_jd.js
+// - 本ファイル: engineer-registration-app-yama/scripts/seed_firestore_from_json.js
 // - 想定入力:
 //   - reference_information_fordev/json/Individual/{individualId}.json
-//   - reference_information_fordev/json/ompany/{companyId}.json
+//   - reference_information_fordev/json/company/{companyId}.json
 //   - reference_information_fordev/json/jd/{companyId}/{companyId}_{jdNumber}.json
 //
 // 実行方法:
 // - Individual投入:
-//   - node engineer-registration-app-yama/scripts/seed_company_jd.js individual C202501010001 /path/to/C202501010001.json
+//   - node engineer-registration-app-yama/scripts/seed_firestore_from_json.js individual C202501010001 /path/to/C202501010001.json
 // - 会社投入:
-//   - node engineer-registration-app-yama/scripts/seed_company_jd.js company B00003 engineer-registration-app-yama/reference_information_fordev/json/ompany/B00003.json
+//   - node engineer-registration-app-yama/scripts/seed_firestore_from_json.js company B00003 engineer-registration-app-yama/reference_information_fordev/json/company/B00003.json
 // - 求人投入:
-//   - node engineer-registration-app-yama/scripts/seed_company_jd.js jd B00003 01 engineer-registration-app-yama/reference_information_fordev/json/jd/B00003/B00003_01.json
+//   - node engineer-registration-app-yama/scripts/seed_firestore_from_json.js jd B00003 01 engineer-registration-app-yama/reference_information_fordev/json/jd/B00003/B00003_01.json
 
 const fs = require('fs');
 const { initializeApp } = require('firebase/app');
@@ -46,7 +46,7 @@ function loadJson(p) {
 async function seedIndividual(individualId, jsonPath) {
   const id = (individualId || '').trim();
   if (!id || !id.startsWith('C')) {
-    throw new Error('individualId は \"C\" 始まりのIDが必要です（例: C202501010001）');
+    throw new Error('individualId は "C" 始まりのIDが必要です（例: C202501010001）');
   }
   if (!jsonPath) {
     throw new Error('individual 用の jsonPath が必要です');
@@ -106,10 +106,10 @@ async function seedJD(companyId, jdNumber, jsonPath) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.log('Usage: seed_company_jd.js <individual|company|jd> [...params]');
+    console.log('Usage: seed_firestore_from_json.js <individual|company|jd> [...params]');
     console.log('Examples:');
     console.log('  individual C202501010001 /path/to/C202501010001.json');
-    console.log('  company B00003 engineer-registration-app-yama/reference_information_fordev/json/ompany/B00003.json');
+    console.log('  company B00003 engineer-registration-app-yama/reference_information_fordev/json/company/B00003.json');
     console.log('  jd B00003 01 engineer-registration-app-yama/reference_information_fordev/json/jd/B00003/B00003_01.json');
     process.exit(1);
   }
@@ -131,7 +131,7 @@ async function main() {
       const jsonPath = args[3];
       await seedJD(companyId, jdNumber, jsonPath);
     } else {
-      throw new Error('コマンドが不正です（company または jd を指定してください）');
+      throw new Error('コマンドが不正です（individual, company または jd を指定してください）');
     }
     process.exit(0);
   } catch (e) {
@@ -141,3 +141,4 @@ async function main() {
 }
 
 main();
+
