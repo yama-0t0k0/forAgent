@@ -8,8 +8,10 @@ import { THEME } from './src/constants/theme';
 import { EngineerRegistrationWrapper } from './src/apps/EngineerApp';
 import { CompanyRegistrationWrapper } from './src/apps/CompanyApp';
 
+import { APP_MODE } from './src/apps/mode_config';
+
 export default function App() {
-  const appMode = process.env.EXPO_PUBLIC_APP_MODE;
+  const appMode = APP_MODE;
   console.log('App Mode:', appMode);
 
   let Screen;

@@ -1,5 +1,23 @@
+const fs = require('fs');
+const path = require('path');
+
 module.exports = ({ config }) => {
-  const appMode = process.env.EXPO_PUBLIC_APP_MODE;
+  let appMode = process.env.EXPO_PUBLIC_APP_MODE;
+
+  // Fallback to reading from file if env var is not set
+  try {
+    const configPath = path.join(__dirname, 'src/apps/mode_config.js');
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      const match = configContent.match(/APP_MODE = ['"]([^'"]+)['"]/);
+      if (match) {
+        appMode = match[1];
+      }
+    }
+  } catch (e) {
+    console.error('Error reading mode_config.js:', e);
+  }
+
   let appName = "my-expo-app";
 
   if (appMode === 'engineer') {
