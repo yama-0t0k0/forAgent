@@ -17,7 +17,7 @@
         },
         {
             "target": "corporate-app",
-            "public": "apps/corporate_user_app/expo_frontend/dist",
+            "public": "dist-company",
             "ignore": [
                 "firebase.json",
                 "**/.*",
@@ -32,7 +32,7 @@
         },
         {
             "target": "engineer-app",
-            "public": "apps/individual_user_app/expo_frontend/dist",
+            "public": "dist-engineer",
             "ignore": [
                 "firebase.json",
                 "**/.*",
@@ -47,7 +47,7 @@
         },
         {
             "target": "registration-app",
-            "public": "dist",
+            "public": "dist-tabs",
             "ignore": [
                 "firebase.json",
                 "**/.*",
