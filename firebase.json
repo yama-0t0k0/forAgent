@@ -44,21 +44,6 @@
                     "destination": "/index.html"
                 }
             ]
-        },
-        {
-            "target": "registration-app",
-            "public": "dist-tabs",
-            "ignore": [
-                "firebase.json",
-                "**/.*",
-                "**/node_modules/**"
-            ],
-            "rewrites": [
-                {
-                    "source": "**",
-                    "destination": "/index.html"
-                }
-            ]
         }
     ]
 }
