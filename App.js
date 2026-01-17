@@ -9,18 +9,23 @@ import { EngineerRegistrationWrapper } from './src/apps/EngineerApp';
 import { CompanyRegistrationWrapper } from './src/apps/CompanyApp';
 
 export default function App() {
-  const appMode = process.env.EXPO_PUBLIC_APP_MODE; // 'engineer' | 'company'
+  const appMode = process.env.EXPO_PUBLIC_APP_MODE;
+  console.log('App Mode:', appMode);
+
+  let Screen;
+  if (appMode === 'engineer') {
+    Screen = EngineerRegistrationWrapper;
+  } else {
+    // Default to Company for any other value or undefined
+    Screen = CompanyRegistrationWrapper;
+  }
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: THEME.background }}>
         <StatusBar barStyle="dark-content" />
         <NavigationContainer>
-          {appMode === 'engineer' ? (
-            <EngineerRegistrationWrapper />
-          ) : (
-            <CompanyRegistrationWrapper />
-          )}
+          <Screen />
         </NavigationContainer>
       </SafeAreaView>
     </SafeAreaProvider>
