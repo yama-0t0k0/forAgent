@@ -5,6 +5,9 @@
       "hosting": {
         "admin-app": [
           "admin-app-site-d11f0"
+        ],
+        "corporate-app": [
+          "corporate-app-site-d11f0"
         ]
       }
     }

@@ -28,38 +28,68 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
-export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C' }) => {
+export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', useSequentialId = false, idLength = 5 }) => {
   const { data, updateValue } = useContext(DataContext);
   const [saveStatus, setSaveStatus] = useState('idle');
 
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const datePrefix = `${idPrefixChar}${year}${month}${day}`;
+      let newId;
 
-      const q = query(
-        collection(db, collectionName),
-        where(documentId(), ">=", datePrefix + "0000"),
-        where(documentId(), "<=", datePrefix + "9999")
-      );
+      if (useSequentialId) {
+        // Sequential ID logic: prefix + N digits (e.g., B00001)
+        const q = query(
+          collection(db, collectionName),
+          where(documentId(), ">=", idPrefixChar),
+          where(documentId(), "<", String.fromCharCode(idPrefixChar.charCodeAt(0) + 1))
+        );
 
-      const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(q);
+        let maxNum = 0;
+        const idRegex = new RegExp(`^${idPrefixChar}(\\d{${idLength}})$`);
 
-      let maxNum = 0;
-      querySnapshot.forEach((doc) => {
-        const id = doc.id;
-        const numPart = parseInt(id.slice(-4), 10);
-        if (!isNaN(numPart) && numPart > maxNum) {
-          maxNum = numPart;
-        }
-      });
+        querySnapshot.forEach((doc) => {
+          const id = doc.id;
+          const match = id.match(idRegex);
+          if (match) {
+            const numPart = parseInt(match[1], 10);
+            if (numPart > maxNum) {
+              maxNum = numPart;
+            }
+          }
+        });
 
-      const nextNum = maxNum + 1;
-      const newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+        const nextNum = maxNum + 1;
+        newId = `${idPrefixChar}${String(nextNum).padStart(idLength, '0')}`;
+      } else {
+        // Legacy Date-based logic: prefix + yyyyMMdd + 4 digits
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const datePrefix = `${idPrefixChar}${year}${month}${day}`;
+
+        const q = query(
+          collection(db, collectionName),
+          where(documentId(), ">=", datePrefix + "0000"),
+          where(documentId(), "<=", datePrefix + "9999")
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        let maxNum = 0;
+        querySnapshot.forEach((doc) => {
+          const id = doc.id;
+          const numPart = parseInt(id.slice(-4), 10);
+          if (!isNaN(numPart) && numPart > maxNum) {
+            maxNum = numPart;
+          }
+        });
+
+        const nextNum = maxNum + 1;
+        newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+      }
 
       const cleanData = (input) => {
         if (input === null || typeof input !== 'object') {

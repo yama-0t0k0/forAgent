@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者アプリ (admin_app) 設計概要</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .mermaid-box {
+      background: #f1f5f9;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .heatmap-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .lvl-0 {
+      background-color: #e2e8f0;
+    }
+
+    .lvl-1 {
+      background-color: #cbd5e1;
+    }
+
+    .lvl-2 {
+      background-color: #94a3b8;
+    }
+
+    .lvl-3 {
+      background-color: #475569;
+    }
+
+    .lvl-4 {
+      background-color: #1e293b;
+    }
+  </style>
+</head>
+
+<body class="pb-20">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 w-full glass-card border-b px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 p-2 rounded-lg text-white">
+          <i class="bi bi-shield-lock-fill text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">Admin App <span class="text-blue-600">Portal</span></h1>
+          <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Internal Management System</p>
+        </div>
+      </div>
+      <nav class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
+        <a href="#overview" class="hover:text-blue-600 transition-colors">概要</a>
+        <a href="#firestore" class="hover:text-blue-600 transition-colors">データベース</a>
+        <a href="#ui-spec" class="hover:text-blue-600 transition-colors">UI/UX仕様</a>
+        <a href="#logic" class="hover:text-blue-600 transition-colors">ロジック</a>
+      </nav>
+      <div class="flex gap-2">
+        <span
+          class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold border border-green-200">v1.0.0
+          Stable</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 mt-10">
+
+    <!-- Hero Section -->
+    <section id="overview" class="mb-12">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+          <h2 class="text-3xl font-bold mb-4 gradient-text">管理者アプリ設計概要</h2>
+          <p class="text-slate-600 leading-relaxed mb-6">
+            本プラットフォームの全機能を統括・監視するための専用アプリケーションです。Expo (React Native) をベースに構築され、
+            全コレクションへの特権アクセスを持ち、主要KPIの可視化とユーザー管理を効率化します。
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <i class="bi bi-rocket-takeoff text-blue-500 text-xl mb-2 block"></i>
+              <p class="text-xs text-slate-400 font-semibold mb-1">Framework</p>
+              <p class="font-bold text-sm">Expo (React Native)</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <i class="bi bi-database-check text-orange-500 text-xl mb-2 block"></i>
+              <p class="text-xs text-slate-400 font-semibold mb-1">Database</p>
+              <p class="font-bold text-sm">Firestore (Full Access)</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <i class="bi bi-box-seam text-purple-500 text-xl mb-2 block"></i>
+              <p class="text-xs text-slate-400 font-semibold mb-1">Architecture</p>
+              <p class="font-bold text-sm">Shared Modules</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <i class="bi bi-graph-up-arrow text-emerald-500 text-xl mb-2 block"></i>
+              <p class="text-xs text-slate-400 font-semibold mb-1">Primary Goal</p>
+              <p class="font-bold text-sm">KPI Visualization</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-slate-900 rounded-2xl p-6 text-slate-300 shadow-xl overflow-hidden relative">
+          <div class="absolute top-0 right-0 p-4 opacity-10">
+            <i class="bi bi-terminal text-9xl"></i>
+          </div>
+          <h3 class="text-sm font-bold text-slate-500 mb-4 uppercase tracking-widest">Quick Start</h3>
+          <code class="block text-blue-400 mb-2"># scripts/start_expo.sh</code>
+          <div class="bg-black/50 p-3 rounded font-mono text-sm border border-slate-700 text-slate-200">
+            ./scripts/start_expo.sh admin_app
+          </div>
+          <ul class="mt-6 space-y-3 text-xs">
+            <li class="flex items-center gap-2"><i class="bi bi-check2-circle text-emerald-400"></i> Firebase Config
+              共有済み</li>
+            <li class="flex items-center gap-2"><i class="bi bi-check2-circle text-emerald-400"></i> UIコンポーネント 共有済み</li>
+            <li class="flex items-center gap-2"><i class="bi bi-check2-circle text-emerald-400"></i> 特権 Read/Write 権限
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Firestore & Data Flow -->
+    <section id="firestore" class="mb-16">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="p-2 bg-blue-100 text-blue-600 rounded-lg"><i class="bi bi-hdd-network"></i></span>
+        <h2 class="text-2xl font-bold">Firestore 連携とデータフロー</h2>
+      </div>
+
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm bg-white mb-8">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">コレクション</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">役割</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Adminでの用途</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="px-6 py-4 font-semibold text-blue-600">individual</td>
+              <td class="px-6 py-4 text-sm">個人ユーザー（エンジニア）</td>
+              <td class="px-6 py-4 text-sm">登録者推移分析、不正監視、離脱分析</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-semibold text-blue-600">corporate</td>
+              <td class="px-6 py-4 text-sm">法人ユーザー（企業）</td>
+              <td class="px-6 py-4 text-sm">企業審査、アカウント管理、利用状況</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-semibold text-blue-600">fmjs</td>
+              <td class="px-6 py-4 text-sm">選考・手数料・サーベイ</td>
+              <td class="px-6 py-4 text-sm">進捗分析、満足度集計、売上予測</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-semibold text-blue-600">jd</td>
+              <td class="px-6 py-4 text-sm">求人票 (Job Description)</td>
+              <td class="px-6 py-4 text-sm">不適切求人監視、求人動向分析</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mermaid-box p-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="px-4 py-2 bg-white border border-blue-200 rounded shadow-sm text-xs font-bold text-center">
+              Firestore<br>(Multiple Colls)</div>
+          </div>
+          <i class="bi bi-arrow-right text-slate-300 text-2xl hidden md:block"></i>
+          <div class="flex flex-col gap-2 flex-1">
+            <div class="px-6 py-4 bg-blue-600 text-white rounded-lg shadow-md text-center">
+              <p class="text-xs opacity-80 uppercase tracking-tighter mb-1">App Entry</p>
+              <p class="font-bold">AdminAppWrapper (App.js)</p>
+              <p class="text-[10px] mt-1 bg-blue-700 rounded py-0.5">Fetching & Aggregation</p>
+            </div>
+          </div>
+          <i class="bi bi-arrow-right text-slate-300 text-2xl hidden md:block"></i>
+          <div class="flex flex-col gap-2">
+            <div class="px-4 py-3 bg-white border border-slate-200 rounded shadow-sm text-center">
+              <p class="text-[10px] text-slate-400 font-bold uppercase">Provider</p>
+              <p class="text-sm font-bold">DataContext</p>
+            </div>
+          </div>
+          <i class="bi bi-arrow-right text-slate-300 text-2xl hidden md:block"></i>
+          <div class="flex flex-col gap-2 flex-1">
+            <div class="px-6 py-4 bg-emerald-500 text-white rounded-lg shadow-md text-center">
+              <p class="text-xs opacity-80 uppercase tracking-tighter mb-1">Screen</p>
+              <p class="font-bold text-sm">DashboardScreen</p>
+              <div class="flex justify-center gap-1 mt-2">
+                <span class="w-2 h-2 rounded-full bg-white/50"></span>
+                <span class="w-2 h-2 rounded-full bg-white/50"></span>
+                <span class="w-2 h-2 rounded-full bg-white/50"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 text-center text-xs text-slate-500 italic font-medium">
+          "Individual App等と統一されたDataContextパターンを採用し、データの保守性を確保"
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI & Features -->
+    <section id="ui-spec" class="mb-16">
+      <div class="flex items-center gap-3 mb-8">
+        <span class="p-2 bg-purple-100 text-purple-600 rounded-lg"><i class="bi bi-stars"></i></span>
+        <h2 class="text-2xl font-bold">主要機能とUI仕様</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Skill Heatmap Logic -->
+        <div class="glass-card rounded-2xl p-8 border border-slate-200 relative overflow-hidden group">
+          <div
+            class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-110 transition-transform">
+          </div>
+          <div class="relative">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+              <i class="bi bi-grid-3x3 text-blue-600"></i>
+              ミニヒートマップ抽出ロジック
+            </h3>
+            <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+              全90タイルのスキルデータを「3×4」のグリッドに要約して表示。
+              スライディングウィンドウ方式により、最もスキルの密度が高い領域を自動抽出します。
+            </p>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 mb-4">
+              <div class="flex justify-between items-end mb-4">
+                <div class="text-[10px] font-bold text-slate-400">抽出イメージ (High-Density)</div>
+                <div class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded italic">Algorithm:
+                  Sliding Window</div>
+              </div>
+              <div class="grid grid-cols-4 gap-1 w-fit mx-auto">
+                <div class="heatmap-cell lvl-4"></div>
+                <div class="heatmap-cell lvl-3"></div>
+                <div class="heatmap-cell lvl-2"></div>
+                <div class="heatmap-cell lvl-4"></div>
+                <div class="heatmap-cell lvl-3"></div>
+                <div class="heatmap-cell lvl-4"></div>
+                <div class="heatmap-cell lvl-3"></div>
+                <div class="heatmap-cell lvl-1"></div>
+                <div class="heatmap-cell lvl-2"></div>
+                <div class="heatmap-cell lvl-3"></div>
+                <div class="heatmap-cell lvl-4"></div>
+                <div class="heatmap-cell lvl-2"></div>
+              </div>
+            </div>
+
+            <ul class="space-y-2 text-xs text-slate-600">
+              <li class="flex items-start gap-2">
+                <i class="bi bi-check-circle-fill text-blue-500 mt-0.5"></i>
+                <span>表示サイズ: 縦3 × 横4 (縮小係数 0.7適用)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="bi bi-check-circle-fill text-blue-500 mt-0.5"></i>
+                <span>判定対象: <b>スキル経験のみ</b> (志向は除外)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="bi bi-check-circle-fill text-blue-500 mt-0.5"></i>
+                <span>ツールチップ: タップ時に <b>スキル名 + レベル</b> を表示</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Modals -->
+        <div class="glass-card rounded-2xl p-8 border border-slate-200">
+          <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <i class="bi bi-window-stack text-purple-600"></i>
+            詳細モーダル / 画面仕様
+          </h3>
+          <div class="space-y-6">
+            <div class="flex gap-4">
+              <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-person-badge text-xl text-slate-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold mb-1">UserDetailModal (個人詳細)</p>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                  画面占有率80%。ヒーローヘッダー、スキルバッジ、90タイルのフルヒートマップを統合表示。
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-building text-xl text-slate-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold mb-1">CompanyDetailScreen (法人詳細)</p>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                  Corporate AppのUIを再利用。データ構造の差異（フラット⇔ネスト）を吸収するマッピング処理を実装。
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-briefcase text-xl text-slate-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold mb-1">JobDetailModal (求人詳細)</p>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                  ポジション名、企業名、スキル要件を可視化。ピンク（必須）、青・橙（歓迎）のカラーバッジを採用。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Development Policy -->
+    <section id="logic" class="mb-16">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><i class="bi bi-code-slash"></i></span>
+        <h2 class="text-2xl font-bold">データ整合性と安全化方針</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+            <i class="bi bi-fonts text-emerald-600"></i> 厳格な文字列化
+          </h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Text要素には必ず <code>String(v)</code> を適用。オブジェクト混入による「Objects are not valid as a React child」エラーを完全に防止します。
+          </p>
+        </div>
+        <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+            <i class="bi bi-layers text-emerald-600"></i> ネストの吸収
+          </h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            <code>基本情報.姓</code> が無い場合は <code>name</code> を参照するなど、複数アプリ間でのFirestoreスキーマ差異を考慮したフォールバック。
+          </p>
+        </div>
+        <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+            <i class="bi bi-geo-alt text-emerald-600"></i> 住所の整形
+          </h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            <code>formatAddress</code> ユーティリティにより、郵便番号から建物名までを安全に結合し、未設定時は一貫して <code>"-"</code> を表示。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="mb-20">
+      <div class="bg-blue-600 rounded-3xl p-10 text-white relative overflow-hidden shadow-2xl">
+        <div class="absolute right-0 bottom-0 opacity-10">
+          <i class="bi bi-activity text-[15rem]"></i>
+        </div>
+        <div class="relative z-10">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+            <i class="bi bi-rocket-takeoff"></i> 将来的な改善・拡張案
+          </h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div>
+              <div class="space-y-6">
+                <div>
+                  <div class="flex justify-between text-sm mb-2">
+                    <span class="font-bold">正確な時系列分析</span>
+                    <span class="opacity-70">Pending</span>
+                  </div>
+                  <p class="text-xs opacity-80 leading-relaxed">
+                    現在はモック配布。Firestoreに <code>createdAt</code> フィールドが追加され次第、リアルタイムな月別成長率グラフへ移行。
+                  </p>
+                </div>
+                <hr class="border-white/20">
+                <div>
+                  <div class="flex justify-between text-sm mb-2">
+                    <span class="font-bold">スケーラビリティ対策</span>
+                    <span class="opacity-70">Researching</span>
+                  </div>
+                  <p class="text-xs opacity-80 leading-relaxed">
+                    全ドキュメント取得から、Cloud Functionsによる集計データ保存方式への移行を検討（データ量増加時のボトルネック解消）。
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <h4 class="text-sm font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-lightbulb-fill text-yellow-300"></i> Admin-specific Features
+              </h4>
+              <ul class="text-xs space-y-4">
+                <li class="flex gap-3">
+                  <span class="px-2 py-1 bg-white/20 rounded font-mono">auth</span>
+                  <span>管理者用操作ログ（監査ログ）の実装</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="px-2 py-1 bg-white/20 rounded font-mono">push</span>
+                  <span>異常検知・不正ユーザー登録時のPush通知</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="px-2 py-1 bg-white/20 rounded font-mono">kpi</span>
+                  <span>マッチング機能実装後の「繋がりの推移」の可視化</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="text-center py-10 border-t border-slate-200 bg-white">
+    <p class="text-xs text-slate-400 font-medium">© 2024 Admin App Portal Project | System Architecture Documentation
+    </p>
+  </footer>
+
+</body>
+
+</html>
