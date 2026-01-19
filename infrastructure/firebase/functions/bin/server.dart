@@ -4,9 +4,7 @@ import 'package:matching_functions/functions.dart' as function_library;
 
 Future<void> main(List<String> args) async {
   await serve(args, (name) {
-    if (name == 'calculateMatch') {
-      return FunctionTarget.http(function_library.calculateMatch);
-    }
-    return null;
+    // Default to serving calculateMatch for this single-purpose container
+    return FunctionTarget.http(function_library.calculateMatch);
   });
 }

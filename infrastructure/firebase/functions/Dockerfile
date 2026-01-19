@@ -20,9 +20,15 @@ RUN dart pub get
 RUN dart compile exe bin/server.dart -o bin/server
 
 # Final runtime image
-FROM scratch
-COPY --from=build /runtime/ /
+FROM debian:stable-slim
+
+# Install CA certificates for making outbound calls (if needed)
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/infrastructure/firebase/functions/bin/server /app/bin/server
+
+# Ensure the binary is executable
+RUN chmod +x /app/bin/server
 
 EXPOSE 8080
 CMD ["/app/bin/server"]
