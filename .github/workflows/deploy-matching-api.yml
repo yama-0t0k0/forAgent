@@ -2,7 +2,7 @@ name: Deploy Matching API to Cloud Run
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, yama]
   workflow_dispatch:
 
 env:
