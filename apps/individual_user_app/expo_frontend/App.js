@@ -7,7 +7,7 @@ import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { db } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 
@@ -19,15 +19,35 @@ const EngineerRegistrationWrapper = () => {
     let mounted = true;
     const load = async () => {
       try {
-        const snap = await getDoc(doc(db, 'individual', 'C000000000000'));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (mounted) setInitialData(JSON.parse(JSON.stringify(data)));
-        } else {
-          if (mounted) setInitialData(ENGINEER_TEMPLATE);
+        const [userSnap, jdSnap] = await Promise.all([
+          getDoc(doc(db, 'individual', 'C000000000000')),
+          getDocs(collection(db, 'job_description'))
+        ]);
+
+        let userData = userSnap.exists() ? userSnap.data() : ENGINEER_TEMPLATE;
+
+        // Extract JDs
+        const allJds = [];
+        if (jdSnap) {
+          const companyDocs = jdSnap.docs;
+          const jdPromises = companyDocs.map(async (cDoc) => {
+            const innerSnap = await getDocs(collection(db, 'job_description', cDoc.id, 'JD_Number'));
+            innerSnap.forEach(doc => {
+              allJds.push({ ...doc.data(), id: `${cDoc.id}_${doc.id}`, company_ID: cDoc.id, JD_Number: doc.id });
+            });
+          });
+          await Promise.all(jdPromises);
+        }
+
+        if (mounted) {
+          setInitialData({
+            ...userData,
+            jd: allJds // Add JDs to context for matching
+          });
         }
       } catch (e) {
-        if (mounted) setInitialData(ENGINEER_TEMPLATE);
+        console.error("Initialization error:", e);
+        if (mounted) setInitialData({ ...ENGINEER_TEMPLATE, jd: [] });
       } finally {
         if (mounted) setLoading(false);
       }

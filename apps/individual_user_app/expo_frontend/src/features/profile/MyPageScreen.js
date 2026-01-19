@@ -114,7 +114,7 @@ export const MyPageScreen = () => {
                                     <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
                                     <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
-                                    <Text style={styles.dataSourceText}>{remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート'}</Text>
+                                    <Text style={styles.dataSourceText}>{String(remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                     {/* Relocated Chatbot button */}
                                     <TouchableOpacity style={styles.chatBotCalloutOverlap}>
@@ -149,20 +149,20 @@ export const MyPageScreen = () => {
                 </View>
 
                 {/* 5. Heatmap Section (40% height, Visible Grid) */}
-                    <View style={styles.heatmapSection}>
-                        <View style={styles.heatmapHeader}>
-                            <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
-                            <View style={styles.chatBotIconSmall}>
-                                <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
-                            </View>
+                <View style={styles.heatmapSection}>
+                    <View style={styles.heatmapHeader}>
+                        <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
+                        <View style={styles.chatBotIconSmall}>
+                            <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
                         </View>
+                    </View>
 
-                        <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
+                    <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
 
-                        <View style={styles.chatBotCallout}>
-                            <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
-                            <Text style={styles.labelYellow}>チャットボット</Text>
-                        </View>
+                    <View style={styles.chatBotCallout}>
+                        <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                        <Text style={styles.labelYellow}>チャットボット</Text>
+                    </View>
                 </View>
 
                 {/* Whitespace buffer before footer */}

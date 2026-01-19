@@ -27,7 +27,7 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
       <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
         <View style={styles.headerTitleRow}>
           <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
-          <Text style={styles.sectionTitle}>{label}</Text>
+          <Text style={styles.sectionTitle}>{String(label)}</Text>
         </View>
         <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
       </TouchableOpacity>
@@ -92,7 +92,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isSkillLevelObj) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <SkillSelector value={value} path={currentPath} />
             </View>
           );
@@ -101,7 +101,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isSingleSelectGroup) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 16 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <SingleSelectGroup value={value} path={currentPath} />
             </View>
           );
@@ -110,7 +110,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isConnectionLevelObj) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <ConnectionLevelSelector value={value} path={currentPath} />
             </View>
           );
