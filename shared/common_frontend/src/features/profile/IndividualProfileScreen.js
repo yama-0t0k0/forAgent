@@ -15,13 +15,13 @@ import { BottomNav } from '../../core/components/BottomNav';
 const { width, height } = Dimensions.get('window');
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
-export const IndividualProfileScreen = ({ route }) => {
+export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea = false }) => {
     const { data: localData } = useContext(DataContext);
     const navigation = useNavigation();
 
-    // Resolve userId and initial userDoc from route params
-    const userId = route?.params?.userId || 'C000000000000';
-    const [userDoc, setUserDoc] = useState(route?.params?.userDoc || null);
+    // Resolve userId and initial userDoc from props or route params
+    const userId = propUserId || route?.params?.userId || 'C000000000000';
+    const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || null);
     const [heatmapValues, setHeatmapValues] = useState(null);
 
     useEffect(() => {
@@ -50,30 +50,59 @@ export const IndividualProfileScreen = ({ route }) => {
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
-                    <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-                        <View style={styles.topProfileContainer}>
-                            <View style={styles.headerActionContainer}>
-                                <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
-                                    <Ionicons name="create-outline" size={24} color="#FFF" />
-                                </TouchableOpacity>
-                            </View>
+                    <View style={hideSafeArea ? { paddingTop: 20 } : { flex: 1 }}>
+                        {hideSafeArea ? (
+                            <View style={styles.headerSafeArea}>
+                                <View style={styles.topProfileContainer}>
+                                    <View style={styles.headerActionContainer}>
+                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
+                                            <Ionicons name="create-outline" size={24} color="#FFF" />
+                                        </TouchableOpacity>
+                                    </View>
 
-                            <View style={styles.profileRow}>
-                                <View style={styles.photoContainer}>
-                                    <Image
-                                        source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
-                                        style={styles.profileImage}
-                                    />
-                                </View>
-                                <View style={styles.namePlate}>
-                                    <Text style={styles.nameText}>{String(basicInfo['姓'] || '')} {String(basicInfo['名'] || '')}</Text>
-                                    <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                    <Text style={styles.emailText}>{String(email)}</Text>
-                                    <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
+                                    <View style={styles.profileRow}>
+                                        <View style={styles.photoContainer}>
+                                            <Image
+                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                style={styles.profileImage}
+                                            />
+                                        </View>
+                                        <View style={styles.namePlate}>
+                                            <Text style={styles.nameText}>{String(basicInfo['姓'] || '')} {String(basicInfo['名'] || '')}</Text>
+                                            <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
+                                            <Text style={styles.emailText}>{String(email)}</Text>
+                                            <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
+                                        </View>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
-                    </SafeAreaView>
+                        ) : (
+                            <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+                                <View style={styles.topProfileContainer}>
+                                    <View style={styles.headerActionContainer}>
+                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
+                                            <Ionicons name="create-outline" size={24} color="#FFF" />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={styles.profileRow}>
+                                        <View style={styles.photoContainer}>
+                                            <Image
+                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                style={styles.profileImage}
+                                            />
+                                        </View>
+                                        <View style={styles.namePlate}>
+                                            <Text style={styles.nameText}>{String(basicInfo['姓'] || '')} {String(basicInfo['名'] || '')}</Text>
+                                            <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
+                                            <Text style={styles.emailText}>{String(email)}</Text>
+                                            <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            </SafeAreaView>
+                        )}
+                    </View>
                 </ImageBackground>
 
                 <View style={styles.badgeSection}>
