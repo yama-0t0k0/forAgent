@@ -9,7 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { styles } from './dashboardStyles';
 
 // Utils
-import { extractSkills, getHighDensityHeatmapData, getCompanyName } from './utils/dashboardUtils';
+import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 
 // Components
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';

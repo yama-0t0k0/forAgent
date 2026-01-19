@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MatchingService } from '@shared/src/core/utils/MatchingService';
 import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
-import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/features/dashboard/utils/dashboardUtils';
+import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 
 export const ConnectionScreen = ({ navigation, route }) => {
