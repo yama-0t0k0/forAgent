@@ -9,7 +9,8 @@ export const EngineerListItem = ({
   skills,
   heatmapData,
   onPress,
-  style
+  style,
+  showMatchScore = true
 }) => {
   const fullName = (engineer['基本情報']?.['姓'] && engineer['基本情報']?.['名'])
     ? `${engineer['基本情報']['姓']} ${engineer['基本情報']['名']}`
@@ -33,7 +34,7 @@ export const EngineerListItem = ({
               <Text style={styles.itemTitleModern}>{fullName}</Text>
               <Text style={styles.itemSubtitleModern}>ID: {displayId}</Text>
             </View>
-            {engineer.matchingScore !== undefined && (
+            {showMatchScore && engineer.matchingScore !== undefined && (
               <View style={styles.matchBadge}>
                 <Text style={styles.matchScoreText}>{engineer.matchingScore}%</Text>
                 <Text style={styles.matchLabel}>Match</Text>

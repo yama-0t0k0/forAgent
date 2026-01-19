@@ -4,20 +4,20 @@ import { GlassCard } from '../../../core/components/GlassCard';
 import { MiniHeatmap } from '../../../core/components/MiniHeatmap';
 import { THEME } from '../../../core/theme/theme';
 
-export const JobListItem = ({ 
-  job, 
-  skills, 
-  heatmapData, 
+export const JobListItem = ({
+  job,
+  skills,
+  heatmapData,
   companyName,
   onPress,
-  style 
+  style
 }) => {
   const title = job['求人基本項目']?.['ポジション名'] || job.title || 'タイトル未設定';
   const jdNumber = job.JD_Number || job['求人基本項目']?.JD_Number || '-';
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.glassListItem, style]}
       activeOpacity={0.7}
       onPress={onPress}
@@ -25,13 +25,19 @@ export const JobListItem = ({
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>
           <View style={styles.listItemHeader}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.itemTitleModern}>{title}</Text>
               <Text style={styles.itemSubtitleModern}>JD No: {jdNumber}</Text>
               <Text style={styles.itemDetail}>Company: {companyName}</Text>
             </View>
+            {job.matchingScore !== undefined && (
+              <View style={styles.matchBadge}>
+                <Text style={styles.matchScoreText}>{job.matchingScore}%</Text>
+                <Text style={styles.matchLabel}>Match</Text>
+              </View>
+            )}
           </View>
-          
+
           {hasAnySkill && (
             <ScrollView
               horizontal
@@ -89,10 +95,10 @@ export const JobListItem = ({
 
         {heatmapData && (
           <View pointerEvents="box-none">
-            <MiniHeatmap 
-              data={heatmapData.data} 
-              rows={heatmapData.rows || 3} 
-              cols={heatmapData.cols || 3} 
+            <MiniHeatmap
+              data={heatmapData.data}
+              rows={heatmapData.rows || 3}
+              cols={heatmapData.cols || 3}
             />
           </View>
         )}
@@ -140,5 +146,26 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingLeft: 2,
     alignItems: 'flex-start',
+  },
+  matchBadge: {
+    backgroundColor: '#F0F9FF',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  matchScoreText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: THEME.accent,
+  },
+  matchLabel: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: THEME.accent,
+    textTransform: 'uppercase',
   },
 });

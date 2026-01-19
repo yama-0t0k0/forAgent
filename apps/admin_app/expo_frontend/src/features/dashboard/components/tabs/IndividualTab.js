@@ -37,6 +37,7 @@ export const IndividualTab = ({
             skills={skills}
             heatmapData={heatmapInfo}
             onPress={() => onUserPress(item)}
+            showMatchScore={false}
           />
         );
       }}

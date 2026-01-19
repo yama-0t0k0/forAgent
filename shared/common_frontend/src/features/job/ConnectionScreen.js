@@ -4,8 +4,10 @@ import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { MatchingService } from '@shared/src/core/utils/MatchingService';
+import { JobListItem } from '@shared/src/features/job/components/JobListItem';
+import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
+import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/features/dashboard/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
-import { ActivityIndicator } from 'react-native';
 
 export const ConnectionScreen = ({ navigation, route }) => {
     const { data } = useContext(DataContext);
@@ -47,33 +49,36 @@ export const ConnectionScreen = ({ navigation, route }) => {
         fetchRankedData();
     }, [data, currentUserDoc, activeType]);
 
-    const renderCandidate = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => {
-                const score = item.matchingScore || 0;
-                if (activeType === 'jd') {
-                    navigation.navigate('JobDescription', { companyId: item.company_ID, jdNumber: item.JD_Number });
-                } else {
-                    navigation.navigate('MyPage', { userId: item.id, userDoc: item });
-                }
-            }}
-        >
-            <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>
-                    {activeType === 'jd' ? item.求人タイトル : `${item.基本情報?.姓} ${item.基本情報?.名}`}
-                </Text>
-                <Text style={styles.cardSub}>
-                    {activeType === 'jd' ? `Company ID: ${item.company_ID}` : item.id}
-                </Text>
-            </View>
-            <View style={styles.scoreContainer}>
-                <Text style={styles.scoreLabel}>マッチ度</Text>
-                <Text style={styles.scoreValue}>{item.matchingScore !== undefined ? `${item.matchingScore}%` : '---'}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={THEME.subText} />
-        </TouchableOpacity>
-    );
+    const renderCandidate = ({ item }) => {
+        if (activeType === 'jd') {
+            const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
+            const skills = extractSkills(jobDataForSkills);
+            const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
+            const companyName = getCompanyName(item.company_ID, data?.corporate);
+
+            return (
+                <JobListItem
+                    job={item}
+                    skills={skills}
+                    heatmapData={heatmapInfo}
+                    companyName={companyName}
+                    onPress={() => navigation.navigate('JobDescription', { companyId: item.company_ID, jdNumber: item.JD_Number })}
+                />
+            );
+        } else {
+            const skills = extractSkills(item);
+            const heatmapInfo = getHighDensityHeatmapData(item);
+
+            return (
+                <EngineerListItem
+                    engineer={item}
+                    skills={skills}
+                    heatmapData={heatmapInfo}
+                    onPress={() => navigation.navigate('MyPage', { userId: item.id, userDoc: item })}
+                />
+            );
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -141,32 +146,5 @@ const styles = StyleSheet.create({
     tabText: { fontSize: 14, color: THEME.subText, fontWeight: '700' },
     activeTabText: { color: THEME.accent },
     listContent: { padding: 15, paddingBottom: 100 },
-    card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFF',
-        padding: 16,
-        borderRadius: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 2
-    },
-    cardInfo: { flex: 1 },
-    cardTitle: { fontSize: 16, fontWeight: '800', color: THEME.text, marginBottom: 4 },
-    cardSub: { fontSize: 13, color: THEME.subText },
-    scoreContainer: {
-        alignItems: 'center',
-        marginRight: 10,
-        backgroundColor: '#F0F9FF',
-        padding: 8,
-        borderRadius: 12
-    },
-    scoreLabel: { fontSize: 9, color: THEME.accent, fontWeight: 'bold' },
-    scoreValue: { fontSize: 15, color: THEME.accent, fontWeight: '900' },
     emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText }
 });

@@ -18,7 +18,14 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
     <Pressable style={styles.detailOverlay} onPress={onClose}>
       <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
         <View style={styles.detailWindowHeader}>
-          <Text style={styles.detailWindowTitle}>個人ユーザー詳細</Text>
+          <TouchableOpacity onPress={() => {
+            onClose();
+            // Assuming the common navigation is available or passed. 
+            // In DashboardScreen, it is available from useNavigation.
+          }} style={[styles.detailWindowClose, { backgroundColor: THEME.success, marginRight: 'auto' }]}>
+            <Text style={[styles.detailWindowCloseText, { color: '#FFF' }]}>つながり</Text>
+          </TouchableOpacity>
+          <Text style={styles.detailWindowTitle}>個人詳細</Text>
           <TouchableOpacity onPress={onClose} style={styles.detailWindowClose}>
             <Text style={styles.detailWindowCloseText}>閉じる</Text>
           </TouchableOpacity>
