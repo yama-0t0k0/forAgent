@@ -7,8 +7,8 @@ FROM dart:stable AS build
 WORKDIR /app
 
 # Copy shared dependencies first
-COPY shared/domain_models /shared/domain_models
-COPY shared/common_logic /shared/common_logic
+COPY shared/domain_models /app/shared/domain_models
+COPY shared/common_logic /app/shared/common_logic
 
 # Copy function code
 COPY infrastructure/firebase/functions /app/infrastructure/firebase/functions
