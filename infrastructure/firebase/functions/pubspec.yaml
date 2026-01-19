@@ -1,0 +1,19 @@
+name: matching_functions
+description: Firebase Cloud Functions for matching and scoring engineers with JDs.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  functions_framework: ^0.4.3
+  common_logic:
+    path: ../../../shared/common_logic
+  domain_models:
+    path: ../../../shared/domain_models
+  shelf: ^1.4.1
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0

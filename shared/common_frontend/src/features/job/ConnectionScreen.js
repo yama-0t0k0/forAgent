@@ -5,6 +5,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { MatchingService } from '@shared/src/core/utils/MatchingService';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { ActivityIndicator } from 'react-native';
 
 export const ConnectionScreen = ({ navigation, route }) => {
     const { data } = useContext(DataContext);
@@ -18,25 +19,39 @@ export const ConnectionScreen = ({ navigation, route }) => {
         return data; // Individual App case
     }, [data]);
 
-    const rankedJds = useMemo(() => {
-        if (!data.jd) return [];
-        return MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-    }, [data.jd, currentUserDoc]);
+    const [rankedJds, setRankedJds] = useState([]);
+    const [rankedUsers, setRankedUsers] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const rankedUsers = useMemo(() => {
-        if (!data.users) return [];
-        // Match against a default JD or similar? 
-        // For listing, let's just show scores if we have a context JD, 
-        // otherwise maybe just a list.
-        // For now, let's assume we match against JD B00000_02 if we are admin.
-        const targetJd = data.jd?.[0] || {};
-        return MatchingService.rankCandidates(targetJd, data.users, 'individual');
-    }, [data.users, data.jd]);
+    useEffect(() => {
+        const fetchRankedData = async () => {
+            if (!data) return;
+            setLoading(true);
+            try {
+                if (activeType === 'jd' && data.jd) {
+                    const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
+                    setRankedJds(ranked);
+                } else if (activeType === 'individual' && data.users) {
+                    // Match against a default JD or similar
+                    const targetJd = data.jd?.[0] || {};
+                    const ranked = await MatchingService.rankCandidates(targetJd, data.users, 'individual');
+                    setRankedUsers(ranked);
+                }
+            } catch (err) {
+                console.error('Failed to rank candidates:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRankedData();
+    }, [data, currentUserDoc, activeType]);
 
     const renderCandidate = ({ item }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => {
+                const score = item.matchingScore || 0;
                 if (activeType === 'jd') {
                     navigation.navigate('JobDescription', { companyId: item.company_ID, jdNumber: item.JD_Number });
                 } else {
@@ -54,7 +69,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
             </View>
             <View style={styles.scoreContainer}>
                 <Text style={styles.scoreLabel}>マッチ度</Text>
-                <Text style={styles.scoreValue}>{item.matchingScore}%</Text>
+                <Text style={styles.scoreValue}>{item.matchingScore !== undefined ? `${item.matchingScore}%` : '---'}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={THEME.subText} />
         </TouchableOpacity>
@@ -81,13 +96,19 @@ export const ConnectionScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
-            <FlatList
-                data={activeType === 'jd' ? rankedJds : rankedUsers}
-                renderItem={renderCandidate}
-                keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<Text style={styles.emptyText}>候補が見つかりません</Text>}
-            />
+            {loading ? (
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                    <ActivityIndicator size="large" color={THEME.accent} />
+                </View>
+            ) : (
+                <FlatList
+                    data={activeType === 'jd' ? rankedJds : rankedUsers}
+                    renderItem={renderCandidate}
+                    keyExtractor={item => item.id}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={<Text style={styles.emptyText}>候補が見つかりません</Text>}
+                />
+            )}
 
             <BottomNav navigation={navigation} activeTab="Connection" />
         </View>
