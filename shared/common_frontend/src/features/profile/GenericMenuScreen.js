@@ -19,9 +19,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const GenericMenuScreen = ({
-  menuGroups,
-  renderBottomNav,
-  onItemPress
+    menuGroups,
+    renderBottomNav,
+    onItemPress
 }) => {
     const navigation = useNavigation();
 
@@ -49,7 +49,7 @@ export const GenericMenuScreen = ({
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {menuGroups.map((group, groupIdx) => (
                     <View key={groupIdx} style={styles.group}>
-                        <Text style={styles.groupTitle}>{group.title}</Text>
+                        <Text style={styles.groupTitle}>{String(group.title)}</Text>
                         <View style={styles.groupCard}>
                             {group.items.map((item, itemIdx) => (
                                 <TouchableOpacity
@@ -63,7 +63,7 @@ export const GenericMenuScreen = ({
                                     <View style={styles.menuItemLeft}>
                                         <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
                                         <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
-                                            {item.label}
+                                            {String(item.label)}
                                         </Text>
                                     </View>
                                     <Ionicons name={item.rightIcon || "chevron-forward"} size={18} color={THEME.subText} />

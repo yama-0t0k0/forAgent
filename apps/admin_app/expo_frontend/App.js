@@ -7,6 +7,14 @@ import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { db } from '@shared/src/core/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
+import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
+import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
+import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
+import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+// import { JDSelectionScreen } from '@shared/src/features/job/JDSelectionScreen';
+import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
+import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
 import { TechStackScreen } from '@shared/src/features/company_profile/screens/TechStackScreen';
@@ -57,7 +65,7 @@ const AdminAppWrapper = () => {
               const companiesSnap = await getDocs(collection(db, 'job_description'));
               console.log(`[DEBUG] Found ${companiesSnap.size} companies in job_description`);
               const allJobs = [];
-              
+
               // 2. Fetch JD_Number subcollection for each company
               const promises = companiesSnap.docs.map(async (companyDoc) => {
                 const companyId = companyDoc.id;
@@ -67,7 +75,7 @@ const AdminAppWrapper = () => {
                   jdSnap.forEach(doc => {
                     const data = doc.data();
                     allJobs.push({
-                      id: `${companyId}_${doc.id}`, 
+                      id: `${companyId}_${doc.id}`,
                       company_ID: companyId,
                       JD_Number: data.JD_Number || doc.id,
                       ...data
@@ -124,21 +132,67 @@ const AdminAppWrapper = () => {
       <DataProvider initialData={initialData}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="Dashboard">
-            <Stack.Screen 
-              name="Dashboard" 
-              component={DashboardScreen} 
+            <Stack.Screen
+              name="Dashboard"
+              component={DashboardScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen 
-              name="CompanyDetail" 
-              component={CompanyDetailScreen} 
+            <Stack.Screen
+              name="CompanyDetail"
+              component={CompanyDetailScreen}
               options={{ title: '会社詳細', headerBackTitle: '戻る' }}
             />
-            <Stack.Screen 
-              name="TechStack" 
-              component={TechStackScreen} 
+            <Stack.Screen
+              name="TechStack"
+              component={TechStackScreen}
               options={{ title: '使用技術詳細', headerBackTitle: '戻る' }}
             />
+            <Stack.Screen
+              name="MyPage"
+              component={IndividualProfileScreen}
+              options={{ title: '個人マイページ', headerShown: false }}
+            />
+            <Stack.Screen
+              name="Menu"
+              component={IndividualMenuScreen}
+              options={{ title: 'メニュー', headerShown: false }}
+            />
+            <Stack.Screen
+              name="ImageEdit"
+              component={IndividualImageEditScreen}
+              options={{ title: '画像編集', headerShown: false }}
+            />
+            {/* <Stack.Screen
+              name="JDSelection"
+              component={JDSelectionScreen}
+              options={{ title: '求人選択', headerShown: false }}
+            /> */}
+            <Stack.Screen
+              name="Connection"
+              component={ConnectionScreen}
+              options={{ title: 'つながり', headerShown: false }}
+            />
+            <Stack.Screen
+              name="Career"
+              component={CareerScreen}
+              options={{ title: 'キャリア', headerShown: false }}
+            />
+            <Stack.Screen
+              name="JobDescription"
+              component={JobDescriptionScreen}
+              options={{ title: '求人詳細', headerShown: false }}
+            />
+            <Stack.Screen name="Registration">
+              {(props) => (
+                <GenericRegistrationScreen
+                  {...props}
+                  title="エンジニア個人詳細編集"
+                  collectionName="individual"
+                  idField="id_individual"
+                  idPrefixChar="C"
+                />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
         <StatusBar barStyle="dark-content" />

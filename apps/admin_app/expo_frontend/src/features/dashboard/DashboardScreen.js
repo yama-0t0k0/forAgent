@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
@@ -38,9 +39,10 @@ const TABS = [
 // Main Component
 // ---------------------------
 export default function DashboardScreen() {
+  const navigation = useNavigation();
   const { data } = useContext(DataContext);
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   // Search States
   const [searchQueries, setSearchQueries] = useState({
     individual: '', company: '', job: '', selection: ''
@@ -50,7 +52,7 @@ export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalFilter, setModalFilter] = useState(null); // e.g., { type: 'status', value: 'entry' }
   const [modalTitle, setModalTitle] = useState('');
-  
+
   // User Detail Modal State
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUserDoc, setSelectedUserDoc] = useState(null);
@@ -125,7 +127,7 @@ export default function DashboardScreen() {
       const basicInfo = u['基本情報'] || {};
       const address = basicInfo['住所'] || {};
       const education = basicInfo['学歴詳細'] || {};
-      
+
       const searchableText = [
         u.id,
         u.name,
@@ -144,7 +146,7 @@ export default function DashboardScreen() {
   // Company Tab Data
   const filteredCompanies = useMemo(() => {
     const query = searchQueries.company.toLowerCase();
-    return (data?.corporate || []).filter(c => 
+    return (data?.corporate || []).filter(c =>
       (c.id && c.id.toLowerCase().includes(query)) ||
       (c.companyName && c.companyName.toLowerCase().includes(query)) ||
       (c.name && c.name.toLowerCase().includes(query))
@@ -174,11 +176,11 @@ export default function DashboardScreen() {
   const selectionFlowData = useMemo(() => {
     const fmjs = data?.fmjs || [];
     const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
-    
+
     fmjs.forEach(item => {
       const phases = item['選考進捗']?.['fase_フェイズ'] || {};
       if (phases['応募_書類選考']) counts.entry++;
-      if (phases['1次面接']) counts.doc_pass++; 
+      if (phases['1次面接']) counts.doc_pass++;
       if (phases['2次面接'] || phases['最終面接']) counts.interview_1++;
       if (phases['内定']) counts.interview_final++;
       if (phases['内定受諾']) counts.offer++;
@@ -197,7 +199,7 @@ export default function DashboardScreen() {
 
   const filteredSelections = useMemo(() => {
     const query = searchQueries.selection.toLowerCase();
-    return (data?.fmjs || []).filter(s => 
+    return (data?.fmjs || []).filter(s =>
       (s.JobStatID && s.JobStatID.toLowerCase().includes(query)) ||
       (s['選考進捗']?.['id_individual_個人ID'] && s['選考進捗']['id_individual_個人ID'].toLowerCase().includes(query))
     ).sort((a, b) => (b.UpdateTimestamp_yyyymmddtttttt || 0) - (a.UpdateTimestamp_yyyymmddtttttt || 0));
@@ -251,10 +253,10 @@ export default function DashboardScreen() {
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
           const tintColor = isActive ? '#2196F3' : '#666';
-          
+
           return (
-            <TouchableOpacity 
-              key={tab.id} 
+            <TouchableOpacity
+              key={tab.id}
               style={[styles.tabItem, isActive && styles.activeTabItem]}
               onPress={() => setActiveTab(tab.id)}
             >
@@ -273,7 +275,7 @@ export default function DashboardScreen() {
       {/* Content */}
       <View style={styles.contentArea}>
         {activeTab === 'dashboard' && (
-          <OverviewTab 
+          <OverviewTab
             selectionFlowData={selectionFlowData}
             userGrowthData={userGrowthData}
             connectionTrendsData={connectionTrendsData}
@@ -285,24 +287,24 @@ export default function DashboardScreen() {
           />
         )}
         {activeTab === 'individual' && (
-          <IndividualTab 
+          <IndividualTab
             searchQuery={searchQueries.individual}
             setSearchQuery={(t) => updateSearch('individual', t)}
             filteredUsers={filteredUsers}
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
-            onUserPress={(item) => setSelectedUserId(item.id)}
+            onUserPress={(item) => navigation.navigate('MyPage', { userId: item.id, userDoc: item })}
           />
         )}
         {activeTab === 'company' && (
-          <CompanyTab 
+          <CompanyTab
             searchQuery={searchQueries.company}
             setSearchQuery={(t) => updateSearch('company', t)}
             filteredCompanies={filteredCompanies}
           />
         )}
         {activeTab === 'job' && (
-          <JobTab 
+          <JobTab
             searchQuery={searchQueries.job}
             setSearchQuery={(t) => updateSearch('job', t)}
             filteredJobs={filteredJobs}
@@ -316,7 +318,7 @@ export default function DashboardScreen() {
           />
         )}
         {activeTab === 'selection' && (
-          <SelectionTab 
+          <SelectionTab
             searchQuery={searchQueries.selection}
             setSearchQuery={(t) => updateSearch('selection', t)}
             filteredSelections={filteredSelections}
@@ -325,14 +327,14 @@ export default function DashboardScreen() {
       </View>
 
       {/* Modals */}
-      <DrillDownModal 
-        visible={modalVisible} 
-        title={modalTitle} 
-        data={modalData} 
-        onClose={() => setModalVisible(false)} 
+      <DrillDownModal
+        visible={modalVisible}
+        title={modalTitle}
+        data={modalData}
+        onClose={() => setModalVisible(false)}
       />
 
-      <UserDetailModal 
+      <UserDetailModal
         visible={!!selectedUserId}
         onClose={closeUserDetail}
         loading={selectedUserLoading}
@@ -342,7 +344,7 @@ export default function DashboardScreen() {
         extractSkills={extractSkills}
       />
 
-      <JobDetailModal 
+      <JobDetailModal
         visible={!!selectedJobId}
         onClose={closeJobDetail}
         jobDoc={selectedJobDoc}

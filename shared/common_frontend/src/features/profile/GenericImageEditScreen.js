@@ -22,18 +22,18 @@ import { db } from '@shared/src/core/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
 export const GenericImageEditScreen = ({
-  dataSectionKey,
-  collectionName,
-  idFieldKey,
-  mainImageConfig,
-  bgImageConfig,
-  renderBottomNav
+    dataSectionKey,
+    collectionName,
+    idFieldKey,
+    mainImageConfig,
+    bgImageConfig,
+    renderBottomNav
 }) => {
     const { data, updateValue } = useContext(DataContext);
     const navigation = useNavigation();
 
     const sectionData = data[dataSectionKey] || {};
-    
+
     // State
     const [mainUrl, setMainUrl] = useState(sectionData[mainImageConfig.key] || '');
     const [bgUrl, setBgUrl] = useState(sectionData[bgImageConfig.key] || '');
@@ -70,7 +70,7 @@ export const GenericImageEditScreen = ({
 
                 await setDoc(doc(db, collectionName, id), cleanedData);
             }
-            
+
             setSaveStatus('success');
             setTimeout(() => {
                 setSaveStatus('idle');
@@ -106,7 +106,7 @@ export const GenericImageEditScreen = ({
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Background Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{bgImageConfig.label}</Text>
+                    <Text style={styles.sectionTitle}>{String(bgImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
                         value={bgUrl}
@@ -128,7 +128,7 @@ export const GenericImageEditScreen = ({
 
                 {/* Main Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{mainImageConfig.label}</Text>
+                    <Text style={styles.sectionTitle}>{String(mainImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
                         value={mainUrl}
@@ -148,7 +148,7 @@ export const GenericImageEditScreen = ({
                     </View>
                 </View>
             </ScrollView>
-            
+
             {renderBottomNav && renderBottomNav(navigation)}
         </View>
     );

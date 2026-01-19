@@ -10,6 +10,7 @@ import { collection, query, where, getDocs, setDoc, doc, documentId } from 'fire
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { BottomNav } from '../../core/components/BottomNav';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -119,9 +120,9 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
     <View style={{ flex: 1, backgroundColor: THEME.background }}>
       <View style={styles.appHeader}>
         <View>
-          <Text style={styles.appTitle}>{title}</Text>
+          <Text style={styles.appTitle}>{String(title || 'Registration')}</Text>
           <Text style={styles.appSubtitle}>
-            ID: {data[idField] || 'New'}
+            ID: {String(data[idField] || 'New')}
           </Text>
         </View>
         <TouchableOpacity
@@ -153,31 +154,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
         ))}
       </Tab.Navigator>
 
-      {/* Bottom Navigation (Replica of MyPageScreen) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>キャリア</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>つながり</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleGoHome}>
-          <View style={styles.activeIconContainer}>
-            <Ionicons name="home" size={26} color={THEME.background} />
-          </View>
-          <Text style={styles.navTextActive}>ホーム</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="book-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>学習</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
-          <Ionicons name="grid-outline" size={28} color={THEME.accent} />
-          <Text style={[styles.navText, { color: THEME.accent, fontWeight: '800' }]}>メニュー</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav navigation={navigation} activeTab="Registration" />
     </View>
   );
 };
@@ -201,39 +178,5 @@ const styles = StyleSheet.create({
   saveButtonSuccess: { backgroundColor: THEME.success },
   saveButtonError: { backgroundColor: '#EF4444' },
   saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: THEME.cardBg,
-    height: 85,
-    borderTopWidth: 1,
-    borderTopColor: THEME.cardBorder,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingBottom: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  activeIconContainer: {
-    width: 38,
-    height: 38,
-    backgroundColor: THEME.accent,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  navText: {
-    color: THEME.subText,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  navTextActive: {
-    color: THEME.accent,
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 2,
-  },
+  saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });

@@ -42,11 +42,11 @@ const TechStackView = ({ features }) => {
             </View>
             <View style={styles.techBadgeContainer}>
                 <View style={[styles.techBadge, styles.techBadgeMain]}>
-                    <Text style={styles.techBadgeTextMain}>{main}</Text>
+                    <Text style={styles.techBadgeTextMain}>{String(main)}</Text>
                 </View>
                 {sub && (
                     <View style={[styles.techBadge, styles.techBadgeSub]}>
-                        <Text style={styles.techBadgeTextSub}>{sub}</Text>
+                        <Text style={styles.techBadgeTextSub}>{String(sub)}</Text>
                     </View>
                 )}
             </View>
@@ -87,17 +87,17 @@ const TechStackView = ({ features }) => {
                     <Text style={styles.sectionTitle}>魅力/特徴</Text>
                     <Ionicons name={isFeaturesExpanded ? "chevron-up" : "chevron-down"} size={24} color={THEME.text} />
                 </TouchableOpacity>
-                
+
                 {isFeaturesExpanded && (
                     <View style={styles.accordionContent}>
                         {Object.entries(features).map(([key, value]) => {
                             if (typeof value === 'boolean') {
                                 return (
                                     <View key={key} style={styles.featureItem}>
-                                        <Ionicons 
-                                            name={value ? "checkmark-circle" : "close-circle"} 
-                                            size={18} 
-                                            color={value ? THEME.success : THEME.subText} 
+                                        <Ionicons
+                                            name={value ? "checkmark-circle" : "close-circle"}
+                                            size={18}
+                                            color={value ? THEME.success : THEME.subText}
                                         />
                                         <Text style={[styles.featureText, !value && { color: THEME.subText }]}>{key}</Text>
                                     </View>
@@ -107,7 +107,7 @@ const TechStackView = ({ features }) => {
                         })}
                         {features['エンジニアにとってのその他の魅力'] ? (
                             <View style={styles.featureNote}>
-                                <Text style={styles.featureNoteText}>{features['エンジニアにとってのその他の魅力']}</Text>
+                                <Text style={styles.featureNoteText}>{String(features['エンジニアにとってのその他の魅力'])}</Text>
                             </View>
                         ) : null}
                     </View>
@@ -195,13 +195,13 @@ const UnderConstructionView = ({ title }) => (
 export const CompanyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
-    
+
     // Extract data
     const companyInfo = data['会社概要'] || {};
     const features = data['魅力/特徴'] || {};
     const companyName = companyInfo['社名'] || '会社名未設定';
     const businessContent = companyInfo['事業内容'] || '事業内容が設定されていません。';
-    const backgroundUrl = companyInfo['背景画像URL']; 
+    const backgroundUrl = companyInfo['背景画像URL'];
     const logoUrl = companyInfo['ロゴ画像URL'];
 
     // TabView State - Default to TechStack (index 2)
@@ -246,12 +246,12 @@ export const CompanyPageScreen = () => {
                   We use a container with overflow hidden and absolute positioning for the image.
                 */}
                 <View style={styles.headerBackgroundContainer}>
-                     <Image
+                    <Image
                         source={backgroundUrl ? { uri: backgroundUrl } : DEFAULT_BG}
                         style={styles.headerBackgroundImage}
                         resizeMode="cover"
                     />
-                     <View style={styles.headerOverlay} />
+                    <View style={styles.headerOverlay} />
                 </View>
 
                 <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
@@ -277,7 +277,7 @@ export const CompanyPageScreen = () => {
                             <View style={styles.namePlate}>
                                 <Text style={styles.nameText}>{String(companyName)}</Text>
                                 <Text style={styles.industryText} numberOfLines={2}>{String(businessContent)}</Text>
-                                
+
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
                                     <TouchableOpacity style={styles.linkIcon}>
@@ -294,7 +294,7 @@ export const CompanyPageScreen = () => {
                         </View>
                     </View>
                 </SafeAreaView>
-                
+
                 {/* Announcement Bar */}
                 <View style={styles.announcementBar}>
                     <Ionicons name="information-circle-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
@@ -320,9 +320,9 @@ export const CompanyPageScreen = () => {
                 {routes.map((route, i) => {
                     const isActive = index === i;
                     return (
-                        <TouchableOpacity 
-                            key={route.key} 
-                            style={styles.navItem} 
+                        <TouchableOpacity
+                            key={route.key}
+                            style={styles.navItem}
                             onPress={() => setIndex(i)}
                         >
                             {isActive ? (
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         flex: 1,
     },
-    
+
     // Tab Content Styles
     tabScrollContent: {
         paddingTop: 15,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 4,
     },
-    
+
     // Tech Stack Styles
     techGrid: {
         flexDirection: 'row',
