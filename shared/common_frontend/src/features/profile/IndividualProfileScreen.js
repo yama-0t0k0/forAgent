@@ -10,9 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
-import { MatchingService } from '@shared/src/core/utils/MatchingService';
 import { BottomNav } from '../../core/components/BottomNav';
-import { ActivityIndicator } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
@@ -26,9 +24,6 @@ export const IndividualProfileScreen = ({ route }) => {
     const [userDoc, setUserDoc] = useState(route?.params?.userDoc || null);
     const [heatmapValues, setHeatmapValues] = useState(null);
 
-    const [matchScore, setMatchScore] = useState(null);
-    const [matchingLoading, setMatchingLoading] = useState(false);
-
     useEffect(() => {
         // Real-time listener for user data
         const docRef = doc(db, 'individual', userId);
@@ -37,27 +32,14 @@ export const IndividualProfileScreen = ({ route }) => {
                 const d = docSnap.data();
                 setUserDoc(d);
                 setHeatmapValues(HeatmapCalculator.calculate(d));
-
-                // If we have a target JD (e.g. from Admin or Context), fetch match score
-                const targetJd = localData?.jd?.[0]; // Default to first JD for now if none specified
-                if (targetJd) {
-                    setMatchingLoading(true);
-                    const result = await MatchingService.getMatchScore(d, targetJd);
-                    setMatchScore(result.matchingScore);
-                    setMatchingLoading(false);
-                }
             }
         });
         return () => unsubscribe();
-    }, [userId, localData?.jd]);
+    }, [userId]);
 
     // Fallback to local data if firestore not yet loaded
     const activeData = userDoc || localData;
     const basicInfo = activeData['基本情報'] || {};
-    const names = {
-        kanjiFirst: basicInfo['名'] || '',
-        kanjiFamily: basicInfo['姓'] || '',
-    };
     const email = basicInfo['メール'] || '';
 
     return (
@@ -88,14 +70,6 @@ export const IndividualProfileScreen = ({ route }) => {
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
                                     <Text style={styles.emailText}>{String(email)}</Text>
                                     <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
-
-                                    {matchScore !== null && (
-                                        <View style={styles.inlineMatchContainer}>
-                                            <Text style={styles.inlineMatchLabel}>マッチ度</Text>
-                                            <Text style={styles.inlineMatchValue}>{matchScore}%</Text>
-                                        </View>
-                                    )}
-                                    {matchingLoading && <ActivityIndicator size="small" color={THEME.accent} style={{ alignSelf: 'flex-start', marginTop: 5 }} />}
                                 </View>
                             </View>
                         </View>
@@ -165,18 +139,4 @@ const styles = StyleSheet.create({
     bottomNavCenterOverlay: { position: 'absolute', bottom: 85, alignSelf: 'center', zIndex: 20 },
     centerButton: { backgroundColor: THEME.success, paddingVertical: 10, paddingHorizontal: 22, borderRadius: 30, borderWidth: 2, borderColor: THEME.cardBg, alignItems: 'center' },
     centerButtonText: { color: '#FFF', fontWeight: '900', fontSize: 15 },
-    inlineMatchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F0F9FF',
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginTop: 6,
-        alignSelf: 'flex-start',
-        borderWidth: 1,
-        borderColor: '#BAE6FD'
-    },
-    inlineMatchLabel: { fontSize: 10, color: THEME.accent, fontWeight: 'bold', marginRight: 6 },
-    inlineMatchValue: { fontSize: 14, color: THEME.accent, fontWeight: '900' },
 });
