@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { DataProvider } from '@shared/src/core/state/DataContext';
-import { CompanyPageScreen } from '@shared/src/features/company_profile/screens/CompanyPageScreen';
+import { CompanyPageScreen } from '../../../../../../corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 

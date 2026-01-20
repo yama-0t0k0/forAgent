@@ -15,11 +15,22 @@ export const ConnectionScreen = ({ navigation, route }) => {
 
     // Mock "Me" if not specified (default to C000000000000)
     const currentUserDoc = useMemo(() => {
-        if (data.users && data.users.length > 0) {
+        // Adminアプリの場合、userDocがroute.paramsから渡されていない場合がある
+        if (route?.params?.userDoc) {
+             return route.params.userDoc;
+        }
+
+        if (data.users && Array.isArray(data.users) && data.users.length > 0) {
             return data.users.find(u => u.id === 'C000000000000') || data.users[0];
         }
-        return data; // Individual App case
-    }, [data]);
+        
+        // 個人アプリの場合、dataそのものがユーザーデータである可能性がある
+        if (data && data.id) {
+             return data;
+        }
+
+        return null;
+    }, [data, route?.params?.userDoc]);
 
     const [rankedJds, setRankedJds] = useState([]);
     const [rankedUsers, setRankedUsers] = useState([]);
@@ -27,7 +38,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const fetchRankedData = async () => {
-            if (!data) return;
+            if (!data || !currentUserDoc) return;
             setLoading(true);
             try {
                 if (activeType === 'jd' && data.jd) {
