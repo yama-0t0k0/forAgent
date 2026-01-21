@@ -14,6 +14,7 @@ workspace:
   - shared/common_logic
   - shared/common_backend
   - shared/domain_logic/heatmap_engine
+  - infrastructure/firebase/functions
 
 dev_dependencies:
   melos: ^7.3.0

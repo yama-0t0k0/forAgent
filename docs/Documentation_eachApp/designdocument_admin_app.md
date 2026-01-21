@@ -53,6 +53,11 @@ graph LR
 - Firebase: shared/common_frontend/src/core/firebaseConfig
   - `db` インスタンスの共有
 
+### 共通化の原則 (Shared Strategy)
+Adminは管理ツールとして個別アプリの機能を「利用」する立場であり、Adminが使うことだけを理由に共通化（Shared化）すべきではない。
+- **個別アプリAと個別アプリBが共通して使う機能**: Sharedへ配置する。
+- **個別アプリとAdminでのみ使う機能**: 個別アプリに配置し、Adminは個別アプリの機能を直接importして利用する。
+
 ## 画面構成
 ```mermaid
 graph TD

@@ -9,7 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { styles } from './dashboardStyles';
 
 // Utils
-import { extractSkills, getHighDensityHeatmapData, getCompanyName } from './utils/dashboardUtils';
+import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 
 // Components
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
@@ -293,7 +293,7 @@ export default function DashboardScreen() {
             filteredUsers={filteredUsers}
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
-            onUserPress={(item) => navigation.navigate('MyPage', { userId: item.id, userDoc: item })}
+            onUserPress={(item) => setSelectedUserId(item.id)}
           />
         )}
         {activeTab === 'company' && (
@@ -342,6 +342,7 @@ export default function DashboardScreen() {
         userDoc={selectedUserDoc}
         userId={selectedUserId}
         extractSkills={extractSkills}
+        navigation={navigation}
       />
 
       <JobDetailModal

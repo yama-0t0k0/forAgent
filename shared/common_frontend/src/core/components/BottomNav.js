@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
 
-export const BottomNav = ({ navigation, activeTab = 'Home' }) => {
+export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) => {
     const tabs = [
         { id: 'Career', label: 'キャリア', icon: 'person-circle-outline' },
         { id: 'Connection', label: 'つながり', icon: 'people-circle-outline' },
@@ -14,15 +14,15 @@ export const BottomNav = ({ navigation, activeTab = 'Home' }) => {
 
     const handlePress = (tabId) => {
         if (tabId === 'Home') {
-            navigation.navigate('MyPage');
+            navigation.navigate('MyPage', { userDoc });
         } else if (tabId === 'Connection') {
-            navigation.navigate('Connection');
+            navigation.navigate('Connection', { userDoc });
         } else if (tabId === 'Menu') {
-            navigation.navigate('Menu');
+            navigation.navigate('Menu', { userDoc });
         } else if (tabId === 'Career') {
-            navigation.navigate('Career');
+            navigation.navigate('Career', { userDoc });
         } else if (tabId === 'Registration') {
-            navigation.navigate('Registration', { isEdit: true });
+            navigation.navigate('Registration', { isEdit: true, userDoc });
         } else {
             console.log(`Navigating to ${tabId}`);
         }

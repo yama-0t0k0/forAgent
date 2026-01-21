@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
-import { JobDescriptionContent } from '../../../../../../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+import { JobDescriptionContent } from '../../../../../../../job_description/expo_frontend/src/features/job_description/components/JobDescriptionContent';
 import { styles } from '../../dashboardStyles';
 
 export const JobDetailModal = ({ visible, onClose, jobDoc }) => (

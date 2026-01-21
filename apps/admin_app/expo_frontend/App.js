@@ -13,11 +13,11 @@ import { IndividualImageEditScreen } from '@shared/src/features/profile/Individu
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // import { JDSelectionScreen } from '@shared/src/features/job/JDSelectionScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
-import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
+import { JobDescriptionScreen } from '../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
-import { TechStackScreen } from '@shared/src/features/company_profile/screens/TechStackScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -141,11 +141,6 @@ const AdminAppWrapper = () => {
               name="CompanyDetail"
               component={CompanyDetailScreen}
               options={{ title: '会社詳細', headerBackTitle: '戻る' }}
-            />
-            <Stack.Screen
-              name="TechStack"
-              component={TechStackScreen}
-              options={{ title: '使用技術詳細', headerBackTitle: '戻る' }}
             />
             <Stack.Screen
               name="MyPage"

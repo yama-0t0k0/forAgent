@@ -1,49 +1,61 @@
-import { HeatmapCalculator } from './HeatmapCalculator';
+/**
+ * マッチングAPIクライアント
+ * Cloud Run上のDart版マッチングロジックを呼び出します。
+ */
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_MATCHING_API_URL || 'http://localhost:8080';
 
 export const MatchingService = {
     /**
-     * Calculates a matching score (0-100) between a user and a JD.
+     * ユーザーと求人のマッチングスコアを取得します
      * @param {Object} userDoc 
      * @param {Object} jdDoc 
-     * @returns {number} 0-100
+     * @returns {Promise<Object>} API response including matchingScore and netScore
      */
-    calculateScore(userDoc, jdDoc) {
-        if (!userDoc || !jdDoc) return 0;
+    async getMatchScore(userDoc, jdDoc) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userDoc,
+                    jdDoc
+                }),
+            });
 
-        const userGrid = HeatmapCalculator.calculate(userDoc);
-        const jdGrid = HeatmapCalculator.calculate(jdDoc);
-
-        let totalScore = 0;
-        let activeTiles = 0;
-
-        for (let i = 0; i < userGrid.length; i++) {
-            // If JD requires this skill/aspiration (grid[i] > 0)
-            if (jdGrid[i] > 0) {
-                activeTiles++;
-                // Add the minimum of user's skill and JD's requirement, 
-                // but if user exceeds JD, it's a plus? 
-                // Let's keep it simple: multiply the two values.
-                totalScore += userGrid[i] * jdGrid[i];
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Matching API error: ${response.status} - ${errorText}`);
             }
+
+            return await response.json();
+        } catch (error) {
+            console.error('[MatchingService] Failed to fetch score:', error);
+            return { matchingScore: 0, error: error.message };
         }
-
-        if (activeTiles === 0) return 0;
-
-        // Return percentage
-        return Math.min(100, Math.round((totalScore / activeTiles) * 100));
     },
 
     /**
-     * Ranks a list of items (Users or JDs) against a target doc.
+     * リスト形式のデータをランク付けします（プロトタイプ版）
+     * ※ 本来はバックエンド側でバッチ処理することが望ましいですが、
+     * 現状の画面ロジックを維持するため、個別にAPIを叩く暫定的な実装です。
      */
-    rankCandidates(targetDoc, candidates, type = 'jd') {
-        const results = candidates.map(candidate => {
-            const score = type === 'jd'
-                ? this.calculateScore(targetDoc, candidate)
-                : this.calculateScore(candidate, targetDoc);
-            return { ...candidate, matchingScore: score };
+    async rankCandidates(targetDoc, candidates, type = 'jd') {
+        const promises = candidates.map(async (candidate) => {
+            const userDoc = type === 'jd' ? targetDoc : candidate;
+            const jdDoc = type === 'jd' ? candidate : targetDoc;
+
+            const result = await this.getMatchScore(userDoc, jdDoc);
+            return {
+                ...candidate,
+                matchingScore: result.matchingScore,
+                matchDetails: result
+            };
         });
 
-        return results.sort((a, b) => b.matchingScore - a.matchingScore);
+        const results = await Promise.all(promises);
+        return results.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
     }
 };
