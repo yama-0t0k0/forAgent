@@ -31,18 +31,18 @@ export const CompanyDetailScreen = () => {
       }
 
       try {
-        // Try to fetch from 'company' collection (used by corporate_user_app)
-        let docRef = doc(db, 'company', companyId);
+        // Try to fetch from 'Company' collection first (matching App.js priority)
+        let docRef = doc(db, 'Company', companyId);
         let snap = await getDoc(docRef);
 
         if (!snap.exists()) {
-          // Fallback to 'Company' or 'corporate' if needed
-          // admin_app seems to fetch from 'Company' and 'corporate' as well
-          docRef = doc(db, 'corporate', companyId);
+          // Fallback to 'company'
+          docRef = doc(db, 'company', companyId);
           snap = await getDoc(docRef);
 
           if (!snap.exists()) {
-            docRef = doc(db, 'Company', companyId);
+            // Fallback to 'corporate'
+            docRef = doc(db, 'corporate', companyId);
             snap = await getDoc(docRef);
           }
         }
