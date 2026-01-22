@@ -16,15 +16,34 @@ const { width, height } = Dimensions.get('window');
 // Local custom generated rainforest background
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
-export const MyPageScreen = () => {
+/**
+ * @typedef {Object} MyPageScreenProps
+ * @property {string} [userId] - User ID (optional, for Admin App)
+ * @property {Object} [userDoc] - User Data Document (optional, for Admin App)
+ * @property {boolean} [hideSafeArea] - Whether to hide SafeAreaView (optional, for Modal)
+ */
+
+/**
+ * MyPage Screen Component
+ * Displays individual user profile including heatmap and personal info.
+ * Can be used in both Individual App (standalone) and Admin App (modal).
+ * 
+ * @param {MyPageScreenProps} props
+ */
+export const MyPageScreen = (props) => {
+    const { userId: propUserId, userDoc: propUserDoc, hideSafeArea } = props;
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
     const [remoteNames, setRemoteNames] = useState(null);
     const [remoteEmail, setRemoteEmail] = useState('');
     const [heatmapValues, setHeatmapValues] = useState(null);
 
+    // Use prop data if available (Admin App mode), otherwise use Context (Individual App mode)
+    const displayData = propUserDoc || data;
+    const targetUserId = propUserId || 'C000000000000';
+
     // Extract data safely
-    const basicInfo = data['基本情報'] || {};
+    const basicInfo = displayData ? (displayData['基本情報'] || {}) : {};
     const names = {
         first: basicInfo['First name(半角英)'] || '',
         family: basicInfo['Family name(半角英)'] || '',
@@ -36,7 +55,14 @@ export const MyPageScreen = () => {
     useEffect(() => {
         const fetchNames = async () => {
             try {
-                const snap = await getDoc(doc(db, 'individual', 'C000000000000'));
+                // If propUserDoc is provided, we don't need to fetch unless it's incomplete
+                if (propUserDoc) {
+                     const values = HeatmapCalculator.calculate(propUserDoc);
+                     setHeatmapValues(values);
+                     return;
+                }
+
+                const snap = await getDoc(doc(db, 'individual', targetUserId));
                 if (snap.exists()) {
                     const d = snap.data();
                     const b = d['基本情報'] || {};
@@ -59,20 +85,22 @@ export const MyPageScreen = () => {
             }
         };
         fetchNames();
-    }, []);
+    }, [targetUserId, propUserDoc]);
 
     // Fallback: calculate heatmap from local context data when remote not yet available
     useEffect(() => {
-        if (!heatmapValues && data) {
-            const values = HeatmapCalculator.calculate(data);
+        if (!heatmapValues && displayData) {
+            const values = HeatmapCalculator.calculate(displayData);
             setHeatmapValues(values);
         }
-    }, [data, heatmapValues]);
+    }, [displayData, heatmapValues]);
     // Heatmap grid logic moved to HeatmapGrid component
 
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true });
     };
+
+    const SafeAreaComponent = hideSafeArea ? View : SafeAreaView;
 
     return (
         <View style={styles.container}>
@@ -83,7 +111,7 @@ export const MyPageScreen = () => {
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
-                    <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+                    <SafeAreaComponent edges={['top']} style={styles.headerSafeArea}>
                         <View style={styles.topProfileContainer}>
                             {/* Header Action Buttons (Notifications and Image Edit) */}
                             <View style={styles.headerActionContainer}>
@@ -124,7 +152,7 @@ export const MyPageScreen = () => {
                                 </View>
                             </View>
                         </View>
-                    </SafeAreaView>
+                    </SafeAreaComponent>
                 </ImageBackground>
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
@@ -169,39 +197,43 @@ export const MyPageScreen = () => {
                 <View style={{ height: 100 }} />
             </ScrollView>
 
-            {/* Bottom Navigation */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>キャリア</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>つながり</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <View style={styles.activeIconContainer}>
-                        <Ionicons name="home" size={26} color={THEME.background} />
+            {/* Bottom Navigation - Only show if not in modal (hideSafeArea is false/undefined) */}
+            {!hideSafeArea && (
+                <>
+                    <View style={styles.bottomNav}>
+                        <TouchableOpacity style={styles.navItem}>
+                            <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>キャリア</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem}>
+                            <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>つながり</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem}>
+                            <View style={styles.activeIconContainer}>
+                                <Ionicons name="home" size={26} color={THEME.background} />
+                            </View>
+                            <Text style={styles.navTextActive}>ホーム</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem}>
+                            <Ionicons name="book-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>学習</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
+                            <Ionicons name="grid-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>メニュー</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.navTextActive}>ホーム</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="book-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>学習</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
-                    <Ionicons name="grid-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>メニュー</Text>
-                </TouchableOpacity>
-            </View>
 
-            {/* 6. Renamed button + chevron */}
-            <View style={styles.bottomNavCenterOverlay}>
-                <TouchableOpacity style={styles.centerButton}>
-                    <Text style={styles.centerButtonText}>経歴詳細</Text>
-                    <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                </TouchableOpacity>
-            </View>
+                    {/* 6. Renamed button + chevron */}
+                    <View style={styles.bottomNavCenterOverlay}>
+                        <TouchableOpacity style={styles.centerButton}>
+                            <Text style={styles.centerButtonText}>経歴詳細</Text>
+                            <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </View>
     );
 };

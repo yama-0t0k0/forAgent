@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
+// Use individual_user_app's screen directly instead of shared component
+import { MyPageScreen as IndividualProfileScreen } from '../../../../../../../individual_user_app/expo_frontend/src/features/profile/MyPageScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
