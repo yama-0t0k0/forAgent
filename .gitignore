@@ -69,3 +69,4 @@ PrivacyInfo.xcprivacy
 .maestro/
 .maestro_local/
 *.zip
+.firebase/

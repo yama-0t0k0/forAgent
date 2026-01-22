@@ -51,7 +51,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
     switch (currentRoute.name) {
       case 'MyPage':
-        return <IndividualProfileScreen {...props} userId={userId} userDoc={userDoc} hideSafeArea={true} />;
+        return <IndividualProfileScreen {...props} userId={userId} userDoc={userDoc} />;
       case 'Connection':
         return <ConnectionScreen {...props} />;
       case 'Career':
