@@ -76,8 +76,13 @@ if command -v maestro &> /dev/null; then
   echo "🚀 Running Full Coverage Tests..."
   maestro test -e EXPO_URL="$EXPO_URL" tests/jobs/full_coverage_test.yaml
   MAESTRO_EXIT=$?
+
+  # 🚀 4c: Admin Modal Interaction Test (New)
+  echo "🚀 Running Admin Modal Interaction Test..."
+  maestro test -e EXPO_URL="$EXPO_URL" tests/jobs/admin_modal_interaction_test.yaml
+  ADMIN_TEST_EXIT=$?
   
-  if [ $MAESTRO_EXIT -eq 0 ]; then
+  if [ $MAESTRO_EXIT -eq 0 ] && [ $ADMIN_TEST_EXIT -eq 0 ]; then
     echo "🎉 ALL TESTS PASSED!"
     exit 0
   else

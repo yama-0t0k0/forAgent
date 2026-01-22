@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 41, 59, 0.95)', // Slate-800
     padding: 10,
     borderRadius: 8,
-    zIndex: 1000, // Ensure it's above everything else
+    zIndex: 2000, // Ensure it's above everything else (increased)
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

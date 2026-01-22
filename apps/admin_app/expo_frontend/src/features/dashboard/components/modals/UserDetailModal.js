@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContext } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
@@ -13,39 +13,76 @@ import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/J
 import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '../../dashboardStyles';
 
-const ModalStack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('../../../../../assets/json/engineer-profile-template.json');
 
-const ModalNavigator = ({ userId, userDoc }) => {
-  return (
-    <NavigationIndependentTree>
-      <NavigationContainer>
-        <ModalStack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
-          <ModalStack.Screen
-            name="MyPage"
-            component={IndividualProfileScreen}
-            initialParams={{ userId, userDoc, hideSafeArea: true }}
+const UserDetailContent = ({ userId, userDoc }) => {
+  const [stack, setStack] = useState([]);
+
+  useEffect(() => {
+    setStack([{ name: 'MyPage', params: { userId, userDoc, hideSafeArea: true } }]);
+  }, [userId, userDoc]);
+
+  const navigation = useMemo(() => ({
+    navigate: (name, params) => {
+      setStack(prev => [...prev, { name, params }]);
+    },
+    goBack: () => {
+      setStack(prev => prev.length > 1 ? prev.slice(0, -1) : prev);
+    },
+    canGoBack: () => stack.length > 1,
+    getParent: () => null,
+    addListener: () => () => {},
+    removeListener: () => {},
+    setOptions: () => {},
+    dispatch: () => {},
+    isFocused: () => true,
+  }), [stack]);
+
+  const currentRoute = stack[stack.length - 1];
+
+  if (!currentRoute) return null;
+
+  const renderScreen = () => {
+    const props = {
+      route: currentRoute,
+      navigation: navigation
+    };
+
+    switch (currentRoute.name) {
+      case 'MyPage':
+        return <IndividualProfileScreen {...props} userId={userId} userDoc={userDoc} hideSafeArea={true} />;
+      case 'Connection':
+        return <ConnectionScreen {...props} />;
+      case 'Career':
+        return <CareerScreen {...props} />;
+      case 'Menu':
+        return <IndividualMenuScreen {...props} />;
+      case 'ImageEdit':
+        return <IndividualImageEditScreen {...props} />;
+      case 'JobDescription':
+        return <JobDescriptionScreen {...props} />;
+      case 'Registration':
+        return (
+          <GenericRegistrationScreen
+            {...props}
+            title="エンジニア個人登録"
+            collectionName="individual"
+            idField="id_individual"
+            idPrefixChar="C"
+            orderTemplate={ENGINEER_TEMPLATE}
           />
-          <ModalStack.Screen name="Connection" component={ConnectionScreen} />
-          <ModalStack.Screen name="Career" component={CareerScreen} />
-          <ModalStack.Screen name="Menu" component={IndividualMenuScreen} />
-          <ModalStack.Screen name="ImageEdit" component={IndividualImageEditScreen} />
-          <ModalStack.Screen name="JobDescription" component={JobDescriptionScreen} />
-          <ModalStack.Screen name="Registration">
-            {(props) => (
-              <GenericRegistrationScreen
-                {...props}
-                title="エンジニア個人登録"
-                collectionName="individual"
-                idField="id_individual"
-                idPrefixChar="C"
-                orderTemplate={ENGINEER_TEMPLATE}
-              />
-            )}
-          </ModalStack.Screen>
-        </ModalStack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
+        );
+      default:
+        return <View><Text>Unknown Screen: {currentRoute.name}</Text></View>;
+    }
+  };
+
+  return (
+    <NavigationContext.Provider value={navigation}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {renderScreen()}
+      </GestureHandlerRootView>
+    </NavigationContext.Provider>
   );
 };
 
@@ -81,7 +118,7 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
 
         {!loading && !error && userDoc && (
           <View style={{ flex: 1 }}>
-            <ModalNavigator userId={userId} userDoc={userDoc} />
+            <UserDetailContent userId={userId} userDoc={userDoc} />
           </View>
         )}
       </View>

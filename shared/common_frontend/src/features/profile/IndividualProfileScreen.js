@@ -17,8 +17,9 @@ const { width, height } = Dimensions.get('window');
 // Local custom generated rainforest background
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
-export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false }) => {
+export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {
     const hideSafeArea = propHideSafeArea || route?.params?.hideSafeArea || false;
+    const showBottomNav = propShowBottomNav && (route?.params?.showBottomNav !== false);
     const { data: localData } = useContext(DataContext);
     const navigation = useNavigation();
 
@@ -236,15 +237,19 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             </ScrollView>
 
             {/* Bottom Navigation */}
-            <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
+            {showBottomNav && (
+                <>
+                    <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
 
-            {/* 6. Renamed button + chevron */}
-            <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
-                <TouchableOpacity style={styles.centerButton} testID="career_detail_button">
-                    <Text style={styles.centerButtonText}>経歴詳細</Text>
-                    <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                </TouchableOpacity>
-            </View>
+                    {/* 6. Renamed button + chevron */}
+                    <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
+                        <TouchableOpacity style={styles.centerButton} testID="career_detail_button">
+                            <Text style={styles.centerButtonText}>経歴詳細</Text>
+                            <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </View>
     );
 };
@@ -399,6 +404,7 @@ const styles = StyleSheet.create({
         height: height * 0.45, // Target 40-45% height
         justifyContent: 'flex-start',
         marginTop: 10,
+        zIndex: 10, // Ensure tooltips show above other elements
     },
     heatmapHeader: {
         flexDirection: 'row',

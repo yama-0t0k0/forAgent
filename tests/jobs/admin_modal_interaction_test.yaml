@@ -1,0 +1,38 @@
+appId: com.engineer_registration_app_yama.admin
+---
+- launchApp:
+    url: "${EXPO_URL}"
+    clearState: true
+
+# Wait for app to load and ensure we are on Dashboard
+- assertVisible: "ダッシュボード"
+
+# Switch to Individual Tab
+- tapOn: "個人"
+
+# Select the first engineer in the list
+- tapOn:
+    id: "engineer_item"
+    index: 0
+
+# Verify Modal Opened
+- assertVisible: "個人詳細"
+
+# --- Interaction Checks ---
+
+# 1. Check Heatmap Tooltip
+- scrollUntilVisible:
+    element:
+        id: "skill_heatmap"
+    direction: DOWN
+- tapOn:
+    id: "heatmap_tile_0"
+# Verify tooltip appears (checking for Level text or similar)
+- assertVisible: "Level:" 
+
+# 2. Check BottomNav Interaction
+- tapOn: "キャリア" # Label for Career tab
+- assertVisible: "職務経歴" # Expecting Career screen title
+
+# 3. Close Modal (Cleanup)
+# - tapOn: "閉じる"
