@@ -11,3 +11,9 @@
 10 verbose logfile logs-max:10 dir:/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/individual_user_app/expo_frontend/.home/.npm/_logs/2026-01-16T18_51_29_521Z-
 11 verbose logfile /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/individual_user_app/expo_frontend/.home/.npm/_logs/2026-01-16T18_51_29_521Z-debug-0.log
 12 silly logfile done cleaning log files
+13 verbose cwd /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/individual_user_app/expo_frontend
+14 verbose os Darwin 25.2.0
+15 verbose node v23.11.0
+16 verbose npm  v10.9.2
+17 verbose exit 0
+18 info ok
