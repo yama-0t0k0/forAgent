@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,16 +17,16 @@ export const ConnectionScreen = ({ navigation, route }) => {
     const currentUserDoc = useMemo(() => {
         // Adminアプリの場合、userDocがroute.paramsから渡されていない場合がある
         if (route?.params?.userDoc) {
-             return route.params.userDoc;
+            return route.params.userDoc;
         }
 
         if (data.users && Array.isArray(data.users) && data.users.length > 0) {
             return data.users.find(u => u.id === 'C000000000000') || data.users[0];
         }
-        
+
         // 個人アプリの場合、dataそのものがユーザーデータである可能性がある
         if (data && data.id) {
-             return data;
+            return data;
         }
 
         return null;
@@ -94,7 +94,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.header}>
-                <Text style={styles.headerTitle}>つながり候補</Text>
+                <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
             </SafeAreaView>
 
             <View style={styles.tabBar}>

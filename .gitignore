@@ -41,3 +41,31 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# iOS Build Artifacts (prevent expo export pollution)
+*.bundle/
+*.car
+*.nib
+Expo\ Go
+*.entitlements
+PkgInfo
+kernel*.bundle
+kernel-manifest.json
+versions.json
+expo-root.pem
+expo_output.log
+EXBuildConstants.plist
+Base.lproj/
+Frameworks/
+PlugIns/
+_CodeSignature/
+AppIcon*.png
+launch_*.png
+generate-dynamic-macros.sh
+Info.plist
+PrivacyInfo.xcprivacy
+
+# Maestro local install
+.maestro/
+.maestro_local/
+*.zip

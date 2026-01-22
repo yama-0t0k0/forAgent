@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
@@ -9,7 +9,7 @@ import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMen
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // Fix import path for JobDescriptionScreen using relative path to avoid alias issues
-import { JobDescriptionScreen } from '../../../../../../../apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '../../dashboardStyles';
 
@@ -18,32 +18,34 @@ const ENGINEER_TEMPLATE = require('../../../../../assets/json/engineer-profile-t
 
 const ModalNavigator = ({ userId, userDoc }) => {
   return (
-    <NavigationContainer independent={true}>
-      <ModalStack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
-        <ModalStack.Screen 
-          name="MyPage" 
-          component={IndividualProfileScreen} 
-          initialParams={{ userId, userDoc }} 
-        />
-        <ModalStack.Screen name="Connection" component={ConnectionScreen} />
-        <ModalStack.Screen name="Career" component={CareerScreen} />
-        <ModalStack.Screen name="Menu" component={IndividualMenuScreen} />
-        <ModalStack.Screen name="ImageEdit" component={IndividualImageEditScreen} />
-        <ModalStack.Screen name="JobDescription" component={JobDescriptionScreen} />
-        <ModalStack.Screen name="Registration">
+    <NavigationIndependentTree>
+      <NavigationContainer>
+        <ModalStack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
+          <ModalStack.Screen
+            name="MyPage"
+            component={IndividualProfileScreen}
+            initialParams={{ userId, userDoc, hideSafeArea: true }}
+          />
+          <ModalStack.Screen name="Connection" component={ConnectionScreen} />
+          <ModalStack.Screen name="Career" component={CareerScreen} />
+          <ModalStack.Screen name="Menu" component={IndividualMenuScreen} />
+          <ModalStack.Screen name="ImageEdit" component={IndividualImageEditScreen} />
+          <ModalStack.Screen name="JobDescription" component={JobDescriptionScreen} />
+          <ModalStack.Screen name="Registration">
             {(props) => (
-                <GenericRegistrationScreen
-                    {...props}
-                    title="エンジニア個人登録"
-                    collectionName="individual"
-                    idField="id_individual"
-                    idPrefixChar="C"
-                    orderTemplate={ENGINEER_TEMPLATE}
-                />
+              <GenericRegistrationScreen
+                {...props}
+                title="エンジニア個人登録"
+                collectionName="individual"
+                idField="id_individual"
+                idPrefixChar="C"
+                orderTemplate={ENGINEER_TEMPLATE}
+              />
             )}
-        </ModalStack.Screen>
-      </ModalStack.Navigator>
-    </NavigationContainer>
+          </ModalStack.Screen>
+        </ModalStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 };
 
@@ -54,26 +56,26 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
     animationType="fade"
     onRequestClose={onClose}
   >
-    <Pressable style={styles.detailOverlay} onPress={onClose}>
-      <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
+    <View style={styles.detailOverlay} pointerEvents="box-none">
+      <View style={styles.detailWindow} testID="user_detail_modal_view" pointerEvents="auto">
         <View style={styles.detailWindowHeader}>
           <View style={{ flex: 1 }} />
-          <Text style={styles.detailWindowTitle}>個人詳細</Text>
-          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose}>
+          <Text style={styles.detailWindowTitle} testID="user_detail_title">個人詳細</Text>
+          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID="user_detail_close">
             <Text style={styles.detailWindowCloseText}>閉じる</Text>
           </TouchableOpacity>
         </View>
 
         {loading && (
-          <View style={styles.detailWindowLoading}>
-            <ActivityIndicator size="large" color={THEME.accent} />
+          <View style={styles.detailWindowLoading} testID="user_detail_loading">
+            <ActivityIndicator size="large" color={THEME.accent} testID="loading_indicator" />
             <Text style={styles.detailWindowLoadingText}>読み込み中...</Text>
           </View>
         )}
 
         {!loading && error && (
-          <View style={styles.detailWindowLoading}>
-            <Text style={styles.detailWindowErrorText}>{error}</Text>
+          <View style={styles.detailWindowLoading} testID="user_detail_error_view">
+            <Text style={styles.detailWindowErrorText} testID="user_detail_error_text">{error}</Text>
           </View>
         )}
 
@@ -82,7 +84,7 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
             <ModalNavigator userId={userId} userDoc={userDoc} />
           </View>
         )}
-      </Pressable>
-    </Pressable>
+      </View>
+    </View>
   </Modal>
 );

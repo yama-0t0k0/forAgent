@@ -10,7 +10,8 @@ export const JobListItem = ({
   heatmapData,
   companyName,
   onPress,
-  style
+  style,
+  testID
 }) => {
   const title = job['求人基本項目']?.['ポジション名'] || job.title || 'タイトル未設定';
   const jdNumber = job.JD_Number || job['求人基本項目']?.JD_Number || '-';
@@ -21,6 +22,7 @@ export const JobListItem = ({
       style={[styles.glassListItem, style]}
       activeOpacity={0.7}
       onPress={onPress}
+      testID={testID}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>

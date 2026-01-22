@@ -13,7 +13,7 @@ import { IndividualImageEditScreen } from '@shared/src/features/profile/Individu
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // import { JDSelectionScreen } from '@shared/src/features/job/JDSelectionScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
-import { JobDescriptionScreen } from '../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';

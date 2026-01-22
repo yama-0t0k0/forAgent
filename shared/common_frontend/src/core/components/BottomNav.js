@@ -37,6 +37,7 @@ export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) =>
                         key={tab.id}
                         style={styles.navItem}
                         onPress={() => handlePress(tab.id)}
+                        testID={`nav_tab_${tab.id}`}
                     >
                         {isActive ? (
                             <View style={styles.activeIconContainer}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
@@ -37,6 +37,7 @@ export const IndividualTab = ({
             skills={skills}
             heatmapData={heatmapInfo}
             onPress={() => onUserPress(item)}
+            testID="engineer_item"
             showMatchScore={false}
           />
         );

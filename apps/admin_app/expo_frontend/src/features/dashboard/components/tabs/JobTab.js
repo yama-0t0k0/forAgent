@@ -43,6 +43,7 @@ export const JobTab = ({
             heatmapData={heatmapInfo}
             companyName={companyName}
             onPress={() => onJobPress(item)}
+            testID="job_item"
           />
         );
       }}

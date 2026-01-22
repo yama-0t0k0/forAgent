@@ -11,13 +11,13 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
 
   const handlePress = (item) => {
     // Navigate to CompanyDetail passing the company data
-    navigation.navigate('CompanyDetail', { companyData: item });
+    navigation.push('CompanyDetail', { companyData: item });
   };
 
   return (
     <View style={styles.tabContent}>
-      <GenericSearchBar 
-        searchQuery={searchQuery} 
+      <GenericSearchBar
+        searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         placeholder="会社名、IDで検索"
         quickFilters={[
@@ -27,10 +27,13 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
         onApplyFilter={(val) => console.log('Filter:', val)}
         style={styles.searchContainer}
       />
-      <GenericDataList 
+      <GenericDataList
         data={filteredCompanies}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => navigation.navigate('CompanyDetail', { companyId: item.id, initialData: item })}>
+          <TouchableOpacity
+            onPress={() => navigation.push('CompanyDetail', { companyId: item.id, initialData: item })}
+            testID="company_item"
+          >
             <CompanyListItem item={item} />
           </TouchableOpacity>
         )}

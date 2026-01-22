@@ -10,6 +10,7 @@ export const EngineerListItem = ({
   heatmapData,
   onPress,
   style,
+  testID,
   showMatchScore = true
 }) => {
   const fullName = (engineer['基本情報']?.['姓'] && engineer['基本情報']?.['名'])
@@ -26,6 +27,7 @@ export const EngineerListItem = ({
       style={[styles.glassListItem, style]}
       activeOpacity={0.7}
       onPress={onPress}
+      testID={testID}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>

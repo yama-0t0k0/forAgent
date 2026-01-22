@@ -13,12 +13,18 @@ export const CompanyDetailScreen = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (initialData) {
+      setCompanyData(initialData);
+    }
+  }, [companyId, initialData]);
+
+  useEffect(() => {
     const fetchCompanyData = async () => {
       // If we already have nested data passed in (unlikely but possible), use it?
       // Actually, let's always fetch to be safe and consistent with "Individual" tab pattern
       // unless initialData is already fully populated.
       // But for now, let's prioritize fetching by ID if available.
-      
+
       if (!companyId) {
         setLoading(false);
         return;
@@ -34,10 +40,10 @@ export const CompanyDetailScreen = () => {
           // admin_app seems to fetch from 'Company' and 'corporate' as well
           docRef = doc(db, 'corporate', companyId);
           snap = await getDoc(docRef);
-          
+
           if (!snap.exists()) {
-             docRef = doc(db, 'Company', companyId);
-             snap = await getDoc(docRef);
+            docRef = doc(db, 'Company', companyId);
+            snap = await getDoc(docRef);
           }
         }
 
@@ -107,7 +113,7 @@ export const CompanyDetailScreen = () => {
   }
 
   return (
-    <DataProvider initialData={formattedData}>
+    <DataProvider key={companyId} initialData={formattedData}>
       <CompanyPageScreen />
     </DataProvider>
   );

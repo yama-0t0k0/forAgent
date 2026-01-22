@@ -24,6 +24,7 @@ export const HeatmapGrid = ({
   columns = 9,
   containerWidth = width - 30, // Default to screen width - padding (15*2)
   dataValues = null, // Array of numbers from 0.0 to 1.0
+  testID,
 }) => {
   const [selectedTile, setSelectedTile] = useState(null);
   const [containerSize, setContainerSize] = useState({ width: containerWidth, height: 0 });
@@ -51,13 +52,14 @@ export const HeatmapGrid = ({
   const tileSize = Math.floor(containerWidth / columns) - 4;
 
   const handlePress = (item, index) => {
+    console.log(`HeatmapGrid: Tile ${index} pressed (id: ${item.id})`);
     if (selectedTile && selectedTile.id === item.id) {
       setSelectedTile(null);
       return;
     }
 
     const label = HeatmapMapper.getLabel(item.id) || `Tile ${item.id}`;
-    
+
     // Calculate level (0-4)
     let level = 0;
     const v = item.value;
@@ -88,7 +90,10 @@ export const HeatmapGrid = ({
   };
 
   return (
-    <View style={[styles.heatmapGrid, { width: containerWidth }]} onStartShouldSetResponder={() => true} onLayout={(e) => {
+    <View 
+      testID={testID}
+      style={[styles.heatmapGrid, { width: containerWidth }]} 
+      onLayout={(e) => {
       const { width: w, height: h } = e.nativeEvent.layout;
       setContainerSize({ width: w, height: h });
     }}>
@@ -103,7 +108,6 @@ export const HeatmapGrid = ({
               height: tileSize,
               borderWidth: selectedTile?.id === item.id ? 2 : 0,
               borderColor: '#334155', // slate-700
-              zIndex: 1,
             }
           ]}
           onLayout={(e) => {
@@ -115,33 +119,36 @@ export const HeatmapGrid = ({
           }}
           onPress={() => handlePress(item, index)}
           activeOpacity={0.7}
+          testID={testID ? `${testID}_tile_${index}` : `heatmap_tile_${index}`}
         />
       ))}
 
-      {selectedTile && (
-        <View style={[
-          styles.tooltip, 
-          { 
-            top: selectedTile.top,
-            left: selectedTile.left,
-            width: 140
-          }
-        ]}>
+      {selectedTile && selectedTile.top !== undefined && (
+        <View
+          testID={testID ? `${testID}_tooltip` : "heatmap_tooltip"}
+          style={[
+            styles.tooltip,
+            {
+              top: selectedTile?.top ?? 0,
+              left: selectedTile?.left ?? 0,
+              width: 140
+            }
+          ]}
+        >
           {/* Arrow */}
           <View style={[
             styles.tooltipArrow,
-            selectedTile.showAbove ? styles.arrowDown : styles.arrowUp,
-            { left: selectedTile.arrowLeft }
+            selectedTile?.showAbove ? styles.arrowDown : styles.arrowUp,
+            { left: selectedTile?.arrowLeft || 0 }
           ]} />
-          
-          <Text style={styles.tooltipTitle}>{selectedTile.label}</Text>
+          <Text style={styles.tooltipTitle} testID={testID ? `${testID}_tooltip_title` : "heatmap_tooltip_title"}>{selectedTile?.label}</Text>
           <View style={styles.separator} />
           <Text style={styles.tooltipText}>Level: {selectedTile.level}</Text>
           <Text style={styles.tooltipSubText}>
             {selectedTile.level === 0 ? '未経験/興味なし' :
-             selectedTile.level === 1 ? '学習中/少し興味' :
-             selectedTile.level === 2 ? '基礎/普通' :
-             selectedTile.level === 3 ? '応用/やりたい' : '専門/とてもやりたい'}
+              selectedTile.level === 1 ? '学習中/少し興味' :
+                selectedTile.level === 2 ? '基礎/普通' :
+                  selectedTile.level === 3 ? '応用/やりたい' : '専門/とてもやりたい'}
           </Text>
         </View>
       )}
@@ -168,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 41, 59, 0.95)', // Slate-800
     padding: 10,
     borderRadius: 8,
-    zIndex: 100, // Ensure it's above tiles
+    zIndex: 1000, // Ensure it's above everything else
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

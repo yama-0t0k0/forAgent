@@ -4,15 +4,15 @@ import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { styles } from '../../dashboardStyles';
 
 export const DrillDownModal = ({ visible, title, data, onClose }) => (
-  <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-    <View style={styles.modalContainer}>
+  <Modal visible={visible} animationType="slide">
+    <View style={styles.modalContainer} testID="drill_down_modal_view">
       <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>{title}</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+        <Text style={styles.modalTitle} testID="drill_down_title">{title}</Text>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="drill_down_close">
           <Text style={styles.closeButtonText}>閉じる</Text>
         </TouchableOpacity>
       </View>
-      <GenericDataList 
+      <GenericDataList
         data={data}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
