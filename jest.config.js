@@ -1,4 +1,5 @@
 module.exports = {
+  preset: 'react-native',
   roots: ['<rootDir>'],
   transform: {
     '^.+\\.jsx?$': 'babel-jest',
@@ -13,4 +14,7 @@ module.exports = {
     '<rootDir>/.home/',
     '<rootDir>/apps/*/dart_backend'
   ],
+  moduleNameMapper: {
+    '^@shared/(.*)$': '<rootDir>/shared/common_frontend/$1',
+  },
 };

@@ -5,6 +5,7 @@ import { DataProvider } from '@shared/src/core/state/DataContext';
 import { CompanyPageScreen } from '../../../../../../corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { formatCompanyData } from '../utils/companyDataFormatter';
 
 export const CompanyDetailScreen = () => {
   const route = useRoute();
@@ -65,34 +66,7 @@ export const CompanyDetailScreen = () => {
   // Map flat admin data to structure expected by CompanyPageScreen
   // This is a fallback if the fetched data is flat
   const formattedData = useMemo(() => {
-    if (!companyData) return {};
-
-    // Check if data is already nested (has '会社概要')
-    if (companyData['会社概要']) {
-      return companyData;
-    }
-
-    // Determine company name using same logic as list view
-    const companyName = companyData.companyName || companyData.name || '名称未設定';
-
-    // Map flat data to nested structure
-    return {
-      '会社概要': {
-        '社名': companyName,
-        '事業内容': companyData.businessContent || companyData.description || '事業内容が設定されていません。',
-        '住所': companyData.address || '',
-        '背景画像URL': companyData.backgroundUrl || companyData.backgroundImage,
-        'ロゴ画像URL': companyData.logoUrl || companyData.logo,
-        '設立': companyData.establishmentDate,
-        '従業員数': companyData.employeeCount,
-        '本社所在地': companyData.address,
-        'URL': companyData.website,
-      },
-      '魅力/特徴': companyData.features || companyData['魅力/特徴'] || {},
-      '使用技術': companyData.tech_stack || {},
-      // Preserve other top-level fields
-      ...companyData
-    };
+    return formatCompanyData(companyData);
   }, [companyData]);
 
   if (loading && !companyData) {
