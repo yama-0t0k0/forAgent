@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '../../core/components/BottomNav';
 
 const { width, height } = Dimensions.get('window');
@@ -17,6 +18,18 @@ const { width, height } = Dimensions.get('window');
 // Local custom generated rainforest background
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
+/**
+ * @typedef {Object} IndividualProfileScreenProps
+ * @property {Object} route
+ * @property {string} [userId]
+ * @property {Object} [userDoc]
+ * @property {boolean} [hideSafeArea]
+ * @property {boolean} [showBottomNav]
+ */
+
+/**
+ * @param {IndividualProfileScreenProps} props
+ */
 export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {
     const hideSafeArea = propHideSafeArea || route?.params?.hideSafeArea || false;
     const showBottomNav = propShowBottomNav && (route?.params?.showBottomNav !== false);
@@ -29,17 +42,22 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     const isCurrentUser = userId === 'C000000000000';
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : null));
-    const [remoteNames, setRemoteNames] = useState(null);
-    const [remoteEmail, setRemoteEmail] = useState('');
     const [heatmapValues, setHeatmapValues] = useState(null);
+
+    // Convert raw doc to User model
+    const user = User.fromFirestore(userId, userDoc);
 
     // Effect to fetch user data if not provided or to keep it updated
     useEffect(() => {
         // If we already have a userDoc passed via props/params, we might still want to listen for updates
         // especially if it's not the logged-in user.
 
+        /** @type {() => void} */
         let unsubscribe = () => { };
 
+        /**
+         * Fetches remote user data if necessary.
+         */
         const fetchData = async () => {
             if (userId && !isCurrentUser) {
                 const docRef = doc(db, 'individual', userId);
@@ -47,19 +65,6 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     if (docSnap.exists()) {
                         const d = docSnap.data();
                         setUserDoc(d);
-
-                        const b = d['基本情報'] || {};
-                        const first = b['名'] || '';
-                        const family = b['姓'] || '';
-                        const mail = b['メール'] || '';
-
-                        if (first || family) {
-                            setRemoteNames({ first, family });
-                        }
-                        if (mail) {
-                            setRemoteEmail(mail);
-                        }
-
                         setHeatmapValues(HeatmapCalculator.calculate(d));
                     }
                 });
@@ -78,18 +83,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
         }
     }, [userDoc, heatmapValues]);
 
-    const activeData = userDoc || {};
-    const basicInfo = activeData['基本情報'] || {};
-
-    // Names fallback
-    const names = {
-        first: basicInfo['First name(半角英)'] || '',
-        family: basicInfo['Family name(半角英)'] || '',
-        kanjiFirst: basicInfo['名'] || '',
-        kanjiFamily: basicInfo['姓'] || '',
-    };
-    const email = basicInfo['メール'] || '';
-
+    /**
+     * Navigates to the registration/edit screen.
+     */
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true, userDoc });
     };
@@ -99,7 +95,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
-                    source={basicInfo['背景画像URL'] ? { uri: basicInfo['背景画像URL'] } : RAINFOREST_BG}
+                    source={user.backgroundImageUrl ? { uri: user.backgroundImageUrl } : RAINFOREST_BG}
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
@@ -119,7 +115,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton}>
+                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -128,14 +124,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     <View style={styles.profileRow}>
                                         <View style={styles.photoContainer}>
                                             <Image
-                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                                 style={styles.profileImage}
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
+                                            <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}
@@ -162,7 +158,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton}>
+                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -171,14 +167,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     <View style={styles.profileRow}>
                                         <View style={styles.photoContainer}>
                                             <Image
-                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                                 style={styles.profileImage}
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
+                                            <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}

@@ -3,6 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
 
+/**
+ * @typedef {Object} BottomNavProps
+ * @property {Object} navigation - Navigation object
+ * @property {string} [activeTab='Home'] - Currently active tab ID
+ * @property {Object} [userDoc=null] - User document (optional)
+ */
+
+/**
+ * Bottom Navigation Bar Component.
+ * Provides navigation between main screens (Home, Career, Connection, etc.).
+ * 
+ * @param {BottomNavProps} props
+ */
 export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) => {
     const tabs = [
         { id: 'Career', label: 'キャリア', icon: 'person-circle-outline' },

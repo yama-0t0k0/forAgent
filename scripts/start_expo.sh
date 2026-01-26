@@ -139,7 +139,7 @@ fi
 npx expo start --tunnel $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 
-echo "⏳ Waiting for tunnel to establish..."
+echo "⏳ Waiting for Expo server..."
 
 # 4. Extract URL
 # Loop to check for URL via ngrok API or Log File
@@ -151,42 +151,22 @@ LOG_FILE="/tmp/expo_${APP_NAME}.log"
 while [ $COUNT -lt $MAX_RETRIES ]; do
     sleep 2
     
-    # Method A: Deterministic Construction (Most Reliable for Anonymous Tunnel)
-    # Check .expo/settings.json for urlRandomness
-    SETTINGS_FILE=".expo/settings.json"
-    if [ -f "$SETTINGS_FILE" ]; then
-        # Extract randomness (e.g. "J7gLLTA")
-        RANDOMNESS=$(grep -o '"urlRandomness":[[:space:]]*"[^"]*"' "$SETTINGS_FILE" | cut -d'"' -f4)
-        if [ -n "$RANDOMNESS" ]; then
-            # Convert to lowercase
-            RANDOMNESS_LOWER=$(echo "$RANDOMNESS" | tr '[:upper:]' '[:lower:]')
-            # Construct URL
-            URL="exp://${RANDOMNESS_LOWER}-anonymous-${PORT}.exp.direct"
-            break
-        fi
-    fi
-
-    # Method B: Ngrok API (Fallback)
-    # Check default ngrok port 4040, then 4041
-    TUNNELS_JSON=$(curl -s --max-time 1 http://localhost:4040/api/tunnels || true)
-    URL=$(echo "$TUNNELS_JSON" | grep -o 'exp://[^"]*')
-    
-    if [ -n "$URL" ]; then
-        break
-    fi
-
-    TUNNELS_JSON_ALT=$(curl -s --max-time 1 http://localhost:4041/api/tunnels || true)
-    URL=$(echo "$TUNNELS_JSON_ALT" | grep -o 'exp://[^"]*')
-
-    if [ -n "$URL" ]; then
-        break
-    fi
+    # Method A: Deterministic Construction (Skipped for localhost)
+    # ...
 
     # Method C: Log Parsing
     # Sometimes CI=1 suppresses it, but just in case
     if [ -f "$LOG_FILE" ]; then
-        URL=$(grep -o "exp://[a-zA-Z0-9\.\-]*" "$LOG_FILE" | head -n 1)
+        URL=$(grep -o "exp://[a-zA-Z0-9._:-]*" "$LOG_FILE" | head -n 1)
         if [ -n "$URL" ]; then
+            break
+        fi
+        
+        # Fallback for localhost mode (which prints http://)
+        HTTP_URL=$(grep -o "Waiting on http://localhost:[0-9]*" "$LOG_FILE" | head -n 1)
+        if [ -n "$HTTP_URL" ]; then
+            # Extract port? or just use known PORT
+            URL="exp://localhost:$PORT"
             break
         fi
     fi

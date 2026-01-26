@@ -6,6 +6,24 @@ import { HeatmapGeometry } from '../utils/HeatmapGeometry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+/**
+ * @typedef {Object} HeatmapData
+ * @property {string} id - Tile ID
+ * @property {number} value - Heatmap value (0-1)
+ */
+
+/**
+ * @typedef {Object} MiniHeatmapProps
+ * @property {HeatmapData[]} data - Array of heatmap data
+ * @property {number} rows - Number of rows
+ * @property {number} cols - Number of columns
+ */
+
+/**
+ * Mini Heatmap Component for displaying activity/skills in a grid.
+ * 
+ * @param {MiniHeatmapProps} props
+ */
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);
 

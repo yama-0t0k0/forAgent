@@ -1,0 +1,18 @@
+🚀 Starting individual_user_app on port 8082...
+📂 Directory: apps/individual_user_app/expo_frontend
+🔍 Checking environment configuration...
+✅ Environment configuration verified.
+🧹 Cleaning up existing processes...
+⚠️  Killing process 15863 on port 8082
+⚡ Starting Expo Server (Tunnel Mode)...
+⏳ Waiting for Expo server...
+.
+==================================================
+✅ Start up successful.
+Here is the URL for Expo Go:
+
+   exp://localhost:8082
+
+You can enter this URL manually in the Expo Go app.
+==================================================
+Press [CTRL+C] to stop the server.

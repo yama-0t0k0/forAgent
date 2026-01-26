@@ -2,15 +2,18 @@ module.exports = ({ config }) => {
   return {
     ...config,
     name: "JD（求人）",
-    slug: "my-expo-app",
+    slug: "job-description-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
+    platforms: [
+      "ios",
+      "android"
+    ],
     plugins: [
       "expo-asset",
-      "expo-router",
       "expo-web-browser"
     ],
     splash: {

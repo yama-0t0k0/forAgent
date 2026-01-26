@@ -19,6 +19,21 @@ import { HeatmapGeometry } from '../utils/HeatmapGeometry';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * @typedef {Object} HeatmapGridProps
+ * @property {number} [itemCount=90] - Total number of tiles
+ * @property {number} [columns=9] - Number of columns
+ * @property {number} [containerWidth] - Width of the container
+ * @property {number[]} [dataValues] - Array of heatmap values (0.0 - 1.0)
+ * @property {string} [testID] - Test ID
+ */
+
+/**
+ * Interactive Heatmap Grid Component.
+ * Displays activity/skill tiles with tooltip support.
+ * 
+ * @param {HeatmapGridProps} props
+ */
 export const HeatmapGrid = ({
   itemCount = 90,
   columns = 9,

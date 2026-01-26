@@ -8,10 +8,12 @@ module.exports = ({ config }) => {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
+    platforms: [
+      "ios",
+      "android"
+    ],
     plugins: [
-      "expo-asset",
-      "expo-router",
-      "expo-web-browser"
+      "expo-asset"
     ],
     splash: {
       "image": "./assets/splash-icon.png",

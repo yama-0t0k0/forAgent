@@ -3,6 +3,19 @@ import { View, Text, TextInput, Alert, StyleSheet } from 'react-native';
 import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} InputRowProps
+ * @property {string} label - Input label
+ * @property {string|number} value - Input value
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Generic Text Input Row Component.
+ * Supports special handling for Zip Code (address auto-fill).
+ * 
+ * @param {InputRowProps} props
+ */
 export const InputRow = ({ label, value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;

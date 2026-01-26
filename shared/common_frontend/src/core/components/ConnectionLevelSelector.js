@@ -4,6 +4,18 @@ import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 import { CONNECTION_LEVELS, CONNECTION_LEVEL_TEXTS } from '../constants/index';
 
+/**
+ * @typedef {Object} ConnectionLevelSelectorProps
+ * @property {Object} value - Current value object (e.g. { "Interested": true })
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Connection Level Selector Component.
+ * Allows selecting a connection level (1, 2, 3).
+ * 
+ * @param {ConnectionLevelSelectorProps} props
+ */
 export const ConnectionLevelSelector = ({ value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;

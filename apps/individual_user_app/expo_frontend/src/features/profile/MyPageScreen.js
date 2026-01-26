@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { User } from '@shared/src/core/models/User';
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,26 +35,21 @@ export const MyPageScreen = (props) => {
     const { userId: propUserId, userDoc: propUserDoc, hideSafeArea } = props;
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
-    const [remoteNames, setRemoteNames] = useState(null);
-    const [remoteEmail, setRemoteEmail] = useState('');
+    const [fetchedData, setFetchedData] = useState(null);
     const [heatmapValues, setHeatmapValues] = useState(null);
 
-    // Use prop data if available (Admin App mode), otherwise use Context (Individual App mode)
-    const displayData = propUserDoc || data;
+    // Use fetched data if available, otherwise prop data, otherwise Context data
+    const displayData = fetchedData || propUserDoc || data;
     const targetUserId = propUserId || 'C000000000000';
 
-    // Extract data safely
-    const basicInfo = displayData ? (displayData['基本情報'] || {}) : {};
-    const names = {
-        first: basicInfo['First name(半角英)'] || '',
-        family: basicInfo['Family name(半角英)'] || '',
-        kanjiFirst: basicInfo['名'] || '',
-        kanjiFamily: basicInfo['姓'] || '',
-    };
-    const email = basicInfo['メール'] || '';
+    // Create User model instance
+    const user = User.fromFirestore(targetUserId, displayData);
 
     useEffect(() => {
-        const fetchNames = async () => {
+        /**
+         * Fetches user data from Firestore if not provided via props.
+         */
+        const fetchRemoteData = async () => {
             try {
                 // If propUserDoc is provided, we don't need to fetch unless it's incomplete
                 if (propUserDoc) {
@@ -65,26 +61,17 @@ export const MyPageScreen = (props) => {
                 const snap = await getDoc(doc(db, 'individual', targetUserId));
                 if (snap.exists()) {
                     const d = snap.data();
-                    const b = d['基本情報'] || {};
-                    const first = b['名'] || '';
-                    const family = b['姓'] || '';
-                    const mail = b['メール'] || '';
-                    if (first || family) {
-                        console.log('names fetched', { first, family });
-                        setRemoteNames({ first, family });
-                    }
-                    if (mail) {
-                        console.log('email fetched', { mail });
-                        setRemoteEmail(mail);
-                    }
+                    console.log('remote data fetched');
+                    setFetchedData(d);
+                    
                     const values = HeatmapCalculator.calculate(d);
                     setHeatmapValues(values);
                 }
             } catch (e) {
-                console.log('failed to fetch names', e);
+                console.log('failed to fetch remote data', e);
             }
         };
-        fetchNames();
+        fetchRemoteData();
     }, [targetUserId, propUserDoc]);
 
     // Fallback: calculate heatmap from local context data when remote not yet available
@@ -96,6 +83,9 @@ export const MyPageScreen = (props) => {
     }, [displayData, heatmapValues]);
     // Heatmap grid logic moved to HeatmapGrid component
 
+    /**
+     * Navigates to registration screen in edit mode.
+     */
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true });
     };
@@ -107,7 +97,7 @@ export const MyPageScreen = (props) => {
             <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
-                    source={basicInfo['背景画像URL'] ? { uri: basicInfo['背景画像URL'] } : RAINFOREST_BG}
+                    source={user.backgroundImageUrl ? { uri: user.backgroundImageUrl } : RAINFOREST_BG}
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
@@ -134,15 +124,15 @@ export const MyPageScreen = (props) => {
                             <View style={styles.profileRow}>
                                 <View style={styles.photoContainer}>
                                     <Image
-                                        source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                        source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                         style={styles.profileImage}
                                     />
                                 </View>
                                 <View style={styles.namePlate}>
-                                    <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                    <Text style={styles.nameText}>{user.fullNameKanji}</Text>
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                    <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
-                                    <Text style={styles.dataSourceText}>{String(remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
+                                    <Text style={styles.emailText}>{user.email}</Text>
+                                    <Text style={styles.dataSourceText}>{String(fetchedData || propUserDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                     {/* Relocated Chatbot button */}
                                     <TouchableOpacity style={styles.chatBotCalloutOverlap}>

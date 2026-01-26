@@ -41,6 +41,14 @@ let infoCount = 0;
  * Recursively walk directory and process files
  */
 function walkDir(dir) {
+    const stat = fs.statSync(dir);
+    if (!stat.isDirectory()) {
+        if (TARGET_EXTENSIONS.includes(path.extname(dir))) {
+            checkFile(dir);
+        }
+        return;
+    }
+
     const files = fs.readdirSync(dir);
     
     files.forEach(file => {

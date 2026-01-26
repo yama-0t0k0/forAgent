@@ -4,6 +4,18 @@ import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 import { SKILL_LEVELS, SKILL_LEVEL_TEXTS } from '../constants/index';
 
+/**
+ * @typedef {Object} SkillSelectorProps
+ * @property {Object} value - Current value object (e.g. { "Beginner": true })
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Skill Level Selector Component.
+ * Allows selecting a skill level from 0 to 4.
+ * 
+ * @param {SkillSelectorProps} props
+ */
 export const SkillSelector = ({ value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
