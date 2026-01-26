@@ -23,6 +23,10 @@ export const InputRow = ({ label, value, path }) => {
 
   const isZipCode = label === '郵便番号';
 
+  /**
+   * Handles text change events.
+   * @param {string} text - The new text value.
+   */
   const handleTextChange = async (text) => {
     if (isZipCode) {
       // Allow only numbers
@@ -34,6 +38,12 @@ export const InputRow = ({ label, value, path }) => {
         // Find '国' sibling
         const parentPath = path.slice(0, -1);
         const countryPath = [...parentPath, '国'];
+        /**
+         * Safely retrieves a nested value.
+         * @param {Object} obj - Source object.
+         * @param {string[]} p - Path array.
+         * @returns {any} The value at the path.
+         */
         const getValue = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : undefined), obj);
         const country = getValue(data, countryPath);
 

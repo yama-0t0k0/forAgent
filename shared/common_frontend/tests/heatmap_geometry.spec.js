@@ -12,6 +12,10 @@
 
 const assert = require('assert');
 
+/**
+ * Tests tile size calculation.
+ * @param {object} mod - The module to test.
+ */
 async function testTileSize(mod) {
   const { computeStandardContainerWidth, computeStandardTileSize } = mod;
   const containerWidth = computeStandardContainerWidth();
@@ -20,6 +24,10 @@ async function testTileSize(mod) {
   assert(containerWidth > 0, 'container width should be positive');
 }
 
+/**
+ * Tests tooltip position calculation.
+ * @param {Object} mod - The HeatmapGeometry module.
+ */
 async function testTooltipPositions(mod) {
   const { computeStandardContainerWidth, computeStandardTileSize, computeTooltipByFormula } = mod;
   const itemCount = 90;
@@ -47,6 +55,9 @@ async function testTooltipPositions(mod) {
   });
 }
 
+/**
+ * Runs all tests.
+ */
 async function run() {
   const mod = await import('../src/core/utils/HeatmapGeometry.js');
   await testTileSize(mod);

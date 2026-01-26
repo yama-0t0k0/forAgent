@@ -24,15 +24,21 @@ export const ConnectionLevelSelector = ({ value, path }) => {
   // Determine current level
   let currentLevel = 0;
   if (value && typeof value === 'object') {
+    /** @type {[string, any]} */
     const entry = Object.entries(value).find(([key, val]) =>
       key !== '_displayType' && val === true && CONNECTION_LEVEL_TEXTS.includes(key)
     );
     if (entry) {
+      /** @type {string | undefined} */
       const levelNum = Object.keys(CONNECTION_LEVELS).find(num => CONNECTION_LEVELS[num] === entry[0]);
       if (levelNum !== undefined) currentLevel = parseInt(levelNum, 10);
     }
   }
 
+  /**
+   * Handles level selection.
+   * @param {number} level - The selected level (1-3).
+   */
   const handleSelect = (level) => {
     const text = CONNECTION_LEVELS[level];
     const newValue = { [text]: true };

@@ -25,6 +25,10 @@ export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) =>
         { id: 'Menu', label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
     ];
 
+    /**
+     * Handles tab press navigation.
+     * @param {string} tabId - The ID of the tab to navigate to.
+     */
     const handlePress = (tabId) => {
         if (tabId === 'Home') {
             navigation.navigate('MyPage', { userDoc });

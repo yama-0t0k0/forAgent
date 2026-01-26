@@ -36,6 +36,11 @@ export const MonthYearPickerInput = ({ label, valueObj, path }) => {
 
   const dateValue = new Date(safeYear, safeMonth, 1);
 
+  /**
+   * Handles date picker change.
+   * @param {Object} event - The event object.
+   * @param {Date} [selectedDate] - The selected date.
+   */
   const onChange = (event, selectedDate) => {
     setShow(false);
     if (selectedDate && event.type !== 'dismissed') {

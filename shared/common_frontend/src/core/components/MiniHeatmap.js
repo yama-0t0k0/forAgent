@@ -30,6 +30,11 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
   const baseTileSize = HeatmapGeometry.computeStandardTileSize();
   const standardTileSize = baseTileSize * 0.7;
   
+  /**
+   * Gets the color for a heatmap value.
+   * @param {number} value - Normalized value (0-1).
+   * @returns {string} Hex color code.
+   */
   const getColor = (value) => {
     if (value === 0) return '#E2E8F0';
     if (value <= 0.2) return '#BAE6FD';
@@ -38,6 +43,11 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
     return '#0369A1';
   };
 
+  /**
+   * Handles tile press interaction.
+   * @param {HeatmapData} item - The heatmap data item.
+   * @param {number} index - Index in the data array.
+   */
   const handlePress = (item, index) => {
     if (selectedTile && selectedTile.id === item.id) {
       setSelectedTile(null);

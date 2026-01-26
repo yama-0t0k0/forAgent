@@ -27,6 +27,10 @@ const MOCK_TECH_STACK_FALLBACK = {
  * @param {CompanyListItemProps} props
  */
 export const CompanyListItem = ({ item }) => {
+  /**
+   * Main technologies extracted from tech stack
+   * @type {string[]}
+   */
   const mainTechs = useMemo(() => {
     // Use item.tech_stack if available, otherwise use fallback for visualization as requested
     // In a real scenario, we might show nothing if data is missing, but requirement is to show "corporate app's tech"

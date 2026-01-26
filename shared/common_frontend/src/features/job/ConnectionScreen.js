@@ -27,7 +27,10 @@ export const ConnectionScreen = ({ navigation, route }) => {
     const { data } = useContext(DataContext);
     const [activeType, setActiveType] = useState('jd'); // 'individual' or 'jd'
 
-    // Mock "Me" if not specified (default to C000000000000)
+    /**
+     * Current user document based on route params or data context.
+     * @type {Object|null}
+     */
     const currentUserDoc = useMemo(() => {
         // Adminアプリの場合、userDocがroute.paramsから渡されていない場合がある
         if (route?.params?.userDoc) {
@@ -51,6 +54,9 @@ export const ConnectionScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        /**
+         * Fetches and ranks candidates based on the active type.
+         */
         const fetchRankedData = async () => {
             if (!data || !currentUserDoc) return;
             setLoading(true);
@@ -74,6 +80,12 @@ export const ConnectionScreen = ({ navigation, route }) => {
         fetchRankedData();
     }, [data, currentUserDoc, activeType]);
 
+    /**
+     * Renders a candidate item (Job or Engineer).
+     * @param {Object} params
+     * @param {Object} params.item - Candidate data
+     * @returns {JSX.Element}
+     */
     const renderCandidate = ({ item }) => {
         if (activeType === 'jd') {
             const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;

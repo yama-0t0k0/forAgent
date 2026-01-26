@@ -43,6 +43,10 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
         if (!companyId || !jdNumber) return;
 
         const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
+        
+        /**
+         * Subscribe to real-time updates
+         */
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const jdData = docSnap.data();

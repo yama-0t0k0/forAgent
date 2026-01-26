@@ -48,7 +48,12 @@ export const MatchingService = {
      * @returns {Promise<Array<Object>>} スコア順にソートされた候補リスト
      */
     async rankCandidates(targetDoc, candidates, type = 'jd') {
-        const promises = candidates.map(async (candidate) => {
+        /**
+         * 候補者ごとにマッチングスコアを計算する内部関数
+         * @param {Object} candidate - 候補データ
+         * @returns {Promise<Object>} スコア付き候補データ
+         */
+        const processCandidate = async (candidate) => {
             const userDoc = type === 'jd' ? targetDoc : candidate;
             const jdDoc = type === 'jd' ? candidate : targetDoc;
 
@@ -58,7 +63,9 @@ export const MatchingService = {
                 matchingScore: result.matchingScore,
                 matchDetails: result
             };
-        });
+        };
+
+        const promises = candidates.map(processCandidate);
 
         const results = await Promise.all(promises);
         return results.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));

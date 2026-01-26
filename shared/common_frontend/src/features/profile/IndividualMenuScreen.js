@@ -41,6 +41,11 @@ export const IndividualMenuScreen = ({ navigation }) => {
         }
     ];
 
+    /**
+     * Handles menu item press.
+     * @param {Object} item - The pressed menu item.
+     * @param {Object} nav - Navigation object.
+     */
     const handlePress = (item, nav) => {
         if (item.target) {
             nav.navigate(item.target, { isEdit: true });

@@ -29,6 +29,9 @@ import { StatusRow } from './StatusRow';
 const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const [expanded, setExpanded] = useState(depth === 0);
 
+  /**
+   * Toggles the accordion expansion state.
+   */
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
@@ -72,11 +75,15 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
 export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = null }) => {
   if (!data || typeof data !== 'object') return null;
 
+  /** @type {string[]} */
   const rawKeys = Object.keys(data).filter(k => k !== '_displayType');
   let orderedKeys = rawKeys;
   if (orderTemplate && typeof orderTemplate === 'object') {
+    /** @type {string[]} */
     const templateKeys = Object.keys(orderTemplate).filter(k => k !== '_displayType');
+    /** @type {string[]} */
     const inTemplate = rawKeys.filter(k => templateKeys.includes(k)).sort((a, b) => templateKeys.indexOf(a) - templateKeys.indexOf(b));
+    /** @type {string[]} */
     const notInTemplate = rawKeys.filter(k => !templateKeys.includes(k));
     orderedKeys = [...inTemplate, ...notInTemplate];
   }
@@ -111,6 +118,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
           } else if (value._displayType === 'readOnlyStatus') {
             isReadOnlyStatus = true;
           } else {
+            /** @type {string[]} */
             const valKeys = Object.keys(value).filter(k => k !== '_displayType');
             if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
               isSkillLevelObj = true;

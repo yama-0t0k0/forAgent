@@ -65,6 +65,9 @@ export const GenericImageEditScreen = ({
     const [bgUrl, setBgUrl] = useState(sectionData[bgImageConfig.key] || '');
     const [saveStatus, setSaveStatus] = useState('idle');
 
+    /**
+     * Handles saving the image URLs to Firestore.
+     */
     const handleSave = async () => {
         setSaveStatus('saving');
         try {
@@ -75,6 +78,11 @@ export const GenericImageEditScreen = ({
             // Firestore Save
             const id = data[idFieldKey];
             if (id) {
+                /**
+                 * Recursively cleans data by removing keys starting with '_'.
+                 * @param {any} input - The data to clean.
+                 * @returns {any} The cleaned data.
+                 */
                 const cleanData = (input) => {
                     if (input === null || typeof input !== 'object') return input;
                     if (Array.isArray(input)) return input.map(cleanData);

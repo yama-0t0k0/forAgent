@@ -25,6 +25,11 @@ export const DataProvider = ({ children, initialData }) => {
     }
   }, [initialData]);
 
+  /**
+   * Updates a value at the specified path in the data object.
+   * @param {string[]} path - The path to the value.
+   * @param {any} newValue - The new value.
+   */
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
       const newData = JSON.parse(JSON.stringify(prevData));

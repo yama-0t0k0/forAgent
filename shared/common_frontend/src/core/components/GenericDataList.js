@@ -23,6 +23,11 @@ export const GenericDataList = ({
   contentContainerStyle,
   ...props 
 }) => {
+  /**
+   * Default key extractor using id or random string.
+   * @param {any} item - The data item.
+   * @returns {string} Unique key.
+   */
   const defaultKeyExtractor = (item) => item.id || item.JobStatID || Math.random().toString();
   
   const defaultEmptyComponent = (

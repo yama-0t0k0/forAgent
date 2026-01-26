@@ -22,6 +22,7 @@ export const parseFmjsTimestamp = (ts) => {
  */
 export const getCompanyName = (companyId, corporateData) => {
     if (!companyId || !corporateData) return '-';
+    /** @type {Object} */
     const company = corporateData.find(c => c.id === companyId);
     return company?.companyName || company?.name || company?.['会社概要']?.['会社名'] || companyId;
 };
@@ -38,6 +39,10 @@ export const extractSkills = (user) => {
 
     if (!root) return skills;
 
+    /**
+     * オブジェクトを再帰的に走査してスキルを抽出する内部関数
+     * @param {Object} obj - 走査対象のオブジェクト
+     */
     const traverse = (obj) => {
         Object.entries(obj).forEach(([key, value]) => {
             if (typeof value === 'object' && value !== null) {

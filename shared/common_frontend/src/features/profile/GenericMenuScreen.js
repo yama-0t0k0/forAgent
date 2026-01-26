@@ -55,6 +55,10 @@ export const GenericMenuScreen = ({
 }) => {
     const navigation = useNavigation();
 
+    /**
+     * Handles menu item press.
+     * @param {MenuItem} item - The pressed menu item.
+     */
     const handlePress = (item) => {
         if (onItemPress) {
             onItemPress(item, navigation);

@@ -17,6 +17,11 @@
 // - 単体検証: Node.jsでの簡易テスト実行が可能（CommonJSエクスポートを併用）
 // 例: node shared/common_frontend/tests/heatmap_geometry.spec.js
 
+/**
+ * 画面幅を取得します。
+ * React Native環境外（テスト等）ではデフォルト値(360)を返します。
+ * @returns {number} 画面幅
+ */
 const getScreenWidth = () => {
   try {
     const { Dimensions } = require('react-native');

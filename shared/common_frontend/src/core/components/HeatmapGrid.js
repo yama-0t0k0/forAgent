@@ -45,6 +45,11 @@ export const HeatmapGrid = ({
   const [containerSize, setContainerSize] = useState({ width: containerWidth, height: 0 });
   const [tileLayouts, setTileLayouts] = useState({});
 
+  /**
+   * Gets the color for a heatmap value.
+   * @param {number} value - Normalized value (0-1).
+   * @returns {string} Hex color code.
+   */
   const getColor = (value) => {
     if (value === 0) return '#E2E8F0'; // light gray
     if (value <= 0.2) return '#BAE6FD'; // sky-200
@@ -53,6 +58,9 @@ export const HeatmapGrid = ({
     return '#0369A1'; // sky-700
   };
 
+  /**
+   * Memoized grid data with colors.
+   */
   const gridData = useMemo(() => {
     return Array(itemCount).fill(0).map((_, i) => {
       const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : (i % 4 === 0 ? 0.8 : i % 4 === 1 ? 0.3 : i % 4 === 2 ? 0.5 : 1.0);
@@ -66,6 +74,11 @@ export const HeatmapGrid = ({
 
   const tileSize = Math.floor(containerWidth / columns) - 4;
 
+  /**
+   * Handles tile press interaction.
+   * @param {Object} item - The tile item.
+   * @param {number} index - The tile index.
+   */
   const handlePress = (item, index) => {
     console.log(`HeatmapGrid: Tile ${index} pressed (id: ${item.id})`);
     if (selectedTile && selectedTile.id === item.id) {
