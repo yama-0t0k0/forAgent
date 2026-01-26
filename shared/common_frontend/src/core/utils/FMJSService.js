@@ -12,6 +12,7 @@ export const FMJSService = {
      * @param {string} companyId - 会社ID (例: B00000)
      * @param {string} jdId - JD番号 (例: 02)
      * @param {Object} jdData - JDのデータ（タイトル等）
+     * @returns {Promise<{success: boolean, jobStatId?: string, error?: any}>} 作成結果
      */
     async createMatching(userId, companyId, jdId, jdData) {
         try {

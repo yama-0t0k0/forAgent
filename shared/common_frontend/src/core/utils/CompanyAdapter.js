@@ -5,6 +5,19 @@
  * into a standardized structure for UI consumption.
  */
 
+/**
+ * 会社データをUI表示用にアダプトします。
+ * Adminアプリのフラットな構造とCorporateアプリのネストされた構造の両方に対応します。
+ * 
+ * @param {Object} data Firestoreからの生の会社データ
+ * @returns {Object} UIコンポーネントで利用可能な標準化された会社データオブジェクト
+ * @property {Object} raw 元のデータセクション（会社概要、魅力/特徴、技術スタック）
+ * @property {string} companyName 会社名
+ * @property {string} businessContent 事業内容
+ * @property {string|null} backgroundUrl 背景画像URL
+ * @property {string|null} logoUrl ロゴ画像URL
+ * @property {string[]} _debugKeys デバッグ用のキーリスト
+ */
 export const adaptCompanyData = (data = {}) => {
     // 1. Extract nested sections
     const companyInfo = data['会社概要'] || {};

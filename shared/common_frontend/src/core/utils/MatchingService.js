@@ -41,6 +41,11 @@ export const MatchingService = {
      * リスト形式のデータをランク付けします（プロトタイプ版）
      * ※ 本来はバックエンド側でバッチ処理することが望ましいですが、
      * 現状の画面ロジックを維持するため、個別にAPIを叩く暫定的な実装です。
+     * 
+     * @param {Object} targetDoc 比較対象のドキュメント（ユーザーまたは求人）
+     * @param {Array<Object>} candidates 候補リスト
+     * @param {'jd'|'user'} [type='jd'] ターゲットの種類 ('jd': 求人に対するユーザーランク, 'user': ユーザーに対する求人ランク)
+     * @returns {Promise<Array<Object>>} スコア順にソートされた候補リスト
      */
     async rankCandidates(targetDoc, candidates, type = 'jd') {
         const promises = candidates.map(async (candidate) => {

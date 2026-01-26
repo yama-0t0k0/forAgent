@@ -21,6 +21,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
+/**
+ * @typedef {Object} ImageConfig
+ * @property {string} key - Data key for the image URL
+ * @property {string} [label] - Input field label
+ * @property {string} [placeholder] - Input placeholder
+ * @property {string} [icon] - Icon name for the input field
+ * @property {string} [previewLabel] - Label for the image preview
+ */
+
+/**
+ * @typedef {Object} GenericImageEditScreenProps
+ * @property {string} dataSectionKey - Key in DataContext to access the relevant data section
+ * @property {string} collectionName - Firestore collection name to save data to
+ * @property {string} idFieldKey - Key for the ID field in DataContext
+ * @property {ImageConfig} mainImageConfig - Configuration for the main profile image
+ * @property {ImageConfig} bgImageConfig - Configuration for the background image
+ * @property {function(object): React.ReactNode} [renderBottomNav] - Function to render bottom navigation
+ */
+
+/**
+ * Generic Image Edit Screen
+ * A generic component for editing profile and background images.
+ * Supports image URL input, preview, and Firestore saving.
+ * 
+ * @param {GenericImageEditScreenProps} props
+ */
 export const GenericImageEditScreen = ({
     dataSectionKey,
     collectionName,

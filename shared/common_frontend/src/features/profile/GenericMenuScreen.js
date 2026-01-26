@@ -18,6 +18,36 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+/**
+ * @typedef {Object} MenuItem
+ * @property {string} id - Unique identifier for the menu item
+ * @property {string} label - Display label
+ * @property {string} icon - Icon name (Ionicons)
+ * @property {string} [target] - Navigation target route name
+ * @property {string} [color] - Text and icon color (hex string)
+ * @property {string} [rightIcon] - Icon name for the right side (default: chevron-forward)
+ */
+
+/**
+ * @typedef {Object} MenuGroup
+ * @property {string} title - Group title
+ * @property {MenuItem[]} items - List of menu items in this group
+ */
+
+/**
+ * @typedef {Object} GenericMenuScreenProps
+ * @property {MenuGroup[]} menuGroups - Configuration for menu groups and items
+ * @property {function(object): React.ReactNode} [renderBottomNav] - Function to render bottom navigation
+ * @property {function(MenuItem, object): void} [onItemPress] - Callback when a menu item is pressed
+ */
+
+/**
+ * Generic Menu Screen
+ * Displays a list of grouped menu items.
+ * Customizable via props for menu structure and navigation behavior.
+ * 
+ * @param {GenericMenuScreenProps} props
+ */
 export const GenericMenuScreen = ({
     menuGroups,
     renderBottomNav,

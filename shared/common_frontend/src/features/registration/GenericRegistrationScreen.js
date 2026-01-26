@@ -18,6 +18,18 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * @typedef {Object} CategoryScreenProps
+ * @property {Object} route - Route object
+ * @property {Object} route.params - Route parameters
+ * @property {string} route.params.rootKey - Root key for data
+ * @property {Object} [route.params.orderTemplateRoot] - Order template
+ */
+
+/**
+ * Category Screen for Tab Navigator
+ * @param {CategoryScreenProps} props
+ */
 const CategoryScreen = ({ route }) => {
   const { rootKey, orderTemplateRoot } = route.params;
   const { data } = useContext(DataContext);
@@ -32,6 +44,22 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
+/**
+ * @typedef {Object} GenericRegistrationScreenProps
+ * @property {string} collectionName - Firestore collection name
+ * @property {string} idField - Field name for ID
+ * @property {string} [title] - Screen title
+ * @property {string} [idPrefixChar='C'] - ID prefix character
+ * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
+ * @property {Object} [orderTemplate] - Template for field ordering
+ */
+
+/**
+ * Generic Registration Screen
+ * Handles multi-tab registration forms with Firestore saving.
+ * 
+ * @param {GenericRegistrationScreenProps} props
+ */
 export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();

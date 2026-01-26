@@ -1,23 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
-
-const formatAddress = (addr) => {
-  if (!addr) return '-';
-  if (typeof addr === 'string') return addr;
-  if (typeof addr === 'object') {
-    const parts = [
-      addr['郵便番号(ハイフンなし)'] ? `〒${addr['郵便番号(ハイフンなし)']}` : null,
-      addr['都道府県'],
-      addr['市区町村'],
-      addr['町名_番地'],
-      addr['建物名_部屋番号等'],
-    ].filter(Boolean);
-    const joined = parts.join(' ');
-    return joined || '-';
-  }
-  return String(addr);
-};
+import { Company } from '../../../core/models/Company';
 
 // Fallback Mock Data matching corporate_user_app
 const MOCK_TECH_STACK_FALLBACK = {
@@ -33,6 +17,15 @@ const MOCK_TECH_STACK_FALLBACK = {
   },
 };
 
+/**
+ * @typedef {Object} CompanyListItemProps
+ * @property {Company|Object} item - Company data
+ */
+
+/**
+ * Company List Item Component
+ * @param {CompanyListItemProps} props
+ */
 export const CompanyListItem = ({ item }) => {
   const mainTechs = useMemo(() => {
     // Use item.tech_stack if available, otherwise use fallback for visualization as requested
@@ -56,16 +49,17 @@ export const CompanyListItem = ({ item }) => {
     return techs;
   }, [item]);
 
-  // Handle both flat and nested data structures (for Admin App compatibility)
-  const companyName = item.companyName || item.name || item['会社概要']?.['社名'] || '名称未設定';
-  const addressRaw = item.address || item['会社概要']?.['住所'] || item['会社概要']?.['本社所在地'];
-  const address = formatAddress(addressRaw);
+  // Use Company model to handle data normalization
+  const company = item instanceof Company ? item : Company.fromFirestore(item.id, item);
+
+  const companyName = company.name || '名称未設定';
+  const address = company.formattedAddress;
 
   return (
     <View style={styles.container}>
       <View style={styles.leftContent}>
         <Text style={styles.itemTitle}>{companyName}</Text>
-        <Text style={styles.itemSubtitle}>ID: {String(item.id || '')}</Text>
+        <Text style={styles.itemSubtitle}>ID: {String(company.id || '')}</Text>
         <Text style={styles.itemDetail}>{address}</Text>
       </View>
       

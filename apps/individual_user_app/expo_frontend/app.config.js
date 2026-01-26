@@ -1,3 +1,10 @@
+/**
+ * Expo Config
+ * https://docs.expo.dev/workflow/configuration/
+ *
+ * @param {import('expo/config').ConfigContext} configContext
+ * @returns {import('expo/config').ExpoConfig}
+ */
 module.exports = ({ config }) => {
   return {
     ...config,
@@ -8,12 +15,10 @@ module.exports = ({ config }) => {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
-    platforms: [
-      "ios",
-      "android"
-    ],
     plugins: [
-      "expo-asset"
+      "expo-asset",
+      "expo-router",
+      "expo-web-browser"
     ],
     splash: {
       "image": "./assets/splash-icon.png",

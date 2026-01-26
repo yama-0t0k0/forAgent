@@ -3,7 +3,30 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { GlassCard } from '../../../core/components/GlassCard';
 import { MiniHeatmap } from '../../../core/components/MiniHeatmap';
 import { THEME } from '../../../core/theme/theme';
+import { JobDescription } from '../../../core/models/JobDescription';
 
+/**
+ * @typedef {Object} Skills
+ * @property {string[]} core - Core skills
+ * @property {string[]} sub1 - Sub skills 1
+ * @property {string[]} sub2 - Sub skills 2
+ */
+
+/**
+ * @typedef {Object} JobListItemProps
+ * @property {JobDescription|Object} job - Job data
+ * @property {Skills} skills - Skills data
+ * @property {Object} [heatmapData] - Heatmap data
+ * @property {string} [companyName] - Company name
+ * @property {function(): void} [onPress] - Press handler
+ * @property {Object} [style] - Container style
+ * @property {string} [testID] - Test ID
+ */
+
+/**
+ * Job List Item Component
+ * @param {JobListItemProps} props
+ */
 export const JobListItem = ({
   job,
   skills,
@@ -13,9 +36,18 @@ export const JobListItem = ({
   style,
   testID
 }) => {
-  const title = job['求人基本項目']?.['ポジション名'] || job.title || 'タイトル未設定';
-  const jdNumber = job.JD_Number || job['求人基本項目']?.JD_Number || '-';
+  // Use JobDescription model
+  const jd = job instanceof JobDescription 
+    ? job 
+    : JobDescription.fromFirestore(job.JD_Number || job.id, job);
+
+  const title = jd.positionName || 'タイトル未設定';
+  const jdNumber = jd.id || '-';
+  
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
+
+  // Handle matching score
+  const matchingScore = jd.rawData.matchingScore !== undefined ? jd.rawData.matchingScore : job.matchingScore;
 
   return (
     <TouchableOpacity
@@ -32,9 +64,9 @@ export const JobListItem = ({
               <Text style={styles.itemSubtitleModern}>JD No: {jdNumber}</Text>
               <Text style={styles.itemDetail}>Company: {companyName}</Text>
             </View>
-            {job.matchingScore !== undefined && (
+            {matchingScore !== undefined && (
               <View style={styles.matchBadge}>
-                <Text style={styles.matchScoreText}>{job.matchingScore}%</Text>
+                <Text style={styles.matchScoreText}>{matchingScore}%</Text>
                 <Text style={styles.matchLabel}>Match</Text>
               </View>
             )}

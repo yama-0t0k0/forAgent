@@ -21,6 +21,11 @@ const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 /**
  * @typedef {Object} IndividualProfileScreenProps
  * @property {Object} route
+ * @property {Object} [route.params]
+ * @property {string} [route.params.userId]
+ * @property {Object} [route.params.userDoc]
+ * @property {boolean} [route.params.hideSafeArea]
+ * @property {boolean} [route.params.showBottomNav]
  * @property {string} [userId]
  * @property {Object} [userDoc]
  * @property {boolean} [hideSafeArea]
@@ -28,6 +33,9 @@ const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
  */
 
 /**
+ * Individual Profile Screen
+ * Displays the profile of an individual engineer.
+ * 
  * @param {IndividualProfileScreenProps} props
  */
 export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {

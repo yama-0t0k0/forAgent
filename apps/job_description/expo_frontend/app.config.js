@@ -1,19 +1,23 @@
+/**
+ * Expo Config
+ * https://docs.expo.dev/workflow/configuration/
+ *
+ * @param {import('expo/config').ConfigContext} configContext
+ * @returns {import('expo/config').ExpoConfig}
+ */
 module.exports = ({ config }) => {
   return {
     ...config,
     name: "JD（求人）",
-    slug: "job-description-app",
+    slug: "my-expo-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
-    platforms: [
-      "ios",
-      "android"
-    ],
     plugins: [
       "expo-asset",
+      "expo-router",
       "expo-web-browser"
     ],
     splash: {

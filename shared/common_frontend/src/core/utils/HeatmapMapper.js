@@ -102,7 +102,13 @@ export const HeatmapMapper = {
      * @param {boolean} isAspiration
      * @returns {number|null}
      */
-    getIndex(key, isAspiration = false) {
+    /**
+   * キーに対応するインデックスを取得します。
+   * @param {string} key - スキルまたは志向性のキー
+   * @param {boolean} [isAspiration=false] - 志向性の場合はtrue
+   * @returns {number|null} インデックス（存在しない場合はnull）
+   */
+  getIndex(key, isAspiration = false) {
         if (isAspiration) {
             return this.aspirationMapping[key] ?? null;
         }

@@ -5,6 +5,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+/**
+ * @typedef {Object} CareerScreenProps
+ * @property {Object} navigation - Navigation object
+ */
+
+/**
+ * Career Screen
+ * Displays career progress and selection status.
+ * 
+ * @param {CareerScreenProps} props
+ */
 export const CareerScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>

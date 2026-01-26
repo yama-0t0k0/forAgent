@@ -26,20 +26,48 @@ const getScreenWidth = () => {
   }
 };
 
+/**
+ * 標準のコンテナ幅を計算します。
+ * (画面幅 - 40)
+ * @returns {number} コンテナ幅
+ */
 export const computeStandardContainerWidth = () => {
   return getScreenWidth() - 40;
 };
 
+/**
+ * 標準のタイルサイズを計算します。
+ * 9列固定で計算します。
+ * @returns {number} タイルサイズ
+ */
 export const computeStandardTileSize = () => {
   const columns = 9;
   const containerWidth = computeStandardContainerWidth();
   return Math.floor(containerWidth / columns) - 4;
 };
 
+/**
+ * 指定されたコンテナ幅からタイルサイズを計算します。
+ * @param {number} containerWidth コンテナ幅
+ * @param {number} [columns=9] 列数 (デフォルト: 9)
+ * @returns {number} タイルサイズ
+ */
 export const computeTileSizeFromContainer = (containerWidth, columns = 9) => {
   return Math.floor(containerWidth / columns) - 4;
 };
 
+/**
+ * ツールチップの表示位置を計算します。
+ * @param {Object} params パラメータオブジェクト
+ * @param {number} params.index タイルのインデックス
+ * @param {number} params.itemCount 総アイテム数
+ * @param {number} [params.columns=9] 列数
+ * @param {number} params.tileSize タイルサイズ
+ * @param {number} [params.margin=2] マージン
+ * @param {number} [params.tooltipWidth=140] ツールチップの幅
+ * @param {number} [params.containerWidth] コンテナ幅
+ * @returns {{left: number, top: number, showAbove: boolean, arrowLeft: number}} 計算された座標情報
+ */
 export const computeTooltipByFormula = ({
   index,
   itemCount,

@@ -3,6 +3,19 @@ import { GenericImageEditScreen } from './GenericImageEditScreen';
 import { BottomNav } from '../../core/components/BottomNav';
 import { View } from 'react-native';
 
+/**
+ * @typedef {Object} IndividualImageEditScreenProps
+ * @property {Object} navigation - Navigation object
+ * @property {Object} route - Route object
+ */
+
+/**
+ * Individual Image Edit Screen
+ * Wrapper around GenericImageEditScreen for Individual Users.
+ * Configured with individual-specific data keys and collection names.
+ * 
+ * @param {IndividualImageEditScreenProps} props
+ */
 export const IndividualImageEditScreen = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1 }}>

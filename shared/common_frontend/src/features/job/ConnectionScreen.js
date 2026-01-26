@@ -9,6 +9,20 @@ import { EngineerListItem } from '@shared/src/features/engineer/components/Engin
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 
+/**
+ * @typedef {Object} ConnectionScreenProps
+ * @property {Object} navigation - Navigation object
+ * @property {Object} [route] - Route object
+ * @property {Object} [route.params] - Route parameters
+ * @property {Object} [route.params.userDoc] - User document
+ */
+
+/**
+ * Connection Screen
+ * Displays a list of connection candidates (Jobs or Engineers).
+ * 
+ * @param {ConnectionScreenProps} props
+ */
 export const ConnectionScreen = ({ navigation, route }) => {
     const { data } = useContext(DataContext);
     const [activeType, setActiveType] = useState('jd'); // 'individual' or 'jd'
