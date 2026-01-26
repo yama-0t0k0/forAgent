@@ -13,6 +13,8 @@ export class Company {
      * @param {string} capital - Capital
      * @param {string} employeeCount - Employee Count
      * @param {string} averageAnnualIncome - Average Annual Income
+     * @param {string} backgroundUrl - Background Image URL
+     * @param {string} logoUrl - Logo Image URL
      * @param {Object.<string, any>} appeal - Appeal/Features data
      * @param {Object.<string, any>} payment - Payment information
      * @param {Object.<string, any>} connection - Connection information
@@ -28,6 +30,8 @@ export class Company {
         capital,
         employeeCount,
         averageAnnualIncome,
+        backgroundUrl,
+        logoUrl,
         appeal = {},
         payment = {},
         connection = {},
@@ -51,6 +55,10 @@ export class Company {
         this.employeeCount = employeeCount || "";
         /** @type {string} */
         this.averageAnnualIncome = averageAnnualIncome || "";
+        /** @type {string} */
+        this.backgroundUrl = backgroundUrl || "";
+        /** @type {string} */
+        this.logoUrl = logoUrl || "";
         /** @type {Object.<string, any>} */
         this.appeal = appeal || {};
         /** @type {Object.<string, any>} */
@@ -68,9 +76,12 @@ export class Company {
      * @returns {Company}
      */
     static fromFirestore(id, data) {
-        if (!data) return new Company(id, "", "", "", "", "", "", "", "", {}, {}, {}, {});
+        if (!data) return new Company(id, "", "", "", "", "", "", "", "", "", "", {}, {}, {}, {});
 
         const profile = data['会社概要'] || {};
+        const appeal = data['魅力/特徴'] || data.appeal || {};
+        const payment = data['決済'] || data.payment || {};
+        const connection = data['繋がり'] || data.connection || {};
         
         return new Company(
             id,
@@ -82,9 +93,11 @@ export class Company {
             String(profile['資本金'] || data.capital || ""),
             String(profile['正社員数'] || data.employeeCount || ""),
             String(profile['平均年収'] || data.averageAnnualIncome || ""),
-            data['魅力/特徴'] || data.appeal || {},
-            data['決済'] || data.payment || {},
-            data['繋がり'] || data.connection || {},
+            String(profile['背景画像URL'] || data.backgroundUrl || ""),
+            String(profile['ロゴ画像URL'] || data.logoUrl || ""),
+            appeal,
+            payment,
+            connection,
             data
         );
     }

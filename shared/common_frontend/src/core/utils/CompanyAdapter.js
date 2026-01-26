@@ -1,3 +1,5 @@
+import { Company } from '../models/Company';
+
 /**
  * CompanyAdapter.js
  * 
@@ -19,26 +21,26 @@
  * @property {string[]} _debugKeys デバッグ用のキーリスト
  */
 export const adaptCompanyData = (data = {}) => {
-    // 1. Extract nested sections
-    const companyInfo = data['会社概要'] || {};
-    const features = data['魅力/特徴'] || {};
-    const techStack = data['技術スタック'] || data['使用技術'] || {};
+    // 1. Convert to Model
+    const company = Company.fromFirestore(data.id || '', data);
 
-    // 2. Resolve flat vs nested fields with fallbacks
-    // Compatibility for admin_app flat data or legacy data
-    const companyName = companyInfo['社名'] || data['name'] || data['companyName'] || '会社名未設定';
+    // 2. Extract nested sections (legacy support or raw access)
+    // Note: features is mapped to company.appeal
+    const rawCompanyInfo = data['会社概要'] || {};
+    const rawTechStack = data['技術スタック'] || data['使用技術'] || {};
 
-    const businessContent = companyInfo['事業内容'] || data['description'] || data['businessContent'] || '事業内容が設定されていません。';
-
-    const backgroundUrl = companyInfo['背景画像URL'] || data['backgroundUrl'] || null;
-    const logoUrl = companyInfo['ロゴ画像URL'] || data['logoUrl'] || null;
+    // 3. Resolve flat vs nested fields using Company model logic
+    const companyName = company.name || '会社名未設定';
+    const businessContent = company.businessContent || '事業内容が設定されていません。';
+    const backgroundUrl = company.backgroundUrl || null;
+    const logoUrl = company.logoUrl || null;
 
     return {
         // Raw sections (for components that need them directly)
         raw: {
-            companyInfo,
-            features,
-            techStack
+            companyInfo: rawCompanyInfo,
+            features: company.appeal,
+            techStack: rawTechStack
         },
         // Standardized flat fields
         companyName,
