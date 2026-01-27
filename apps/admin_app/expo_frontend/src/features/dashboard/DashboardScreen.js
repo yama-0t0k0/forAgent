@@ -5,6 +5,12 @@ import { DataContext } from '@shared/src/core/state/DataContext';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
+// Models
+import { User } from '@shared/src/core/models/User';
+import { Company } from '@shared/src/core/models/Company';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
+import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
+
 // Styles
 import { styles } from './dashboardStyles';
 
@@ -160,15 +166,15 @@ export default function DashboardScreen() {
   // Individual Tab Data
   /**
    * Filters user list based on search query.
-   * @type {Array<Object>}
+   * @type {Array<User>}
    */
   const filteredUsers = useMemo(() => {
     const query = searchQueries.individual.toLowerCase();
-    const users = [...(data?.users || [])];
+    const rawUsers = [...(data?.users || [])];
 
     // Inject E2E Dummy User if empty
-    if (users.length === 0) {
-      users.push({
+    if (rawUsers.length === 0) {
+      rawUsers.push({
         id: 'C000000000000',
         name: '【テスト】開発者 (E2E用)',
         '基本情報': {
@@ -180,15 +186,22 @@ export default function DashboardScreen() {
       });
     }
 
+    // Convert to User models
+    const users = rawUsers.map(u => User.fromFirestore(u.id, u));
+
     return users.filter(u => {
-      const basicInfo = u['基本情報'] || {};
+      // Use rawData for nested fields not fully mapped in User model yet
+      const basicInfo = u.rawData['基本情報'] || {};
       const address = basicInfo['住所'] || {};
       const education = basicInfo['学歴詳細'] || {};
 
       const searchableText = [
         u.id,
-        u.name,
+        u.firstNameKanji,
+        u.familyNameKanji,
         u.email,
+        // Fallback checks for raw data
+        u.rawData.name, 
         basicInfo['姓'],
         basicInfo['名'],
         basicInfo['メールアドレス'],
@@ -197,49 +210,51 @@ export default function DashboardScreen() {
       ].filter(Boolean).join(' ').toLowerCase();
 
       return searchableText.includes(query);
-    }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Newest first
+    }).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0)); // Newest first
   }, [data?.users, searchQueries.individual]);
 
   // Company Tab Data
   /**
    * Filters company list based on search query.
-   * @type {Array<Object>}
+   * @type {Array<Company>}
    */
   const filteredCompanies = useMemo(() => {
     const query = searchQueries.company.toLowerCase();
-    const companies = [...(data?.corporate || [])];
+    const rawCompanies = [...(data?.corporate || [])];
 
-    if (companies.length === 0) {
-      companies.push({
+    if (rawCompanies.length === 0) {
+      rawCompanies.push({
         id: 'B00000',
         companyName: '【テスト】サンプル株式会社 (E2E用)',
         createdAt: 0
       });
-      companies.push({
+      rawCompanies.push({
         id: 'B00001',
         companyName: '【テスト】別の会社 (E2E用)',
         createdAt: 1
       });
     }
 
+    const companies = rawCompanies.map(c => Company.fromFirestore(c.id, c));
+
     return companies.filter(c =>
       (c.id && c.id.toLowerCase().includes(query)) ||
-      (c.companyName && c.companyName.toLowerCase().includes(query)) ||
-      (c.name && c.name.toLowerCase().includes(query))
-    ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      (c.name && c.name.toLowerCase().includes(query)) ||
+      (c.rawData.companyName && c.rawData.companyName.toLowerCase().includes(query))
+    ).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0));
   }, [data?.corporate, searchQueries.company]);
 
   // Job Tab Data
   /**
    * Filters job list based on search query.
-   * @type {Array<Object>}
+   * @type {Array<JobDescription>}
    */
   const filteredJobs = useMemo(() => {
     const query = searchQueries.job.toLowerCase();
-    const jobs = [...(data?.jd || [])];
+    const rawJobs = [...(data?.jd || [])];
 
-    if (jobs.length === 0) {
-      jobs.push({
+    if (rawJobs.length === 0) {
+      rawJobs.push({
         id: 'J00000',
         JD_Number: '02',
         company_ID: 'B00000',
@@ -248,20 +263,26 @@ export default function DashboardScreen() {
       });
     }
 
+    const jobs = rawJobs.map(j => JobDescription.fromFirestore(j.id, j));
+
     return jobs.filter(j => {
       // 検索対象のフィールドを定義
       const id = j.id || '';
-      const jdNumber = j.JD_Number || '';
-      const positionName = j['求人基本項目']?.['ポジション名'] || '';
-      const title = j.title || '';
+      const jdNumber = j.id || ''; // JD_Number is often the ID
+      const positionName = j.positionName || '';
+      
+      // Also check raw fields for safety
+      const rawTitle = j.rawData.title || '';
+      const rawJdNumber = j.rawData.JD_Number || '';
 
       return (
         id.toLowerCase().includes(query) ||
         jdNumber.toLowerCase().includes(query) ||
         positionName.toLowerCase().includes(query) ||
-        title.toLowerCase().includes(query)
+        rawTitle.toLowerCase().includes(query) ||
+        rawJdNumber.toLowerCase().includes(query)
       );
-    }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0));
   }, [data?.jd, searchQueries.job]);
 
   // Selection Tab Data
@@ -270,11 +291,12 @@ export default function DashboardScreen() {
    * @type {Array<Object>}
    */
   const selectionFlowData = useMemo(() => {
-    const fmjs = data?.fmjs || [];
+    const rawFmjs = data?.fmjs || [];
+    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
     const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
 
     fmjs.forEach(item => {
-      const phases = item['選考進捗']?.['fase_フェイズ'] || {};
+      const phases = item.progress[SelectionProgress.FIELDS.PHASE] || {};
       if (phases['応募_書類選考']) counts.entry++;
       if (phases['1次面接']) counts.doc_pass++;
       if (phases['2次面接'] || phases['最終面接']) counts.interview_1++;
@@ -301,25 +323,31 @@ export default function DashboardScreen() {
 
   /**
    * Filters selection list based on search query.
-   * @type {Array<Object>}
+   * @type {Array<SelectionProgress>}
    */
   const filteredSelections = useMemo(() => {
     const query = searchQueries.selection.toLowerCase();
-    return (data?.fmjs || []).filter(s =>
-      (s.JobStatID && s.JobStatID.toLowerCase().includes(query)) ||
-      (s['選考進捗']?.['id_individual_個人ID'] && s['選考進捗']['id_individual_個人ID'].toLowerCase().includes(query))
-    ).sort((a, b) => (b.UpdateTimestamp_yyyymmddtttttt || 0) - (a.UpdateTimestamp_yyyymmddtttttt || 0));
+    const rawFmjs = data?.fmjs || [];
+    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+
+    return fmjs.filter(s =>
+      (s.rawData.JobStatID && s.rawData.JobStatID.toLowerCase().includes(query)) ||
+      (s.progress[SelectionProgress.FIELDS.INDIVIDUAL_ID] && s.progress[SelectionProgress.FIELDS.INDIVIDUAL_ID].toLowerCase().includes(query))
+    ).sort((a, b) => (b.rawData.UpdateTimestamp_yyyymmddtttttt || 0) - (a.rawData.UpdateTimestamp_yyyymmddtttttt || 0));
   }, [data?.fmjs, searchQueries.selection]);
 
   // Modal Data (Drill-down)
   /**
    * Filters data for the drill-down modal.
-   * @type {Array<Object>}
+   * @type {Array<SelectionProgress>}
    */
   const modalData = useMemo(() => {
     if (!modalFilter) return [];
-    return (data?.fmjs || []).filter(item => {
-      const phases = item['選考進捗']?.['fase_フェイズ'] || {};
+    const rawFmjs = data?.fmjs || [];
+    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    
+    return fmjs.filter(item => {
+      const phases = item.progress[SelectionProgress.FIELDS.PHASE] || {};
       return phases[modalFilter.key] === true;
     });
   }, [data?.fmjs, modalFilter]);

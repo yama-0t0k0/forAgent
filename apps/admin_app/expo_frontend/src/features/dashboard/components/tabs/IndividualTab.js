@@ -28,8 +28,10 @@ export const IndividualTab = ({
     <GenericDataList
       data={filteredUsers}
       renderItem={({ item }) => {
-        const skills = extractSkills(item);
-        const heatmapInfo = getHighDensityHeatmapData(item);
+        // Handle both Model and raw object
+        const rawItem = item.rawData || item;
+        const skills = extractSkills(item); // extractSkills now handles User model
+        const heatmapInfo = getHighDensityHeatmapData(rawItem);
 
         return (
           <EngineerListItem

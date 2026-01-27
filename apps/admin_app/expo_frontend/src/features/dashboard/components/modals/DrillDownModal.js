@@ -23,13 +23,22 @@ export const DrillDownModal = ({ visible, title, data, onClose }) => (
       </View>
       <GenericDataList
         data={data}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text style={styles.itemTitle}>JobStatID: {item.JobStatID}</Text>
-            <Text style={styles.itemSubtitle}>個人: {item['選考進捗']?.['id_individual_個人ID']}</Text>
-            <Text style={styles.itemDetail}>更新日: {item.UpdateTimestamp_yyyymmddtttttt}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          // Handle SelectionProgress model or raw object
+          const rawItem = item.rawData || item;
+          // Use model getters if available, fallback to raw keys
+          const jobId = item.jobId || rawItem.JobStatID;
+          const individualId = item.individualId || rawItem['選考進捗']?.['id_individual_個人ID'];
+          const timestamp = rawItem.UpdateTimestamp_yyyymmddtttttt;
+
+          return (
+            <View style={styles.listItem}>
+              <Text style={styles.itemTitle}>JobStatID: {jobId}</Text>
+              <Text style={styles.itemSubtitle}>個人: {individualId}</Text>
+              <Text style={styles.itemDetail}>更新日: {timestamp}</Text>
+            </View>
+          );
+        }}
         contentContainerStyle={styles.listContainer}
       />
     </View>

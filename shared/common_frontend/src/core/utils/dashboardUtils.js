@@ -34,8 +34,9 @@ export const getCompanyName = (companyId, corporateData) => {
  */
 export const extractSkills = (user) => {
     const skills = { core: [], sub1: [], sub2: [] };
-    // Handle both user profile structure (現職種) and job description structure (スキル経験)
-    const root = user?.['スキル経験']?.['現職種']?.['技術職'] || user?.['スキル経験'];
+    // Handle both User model, user profile structure (現職種) and job description structure (スキル経験)
+    const skillsData = user?.skillsExperience || user?.['スキル経験'];
+    const root = skillsData?.['現職種']?.['技術職'] || skillsData;
 
     if (!root) return skills;
 

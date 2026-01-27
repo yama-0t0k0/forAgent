@@ -27,16 +27,26 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
     />
     <GenericDataList
       data={filteredSelections}
-      renderItem={({ item }) => (
-        <View style={styles.listItem} testID="selection_item">
-          <Text style={styles.itemTitle}>JobStatID: {item.JobStatID}</Text>
-          <Text style={styles.itemSubtitle}>個人: {item['選考進捗']?.['id_individual_個人ID']}</Text>
-          <Text style={styles.itemDetail}>求人: {item['選考進捗']?.['JD_Number']}</Text>
-          <Text style={styles.statusBadge}>
-            {Object.keys(item['選考進捗']?.['status_ステータス'] || {}).filter(k => item['選考進捗']['status_ステータス'][k]).join(', ')}
-          </Text>
-        </View>
-      )}
+      renderItem={({ item }) => {
+        // Handle SelectionProgress model or raw object
+        const rawItem = item.rawData || item;
+        const jobId = item.jobId || rawItem.JobStatID;
+        const individualId = item.individualId || rawItem['選考進捗']?.['id_individual_個人ID'];
+        const jdNumber = item.jdNumber || rawItem['選考進捗']?.['JD_Number'];
+        const status = Object.keys(rawItem['選考進捗']?.['status_ステータス'] || {})
+          .filter(k => rawItem['選考進捗']['status_ステータス'][k]).join(', ');
+
+        return (
+          <View style={styles.listItem} testID="selection_item">
+            <Text style={styles.itemTitle}>JobStatID: {jobId}</Text>
+            <Text style={styles.itemSubtitle}>個人: {individualId}</Text>
+            <Text style={styles.itemDetail}>求人: {jdNumber}</Text>
+            <Text style={styles.statusBadge}>
+              {status}
+            </Text>
+          </View>
+        );
+      }}
       contentContainerStyle={styles.listContainer}
     />
   </View>

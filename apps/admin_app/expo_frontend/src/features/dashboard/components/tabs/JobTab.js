@@ -30,10 +30,11 @@ export const JobTab = ({
       data={filteredJobs}
       renderItem={({ item }) => {
         // Normalize skill data for jobs (assuming 'スキル要件' or same structure as user)
-        const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
+        const rawItem = item.rawData || item;
+        const jobDataForSkills = rawItem['スキル要件'] ? { 'スキル経験': rawItem['スキル要件'] } : rawItem;
         
         const skills = extractSkills(jobDataForSkills);
-        const companyName = getCompanyName(item.company_ID);
+        const companyName = getCompanyName(item.companyId || item.company_ID); // Handle model prop
         const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
 
         return (
