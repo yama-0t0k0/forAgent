@@ -29,8 +29,11 @@ tests/
 4. Expo GoでアプリをロードしMaestroテストを実行
 
 ```bash
-# 実行方法
-./tests/run_e2e.sh
+# 実行方法 (アプリ名を指定)
+./tests/run_e2e.sh <app_name>
+# 例:
+# ./tests/run_e2e.sh admin_app
+# ./tests/run_e2e.sh individual_user_app
 ```
 
 ### `verify_bundle.sh`

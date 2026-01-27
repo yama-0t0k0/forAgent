@@ -197,6 +197,27 @@ detect_labels() {
         LABELS="${LABELS}documentation,"
     fi
     
+    # Check for refactoring
+    if [[ "$lower_content" =~ "refactor" ]] || \
+       [[ "$lower_content" =~ "clean" ]] || \
+       [[ "$lower_content" =~ "optimize" ]] || \
+       [[ "$lower_content" =~ "simplify" ]] || \
+       [[ "$lower_content" =~ "restructure" ]] || \
+       [[ "$lower_content" =~ "リファクタ" ]] || \
+       [[ "$lower_content" =~ "整理" ]] || \
+       [[ "$lower_content" =~ "最適化" ]]; then
+        LABELS="${LABELS}refactoring,"
+    fi
+
+    # Check for testing
+    if [[ "$lower_content" =~ "test" ]] || \
+       [[ "$lower_content" =~ "spec" ]] || \
+       [[ "$lower_content" =~ "coverage" ]] || \
+       [[ "$lower_content" =~ "テスト" ]] || \
+       [[ "$lower_content" =~ "検証" ]]; then
+        LABELS="${LABELS}testing,"
+    fi
+    
     # Remove trailing comma
     LABELS=${LABELS%,}
     
