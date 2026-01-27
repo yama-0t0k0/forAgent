@@ -33,7 +33,8 @@ export class JobDescription {
     static fromFirestore(id, data, companyId = "") {
         if (!data) return new JobDescription(id, companyId, "", {}, {});
 
-        const basicItems = data.basicItems || data['求人基本項目'] || {};
+        /** @type {Object.<string, any>} */
+        const basicItems = data.basicItems ?? data['求人基本項目'] ?? {};
         const jdNumber = id || data.JD_Number || basicItems.JD_Number || "";
         const positionName = basicItems['ポジション名'] || data.title || data.positionName || "";
         

@@ -50,7 +50,8 @@ export class User {
     static fromFirestore(id, data) {
         if (!data) return new User(id, "", "", "", "", "", "", "", {}, {}, {});
 
-        const basicInfo = data.basicInfo || data['基本情報'] || {};
+        /** @type {Object.<string, any>} */
+        const basicInfo = data.basicInfo ?? data['基本情報'] ?? {};
         const firstNameEn = basicInfo['First name(半角英)'] || "";
         const familyNameEn = basicInfo['Family name(半角英)'] || "";
         const firstNameKanji = basicInfo['名'] || "";
@@ -58,8 +59,10 @@ export class User {
         const email = basicInfo['メール'] || "";
         const profileImageUrl = basicInfo['プロフィール画像URL'] || "";
         const backgroundImageUrl = basicInfo['背景画像URL'] || "";
-        const skillsExperience = data.skillsExperience || data['スキル経験'] || {};
-        const aspirations = data.aspirations || data['志向'] || {};
+        /** @type {Object.<string, any>} */
+        const skillsExperience = data.skillsExperience ?? data['スキル経験'] ?? {};
+        /** @type {Object.<string, any>} */
+        const aspirations = data.aspirations ?? data['志向'] ?? {};
 
         return new User(
             id,

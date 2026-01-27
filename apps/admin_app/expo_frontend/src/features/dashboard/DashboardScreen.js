@@ -38,6 +38,10 @@ const TABS = [
 // ---------------------------
 // Main Component
 // ---------------------------
+/**
+ * Main dashboard screen component managing tabs and data display.
+ * @returns {JSX.Element} The rendered dashboard screen.
+ */
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const { data } = useContext(DataContext);
@@ -64,10 +68,18 @@ export default function DashboardScreen() {
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [selectedJobDoc, setSelectedJobDoc] = useState(null);
 
+  /**
+   * Updates the search query for a specific tab.
+   * @param {string} tab - The tab identifier.
+   * @param {string} text - The search text.
+   */
   const updateSearch = (tab, text) => {
     setSearchQueries(prev => ({ ...prev, [tab]: text }));
   };
 
+  /**
+   * Closes the user detail modal and resets state.
+   */
   const closeUserDetail = () => {
     setSelectedUserId(null);
     setSelectedUserDoc(null);
@@ -75,12 +87,18 @@ export default function DashboardScreen() {
     setSelectedUserError(null);
   };
 
+  /**
+   * Closes the job detail modal and resets state.
+   */
   const closeJobDetail = () => {
     setSelectedJobId(null);
     setSelectedJobDoc(null);
   };
 
   useEffect(() => {
+    /**
+     * Fetches user data asynchronously.
+     */
     const run = async () => {
       if (!selectedUserId) return;
 
@@ -140,6 +158,10 @@ export default function DashboardScreen() {
   // ---------------------------
 
   // Individual Tab Data
+  /**
+   * Filters user list based on search query.
+   * @type {Array<Object>}
+   */
   const filteredUsers = useMemo(() => {
     const query = searchQueries.individual.toLowerCase();
     const users = [...(data?.users || [])];
@@ -179,6 +201,10 @@ export default function DashboardScreen() {
   }, [data?.users, searchQueries.individual]);
 
   // Company Tab Data
+  /**
+   * Filters company list based on search query.
+   * @type {Array<Object>}
+   */
   const filteredCompanies = useMemo(() => {
     const query = searchQueries.company.toLowerCase();
     const companies = [...(data?.corporate || [])];
@@ -204,6 +230,10 @@ export default function DashboardScreen() {
   }, [data?.corporate, searchQueries.company]);
 
   // Job Tab Data
+  /**
+   * Filters job list based on search query.
+   * @type {Array<Object>}
+   */
   const filteredJobs = useMemo(() => {
     const query = searchQueries.job.toLowerCase();
     const jobs = [...(data?.jd || [])];
@@ -235,6 +265,10 @@ export default function DashboardScreen() {
   }, [data?.jd, searchQueries.job]);
 
   // Selection Tab Data
+  /**
+   * Aggregates selection process data for the overview flow.
+   * @type {Array<Object>}
+   */
   const selectionFlowData = useMemo(() => {
     const fmjs = data?.fmjs || [];
     const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
@@ -248,6 +282,12 @@ export default function DashboardScreen() {
       if (phases['内定受諾']) counts.offer++;
     });
 
+    /**
+     * Calculates the percentage rate between steps.
+     * @param {number} curr - Current count.
+     * @param {number} prev - Previous count.
+     * @returns {string} The percentage string.
+     */
     const calcRate = (curr, prev) => prev === 0 ? '0%' : `${Math.round((curr / prev) * 100)}%`;
 
     return [
@@ -259,6 +299,10 @@ export default function DashboardScreen() {
     ];
   }, [data?.fmjs]);
 
+  /**
+   * Filters selection list based on search query.
+   * @type {Array<Object>}
+   */
   const filteredSelections = useMemo(() => {
     const query = searchQueries.selection.toLowerCase();
     return (data?.fmjs || []).filter(s =>
@@ -268,6 +312,10 @@ export default function DashboardScreen() {
   }, [data?.fmjs, searchQueries.selection]);
 
   // Modal Data (Drill-down)
+  /**
+   * Filters data for the drill-down modal.
+   * @type {Array<Object>}
+   */
   const modalData = useMemo(() => {
     if (!modalFilter) return [];
     return (data?.fmjs || []).filter(item => {
@@ -297,6 +345,11 @@ export default function DashboardScreen() {
   // ---------------------------
   // Helper Functions Binding
   // ---------------------------
+  /**
+   * Resolves the company name from ID.
+   * @param {string} id - The company ID.
+   * @returns {string} The company name.
+   */
   const resolveCompanyName = (id) => getCompanyName(id, data?.corporate);
 
   // ---------------------------

@@ -78,23 +78,27 @@ export class Company {
     static fromFirestore(id, data) {
         if (!data) return new Company(id, "", "", "", "", "", "", "", "", "", "", {}, {}, {}, {});
 
-        const profile = data['会社概要'] || {};
-        const appeal = data['魅力/特徴'] || data.appeal || {};
-        const payment = data['決済'] || data.payment || {};
-        const connection = data['繋がり'] || data.connection || {};
+        /** @type {Object.<string, any>} */
+        const profile = data['会社概要'] ?? {};
+        /** @type {Object.<string, any>} */
+        const appeal = data['魅力/特徴'] ?? data.appeal ?? {};
+        /** @type {Object.<string, any>} */
+        const payment = data['決済'] ?? data.payment ?? {};
+        /** @type {Object.<string, any>} */
+        const connection = data['繋がり'] ?? data.connection ?? {};
         
         return new Company(
             id,
-            String(profile['社名'] || data.companyName || data.name || ""),
-            String(profile['WEBサイトURL'] || data.websiteUrl || ""),
-            String(profile['事業内容'] || data.businessContent || ""),
-            String(profile['所在地'] || profile['住所'] || profile['本社所在地'] || data.address || ""),
-            String(profile['設立年月日'] || data.establishmentDate || ""),
-            String(profile['資本金'] || data.capital || ""),
-            String(profile['正社員数'] || data.employeeCount || ""),
-            String(profile['平均年収'] || data.averageAnnualIncome || ""),
-            String(profile['背景画像URL'] || data.backgroundUrl || ""),
-            String(profile['ロゴ画像URL'] || data.logoUrl || ""),
+            String(profile['社名'] ?? data.companyName ?? data.name ?? ""),
+            String(profile['WEBサイトURL'] ?? data.websiteUrl ?? ""),
+            String(profile['事業内容'] ?? data.businessContent ?? ""),
+            String(profile['所在地'] ?? profile['住所'] ?? profile['本社所在地'] ?? data.address ?? ""),
+            String(profile['設立年月日'] ?? data.establishmentDate ?? ""),
+            String(profile['資本金'] ?? data.capital ?? ""),
+            String(profile['正社員数'] ?? data.employeeCount ?? ""),
+            String(profile['平均年収'] ?? data.averageAnnualIncome ?? ""),
+            String(profile['背景画像URL'] ?? data.backgroundUrl ?? ""),
+            String(profile['ロゴ画像URL'] ?? data.logoUrl ?? ""),
             appeal,
             payment,
             connection,

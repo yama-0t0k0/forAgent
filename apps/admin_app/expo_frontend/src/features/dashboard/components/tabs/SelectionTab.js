@@ -4,6 +4,14 @@ import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { styles } from '../../dashboardStyles';
 
+/**
+ * Tab component for displaying and filtering the selection process list.
+ * @param {Object} props
+ * @param {string} props.searchQuery - Current search query string.
+ * @param {Function} props.setSearchQuery - State setter for search query.
+ * @param {Array<Object>} props.filteredSelections - List of filtered selection data.
+ * @returns {JSX.Element} The rendered component.
+ */
 export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }) => (
   <View style={styles.tabContent}>
     <GenericSearchBar

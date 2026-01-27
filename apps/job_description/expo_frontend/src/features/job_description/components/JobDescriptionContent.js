@@ -19,6 +19,14 @@ const BADGE_ITEMS = [
     { label: '歓迎スキル2', icon: 'trophy', skills: ['サーバサイド', 'クラウド', 'CI/CD'] },
 ];
 
+/**
+ * Component to display job description content.
+ * @param {object} props - Component props
+ * @param {string} props.companyId - Company ID
+ * @param {string} props.jdNumber - Job Description Number
+ * @param {Function} [props.onEdit] - Callback for edit action
+ * @returns {JSX.Element} The rendered content.
+ */
 export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
     const { data: localData } = useContext(DataContext);
     const [firestoreData, setFirestoreData] = useState(null);

@@ -32,8 +32,10 @@ export class HeatmapCalculator {
         if (!data) return grid;
 
         // Try to access via model properties first, then raw dictionary access
-        const skillsExperience = data.skillsExperience || data['スキル経験'];
-        const aspirations = data.aspirations || data['志向'];
+        /** @type {Object.<string, any>} */
+        const skillsExperience = data.skillsExperience ?? data['スキル経験'];
+        /** @type {Object.<string, any>} */
+        const aspirations = data.aspirations ?? data['志向'];
 
         // スキル経験の処理
         if (skillsExperience) {
@@ -98,9 +100,8 @@ export class HeatmapCalculator {
         if (!data) return grid;
 
         // Try to access via model properties first, then raw dictionary access
-        const skillsExperience = data.skillsExperience || data['スキル経験'];
+        const skillsExperience = data.skillsExperience ?? data['スキル経験'];
 
-        // スキル経験の処理
         if (skillsExperience) {
             this._evaluateSkillsRecursive(skillsExperience, '', (key, score) => {
                 const index = HeatmapMapper.getIndex(key, false);

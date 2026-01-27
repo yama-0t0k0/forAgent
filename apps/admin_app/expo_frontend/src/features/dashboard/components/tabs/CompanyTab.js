@@ -6,9 +6,21 @@ import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { CompanyListItem } from '@shared/src/features/company/components/CompanyListItem';
 import { styles } from '../../dashboardStyles';
 
+/**
+ * Tab component for displaying and filtering the list of companies.
+ * @param {Object} props
+ * @param {string} props.searchQuery - Current search query string.
+ * @param {Function} props.setSearchQuery - State setter for search query.
+ * @param {Array<Object>} props.filteredCompanies - List of filtered company data.
+ * @returns {JSX.Element} The rendered component.
+ */
 export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) => {
   const navigation = useNavigation();
 
+  /**
+   * Handles the press event on a company item.
+   * @param {Object} item - The company data item.
+   */
   const handlePress = (item) => {
     // Navigate to CompanyDetail passing the company data
     navigation.push('CompanyDetail', { companyData: item });

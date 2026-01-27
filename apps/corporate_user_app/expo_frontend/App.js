@@ -18,11 +18,20 @@ import { UnderConstructionScreen } from './src/features/company_profile/UnderCon
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();
 
+/**
+ * Wrapper component for the Corporate Registration feature.
+ * Manages data fetching and navigation.
+ * @returns {JSX.Element} The rendered component.
+ */
 const CorporateRegistrationWrapper = () => {
     const [initialData, setInitialData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        /**
+         * Fetches company data from Firestore.
+         * Falls back to a template if the document doesn't exist or an error occurs.
+         */
         const fetchData = async () => {
             try {
                 // Hardcoded ID for now as per template
@@ -82,6 +91,11 @@ const CorporateRegistrationWrapper = () => {
     );
 };
 
+/**
+ * Main application entry point.
+ * Sets up the safe area provider and navigation container.
+ * @returns {JSX.Element} The root component.
+ */
 export default function App() {
     return (
         <SafeAreaProvider>

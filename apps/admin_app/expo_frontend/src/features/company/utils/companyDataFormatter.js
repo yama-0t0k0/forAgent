@@ -15,14 +15,16 @@ export const formatCompanyData = (companyData) => {
   // This specifically addresses the issue where 'ヤヲー株式会社' (template) is shown instead of the correct company name
   const flatName = data.companyName || data.name;
   if (flatName && data['会社概要']?.['社名'] === 'ヤヲー株式会社') {
+    const currentProfile = data['会社概要'] ?? {};
+    /** @type {Object.<string, any>} */
     data['会社概要'] = {
-      ...data['会社概要'],
+      ...currentProfile,
       '社名': flatName
     };
   }
 
   // Check if data is already nested (has '会社概要')
-  if (data['会社概要']) {
+  if (data['会社概要'] ?? null) {
     return data;
   }
 
@@ -42,8 +44,8 @@ export const formatCompanyData = (companyData) => {
       '本社所在地': data.address,
       'URL': data.website,
     },
-    '魅力/特徴': data.features || data['魅力/特徴'] || {},
-    '使用技術': data.tech_stack || {},
+    '魅力/特徴': data.features ?? data['魅力/特徴'] ?? {},
+    '使用技術': data.tech_stack ?? {},
     // Preserve other top-level fields
     ...data
   };

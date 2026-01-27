@@ -46,6 +46,7 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
 
   it('should fetch from "Company" collection first', async () => {
     // Setup mocks
+    /** @type {Object} */
     const mockSnapCompany = { exists: () => true, id: companyId, data: () => ({ ...companyData, source: 'Company' }) };
     
     // docの呼び出しに対して、コレクション名に応じて異なる参照を返すようにモックするわけではなく
@@ -66,7 +67,9 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
 
   it('should fallback to "company" collection if "Company" fails', async () => {
     // Setup mocks
+    /** @type {Object} */
     const mockSnapCompanyFail = { exists: () => false };
+    /** @type {Object} */
     const mockSnapLowerCaseCompany = { exists: () => true, id: companyId, data: () => ({ ...companyData, source: 'company' }) };
 
     getDoc
@@ -84,8 +87,11 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
 
   it('should fallback to "corporate" collection if "Company" and "company" fail', async () => {
     // Setup mocks
+    /** @type {Object} */
     const mockSnapCompanyFail = { exists: () => false };
+    /** @type {Object} */
     const mockSnapLowerCaseCompanyFail = { exists: () => false };
+    /** @type {Object} */
     const mockSnapCorporate = { exists: () => true, id: companyId, data: () => ({ ...companyData, source: 'corporate' }) };
 
     getDoc

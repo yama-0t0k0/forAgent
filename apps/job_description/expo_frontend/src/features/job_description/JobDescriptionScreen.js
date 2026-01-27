@@ -4,6 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { JobDescriptionContent } from './components/JobDescriptionContent';
 
+/**
+ * Screen for displaying a specific job description.
+ * @param {object} props - Component props
+ * @param {object} props.route - Navigation route (contains params)
+ * @param {string} [props.companyId] - Optional direct company ID override
+ * @param {string} [props.jdNumber] - Optional direct JD number override
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const JobDescriptionScreen = ({ route, companyId: propCompanyId, jdNumber: propJdNumber }) => {
     const navigation = useNavigation();
 

@@ -16,6 +16,13 @@ import { styles } from '../../dashboardStyles';
 
 const ENGINEER_TEMPLATE = require('../../../../../assets/json/engineer-profile-template.json');
 
+/**
+ * Inner content component for UserDetailModal to manage internal navigation.
+ * @param {Object} props
+ * @param {string} props.userId - The user ID.
+ * @param {Object} props.userDoc - The user document data.
+ * @returns {JSX.Element|null} The rendered screen or null.
+ */
 const UserDetailContent = ({ userId, userDoc }) => {
   const [stack, setStack] = useState([]);
 
@@ -23,6 +30,10 @@ const UserDetailContent = ({ userId, userDoc }) => {
     setStack([{ name: 'MyPage', params: { userId, userDoc, hideSafeArea: true } }]);
   }, [userId, userDoc]);
 
+  /**
+   * Custom navigation object mimicking React Navigation.
+   * @type {Object}
+   */
   const navigation = useMemo(() => ({
     navigate: (name, params) => {
       setStack(prev => [...prev, { name, params }]);
@@ -43,6 +54,10 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
   if (!currentRoute) return null;
 
+  /**
+   * Renders the current screen based on the stack state.
+   * @returns {JSX.Element} The screen component.
+   */
   const renderScreen = () => {
     const props = {
       route: currentRoute,
@@ -87,6 +102,17 @@ const UserDetailContent = ({ userId, userDoc }) => {
   );
 };
 
+/**
+ * Modal component for displaying detailed user information with internal navigation.
+ * @param {Object} props
+ * @param {boolean} props.visible - Whether the modal is visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {boolean} props.loading - Loading state.
+ * @param {Object} props.error - Error object.
+ * @param {Object} props.userDoc - The user document data.
+ * @param {string} props.userId - The user ID.
+ * @returns {JSX.Element} The rendered modal.
+ */
 export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => (
   <Modal
     visible={visible}

@@ -4,6 +4,11 @@ import { GenericImageEditScreen } from '@shared/src/features/profile/GenericImag
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * Screen for editing company profile images (logo, background).
+ * Uses GenericImageEditScreen to handle image selection and updates.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const ImageEditScreen = () => {
     return (
         <GenericImageEditScreen

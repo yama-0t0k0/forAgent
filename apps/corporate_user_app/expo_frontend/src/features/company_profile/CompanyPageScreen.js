@@ -23,7 +23,22 @@ const { width, height } = Dimensions.get('window');
 // Modified to not require local asset directly to avoid path issues across apps
 const DEFAULT_BG_IMAGE = require('../../../assets/generated/rainforest_bg.png');
 
+/**
+ * Component to display the technology stack and features of a company.
+ * @param {Object} props
+ * @param {Object} props.features - The features of the company.
+ * @param {Object} props.techStack - The technology stack of the company.
+ * @returns {JSX.Element} The rendered view.
+ */
 const TechStackView = ({ features, techStack }) => {
+    /**
+     * Renders a single technology item.
+     * @param {string} label - The label of the item.
+     * @param {string} main - The main technology.
+     * @param {string} sub - The sub technology.
+     * @param {string} iconName - The icon name.
+     * @returns {JSX.Element} The rendered item.
+     */
     const renderTechItem = (label, main, sub, iconName) => (
         <View style={styles.techItemContainer}>
             <View style={styles.techHeader}>
@@ -45,13 +60,26 @@ const TechStackView = ({ features, techStack }) => {
 
     const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false); // Default collapsed
 
+    /**
+     * Toggles the visibility of the features section.
+     */
     const toggleFeatures = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsFeaturesExpanded(!isFeaturesExpanded);
     };
 
     // Safe access helpers
+    /**
+     * Helper to safely access language data.
+     * @param {string} type - The type of language.
+     * @returns {Object} The language data.
+     */
     const getLang = (type) => techStack?.languages?.[type] || {};
+    /**
+     * Helper to safely access other tech data.
+     * @param {string} type - The type of tech.
+     * @returns {Object} The tech data.
+     */
     const getOther = (type) => techStack?.others?.[type] || {};
 
     return (
@@ -111,6 +139,10 @@ const TechStackView = ({ features, techStack }) => {
     );
 };
 
+/**
+ * Component for displaying the menu.
+ * @returns {JSX.Element} The rendered menu view.
+ */
 const MenuView = () => {
     const navigation = useNavigation();
 
@@ -139,6 +171,10 @@ const MenuView = () => {
         }
     ];
 
+    /**
+     * Handles the press event for a menu item.
+     * @param {Object} item - The menu item.
+     */
     const handlePress = (item) => {
         if (item.target) {
             navigation.navigate(item.target, { isEdit: true });
@@ -179,6 +215,12 @@ const MenuView = () => {
     );
 };
 
+/**
+ * Placeholder component for screens under construction.
+ * @param {Object} props
+ * @param {string} props.title - The title of the screen.
+ * @returns {JSX.Element} The rendered placeholder view.
+ */
 const UnderConstructionView = ({ title }) => (
     <View style={styles.centerContent}>
         <Text style={styles.ucTitle}>{title}</Text>
@@ -186,6 +228,11 @@ const UnderConstructionView = ({ title }) => (
     </View>
 );
 
+/**
+ * Main screen for the company profile page.
+ * Manages tab navigation and displays company details.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const CompanyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
@@ -210,6 +257,12 @@ export const CompanyPageScreen = () => {
         { key: 'menu', title: 'メニュー', icon: 'grid-outline' },
     ]);
 
+    /**
+     * Renders the scene for the current tab.
+     * @param {Object} props
+     * @param {Object} props.route - The route object.
+     * @returns {JSX.Element|null} The rendered scene.
+     */
     const renderScene = ({ route }) => {
         switch (route.key) {
             case 'jobs':
@@ -230,6 +283,10 @@ export const CompanyPageScreen = () => {
         }
     };
 
+    /**
+     * Renders the tab bar.
+     * @returns {null} We use a custom footer instead.
+     */
     const renderTabBar = () => null; // We use our custom footer instead
 
     return (

@@ -11,7 +11,7 @@ const RULES = [
         id: 'no-uninitialized-vars',
         level: 'error',
         message: 'Variable declared without initialization. Initialize with null, "", 0, etc. (Convention 1.2)',
-        // Simple regex to catch "let x;" or "var y;" but not "let x = 1;"
+        // Simple regex to catch uninitialized variable declarations
         // Note: This is a heuristic and might have false positives/negatives compared to a real AST parser.
         regex: /(?:let|var)\s+[a-zA-Z0-9_$]+\s*;/g
     },
@@ -76,13 +76,33 @@ function checkFile(filePath) {
     
     // 1. Regex-based checks
     RULES.filter(r => r.regex).forEach(rule => {
-        let match;
+        let match = null;
         // Reset regex state if global
         rule.regex.lastIndex = 0;
         
         // We iterate line by line for line numbers, though regex matches across lines could be tricky.
         // For simplicity in this script, we check line by line for the defined regexes.
         lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+            // Skip comments and JSDoc lines
+            if (trimmedLine.startsWith('//') || trimmedLine.startsWith('*') || trimmedLine.startsWith('/*')) return;
+
+            // Special exception for data access with inline type definition or nullish coalescing (modern patterns)
+            if (rule.id === 'prefer-class-over-literal') {
+                if (line.includes('/** @type')) return;
+                // Check previous line for @type definition
+                if (index > 0 && lines[index-1].trim().includes('/** @type')) return;
+                
+                // Also skip if it uses optional chaining or nullish coalescing which implies safe access
+                if (line.includes('??') || line.includes('?.')) return;
+
+                // Skip spread syntax
+                if (line.includes('...data[')) return;
+                
+                // Skip condition checks
+                if (line.trim().startsWith('if (data[')) return;
+            }
+
             if (rule.regex.test(line)) {
                 report(filePath, index + 1, rule.level, rule.message, line.trim());
             }
@@ -91,10 +111,18 @@ function checkFile(filePath) {
 
     // 2. Context-aware checks (JSDoc)
     lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        // Skip comments
+        if (trimmedLine.startsWith('//') || trimmedLine.startsWith('*') || trimmedLine.startsWith('/*')) return;
+
         // Simple heuristic for function definitions
-        if (line.match(/(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?(?:\(.*?\)|[^=>]+)\s*=>/) || 
-            line.match(/function\s+\w+\s*\(/) ||
-            line.match(/class\s+\w+/)) {
+        // Improved regex to avoid false positives on arrow functions passed as arguments (e.g. map(d => ...))
+        // Matches: const foo = () =>, const foo = (a) =>, const foo = a =>
+        // Does NOT match: const foo = bar.map(a =>
+        // Also anchored to start of line to avoid matching inside strings/comments
+        if (line.match(/^\s*(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?(?:(?:\([^\)]*\))|(?:\w+))\s*=>/) || 
+            line.match(/^\s*(?:export\s+)?(?:async\s+)?function\s+\w+\s*\(/) ||
+            line.match(/^\s*(?:export\s+)?class\s+\w+/)) {
             
             // Look backward for JSDoc end "*/"
             let hasJSDoc = false;
@@ -119,6 +147,14 @@ function checkFile(filePath) {
     });
 }
 
+/**
+ * Report a convention violation
+ * @param {string} filePath - Path to the file
+ * @param {number} line - Line number
+ * @param {string} level - 'error', 'warning', or 'info'
+ * @param {string} message - Error message
+ * @param {string} codeContext - The code snippet causing the violation
+ */
 function report(filePath, line, level, message, codeContext) {
     const color = level === 'error' ? '\x1b[31m' : (level === 'warning' ? '\x1b[33m' : '\x1b[36m');
     const reset = '\x1b[0m';

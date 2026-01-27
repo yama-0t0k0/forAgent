@@ -7,6 +7,11 @@ import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { formatCompanyData } from '../utils/companyDataFormatter';
 
+/**
+ * Screen component for displaying detailed company information.
+ * Fetches company data from Firestore and formats it for display.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const CompanyDetailScreen = () => {
   const route = useRoute();
   const { companyId, initialData } = route.params || {};
@@ -20,6 +25,11 @@ export const CompanyDetailScreen = () => {
   }, [companyId, initialData]);
 
   useEffect(() => {
+    /**
+     * Fetches company data from Firestore.
+     * Tries multiple collections ('Company', 'company', 'corporate') to find the document.
+     * @returns {Promise<void>}
+     */
     const fetchCompanyData = async () => {
       // If we already have nested data passed in (unlikely but possible), use it?
       // Actually, let's always fetch to be safe and consistent with "Individual" tab pattern
@@ -65,6 +75,10 @@ export const CompanyDetailScreen = () => {
 
   // Map flat admin data to structure expected by CompanyPageScreen
   // This is a fallback if the fetched data is flat
+  /**
+   * Formats raw company data into the structure required by the UI.
+   * @type {Object}
+   */
   const formattedData = useMemo(() => {
     return formatCompanyData(companyData);
   }, [companyData]);

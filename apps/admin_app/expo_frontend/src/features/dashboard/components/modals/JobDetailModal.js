@@ -3,6 +3,14 @@ import { View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
 import { JobDescriptionScreen } from '../../../../../../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
 import { styles } from '../../dashboardStyles';
 
+/**
+ * Modal component for displaying job description details.
+ * @param {Object} props
+ * @param {boolean} props.visible - Whether the modal is visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {Object} props.jobDoc - The job document object.
+ * @returns {JSX.Element} The rendered modal.
+ */
 export const JobDetailModal = ({ visible, onClose, jobDoc }) => (
   <Modal
     visible={visible}

@@ -5,16 +5,30 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
 import SelectionFlowEditor from '../components/SelectionFlowEditor';
 
+/**
+ * Gets the key of the active (true) property in an object.
+ * @param {Object} obj - The object to search
+ * @returns {string} The key of the active property, or '-'
+ */
 const getActiveKey = (obj) => {
   if (!obj) return '-';
   const entry = Object.entries(obj).find(([_, value]) => value === true);
   return entry ? entry[0] : '-';
 };
 
+/**
+ * Formats a number as currency.
+ * @param {number} amount - The amount to format
+ * @returns {string} The formatted currency string
+ */
 const formatCurrency = (amount) => {
   return amount ? `¥${amount.toLocaleString()}` : '-';
 };
 
+/**
+ * Screen for displaying the list of selection progress.
+ * @returns {JSX.Element} The rendered screen component
+ */
 const SelectionProgressListScreen = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +37,9 @@ const SelectionProgressListScreen = () => {
   const [activeTab, setActiveTab] = useState('basic');
 
   useEffect(() => {
+    /**
+     * Fetches data from Firestore.
+     */
     const fetchData = async () => {
       try {
         console.log("Starting fetch data...");
@@ -54,12 +71,22 @@ const SelectionProgressListScreen = () => {
     fetchData();
   }, []);
 
+  /**
+   * Handles item press to open details modal.
+   * @param {Object} item - The selected item data
+   */
   const handlePress = (item) => {
     setSelectedItem(item);
     setActiveTab('basic');
     setModalVisible(true);
   };
 
+  /**
+   * Renders a single row in the list.
+   * @param {Object} params - Render params
+   * @param {Object} params.item - The item data
+   * @returns {JSX.Element} The rendered row component
+   */
   const renderItem = ({ item }) => {
     // Extract fields based on JSON structure
     const jobStatID = item.JobStatID || item.id;
@@ -104,159 +131,141 @@ const SelectionProgressListScreen = () => {
     );
   };
 
+  /**
+   * Renders the header row of the list.
+   * @returns {JSX.Element} The rendered header component
+   */
   const renderHeader = () => (
     <View style={[styles.row, styles.header]}>
-      <Text style={[styles.cell, styles.headerText]}>マッチングID</Text>
-      <Text style={[styles.cell, styles.headerText]}>ステータス</Text>
-      <Text style={[styles.cell, styles.headerText]}>フェーズ</Text>
-      <Text style={[styles.cell, styles.headerText]}>求職者名</Text>
-      <Text style={[styles.cell, styles.headerText]}>求人企業</Text>
-      <Text style={[styles.cell, styles.headerText]}>求人票No</Text>
+      <Text style={[styles.cell, styles.headerText]}>ID</Text>
+      <Text style={[styles.cell, styles.headerText]}>Status</Text>
+      <Text style={[styles.cell, styles.headerText]}>Phase</Text>
+      <Text style={[styles.cell, styles.headerText]}>個人ID</Text>
+      <Text style={[styles.cell, styles.headerText]}>法人ID</Text>
+      <Text style={[styles.cell, styles.headerText]}>JD No</Text>
       <Text style={[styles.cell, styles.headerText]}>更新日時</Text>
     </View>
   );
 
+  /**
+   * Renders the survey section of the details.
+   * @param {Object} surveyData - The survey data
+   * @returns {JSX.Element} The rendered survey section
+   */
   const renderSurveySection = (surveyData) => {
-    if (!surveyData) return <Text style={styles.detailText}>No survey data.</Text>;
-
-    return Object.entries(surveyData).map(([period, categories]) => (
-      <View key={period} style={styles.surveyPeriod}>
-        <Text style={styles.surveyPeriodTitle}>{period}</Text>
-        {Object.entries(categories).map(([category, questions]) => {
-          if (typeof questions !== 'object') return null; // Handle potential non-object values like simple scores
-          return (
-            <View key={category} style={styles.surveyCategory}>
-              <Text style={styles.surveyCategoryTitle}>{category}</Text>
-              {Object.entries(questions).map(([question, answers]) => {
-                let answerText = "";
-                if (typeof answers === 'object') {
-                  answerText = getActiveKey(answers);
-                } else {
-                  answerText = String(answers);
-                }
-                return (
-                  <View key={question} style={styles.surveyQuestion}>
-                    <Text style={styles.questionText}>{question}</Text>
-                    <Text style={styles.answerText}>Answer: {answerText}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          );
-        })}
-      </View>
-    ));
-  };
-
-  const renderFeedbackDetail = (detail) => {
-    if (!detail) return null;
-    return Object.entries(detail).map(([type, feedback]) => (
-      <View key={type} style={styles.feedbackSubSection}>
-        <Text style={styles.feedbackTypeTitle}>{type}</Text>
-        {feedback['ポジティブ/良かった点'] ? <Text style={styles.feedbackText}><Text style={styles.label}>ポジティブ:</Text> {feedback['ポジティブ/良かった点']}</Text> : null}
-        {feedback['ネガティブ/懸念点'] ? <Text style={styles.feedbackText}><Text style={styles.label}>ネガティブ:</Text> {feedback['ネガティブ/懸念点']}</Text> : null}
-        {feedback['その他自由記述'] ? <Text style={styles.feedbackText}><Text style={styles.label}>その他:</Text> {feedback['その他自由記述']}</Text> : null}
-      </View>
-    ));
-  };
-
-  const renderFeedbackSection = (selectionProgress) => {
-    const feedbackData = selectionProgress?.['フィードバック'];
-    if (!feedbackData) return <Text style={styles.detailText}>フィードバック情報はありません。</Text>;
+    if (!surveyData) return <Text>アンケートデータなし</Text>;
 
     return (
-      <View style={styles.feedbackContainer}>
-        <Text style={styles.sectionSubTitle}>フィードバック</Text>
-
-        <Text style={styles.feedbackHeader}>企業からのフィードバック</Text>
-        {Object.entries(feedbackData['企業からのフィードバック'] || {}).map(([phase, phaseData]) => (
-          <View key={phase} style={styles.feedbackPhase}>
-            <Text style={styles.phaseTitle}>{phase}</Text>
-            {renderFeedbackDetail(phaseData['フィードバック詳細'])}
-          </View>
-        ))}
-
-        <Text style={[styles.feedbackHeader, { marginTop: 16 }]}>企業へのフィードバック</Text>
-        {Object.entries(feedbackData['企業へのフィードバック'] || {}).map(([phase, phaseData]) => (
-          <View key={phase} style={styles.feedbackPhase}>
-            <Text style={styles.phaseTitle}>{phase}</Text>
-            {renderFeedbackDetail(phaseData['フィードバック詳細'])}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>アンケート回答</Text>
+        {Object.entries(surveyData).map(([key, value]) => (
+          <View key={key} style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{key}:</Text>
+            <Text style={styles.detailValue}>{String(value)}</Text>
           </View>
         ))}
       </View>
     );
   };
 
+  /**
+   * Renders a detail item for feedback.
+   * @param {Object} detail - The feedback detail object
+   * @returns {JSX.Element} The rendered detail component
+   */
+  const renderFeedbackDetail = (detail) => {
+    if (!detail) return null;
+    return (
+      <View style={styles.feedbackBox}>
+        <Text style={styles.feedbackText}><Text style={styles.bold}>日付:</Text> {detail.date_日付}</Text>
+        <Text style={styles.feedbackText}><Text style={styles.bold}>評価:</Text> {detail.evaluation_評価}</Text>
+        <Text style={styles.feedbackText}><Text style={styles.bold}>FB:</Text> {detail.feedback_FB}</Text>
+        <Text style={styles.feedbackText}><Text style={styles.bold}>メモ:</Text> {detail.memo_メモ}</Text>
+      </View>
+    );
+  };
+
+  /**
+   * Renders the feedback section.
+   * @param {Object} selectionProgress - The selection progress data
+   * @returns {JSX.Element} The rendered feedback section
+   */
+  const renderFeedbackSection = (selectionProgress) => {
+    if (!selectionProgress) return null;
+
+    return (
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>選考フィードバック</Text>
+        
+        <Text style={styles.subTitle}>書類選考</Text>
+        {renderFeedbackDetail(selectionProgress['document_screening_書類選考'])}
+
+        <Text style={styles.subTitle}>1次面接</Text>
+        {renderFeedbackDetail(selectionProgress['1st_interview_1次面接'])}
+
+        <Text style={styles.subTitle}>2次面接</Text>
+        {renderFeedbackDetail(selectionProgress['2nd_interview_2次面接'])}
+
+        <Text style={styles.subTitle}>最終面接</Text>
+        {renderFeedbackDetail(selectionProgress['final_interview_最終面接'])}
+      </View>
+    );
+  };
+
+  /**
+   * Renders the content of the selected tab.
+   * @returns {JSX.Element} The rendered content
+   */
   const renderTabContent = () => {
     if (!selectedItem) return null;
+    const progress = selectedItem['選考進捗'] || {};
+    const fee = selectedItem['紹介料管理'] || {};
+    const survey = selectedItem['アンケート'] || {};
 
     switch (activeTab) {
       case 'basic':
         return (
-          <View style={styles.detailSection}>
-            <Text style={styles.sectionTitle}>基本情報</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>求職者ID:</Text> {selectedItem['選考進捗']?.id_individual_個人ID}</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>求人企業ID:</Text> {selectedItem['選考進捗']?.id_company_法人ID}</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>求人票No:</Text> {selectedItem['選考進捗']?.JD_Number}</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>更新日時:</Text> {selectedItem['UpdateTimestamp_yyyymmddtttttt']}</Text>
-          </View>
-        );
-      case 'progress':
-        return (
-          <View style={styles.detailSection}>
-            <Text style={styles.sectionTitle}>選考進捗</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.detailText}><Text style={styles.label}>ステータス:</Text> {getActiveKey(selectedItem['選考進捗']?.status_ステータス)}</Text>
-              <Text style={styles.detailText}><Text style={styles.label}>フェーズ:</Text> {getActiveKey(selectedItem['選考進捗']?.fase_フェイズ)}</Text>
+          <ScrollView>
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>基本情報</Text>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>JobStatID:</Text><Text style={styles.detailValue}>{selectedItem.JobStatID || selectedItem.id}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>個人ID:</Text><Text style={styles.detailValue}>{progress['id_individual_個人ID']}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>法人ID:</Text><Text style={styles.detailValue}>{progress['id_company_法人ID']}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>JD Number:</Text><Text style={styles.detailValue}>{progress['JD_Number']}</Text></View>
             </View>
-            <View style={{ marginTop: 12 }}>
-              {renderFeedbackSection(selectedItem['選考進捗'])}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>選考ステータス</Text>
+              <SelectionFlowEditor 
+                initialData={progress} 
+                onSave={(newPhases) => console.log("Saved phases:", newPhases)}
+              />
             </View>
-            <SelectionFlowEditor
-              initialData={selectedItem['選考進捗']}
-              onSave={async (newPhases) => {
-                console.log("Saving new phases:", newPhases);
-                // Update local state for immediate feedback
-                const updatedItem = {
-                  ...selectedItem,
-                  '選考進捗': {
-                    ...selectedItem['選考進捗'],
-                    phases: newPhases
-                  }
-                };
-                setSelectedItem(updatedItem);
-
-                // Update Firestore if project ID exists
-                if (selectedItem.id) {
-                  try {
-                    const docRef = doc(db, 'FeeMgmtAndJobStatDB', selectedItem.id);
-                    await updateDoc(docRef, {
-                      '選考進捗.phases': newPhases
-                    });
-                    Alert.alert("保存", "選考フローを保存しました。");
-                  } catch (error) {
-                    console.error("Error updating selection flow:", error);
-                  }
-                }
-              }}
-            />
-          </View>
+          </ScrollView>
         );
-      case 'fee':
+      case 'feedback':
         return (
-          <View style={styles.detailSection}>
-            <Text style={styles.sectionTitle}>手数料管理</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>手数料額:</Text> {formatCurrency(selectedItem['手数料管理簿']?.['手数料の額'])}</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>料率:</Text> {selectedItem['手数料管理簿']?.['手数料の算出根拠']?.['Fee'] ? `${(selectedItem['手数料管理簿']['手数料の算出根拠']['Fee'] * 100).toFixed(0)}%` : '-'}</Text>
-            <Text style={styles.detailText}><Text style={styles.label}>理論年収:</Text> {formatCurrency(selectedItem['手数料管理簿']?.['手数料の算出根拠']?.['理論年収'])}</Text>
-          </View>
+          <ScrollView>
+            {renderFeedbackSection(progress)}
+          </ScrollView>
         );
       case 'survey':
         return (
-          <View style={styles.detailSection}>
-            <Text style={styles.sectionTitle}>入社後サーベイ</Text>
-            {renderSurveySection(selectedItem['入社後サーベイ_PostJoiningSurvey'])}
-          </View>
+          <ScrollView>
+            {renderSurveySection(survey)}
+          </ScrollView>
+        );
+      case 'fee':
+        return (
+          <ScrollView>
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>紹介料管理</Text>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>想定年収:</Text><Text style={styles.detailValue}>{formatCurrency(fee.estimated_annual_salary_想定年収)}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>料率:</Text><Text style={styles.detailValue}>{fee.fee_rate_料率}%</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>請求金額:</Text><Text style={styles.detailValue}>{formatCurrency(fee.billing_amount_請求金額)}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>入金日:</Text><Text style={styles.detailValue}>{fee.payment_date_入金日 || '-'}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>返金規定:</Text><Text style={styles.detailValue}>{fee.refund_policy_返金規定 || '-'}</Text></View>
+            </View>
+          </ScrollView>
         );
       default:
         return null;

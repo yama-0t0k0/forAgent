@@ -5,6 +5,15 @@ import { styles } from '../../dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+/**
+ * Tab component for displaying the dashboard overview (charts, stats, etc.).
+ * @param {Object} props
+ * @param {Array<Object>} props.selectionFlowData - Data for the selection process flow.
+ * @param {Array<Object>} props.userGrowthData - Data for user growth chart.
+ * @param {Array<Object>} props.connectionTrendsData - Data for connection trends chart.
+ * @param {Function} props.onStepPress - Callback when a flow step is pressed.
+ * @returns {JSX.Element} The rendered component.
+ */
 export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrendsData, onStepPress }) => {
   console.log('Rendering OverviewTab, steps:', selectionFlowData.length);
   return (

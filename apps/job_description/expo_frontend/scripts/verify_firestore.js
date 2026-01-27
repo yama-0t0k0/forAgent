@@ -15,6 +15,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/**
+ * Verify Firestore data
+ */
 async function verify() {
     try {
         console.log('--- Verifying job_description collection ---');

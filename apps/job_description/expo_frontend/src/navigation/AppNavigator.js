@@ -5,6 +5,11 @@ import { GenericRegistrationScreen } from '@shared/src/features/registration/Gen
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Main application navigator.
+ * Configures the navigation stack and screens.
+ * @returns {JSX.Element} The navigation stack.
+ */
 export const AppNavigator = () => (
     <Stack.Navigator initialRouteName="JobDescription" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="JobDescription" component={JobDescriptionScreen} />

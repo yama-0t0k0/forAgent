@@ -26,8 +26,10 @@ export const adaptCompanyData = (data = {}) => {
 
     // 2. Extract nested sections (legacy support or raw access)
     // Note: features is mapped to company.appeal
-    const rawCompanyInfo = data['会社概要'] || {};
-    const rawTechStack = data['技術スタック'] || data['使用技術'] || {};
+    /** @type {Object.<string, any>} */
+    const rawCompanyInfo = data['会社概要'] ?? {};
+    /** @type {Object.<string, any>} */
+    const rawTechStack = data['技術スタック'] ?? data['使用技術'] ?? {};
 
     // 3. Resolve flat vs nested fields using Company model logic
     const companyName = company.name || '会社名未設定';

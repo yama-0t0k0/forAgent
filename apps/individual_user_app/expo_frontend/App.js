@@ -11,19 +11,33 @@ import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 
+/**
+ * Wrapper component for the Engineer Registration feature.
+ * Manages data fetching and initialization.
+ * @returns {JSX.Element} The rendered component.
+ */
 const EngineerRegistrationWrapper = () => {
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
+    /**
+     * Loads the initial data for the application.
+     * Fetches user data and job descriptions.
+     */
     const load = async () => {
       try {
         // Create a timeout promise to prevent indefinite loading
+        /** @type {Promise<never>} */
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error("Data loading timeout")), 5000)
         );
 
+        /**
+         * Promise to fetch data from Firestore.
+         * @returns {Promise<{userData: Object, allJds: Array<Object>}>}
+         */
         const fetchDataPromise = (async () => {
           const [userSnap, jdSnap] = await Promise.all([
             getDoc(doc(db, 'individual', 'C000000000000')),
@@ -36,6 +50,10 @@ const EngineerRegistrationWrapper = () => {
           const allJds = [];
           if (jdSnap) {
             const companyDocs = jdSnap.docs;
+            /**
+             * Promises to fetch nested JD collections.
+             * @type {Array<Promise<void>>}
+             */
             const jdPromises = companyDocs.map(async (cDoc) => {
               const innerSnap = await getDocs(collection(db, 'job_description', cDoc.id, 'JD_Number'));
               innerSnap.forEach(doc => {
@@ -82,6 +100,11 @@ const EngineerRegistrationWrapper = () => {
   );
 };
 
+/**
+ * Main application entry point.
+ * Sets up the safe area provider and navigation container.
+ * @returns {JSX.Element} The root component.
+ */
 export default function App() {
   return (
     <SafeAreaProvider>
