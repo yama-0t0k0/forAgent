@@ -23,7 +23,7 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
  * 
  * @param {ConnectionScreenProps} props
  */
-export const ConnectionScreen = ({ navigation, route }) => {
+export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const { data } = useContext(DataContext);
     const [activeType, setActiveType] = useState('jd'); // 'individual' or 'jd'
 
@@ -152,7 +152,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
                 />
             )}
 
-            <BottomNav navigation={navigation} activeTab="Connection" />
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Connection" />}
         </View>
     );
 };

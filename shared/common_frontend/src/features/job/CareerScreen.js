@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * 
  * @param {CareerScreenProps} props
  */
-export const CareerScreen = ({ navigation }) => {
+export const CareerScreen = ({ navigation, hideSafeArea }) => {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.contentContainer}>
@@ -31,7 +31,7 @@ export const CareerScreen = ({ navigation }) => {
                     <Text style={styles.messageSub}>新しい求人への応募や企業とのコンタクトが開始されると、こちらに進捗が表示されます。</Text>
                 </View>
             </SafeAreaView>
-            <BottomNav navigation={navigation} activeTab="Career" />
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Career" />}
         </View>
     );
 };
