@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '../../core/components/BottomNav';
 
 const { width, height } = Dimensions.get('window');
@@ -17,50 +18,64 @@ const { width, height } = Dimensions.get('window');
 // Local custom generated rainforest background
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
-export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea = false }) => {
+/**
+ * @typedef {Object} IndividualProfileScreenProps
+ * @property {Object} route
+ * @property {Object} [route.params]
+ * @property {string} [route.params.userId]
+ * @property {Object} [route.params.userDoc]
+ * @property {boolean} [route.params.hideSafeArea]
+ * @property {boolean} [route.params.showBottomNav]
+ * @property {string} [userId]
+ * @property {Object} [userDoc]
+ * @property {boolean} [hideSafeArea]
+ * @property {boolean} [showBottomNav]
+ */
+
+/**
+ * Individual Profile Screen
+ * Displays the profile of an individual engineer.
+ * 
+ * @param {IndividualProfileScreenProps} props
+ */
+export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {
+    const hideSafeArea = propHideSafeArea || route?.params?.hideSafeArea || false;
+    const showBottomNav = propShowBottomNav && (route?.params?.showBottomNav !== false);
     const { data: localData } = useContext(DataContext);
     const navigation = useNavigation();
-    
+
     // Resolve userId and initial userDoc from props or route params
     const userId = propUserId || route?.params?.userId || 'C000000000000';
     // If it's the current user (from context) and no specific user requested, use context data
     const isCurrentUser = userId === 'C000000000000';
-    
+
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : null));
-    const [remoteNames, setRemoteNames] = useState(null);
-    const [remoteEmail, setRemoteEmail] = useState('');
     const [heatmapValues, setHeatmapValues] = useState(null);
+
+    // Convert raw doc to User model
+    const user = User.fromFirestore(userId, userDoc);
 
     // Effect to fetch user data if not provided or to keep it updated
     useEffect(() => {
         // If we already have a userDoc passed via props/params, we might still want to listen for updates
         // especially if it's not the logged-in user.
-        
-        let unsubscribe = () => {};
 
+        /** @type {() => void} */
+        let unsubscribe = () => { };
+
+        /**
+         * Fetches remote user data if necessary.
+         */
         const fetchData = async () => {
-            if (userId) {
-                 const docRef = doc(db, 'individual', userId);
-                 unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (userId && !isCurrentUser) {
+                const docRef = doc(db, 'individual', userId);
+                unsubscribe = onSnapshot(docRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const d = docSnap.data();
                         setUserDoc(d);
-                        
-                        const b = d['基本情報'] || {};
-                        const first = b['名'] || '';
-                        const family = b['姓'] || '';
-                        const mail = b['メール'] || '';
-                        
-                        if (first || family) {
-                            setRemoteNames({ first, family });
-                        }
-                        if (mail) {
-                            setRemoteEmail(mail);
-                        }
-                        
                         setHeatmapValues(HeatmapCalculator.calculate(d));
                     }
-                 });
+                });
             }
         };
 
@@ -76,18 +91,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
         }
     }, [userDoc, heatmapValues]);
 
-    const activeData = userDoc || {};
-    const basicInfo = activeData['基本情報'] || {};
-    
-    // Names fallback
-    const names = {
-        first: basicInfo['First name(半角英)'] || '',
-        family: basicInfo['Family name(半角英)'] || '',
-        kanjiFirst: basicInfo['名'] || '',
-        kanjiFamily: basicInfo['姓'] || '',
-    };
-    const email = basicInfo['メール'] || '';
-
+    /**
+     * Navigates to the registration/edit screen.
+     */
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true, userDoc });
     };
@@ -97,7 +103,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
-                    source={basicInfo['背景画像URL'] ? { uri: basicInfo['背景画像URL'] } : RAINFOREST_BG}
+                    source={user.backgroundImageUrl ? { uri: user.backgroundImageUrl } : RAINFOREST_BG}
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
@@ -114,28 +120,28 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             <Ionicons name="create-outline" size={24} color="#FFF" />
                                         </TouchableOpacity>
                                     </View>
-        
+
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton}>
+                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
-        
+
                                     {/* 3. Profile Row directly below the button */}
                                     <View style={styles.profileRow}>
                                         <View style={styles.photoContainer}>
                                             <Image
-                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                                 style={styles.profileImage}
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
+                                            <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
-        
+
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
                                                 <Ionicons name="chatbubble-ellipses" size={30} color={THEME.accent} />
@@ -157,28 +163,28 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             <Ionicons name="create-outline" size={24} color="#FFF" />
                                         </TouchableOpacity>
                                     </View>
-        
+
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton}>
+                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
-        
+
                                     {/* 3. Profile Row directly below the button */}
                                     <View style={styles.profileRow}>
                                         <View style={styles.photoContainer}>
                                             <Image
-                                                source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                                source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                                 style={styles.profileImage}
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
+                                            <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
-        
+
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
                                                 <Ionicons name="chatbubble-ellipses" size={30} color={THEME.accent} />
@@ -193,7 +199,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                 </ImageBackground>
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
-                <View style={styles.badgeSection}>
+                <View style={styles.badgeSection} testID="skill_badge_section">
                     <View style={styles.tradingCardRow}>
                         {['コアスキル', 'サブスキル1', 'サブスキル2'].map((label, index) => {
                             const skills = ['サーバサイド', 'iOS', 'AWS'];
@@ -203,7 +209,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     label={label}
                                     skillName={skills[index]}
                                     iconName={index === 0 ? "star" : index === 1 ? "medal" : "trophy"}
-                                    width={(width - 45) / 3}
+                                    width={(width * 0.75) / 3.2} // Responsive width
                                     labelStyle={styles.cardLabel}
                                     badgeStyle={styles.glassBadge}
                                     skillNameStyle={styles.cardSkillName}
@@ -222,9 +228,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                         </View>
                     </View>
 
-                    <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
+                    <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} testID="skill_heatmap" />
 
-                    <View style={styles.chatBotCallout}>
+                    <View style={styles.chatBotCallout} testID="chatbot_button">
                         <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
                         <Text style={styles.labelYellow}>チャットボット</Text>
                     </View>
@@ -235,15 +241,19 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             </ScrollView>
 
             {/* Bottom Navigation */}
-            <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
+            {showBottomNav && (
+                <>
+                    <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
 
-            {/* 6. Renamed button + chevron */}
-            <View style={styles.bottomNavCenterOverlay}>
-                <TouchableOpacity style={styles.centerButton}>
-                    <Text style={styles.centerButtonText}>経歴詳細</Text>
-                    <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                </TouchableOpacity>
-            </View>
+                    {/* 6. Renamed button + chevron */}
+                    <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
+                        <TouchableOpacity style={styles.centerButton} testID="career_detail_button">
+                            <Text style={styles.centerButtonText}>経歴詳細</Text>
+                            <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </View>
     );
 };
@@ -259,7 +269,8 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     scrollContent: {
-        paddingBottom: 0,
+        paddingBottom: 150, // Space for fixed footer
+        flexGrow: 1,
     },
     headerBackground: {
         width: '100%',
@@ -354,8 +365,8 @@ const styles = StyleSheet.create({
         color: THEME.subText,
     },
     badgeSection: {
-        marginTop: -50, // Pull up due to shorter header
-        paddingHorizontal: 15,
+        marginTop: -40, // Reduced pull-up to prevent clipping
+        paddingHorizontal: 10,
         marginBottom: 10,
     },
     tradingCardRow: {
@@ -397,6 +408,7 @@ const styles = StyleSheet.create({
         height: height * 0.45, // Target 40-45% height
         justifyContent: 'flex-start',
         marginTop: 10,
+        zIndex: 10, // Ensure tooltips show above other elements
     },
     heatmapHeader: {
         flexDirection: 'row',

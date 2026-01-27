@@ -8,6 +8,13 @@
 7 silly config load:file:/usr/local/etc/npmrc
 8 verbose title npm exec expo start --tunnel --port 8084
 9 verbose argv "exec" "--" "expo" "start" "--tunnel" "--port" "8084"
-10 verbose logfile logs-max:10 dir:/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/.home/.npm/_logs/2026-01-15T07_26_15_694Z-
-11 verbose logfile /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/.home/.npm/_logs/2026-01-15T07_26_15_694Z-debug-0.log
-12 silly logfile done cleaning log files
+10 verbose logfile logs-max:10 dir:/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/.home/.npm/_logs/2026-01-26T15_22_05_427Z-
+11 verbose logfile /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/.home/.npm/_logs/2026-01-26T15_22_05_427Z-debug-0.log
+12 silly logfile start cleaning logs, removing 1 files
+13 silly logfile done cleaning log files
+14 verbose cwd /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend
+15 verbose os Darwin 25.2.0
+16 verbose node v23.11.0
+17 verbose npm  v10.9.2
+18 verbose exit 0
+19 info ok

@@ -3,6 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
 
+/**
+ * @typedef {Object} BottomNavProps
+ * @property {Object} navigation - Navigation object
+ * @property {string} [activeTab='Home'] - Currently active tab ID
+ * @property {Object} [userDoc=null] - User document (optional)
+ */
+
+/**
+ * Bottom Navigation Bar Component.
+ * Provides navigation between main screens (Home, Career, Connection, etc.).
+ * 
+ * @param {BottomNavProps} props
+ */
 export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) => {
     const tabs = [
         { id: 'Career', label: 'キャリア', icon: 'person-circle-outline' },
@@ -12,6 +25,10 @@ export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) =>
         { id: 'Menu', label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
     ];
 
+    /**
+     * Handles tab press navigation.
+     * @param {string} tabId - The ID of the tab to navigate to.
+     */
     const handlePress = (tabId) => {
         if (tabId === 'Home') {
             navigation.navigate('MyPage', { userDoc });
@@ -37,6 +54,7 @@ export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) =>
                         key={tab.id}
                         style={styles.navItem}
                         onPress={() => handlePress(tab.id)}
+                        testID={`nav_tab_${tab.id}`}
                     >
                         {isActive ? (
                             <View style={styles.activeIconContainer}>

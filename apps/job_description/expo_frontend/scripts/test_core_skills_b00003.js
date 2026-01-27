@@ -20,6 +20,12 @@ const EXPECTED_CORE_SUFFIX = {
     'B00003_14.json': '技術職.サーバサイドエンジニア'
 };
 
+/**
+ * Collect paths where core_skill is true
+ * @param {object} obj - JSON object to traverse
+ * @param {string[]} pathArr - Current path array
+ * @param {string[]} results - Array to store found paths
+ */
 function collectCoreSkillTrue(obj, pathArr, results) {
     if (!obj || typeof obj !== 'object') return;
 
@@ -35,6 +41,9 @@ function collectCoreSkillTrue(obj, pathArr, results) {
     }
 }
 
+/**
+ * Run the test
+ */
 function run() {
     let hasError = false;
 

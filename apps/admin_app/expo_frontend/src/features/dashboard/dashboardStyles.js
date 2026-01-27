@@ -251,11 +251,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   detailWindow: {
-    width: SCREEN_WIDTH * 0.8,
-    height: SCREEN_HEIGHT * 0.8,
+    width: SCREEN_WIDTH * 0.9,
+    height: SCREEN_HEIGHT * 0.85,
     backgroundColor: '#F8FAFC',
     borderRadius: 16,
-    overflow: 'hidden',
+    // Note: removed overflow: 'hidden' to ensure no clipping of interactive elements
   },
   detailWindowHeader: {
     height: 54,

@@ -18,6 +18,18 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * @typedef {Object} CategoryScreenProps
+ * @property {Object} route - Route object
+ * @property {Object} route.params - Route parameters
+ * @property {string} route.params.rootKey - Root key for data
+ * @property {Object} [route.params.orderTemplateRoot] - Order template
+ */
+
+/**
+ * Category Screen for Tab Navigator
+ * @param {CategoryScreenProps} props
+ */
 const CategoryScreen = ({ route }) => {
   const { rootKey, orderTemplateRoot } = route.params;
   const { data } = useContext(DataContext);
@@ -32,11 +44,81 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
+/**
+ * @typedef {Object} GenericRegistrationScreenProps
+ * @property {string} collectionName - Firestore collection name
+ * @property {string} idField - Field name for ID
+ * @property {string} [title] - Screen title
+ * @property {string} [idPrefixChar='C'] - ID prefix character
+ * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
+ * @property {Object} [orderTemplate] - Template for field ordering
+ */
+
+/**
+ * Generic Registration Screen
+ * Handles multi-tab registration forms with Firestore saving.
+ * 
+ * @param {GenericRegistrationScreenProps} props
+ */
+/**
+ * Removes internal fields (starting with '_') from data recursively.
+ * @param {any} input - Data to clean
+ * @returns {any} Cleaned data
+ */
+const cleanData = (input) => {
+  if (input === null || typeof input !== 'object') {
+    return input;
+  }
+  if (Array.isArray(input)) {
+    return input.map(cleanData);
+  }
+  const output = {};
+  Object.keys(input).forEach(key => {
+    if (!key.startsWith('_')) {
+      output[key] = cleanData(input[key]);
+    }
+  });
+  return output;
+};
+
+/**
+ * Helper to sort keys based on template.
+ * @param {Object} data - Source data
+ * @param {string} idField - ID field name to exclude
+ * @param {Object} [orderTemplate] - Template defining order
+ * @returns {string[]} Sorted keys
+ */
+const getSortedKeys = (data, idField, orderTemplate) => {
+  if (!data) return [];
+  /** @type {string[]} */
+  const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
+  if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+  
+  /** @type {string[]} */
+  const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
+  /** @type {string[]} */
+  const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
+  /** @type {string[]} */
+  const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
+  
+  return [...inTpl, ...notInTpl];
+};
+
+/**
+ * Generic Registration Screen
+ * Handles multi-tab registration forms with Firestore saving.
+ * 
+ * @param {GenericRegistrationScreenProps} props
+ */
 export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
 
+  /**
+   * Handles the save operation to Firestore.
+   * Generates a new ID and saves the cleaned data.
+   */
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
@@ -66,22 +148,6 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
       const nextNum = maxNum + 1;
       const newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
 
-      const cleanData = (input) => {
-        if (input === null || typeof input !== 'object') {
-          return input;
-        }
-        if (Array.isArray(input)) {
-          return input.map(cleanData);
-        }
-        const output = {};
-        Object.keys(input).forEach(key => {
-          if (!key.startsWith('_')) {
-            output[key] = cleanData(input[key]);
-          }
-        });
-        return output;
-      };
-
       const cleanedData = cleanData(data);
       const dataToSave = { ...cleanedData, [idField]: newId };
 
@@ -102,16 +168,17 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
     }
   };
 
+  /**
+   * Memoized top-level keys for rendering tabs.
+   * @type {string[]}
+   */
   const topLevelKeys = useMemo(() => {
-    if (!data) return [];
-    const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
-    if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
-    const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
-    const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
-    const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
-    return [...inTpl, ...notInTpl];
+    return getSortedKeys(data, idField, orderTemplate);
   }, [data, idField, orderTemplate]);
 
+  /**
+   * Navigates back to the home screen.
+   */
   const handleGoHome = () => {
     navigation.navigate(homeRouteName);
   };

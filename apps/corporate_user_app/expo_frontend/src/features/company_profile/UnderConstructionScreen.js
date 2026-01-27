@@ -4,6 +4,11 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * A generic screen for features that are under construction.
+ * Displays a title and a construction message, along with bottom navigation.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const UnderConstructionScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();

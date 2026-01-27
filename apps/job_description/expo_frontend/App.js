@@ -9,6 +9,11 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 // Load initial data from jd.json
 const JD_DATA = require('./assets/json/jd.json');
 
+/**
+ * Main application component.
+ * Initializes the app with DataProvider and Navigation.
+ * @returns {JSX.Element} The rendered app.
+ */
 export default function App() {
   return (
     <SafeAreaProvider>

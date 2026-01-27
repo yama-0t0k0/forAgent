@@ -3,6 +3,18 @@ import { View, Text, Switch, StyleSheet } from 'react-native';
 import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} SwitchRowProps
+ * @property {string} label - Label text
+ * @property {boolean} value - Current switch value
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Row component with a label and a toggle switch.
+ * 
+ * @param {SwitchRowProps} props
+ */
 export const SwitchRow = ({ label, value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;

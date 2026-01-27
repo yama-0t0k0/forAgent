@@ -17,9 +17,21 @@ const MOCK_TECH_STACK = {
   },
 };
 
+/**
+ * Screen displaying the technology stack of the company.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const TechStackScreen = () => {
   const navigation = useNavigation();
 
+  /**
+   * Renders a single technology item with badges.
+   * @param {string} label - The category label.
+   * @param {string} main - The main technology.
+   * @param {string} sub - The sub technology.
+   * @param {string} iconName - The icon name for the category.
+   * @returns {JSX.Element} The rendered item.
+   */
   const renderTechItem = (label, main, sub, iconName) => (
     <View style={styles.techItemContainer}>
       <View style={styles.techHeader}>

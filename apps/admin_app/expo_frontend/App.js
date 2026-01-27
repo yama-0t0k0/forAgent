@@ -13,7 +13,7 @@ import { IndividualImageEditScreen } from '@shared/src/features/profile/Individu
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // import { JDSelectionScreen } from '@shared/src/features/job/JDSelectionScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
-import { JobDescriptionScreen } from '../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
@@ -21,13 +21,27 @@ import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetai
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Main application wrapper component.
+ * Manages initial data fetching and global state.
+ * @returns {JSX.Element} The root component.
+ */
 const AdminAppWrapper = () => {
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    /**
+     * Fetches all required data for the application.
+     * Retrieves users, companies, jobs, and fee management stats.
+     */
     const fetchAllData = async () => {
       try {
+        /**
+         * Fetches documents from a Firestore collection.
+         * @param {string} collectionName - The name of the collection.
+         * @returns {Promise<Array<Object>>} List of documents with IDs.
+         */
         const fetchDocs = async (collectionName) => {
           try {
             const snap = await getDocs(collection(db, collectionName));
@@ -37,6 +51,11 @@ const AdminAppWrapper = () => {
           }
         };
 
+        /**
+         * Merges arrays of objects by ID, removing duplicates.
+         * @param {Array<Array<Object>>} arrays - Array of object arrays to merge.
+         * @returns {Array<Object>} Merged array of unique objects.
+         */
         const mergeById = (arrays) => {
           const map = new Map();
           arrays.flat().forEach((item) => {
@@ -67,7 +86,13 @@ const AdminAppWrapper = () => {
               const allJobs = [];
 
               // 2. Fetch JD_Number subcollection for each company
-              const promises = companiesSnap.docs.map(async (companyDoc) => {
+              const promises = companiesSnap.docs.map(
+                /**
+                 * Fetches JDs for a specific company.
+                 * @param {Object} companyDoc - The company document.
+                 * @returns {Promise<void>}
+                 */
+                async (companyDoc) => {
                 const companyId = companyDoc.id;
                 try {
                   const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));

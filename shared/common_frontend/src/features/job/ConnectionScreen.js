@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,24 +9,41 @@ import { EngineerListItem } from '@shared/src/features/engineer/components/Engin
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 
+/**
+ * @typedef {Object} ConnectionScreenProps
+ * @property {Object} navigation - Navigation object
+ * @property {Object} [route] - Route object
+ * @property {Object} [route.params] - Route parameters
+ * @property {Object} [route.params.userDoc] - User document
+ */
+
+/**
+ * Connection Screen
+ * Displays a list of connection candidates (Jobs or Engineers).
+ * 
+ * @param {ConnectionScreenProps} props
+ */
 export const ConnectionScreen = ({ navigation, route }) => {
     const { data } = useContext(DataContext);
     const [activeType, setActiveType] = useState('jd'); // 'individual' or 'jd'
 
-    // Mock "Me" if not specified (default to C000000000000)
+    /**
+     * Current user document based on route params or data context.
+     * @type {Object|null}
+     */
     const currentUserDoc = useMemo(() => {
         // Adminアプリの場合、userDocがroute.paramsから渡されていない場合がある
         if (route?.params?.userDoc) {
-             return route.params.userDoc;
+            return route.params.userDoc;
         }
 
         if (data.users && Array.isArray(data.users) && data.users.length > 0) {
             return data.users.find(u => u.id === 'C000000000000') || data.users[0];
         }
-        
+
         // 個人アプリの場合、dataそのものがユーザーデータである可能性がある
         if (data && data.id) {
-             return data;
+            return data;
         }
 
         return null;
@@ -37,6 +54,9 @@ export const ConnectionScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        /**
+         * Fetches and ranks candidates based on the active type.
+         */
         const fetchRankedData = async () => {
             if (!data || !currentUserDoc) return;
             setLoading(true);
@@ -60,6 +80,12 @@ export const ConnectionScreen = ({ navigation, route }) => {
         fetchRankedData();
     }, [data, currentUserDoc, activeType]);
 
+    /**
+     * Renders a candidate item (Job or Engineer).
+     * @param {Object} params
+     * @param {Object} params.item - Candidate data
+     * @returns {JSX.Element}
+     */
     const renderCandidate = ({ item }) => {
         if (activeType === 'jd') {
             const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
@@ -94,7 +120,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.header}>
-                <Text style={styles.headerTitle}>つながり候補</Text>
+                <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
             </SafeAreaView>
 
             <View style={styles.tabBar}>

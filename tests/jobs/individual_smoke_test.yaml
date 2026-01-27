@@ -1,0 +1,25 @@
+appId: host.exp.Exponent
+---
+- launchApp:
+    appId: "host.exp.Exponent"
+    # clearState: true # Commented out to avoid permission dialogs for now
+    stopApp: false
+
+- openLink: ${EXPO_URL}
+
+# 1. Wait for loading to finish (or timeout if data load fails)
+# Note: app_loading_view might disappear quickly if data is cached or load is fast.
+- extendedWaitUntil:
+    notVisible:
+        id: "app_loading_view"
+    timeout: 30000
+
+# 2. Verify Main Screen Elements
+# We expect the user's name to be visible if data loaded correctly.
+- extendedWaitUntil:
+    visible:
+        id: "user_full_name"
+    timeout: 30000
+
+- tapOn:
+    id: "職歴書作成"

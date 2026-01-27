@@ -2,6 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} StatusRowProps
+ * @property {string} label - Label for the status row
+ * @property {Object} valueObj - Value object containing boolean status
+ * @property {boolean} valueObj.value - True if registered, false otherwise
+ */
+
+/**
+ * Displays a status row with a label and a success/neutral badge.
+ * 
+ * @param {StatusRowProps} props
+ */
 export const StatusRow = ({ label, valueObj }) => {
   const isRegistered = valueObj?.value === true;
 

@@ -11,6 +11,11 @@ import { GenericRegistrationScreen } from '@shared/src/features/registration/Gen
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('../../assets/json/engineer-profile-template.json');
 
+/**
+ * Main application navigator.
+ * Configures the navigation stack and screens.
+ * @returns {JSX.Element} The navigation stack.
+ */
 export const AppNavigator = () => (
     <Stack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Registration">

@@ -3,6 +3,19 @@ import { View, Text, TextInput, Alert, StyleSheet } from 'react-native';
 import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} InputRowProps
+ * @property {string} label - Input label
+ * @property {string|number} value - Input value
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Generic Text Input Row Component.
+ * Supports special handling for Zip Code (address auto-fill).
+ * 
+ * @param {InputRowProps} props
+ */
 export const InputRow = ({ label, value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
@@ -10,6 +23,10 @@ export const InputRow = ({ label, value, path }) => {
 
   const isZipCode = label === '郵便番号';
 
+  /**
+   * Handles text change events.
+   * @param {string} text - The new text value.
+   */
   const handleTextChange = async (text) => {
     if (isZipCode) {
       // Allow only numbers
@@ -21,6 +38,12 @@ export const InputRow = ({ label, value, path }) => {
         // Find '国' sibling
         const parentPath = path.slice(0, -1);
         const countryPath = [...parentPath, '国'];
+        /**
+         * Safely retrieves a nested value.
+         * @param {Object} obj - Source object.
+         * @param {string[]} p - Path array.
+         * @returns {any} The value at the path.
+         */
         const getValue = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : undefined), obj);
         const country = getValue(data, countryPath);
 

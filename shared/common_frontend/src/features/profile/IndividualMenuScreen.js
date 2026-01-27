@@ -3,6 +3,18 @@ import { GenericMenuScreen } from './GenericMenuScreen';
 import { BottomNav } from '../../core/components/BottomNav';
 import { View } from 'react-native';
 
+/**
+ * @typedef {Object} IndividualMenuScreenProps
+ * @property {Object} navigation - Navigation object
+ */
+
+/**
+ * Individual Menu Screen
+ * Wrapper around GenericMenuScreen for Individual Users.
+ * Defines the menu structure for individual users.
+ * 
+ * @param {IndividualMenuScreenProps} props
+ */
 export const IndividualMenuScreen = ({ navigation }) => {
     const menuGroups = [
         {
@@ -29,6 +41,11 @@ export const IndividualMenuScreen = ({ navigation }) => {
         }
     ];
 
+    /**
+     * Handles menu item press.
+     * @param {Object} item - The pressed menu item.
+     * @param {Object} nav - Navigation object.
+     */
     const handlePress = (item, nav) => {
         if (item.target) {
             nav.navigate(item.target, { isEdit: true });

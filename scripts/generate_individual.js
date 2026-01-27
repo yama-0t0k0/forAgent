@@ -27,20 +27,39 @@ const OUT_INDIVIDUAL_DIR = path.join(
   'reference_information_fordev/json/Individual'
 );
 
+/**
+ * Ensure directory exists
+ * @param {string} dir - Directory path
+ */
 function ensureDirSync(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
+/**
+ * Load JSON file
+ * @param {string} p - File path
+ * @returns {object} JSON data
+ */
 function loadJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
+/**
+ * Save data to JSON file
+ * @param {string} p - File path
+ * @param {object} data - Data to save
+ */
 function saveJson(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
 }
 
+/**
+ * Generate Individual JSON
+ * @param {string} individualId - Individual ID (e.g. C202501010001)
+ * @param {string} [outPath] - Optional output path
+ */
 async function generateIndividual(individualId, outPath) {
   const id = (individualId || '').trim();
   if (!id || !id.startsWith('C')) {
@@ -56,6 +75,9 @@ async function generateIndividual(individualId, outPath) {
   console.log(`Individual JSON generated: ${finalPath}`);
 }
 
+/**
+ * Main function
+ */
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {

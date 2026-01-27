@@ -1,3 +1,11 @@
+/**
+ * スキルレベルの定義
+ * 0: 経験なし
+ * 1: 個人活動のみ
+ * 2: 基礎的なタスク遂行可能
+ * 3: 応用的な問題解決が可能
+ * 4: 指導可能レベル
+ */
 export const SKILL_LEVELS = {
   0: "経験なし",
   1: "実務経験は無いが個人活動で経験あり",
@@ -7,6 +15,12 @@ export const SKILL_LEVELS = {
 };
 export const SKILL_LEVEL_TEXTS = Object.values(SKILL_LEVELS);
 
+/**
+ * つながりレベルの定義
+ * 1: 通常つながり
+ * 2: 準アルムナイ
+ * 3: 正アルムナイ
+ */
 export const CONNECTION_LEVELS = {
   1: "Lv1通常つながり(相互フォロー)",
   2: "Lv2準アルムナイ(現/元非正社員or半年以上の同僚関係)",

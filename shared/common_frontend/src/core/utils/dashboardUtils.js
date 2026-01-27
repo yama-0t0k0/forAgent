@@ -1,6 +1,10 @@
 import { HeatmapCalculator } from './HeatmapCalculator';
 
-// Helper to parse FMJS timestamp (YYYYMMDDtttttt)
+/**
+ * FMJSのタイムスタンプ (YYYYMMDDtttttt) をDateオブジェクトに変換します。
+ * @param {string|number} ts タイムスタンプ文字列または数値
+ * @returns {Date|null} Dateオブジェクト、または無効な場合はnull
+ */
 export const parseFmjsTimestamp = (ts) => {
     if (!ts) return null;
     const str = ts.toString();
@@ -10,21 +14,36 @@ export const parseFmjsTimestamp = (ts) => {
     return new Date(year, month, day);
 };
 
-// Helper to resolve company name from ID
+/**
+ * 会社IDから会社名を解決します。
+ * @param {string} companyId 会社ID
+ * @param {Array<Object>} corporateData 会社データの配列
+ * @returns {string} 会社名またはID
+ */
 export const getCompanyName = (companyId, corporateData) => {
     if (!companyId || !corporateData) return '-';
+    /** @type {Object} */
     const company = corporateData.find(c => c.id === companyId);
     return company?.companyName || company?.name || company?.['会社概要']?.['会社名'] || companyId;
 };
 
-// Helper to extract skills recursively
+/**
+ * ユーザーデータからスキルを再帰的に抽出します。
+ * @param {Object} user ユーザーデータ
+ * @returns {{core: string[], sub1: string[], sub2: string[]}} 分類されたスキルリスト
+ */
 export const extractSkills = (user) => {
     const skills = { core: [], sub1: [], sub2: [] };
-    // Handle both user profile structure (現職種) and job description structure (スキル経験)
-    const root = user?.['スキル経験']?.['現職種']?.['技術職'] || user?.['スキル経験'];
+    // Handle both User model, user profile structure (現職種) and job description structure (スキル経験)
+    const skillsData = user?.skillsExperience || user?.['スキル経験'];
+    const root = skillsData?.['現職種']?.['技術職'] || skillsData;
 
     if (!root) return skills;
 
+    /**
+     * オブジェクトを再帰的に走査してスキルを抽出する内部関数
+     * @param {Object} obj - 走査対象のオブジェクト
+     */
     const traverse = (obj) => {
         Object.entries(obj).forEach(([key, value]) => {
             if (typeof value === 'object' && value !== null) {
@@ -41,7 +60,11 @@ export const extractSkills = (user) => {
     return skills;
 };
 
-// Helper to calculate high density heatmap area
+/**
+ * 高密度のヒートマップ領域を計算します。
+ * @param {Object} userData ユーザーデータ
+ * @returns {{data: Array<{value: number, id: number}>, rows: number, cols: number}} ヒートマップデータと行列数
+ */
 export const getHighDensityHeatmapData = (userData) => {
     // Use skills-only calculation as requested
     const fullGrid = HeatmapCalculator.calculateSkillsOnly(userData);

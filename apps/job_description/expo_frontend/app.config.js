@@ -1,3 +1,10 @@
+/**
+ * Expo Config
+ * https://docs.expo.dev/workflow/configuration/
+ *
+ * @param {import('expo/config').ConfigContext} configContext
+ * @returns {import('expo/config').ExpoConfig}
+ */
 module.exports = ({ config }) => {
   return {
     ...config,
