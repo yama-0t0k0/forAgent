@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { GenericImageEditScreen } from '@shared/src/features/profile/GenericImageEditScreen';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { User } from '@shared/src/core/models/User';
 
 /**
  * Screen for editing individual user profile images (profile photo, background).
@@ -12,18 +13,18 @@ import { Ionicons } from '@expo/vector-icons';
 export const ImageEditScreen = () => {
     return (
         <GenericImageEditScreen
-            dataSectionKey="基本情報"
+            dataSectionKey={User.FIELDS.BASIC_INFO}
             collectionName="individual"
             idFieldKey="id_individual"
             mainImageConfig={{
-                key: 'プロフィール画像URL',
+                key: User.FIELDS.PROFILE_IMAGE_URL,
                 label: 'プロフィール画像 URL',
                 placeholder: 'https://example.com/profile.jpg',
                 icon: 'person-outline',
                 previewLabel: '顔写真プレビュー'
             }}
             bgImageConfig={{
-                key: '背景画像URL',
+                key: User.FIELDS.BACKGROUND_IMAGE_URL,
                 label: '背景画像 URL',
                 placeholder: 'https://example.com/background.jpg',
                 icon: 'image-outline',

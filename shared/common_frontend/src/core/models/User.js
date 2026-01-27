@@ -42,6 +42,24 @@ export class User {
     }
 
     /**
+     * Field names mapped to Firestore keys.
+     * @readonly
+     * @enum {string}
+     */
+    static FIELDS = {
+        BASIC_INFO: '基本情報',
+        FIRST_NAME_EN: 'First name(半角英)',
+        FAMILY_NAME_EN: 'Family name(半角英)',
+        FIRST_NAME_KANJI: '名',
+        FAMILY_NAME_KANJI: '姓',
+        EMAIL: 'メール',
+        PROFILE_IMAGE_URL: 'プロフィール画像URL',
+        BACKGROUND_IMAGE_URL: '背景画像URL',
+        SKILLS_EXPERIENCE: 'スキル経験',
+        ASPIRATIONS: '志向'
+    };
+
+    /**
      * Creates a User instance from Firestore data.
      * @param {string} id - Document ID
      * @param {Object.<string, any>} data - Firestore document data
@@ -51,18 +69,18 @@ export class User {
         if (!data) return new User(id, "", "", "", "", "", "", "", {}, {}, {});
 
         /** @type {Object.<string, any>} */
-        const basicInfo = data.basicInfo ?? data['基本情報'] ?? {};
-        const firstNameEn = basicInfo['First name(半角英)'] || "";
-        const familyNameEn = basicInfo['Family name(半角英)'] || "";
-        const firstNameKanji = basicInfo['名'] || "";
-        const familyNameKanji = basicInfo['姓'] || "";
-        const email = basicInfo['メール'] || "";
-        const profileImageUrl = basicInfo['プロフィール画像URL'] || "";
-        const backgroundImageUrl = basicInfo['背景画像URL'] || "";
+        const basicInfo = data.basicInfo ?? data[User.FIELDS.BASIC_INFO] ?? {};
+        const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || "";
+        const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || "";
+        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || "";
+        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || "";
+        const email = basicInfo[User.FIELDS.EMAIL] || "";
+        const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || "";
+        const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || "";
         /** @type {Object.<string, any>} */
-        const skillsExperience = data.skillsExperience ?? data['スキル経験'] ?? {};
+        const skillsExperience = data.skillsExperience ?? data[User.FIELDS.SKILLS_EXPERIENCE] ?? {};
         /** @type {Object.<string, any>} */
-        const aspirations = data.aspirations ?? data['志向'] ?? {};
+        const aspirations = data.aspirations ?? data[User.FIELDS.ASPIRATIONS] ?? {};
 
         return new User(
             id,
