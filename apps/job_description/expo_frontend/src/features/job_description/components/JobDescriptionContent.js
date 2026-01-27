@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@shared/src/core/firebaseConfig';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
 
 const { width } = Dimensions.get('window');
 
@@ -56,7 +57,8 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
     // Use firestore data if available, otherwise fallback to local data (context)
     const activeData = firestoreData || localData;
-    const positionName = activeData?.['求人基本項目']?.['ポジション名'] || 'ポジション名未設定';
+    const jd = JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
+    const positionName = jd.positionName || 'ポジション名未設定';
 
     return (
         <View style={styles.container} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>

@@ -24,6 +24,17 @@ export class JobDescription {
     }
 
     /**
+     * Field names mapped to Firestore keys.
+     * @readonly
+     * @enum {string}
+     */
+    static FIELDS = {
+        BASIC_ITEMS: '求人基本項目',
+        JD_NUMBER: 'JD_Number',
+        POSITION_NAME: 'ポジション名'
+    };
+
+    /**
      * Creates a JobDescription instance from Firestore data.
      * @param {string} id - Document ID (JD_Number)
      * @param {Object.<string, any>} data - Firestore document data
@@ -34,9 +45,9 @@ export class JobDescription {
         if (!data) return new JobDescription(id, companyId, "", {}, {});
 
         /** @type {Object.<string, any>} */
-        const basicItems = data.basicItems ?? data['求人基本項目'] ?? {};
+        const basicItems = data.basicItems ?? data[JobDescription.FIELDS.BASIC_ITEMS] ?? {};
         const jdNumber = id || data.JD_Number || basicItems.JD_Number || "";
-        const positionName = basicItems['ポジション名'] || data.title || data.positionName || "";
+        const positionName = basicItems[JobDescription.FIELDS.POSITION_NAME] || data.title || data.positionName || "";
         
         return new JobDescription(
             jdNumber,
