@@ -3,18 +3,8 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, 
 import { db } from '@shared/src/core/firebaseConfig';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
+import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 import SelectionFlowEditor from '../components/SelectionFlowEditor';
-
-/**
- * Gets the key of the active (true) property in an object.
- * @param {Object} obj - The object to search
- * @returns {string} The key of the active property, or '-'
- */
-const getActiveKey = (obj) => {
-  if (!obj) return '-';
-  const entry = Object.entries(obj).find(([_, value]) => value === true);
-  return entry ? entry[0] : '-';
-};
 
 /**
  * Formats a number as currency.
@@ -50,12 +40,16 @@ const SelectionProgressListScreen = () => {
         
         const list = [];
         querySnapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
+          // Create model instance immediately
+          list.push(SelectionProgress.fromFirestore(doc.id, doc.data()));
         });
-        console.log("Firestore data parsed:", JSON.stringify(list, null, 2));
+        // Log sample for debugging (using rawData if needed)
+        if (list.length > 0) {
+            console.log("First item loaded:", JSON.stringify(list[0].rawData, null, 2));
+        }
 
         // Remove duplicates if any (based on JobStatID)
-        const uniqueData = Array.from(new Map(list.map(item => [item.JobStatID || item.id, item])).values());
+        const uniqueData = Array.from(new Map(list.map(item => [item.id, item])).values());
         console.log("Unique data length:", uniqueData.length);
 
         setData(uniqueData);
@@ -73,7 +67,7 @@ const SelectionProgressListScreen = () => {
 
   /**
    * Handles item press to open details modal.
-   * @param {Object} item - The selected item data
+   * @param {SelectionProgress} item - The selected item data
    */
   const handlePress = (item) => {
     setSelectedItem(item);
@@ -84,50 +78,41 @@ const SelectionProgressListScreen = () => {
   /**
    * Renders a single row in the list.
    * @param {Object} params - Render params
-   * @param {Object} params.item - The item data
+   * @param {SelectionProgress} params.item - The item data
    * @returns {JSX.Element} The rendered row component
    */
   const renderItem = ({ item }) => {
-    // Extract fields based on JSON structure
-    const jobStatID = item.JobStatID || item.id;
-    const progress = item['選考進捗'] || {};
-    const phase = getActiveKey(progress['fase_フェイズ']);
-    const status = getActiveKey(progress['status_ステータス']);
-    const individualID = progress['id_individual_個人ID'] || '-';
-    const companyID = progress['id_company_法人ID'] || '-';
-    const jdNumber = progress['JD_Number'] || '-';
-    const updateTime = item['UpdateTimestamp_yyyymmddtttttt'] || '-';
-
     return (
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.cellContainer} onPress={() => handlePress(item)}>
-          <Text style={[styles.cell, styles.link]} numberOfLines={1} ellipsizeMode="tail">{jobStatID}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.cellContainer}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{status}</Text>
+      <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>JD: {item.jdNumber}</Text>
+          <View style={[
+            styles.statusBadge, 
+            item.activeStatus === 'Open' ? styles.statusOpen : styles.statusClosed
+          ]}>
+            <Text style={styles.statusText}>{item.activeStatus}</Text>
+          </View>
         </View>
-
-        <View style={styles.cellContainer}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{phase}</Text>
+        
+        <View style={styles.cardBody}>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>フェーズ:</Text>
+            <Text style={styles.value}>{item.activePhase}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>候補者ID:</Text>
+            <Text style={styles.value}>{item.individualId}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>企業ID:</Text>
+            <Text style={styles.value}>{item.companyId}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>更新日時:</Text>
+            <Text style={styles.value}>{item.updateTime}</Text>
+          </View>
         </View>
-
-        <TouchableOpacity style={styles.cellContainer} onPress={() => Alert.alert("個人ID", individualID)}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{individualID}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.cellContainer} onPress={() => Alert.alert("法人ID", companyID)}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{companyID}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.cellContainer} onPress={() => Alert.alert("求人票No", jdNumber)}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{jdNumber}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.cellContainer}>
-          <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{updateTime}</Text>
-        </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -187,27 +172,27 @@ const SelectionProgressListScreen = () => {
 
   /**
    * Renders the feedback section.
-   * @param {Object} selectionProgress - The selection progress data
+   * @param {SelectionProgress} item - The selection progress data instance
    * @returns {JSX.Element} The rendered feedback section
    */
-  const renderFeedbackSection = (selectionProgress) => {
-    if (!selectionProgress) return null;
+  const renderFeedbackSection = (item) => {
+    if (!item) return null;
 
     return (
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>選考フィードバック</Text>
         
         <Text style={styles.subTitle}>書類選考</Text>
-        {renderFeedbackDetail(selectionProgress['document_screening_書類選考'])}
+        {renderFeedbackDetail(item.documentScreening)}
 
         <Text style={styles.subTitle}>1次面接</Text>
-        {renderFeedbackDetail(selectionProgress['1st_interview_1次面接'])}
+        {renderFeedbackDetail(item.firstInterview)}
 
         <Text style={styles.subTitle}>2次面接</Text>
-        {renderFeedbackDetail(selectionProgress['2nd_interview_2次面接'])}
+        {renderFeedbackDetail(item.secondInterview)}
 
         <Text style={styles.subTitle}>最終面接</Text>
-        {renderFeedbackDetail(selectionProgress['final_interview_最終面接'])}
+        {renderFeedbackDetail(item.finalInterview)}
       </View>
     );
   };
@@ -218,9 +203,6 @@ const SelectionProgressListScreen = () => {
    */
   const renderTabContent = () => {
     if (!selectedItem) return null;
-    const progress = selectedItem['選考進捗'] || {};
-    const fee = selectedItem['紹介料管理'] || {};
-    const survey = selectedItem['アンケート'] || {};
 
     switch (activeTab) {
       case 'basic':
@@ -229,14 +211,14 @@ const SelectionProgressListScreen = () => {
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>基本情報</Text>
               <View style={styles.detailRow}><Text style={styles.detailLabel}>JobStatID:</Text><Text style={styles.detailValue}>{selectedItem.JobStatID || selectedItem.id}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>個人ID:</Text><Text style={styles.detailValue}>{progress['id_individual_個人ID']}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>法人ID:</Text><Text style={styles.detailValue}>{progress['id_company_法人ID']}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>JD Number:</Text><Text style={styles.detailValue}>{progress['JD_Number']}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>個人ID:</Text><Text style={styles.detailValue}>{selectedItem.individualId}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>法人ID:</Text><Text style={styles.detailValue}>{selectedItem.companyId}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>JD Number:</Text><Text style={styles.detailValue}>{selectedItem.jdNumber}</Text></View>
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>選考ステータス</Text>
               <SelectionFlowEditor 
-                initialData={progress} 
+                initialData={selectedItem.progress} 
                 onSave={(newPhases) => console.log("Saved phases:", newPhases)}
               />
             </View>
@@ -245,13 +227,13 @@ const SelectionProgressListScreen = () => {
       case 'feedback':
         return (
           <ScrollView>
-            {renderFeedbackSection(progress)}
+            {renderFeedbackSection(selectedItem)}
           </ScrollView>
         );
       case 'survey':
         return (
           <ScrollView>
-            {renderSurveySection(survey)}
+            {renderSurveySection(selectedItem.survey)}
           </ScrollView>
         );
       case 'fee':
@@ -259,11 +241,11 @@ const SelectionProgressListScreen = () => {
           <ScrollView>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>紹介料管理</Text>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>想定年収:</Text><Text style={styles.detailValue}>{formatCurrency(fee.estimated_annual_salary_想定年収)}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>料率:</Text><Text style={styles.detailValue}>{fee.fee_rate_料率}%</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>請求金額:</Text><Text style={styles.detailValue}>{formatCurrency(fee.billing_amount_請求金額)}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>入金日:</Text><Text style={styles.detailValue}>{fee.payment_date_入金日 || '-'}</Text></View>
-              <View style={styles.detailRow}><Text style={styles.detailLabel}>返金規定:</Text><Text style={styles.detailValue}>{fee.refund_policy_返金規定 || '-'}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>想定年収:</Text><Text style={styles.detailValue}>{formatCurrency(selectedItem.estimatedAnnualSalary)}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>料率:</Text><Text style={styles.detailValue}>{selectedItem.feeRate}%</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>請求金額:</Text><Text style={styles.detailValue}>{formatCurrency(selectedItem.billingAmount)}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>入金日:</Text><Text style={styles.detailValue}>{selectedItem.paymentDate || '-'}</Text></View>
+              <View style={styles.detailRow}><Text style={styles.detailLabel}>返金規定:</Text><Text style={styles.detailValue}>{selectedItem.refundPolicy || '-'}</Text></View>
             </View>
           </ScrollView>
         );
