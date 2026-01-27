@@ -70,6 +70,31 @@ export class Company {
     }
 
     /**
+     * Field names mapped to Firestore keys.
+     * @readonly
+     * @enum {string}
+     */
+    static FIELDS = {
+        PROFILE: '会社概要',
+        APPEAL: '魅力/特徴',
+        APPEAL_OTHER: 'エンジニアにとってのその他の魅力',
+        PAYMENT: '決済',
+        CONNECTION: '繋がり',
+        NAME: '社名',
+        WEBSITE_URL: 'WEBサイトURL',
+        BUSINESS_CONTENT: '事業内容',
+        ADDRESS: '所在地',
+        ADDRESS_ALT1: '住所',
+        ADDRESS_ALT2: '本社所在地',
+        ESTABLISHMENT_DATE: '設立年月日',
+        CAPITAL: '資本金',
+        EMPLOYEE_COUNT: '正社員数',
+        AVERAGE_ANNUAL_INCOME: '平均年収',
+        BACKGROUND_URL: '背景画像URL',
+        LOGO_URL: 'ロゴ画像URL'
+    };
+
+    /**
      * Creates a Company instance from Firestore data.
      * @param {string} id - Document ID
      * @param {Object.<string, any>} data - Firestore document data
@@ -79,26 +104,26 @@ export class Company {
         if (!data) return new Company(id, "", "", "", "", "", "", "", "", "", "", {}, {}, {}, {});
 
         /** @type {Object.<string, any>} */
-        const profile = data['会社概要'] ?? {};
+        const profile = data[Company.FIELDS.PROFILE] ?? {};
         /** @type {Object.<string, any>} */
-        const appeal = data['魅力/特徴'] ?? data.appeal ?? {};
+        const appeal = data[Company.FIELDS.APPEAL] ?? data.appeal ?? {};
         /** @type {Object.<string, any>} */
-        const payment = data['決済'] ?? data.payment ?? {};
+        const payment = data[Company.FIELDS.PAYMENT] ?? data.payment ?? {};
         /** @type {Object.<string, any>} */
-        const connection = data['繋がり'] ?? data.connection ?? {};
+        const connection = data[Company.FIELDS.CONNECTION] ?? data.connection ?? {};
         
         return new Company(
             id,
-            String(profile['社名'] ?? data.companyName ?? data.name ?? ""),
-            String(profile['WEBサイトURL'] ?? data.websiteUrl ?? ""),
-            String(profile['事業内容'] ?? data.businessContent ?? ""),
-            String(profile['所在地'] ?? profile['住所'] ?? profile['本社所在地'] ?? data.address ?? ""),
-            String(profile['設立年月日'] ?? data.establishmentDate ?? ""),
-            String(profile['資本金'] ?? data.capital ?? ""),
-            String(profile['正社員数'] ?? data.employeeCount ?? ""),
-            String(profile['平均年収'] ?? data.averageAnnualIncome ?? ""),
-            String(profile['背景画像URL'] ?? data.backgroundUrl ?? ""),
-            String(profile['ロゴ画像URL'] ?? data.logoUrl ?? ""),
+            String(profile[Company.FIELDS.NAME] ?? data.companyName ?? data.name ?? ""),
+            String(profile[Company.FIELDS.WEBSITE_URL] ?? data.websiteUrl ?? ""),
+            String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? ""),
+            String(profile[Company.FIELDS.ADDRESS] ?? profile[Company.FIELDS.ADDRESS_ALT1] ?? profile[Company.FIELDS.ADDRESS_ALT2] ?? data.address ?? ""),
+            String(profile[Company.FIELDS.ESTABLISHMENT_DATE] ?? data.establishmentDate ?? ""),
+            String(profile[Company.FIELDS.CAPITAL] ?? data.capital ?? ""),
+            String(profile[Company.FIELDS.EMPLOYEE_COUNT] ?? data.employeeCount ?? ""),
+            String(profile[Company.FIELDS.AVERAGE_ANNUAL_INCOME] ?? data.averageAnnualIncome ?? ""),
+            String(profile[Company.FIELDS.BACKGROUND_URL] ?? data.backgroundUrl ?? ""),
+            String(profile[Company.FIELDS.LOGO_URL] ?? data.logoUrl ?? ""),
             appeal,
             payment,
             connection,

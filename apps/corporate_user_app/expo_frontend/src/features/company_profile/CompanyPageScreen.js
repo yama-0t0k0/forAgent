@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
+import { Company } from '@shared/src/core/models/Company';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -127,9 +128,9 @@ const TechStackView = ({ features, techStack }) => {
                             }
                             return null;
                         })}
-                        {features['エンジニアにとってのその他の魅力'] ? (
+                        {features[Company.FIELDS.APPEAL_OTHER] ? (
                             <View style={styles.featureNote}>
-                                <Text style={styles.featureNoteText}>{String(features['エンジニアにとってのその他の魅力'])}</Text>
+                                <Text style={styles.featureNoteText}>{String(features[Company.FIELDS.APPEAL_OTHER])}</Text>
                             </View>
                         ) : null}
                     </View>
