@@ -56,9 +56,12 @@
 │
 ├── infrastructure/                         # プロジェクト基盤・管理設定
 │   ├── firebase/                           # Firebase 横断設定
-│   │   ├── firestore/                      # Security Rules, Indexes
-│   │   ├── functions/                      # 全アプリ共通・横断的 Cloud Functions
-│   │   └── storage/                        # Storage Security Rules
+│   │   ├── firestore/                      # Security Rules, Indexes (構成準備中)
+│   │   ├── functions/                      # Matching Engine (Dart / Cloud Run)
+│   │   │   ├── bin/                        # server.dart (Entrypoint)
+│   │   │   ├── lib/                        # Core Logic
+│   │   │   └── Dockerfile                  # Cloud Run デプロイ用構成
+│   │   └── storage/                        # Storage Security Rules (構成準備中)
 │   └── github/                             # GitHub 自動化・管理
 │       ├── templates/                      # Issue/PR テンプレート
 │       └── workflows/                      # CI/CD (GitHub Actions)
