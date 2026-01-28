@@ -151,22 +151,7 @@ LOG_FILE="/tmp/expo_${APP_NAME}.log"
 while [ $COUNT -lt $MAX_RETRIES ]; do
     sleep 2
     
-    # Method A: Deterministic Construction (Most Reliable for Anonymous Tunnel)
-    # Check .expo/settings.json for urlRandomness
-    SETTINGS_FILE=".expo/settings.json"
-    if [ -f "$SETTINGS_FILE" ]; then
-        # Extract randomness (e.g. "J7gLLTA")
-        RANDOMNESS=$(grep -o '"urlRandomness":[[:space:]]*"[^"]*"' "$SETTINGS_FILE" | cut -d'"' -f4)
-        if [ -n "$RANDOMNESS" ]; then
-            # Convert to lowercase
-            RANDOMNESS_LOWER=$(echo "$RANDOMNESS" | tr '[:upper:]' '[:lower:]')
-            # Construct URL
-            URL="exp://${RANDOMNESS_LOWER}-anonymous-${PORT}.exp.direct"
-            break
-        fi
-    fi
-
-    # Method B: Ngrok API (Fallback)
+    # Method B: Ngrok API (Primary)
     # Check default ngrok port 4040, then 4041
     TUNNELS_JSON=$(curl -s --max-time 1 http://localhost:4040/api/tunnels || true)
     URL=$(echo "$TUNNELS_JSON" | grep -o 'exp://[^"]*')
@@ -180,6 +165,25 @@ while [ $COUNT -lt $MAX_RETRIES ]; do
 
     if [ -n "$URL" ]; then
         break
+    fi
+
+    # Method A: Deterministic Construction (Fallback)
+    # Check .expo/settings.json for urlRandomness
+    # CRITICAL FIX: Only trust settings.json if the tunnel is actually ready (verified via logs)
+    # This prevents returning a stale URL before the new tunnel is established.
+    if [ -f "$LOG_FILE" ] && grep -q "Tunnel ready" "$LOG_FILE"; then
+        SETTINGS_FILE=".expo/settings.json"
+        if [ -f "$SETTINGS_FILE" ]; then
+            # Extract randomness (e.g. "J7gLLTA")
+            RANDOMNESS=$(grep -o '"urlRandomness":[[:space:]]*"[^"]*"' "$SETTINGS_FILE" | cut -d'"' -f4)
+            if [ -n "$RANDOMNESS" ]; then
+                # Convert to lowercase
+                RANDOMNESS_LOWER=$(echo "$RANDOMNESS" | tr '[:upper:]' '[:lower:]')
+                # Construct URL
+                URL="exp://${RANDOMNESS_LOWER}-anonymous-${PORT}.exp.direct"
+                break
+            fi
+        fi
     fi
 
     # Method C: Log Parsing

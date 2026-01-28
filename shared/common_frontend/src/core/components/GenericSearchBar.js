@@ -2,6 +2,30 @@ import React from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} FilterOption
+ * @property {string|number} value
+ * @property {string} label
+ */
+
+/**
+ * @typedef {Object} GenericSearchBarProps
+ * @property {string} searchQuery - Current search query
+ * @property {function(string): void} setSearchQuery - Callback to update search query
+ * @property {string} [placeholder] - Placeholder text
+ * @property {FilterOption[]} [quickFilters] - Array of filter options
+ * @property {string|number} [activeFilter] - Currently active filter value
+ * @property {function(string|number): void} [onApplyFilter] - Callback when filter is selected
+ * @property {Object} [style] - Container style
+ * @property {Object} [inputStyle] - Input field style
+ * @property {Object} [filterContainerStyle] - Filter container style
+ */
+
+/**
+ * Generic Search Bar Component with optional quick filters.
+ * 
+ * @param {GenericSearchBarProps} props
+ */
 export const GenericSearchBar = ({ 
   searchQuery, 
   setSearchQuery, 

@@ -18,16 +18,16 @@ export const styles = StyleSheet.create({
   activeTabItem: { backgroundColor: '#fff', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
   tabText: { fontSize: 13, color: THEME.subText, fontWeight: '600' },
   activeTabText: { color: THEME.accent, fontWeight: 'bold' },
-  
+
   contentArea: { flex: 1 },
   tabContent: { flex: 1, padding: 20 },
-  
+
   // New Dashboard Styles
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 10 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
   displayBadge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   displayBadgeText: { color: THEME.accent, fontSize: 12, fontWeight: 'bold' },
-  
+
   // Search
   searchContainer: { marginBottom: 20 },
   searchInput: {
@@ -143,19 +143,19 @@ export const styles = StyleSheet.create({
   cardRate: { fontSize: 11, color: THEME.success, fontWeight: 'bold' },
   arrowContainer: { justifyContent: 'center', marginRight: 10 },
   arrow: { color: '#CBD5E1', fontSize: 20 },
-  
+
   rowContainer: { flexDirection: 'row', marginBottom: 20 },
   halfCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
   fullCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
   cardTitle: { fontSize: 15, fontWeight: 'bold', color: THEME.text, marginBottom: 15 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  
+
   segmentControl: { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 2 },
   segmentActive: { backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
   segmentInactive: { paddingHorizontal: 12, paddingVertical: 4 },
   segmentTextActive: { fontSize: 11, fontWeight: 'bold', color: THEME.text },
   segmentTextInactive: { fontSize: 11, color: THEME.subText },
-  
+
   legendContainer: { marginTop: 10 },
   legendRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 6 },
@@ -164,14 +164,14 @@ export const styles = StyleSheet.create({
 
   listContainer: { paddingBottom: 20 },
   emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
-  
+
   // Modal
   modalContainer: { flex: 1, backgroundColor: '#F8FAFC', paddingTop: 20 },
   modalHeader: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#fff' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
   closeButton: { padding: 8 },
   closeButtonText: { color: THEME.accent, fontWeight: 'bold' },
-  
+
   // User Detail
   detailHeader: { marginBottom: 20, alignItems: 'center' },
   detailName: { fontSize: 22, fontWeight: 'bold', color: THEME.text, marginBottom: 4 },
@@ -251,11 +251,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   detailWindow: {
-    width: SCREEN_WIDTH * 0.8,
-    height: SCREEN_HEIGHT * 0.8,
+    width: SCREEN_WIDTH * 0.9,
+    height: SCREEN_HEIGHT * 0.85,
     backgroundColor: '#F8FAFC',
     borderRadius: 16,
-    overflow: 'hidden',
+    // Note: removed overflow: 'hidden' to ensure no clipping of interactive elements
   },
   detailWindowHeader: {
     height: 54,

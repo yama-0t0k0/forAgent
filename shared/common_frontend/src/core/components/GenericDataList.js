@@ -1,6 +1,20 @@
 import React from 'react';
 import { FlatList, Text, View, StyleSheet } from 'react-native';
 
+/**
+ * @typedef {Object} GenericDataListProps
+ * @property {Array<any>} data - Data to render
+ * @property {function({item: any}): React.ReactElement} renderItem - Render function
+ * @property {function(any): string} [keyExtractor] - Key extractor function
+ * @property {React.ReactElement} [ListEmptyComponent] - Component to render when empty
+ * @property {Object} [contentContainerStyle] - Style for content container
+ */
+
+/**
+ * Generic Data List Component wrapping FlatList with default empty state.
+ * 
+ * @param {GenericDataListProps} props
+ */
 export const GenericDataList = ({ 
   data, 
   renderItem, 
@@ -9,6 +23,11 @@ export const GenericDataList = ({
   contentContainerStyle,
   ...props 
 }) => {
+  /**
+   * Default key extractor using id or random string.
+   * @param {any} item - The data item.
+   * @returns {string} Unique key.
+   */
   const defaultKeyExtractor = (item) => item.id || item.JobStatID || Math.random().toString();
   
   const defaultEmptyComponent = (

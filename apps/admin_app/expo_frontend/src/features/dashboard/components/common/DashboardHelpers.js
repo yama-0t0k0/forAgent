@@ -4,6 +4,12 @@ import Svg, { Rect, Path } from 'react-native-svg';
 import { styles } from '../../dashboardStyles';
 
 // Dashboard Icon Component
+/**
+ * Renders a dashboard grid icon.
+ * @param {Object} props
+ * @param {string} props.color - The fill color of the icon.
+ * @returns {JSX.Element} The rendered SVG icon.
+ */
 export const DashboardIcon = ({ color }) => (
   <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <Rect x="3" y="3" width="7" height="7" rx="1" fill={color} />
@@ -14,6 +20,10 @@ export const DashboardIcon = ({ color }) => (
 );
 
 // Notification Icon Component
+/**
+ * Renders a notification bell icon with a badge.
+ * @returns {JSX.Element} The rendered component.
+ */
 export const NotificationIcon = () => (
   <View style={styles.notificationContainer}>
     <Svg width="28" height="28" viewBox="0 0 24 24" fill="none">

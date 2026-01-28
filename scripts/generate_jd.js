@@ -24,20 +24,40 @@ const TEMPLATE_JD = path.join(
 );
 const OUT_JD_DIR_BASE = path.join(ROOT, 'reference_information_fordev/json/jd');
 
+/**
+ * Ensure directory exists
+ * @param {string} dir - Directory path
+ */
 function ensureDirSync(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
+/**
+ * Load JSON file
+ * @param {string} p - File path
+ * @returns {object} JSON data
+ */
 function loadJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
+/**
+ * Save data to JSON file
+ * @param {string} p - File path
+ * @param {object} data - Data to save
+ */
 function saveJson(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
 }
 
+/**
+ * Generate JD JSON
+ * @param {string} companyId - Company ID
+ * @param {string} jdNumber - JD Number
+ * @param {string} [outPath] - Optional output path
+ */
 async function generateJD(companyId, jdNumber, outPath) {
   const cid = (companyId || '').trim();
   const jdn = (jdNumber || '').trim();
@@ -61,6 +81,9 @@ async function generateJD(companyId, jdNumber, outPath) {
   console.log(`JD JSON generated: ${finalPath}`);
 }
 
+/**
+ * Main function
+ */
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {

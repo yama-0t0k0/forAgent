@@ -5,7 +5,18 @@ import { styles } from '../../dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrendsData, onStepPress }) => (
+/**
+ * Tab component for displaying the dashboard overview (charts, stats, etc.).
+ * @param {Object} props
+ * @param {Array<Object>} props.selectionFlowData - Data for the selection process flow.
+ * @param {Array<Object>} props.userGrowthData - Data for user growth chart.
+ * @param {Array<Object>} props.connectionTrendsData - Data for connection trends chart.
+ * @param {Function} props.onStepPress - Callback when a flow step is pressed.
+ * @returns {JSX.Element} The rendered component.
+ */
+export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrendsData, onStepPress }) => {
+  console.log('Rendering OverviewTab, steps:', selectionFlowData.length);
+  return (
   <ScrollView style={styles.tabContent} contentContainerStyle={{ paddingBottom: 40 }}>
     {/* Selection Process Flow */}
     <View style={styles.sectionHeaderRow}>
@@ -14,12 +25,13 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
         <Text style={styles.displayBadgeText}>表示: 件数</Text>
       </View>
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flowContainer} contentContainerStyle={{paddingRight: 20}}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flowContainer} contentContainerStyle={{ paddingRight: 20 }}>
       {selectionFlowData.map((step, index) => (
         <React.Fragment key={step.id}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.whiteCard}
             onPress={() => onStepPress(step)}
+            testID={step.id}
           >
             <Text style={styles.cardCount}>{step.count}<Text style={styles.unitText}>件</Text></Text>
             <Text style={styles.cardLabel}>{step.label}</Text>
@@ -53,15 +65,15 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
         </View>
         <View style={styles.legendContainer}>
           <View style={styles.legendRow}>
-            <View style={styles.legendItem}><View style={[styles.dot, {backgroundColor:'#4CAF50'}]}/><Text style={styles.legendText}>大変満足</Text></View>
-            <View style={styles.legendItem}><View style={[styles.dot, {backgroundColor:'#8BC34A'}]}/><Text style={styles.legendText}>満足</Text></View>
+            <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#4CAF50' }]} /><Text style={styles.legendText}>大変満足</Text></View>
+            <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#8BC34A' }]} /><Text style={styles.legendText}>満足</Text></View>
           </View>
           <View style={styles.legendRow}>
-            <View style={styles.legendItem}><View style={[styles.dot, {backgroundColor:'#FFEB3B'}]}/><Text style={styles.legendText}>普通</Text></View>
-            <View style={styles.legendItem}><View style={[styles.dot, {backgroundColor:'#FF9800'}]}/><Text style={styles.legendText}>不満</Text></View>
+            <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#FFEB3B' }]} /><Text style={styles.legendText}>普通</Text></View>
+            <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#FF9800' }]} /><Text style={styles.legendText}>不満</Text></View>
           </View>
           <View style={styles.legendRow}>
-             <View style={styles.legendItem}><View style={[styles.dot, {backgroundColor:'#F44336'}]}/><Text style={styles.legendText}>大変不満</Text></View>
+            <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#F44336' }]} /><Text style={styles.legendText}>大変不満</Text></View>
           </View>
         </View>
       </View>
@@ -103,4 +115,5 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
       />
     </View>
   </ScrollView>
-);
+  );
+};

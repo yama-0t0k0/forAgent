@@ -1,11 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
+import { Company } from '@shared/src/core/models/Company';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { TabView, SceneMap } from 'react-native-tab-view';
+
+import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android') {
@@ -16,24 +19,27 @@ if (Platform.OS === 'android') {
 
 const { width, height } = Dimensions.get('window');
 
-// Fallback background image
-const DEFAULT_BG = require('../../../assets/generated/rainforest_bg.png');
+// Fallback background image (assuming it exists in the app that consumes this component or pass as prop)
+// Using a placeholder or passing it from parent is better, but for now we try to resolve it if possible or use a color
+// Modified to not require local asset directly to avoid path issues across apps
+const DEFAULT_BG_IMAGE = require('../../../assets/generated/rainforest_bg.png');
 
-// Mock Data for Tech Stack
-const MOCK_TECH_STACK = {
-    languages: {
-        backend: { main: 'Go', sub: 'Python' },
-        frontend: { main: 'TypeScript', sub: 'Dart' }
-    },
-    others: {
-        framework: { main: 'React Native', sub: 'Flutter' },
-        cloud: { main: 'AWS', sub: 'GCP' },
-        database: { main: 'Firestore', sub: 'PostgreSQL' },
-        tools: { main: 'GitHub', sub: 'Slack' }
-    }
-};
-
-const TechStackView = ({ features }) => {
+/**
+ * Component to display the technology stack and features of a company.
+ * @param {Object} props
+ * @param {Object} props.features - The features of the company.
+ * @param {Object} props.techStack - The technology stack of the company.
+ * @returns {JSX.Element} The rendered view.
+ */
+const TechStackView = ({ features, techStack }) => {
+    /**
+     * Renders a single technology item.
+     * @param {string} label - The label of the item.
+     * @param {string} main - The main technology.
+     * @param {string} sub - The sub technology.
+     * @param {string} iconName - The icon name.
+     * @returns {JSX.Element} The rendered item.
+     */
     const renderTechItem = (label, main, sub, iconName) => (
         <View style={styles.techItemContainer}>
             <View style={styles.techHeader}>
@@ -42,11 +48,11 @@ const TechStackView = ({ features }) => {
             </View>
             <View style={styles.techBadgeContainer}>
                 <View style={[styles.techBadge, styles.techBadgeMain]}>
-                    <Text style={styles.techBadgeTextMain}>{main}</Text>
+                    <Text style={styles.techBadgeTextMain}>{String(main || '-')}</Text>
                 </View>
                 {sub && (
                     <View style={[styles.techBadge, styles.techBadgeSub]}>
-                        <Text style={styles.techBadgeTextSub}>{sub}</Text>
+                        <Text style={styles.techBadgeTextSub}>{String(sub)}</Text>
                     </View>
                 )}
             </View>
@@ -55,10 +61,27 @@ const TechStackView = ({ features }) => {
 
     const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false); // Default collapsed
 
+    /**
+     * Toggles the visibility of the features section.
+     */
     const toggleFeatures = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsFeaturesExpanded(!isFeaturesExpanded);
     };
+
+    // Safe access helpers
+    /**
+     * Helper to safely access language data.
+     * @param {string} type - The type of language.
+     * @returns {Object} The language data.
+     */
+    const getLang = (type) => techStack?.languages?.[type] || {};
+    /**
+     * Helper to safely access other tech data.
+     * @param {string} type - The type of tech.
+     * @returns {Object} The tech data.
+     */
+    const getOther = (type) => techStack?.others?.[type] || {};
 
     return (
         <ScrollView contentContainerStyle={styles.tabScrollContent} bounces={false}>
@@ -68,15 +91,15 @@ const TechStackView = ({ features }) => {
                 <View style={styles.techGrid}>
                     <View style={styles.techColumn}>
                         <Text style={styles.subSectionTitle}>言語</Text>
-                        {renderTechItem('Backend', MOCK_TECH_STACK.languages.backend.main, MOCK_TECH_STACK.languages.backend.sub, 'server-outline')}
-                        {renderTechItem('Frontend', MOCK_TECH_STACK.languages.frontend.main, MOCK_TECH_STACK.languages.frontend.sub, 'desktop-outline')}
+                        {renderTechItem('Backend', getLang('backend').main, getLang('backend').sub, 'server-outline')}
+                        {renderTechItem('Frontend', getLang('frontend').main, getLang('frontend').sub, 'desktop-outline')}
                     </View>
                     <View style={styles.techColumn}>
                         <Text style={styles.subSectionTitle}>その他</Text>
-                        {renderTechItem('Framework', MOCK_TECH_STACK.others.framework.main, MOCK_TECH_STACK.others.framework.sub, 'layers-outline')}
-                        {renderTechItem('Cloud', MOCK_TECH_STACK.others.cloud.main, MOCK_TECH_STACK.others.cloud.sub, 'cloud-outline')}
-                        {renderTechItem('DB', MOCK_TECH_STACK.others.database.main, MOCK_TECH_STACK.others.database.sub, 'server-outline')}
-                        {renderTechItem('Tools', MOCK_TECH_STACK.others.tools.main, MOCK_TECH_STACK.others.tools.sub, 'construct-outline')}
+                        {renderTechItem('Framework', getOther('framework').main, getOther('framework').sub, 'layers-outline')}
+                        {renderTechItem('Cloud', getOther('cloud').main, getOther('cloud').sub, 'cloud-outline')}
+                        {renderTechItem('DB', getOther('database').main, getOther('database').sub, 'server-outline')}
+                        {renderTechItem('Tools', getOther('tools').main, getOther('tools').sub, 'construct-outline')}
                     </View>
                 </View>
             </View>
@@ -87,17 +110,17 @@ const TechStackView = ({ features }) => {
                     <Text style={styles.sectionTitle}>魅力/特徴</Text>
                     <Ionicons name={isFeaturesExpanded ? "chevron-up" : "chevron-down"} size={24} color={THEME.text} />
                 </TouchableOpacity>
-                
+
                 {isFeaturesExpanded && (
                     <View style={styles.accordionContent}>
                         {Object.entries(features).map(([key, value]) => {
                             if (typeof value === 'boolean') {
                                 return (
                                     <View key={key} style={styles.featureItem}>
-                                        <Ionicons 
-                                            name={value ? "checkmark-circle" : "close-circle"} 
-                                            size={18} 
-                                            color={value ? THEME.success : THEME.subText} 
+                                        <Ionicons
+                                            name={value ? "checkmark-circle" : "close-circle"}
+                                            size={18}
+                                            color={value ? THEME.success : THEME.subText}
                                         />
                                         <Text style={[styles.featureText, !value && { color: THEME.subText }]}>{key}</Text>
                                     </View>
@@ -105,9 +128,9 @@ const TechStackView = ({ features }) => {
                             }
                             return null;
                         })}
-                        {features['エンジニアにとってのその他の魅力'] ? (
+                        {features[Company.FIELDS.APPEAL_OTHER] ? (
                             <View style={styles.featureNote}>
-                                <Text style={styles.featureNoteText}>{features['エンジニアにとってのその他の魅力']}</Text>
+                                <Text style={styles.featureNoteText}>{String(features[Company.FIELDS.APPEAL_OTHER])}</Text>
                             </View>
                         ) : null}
                     </View>
@@ -117,6 +140,10 @@ const TechStackView = ({ features }) => {
     );
 };
 
+/**
+ * Component for displaying the menu.
+ * @returns {JSX.Element} The rendered menu view.
+ */
 const MenuView = () => {
     const navigation = useNavigation();
 
@@ -145,6 +172,10 @@ const MenuView = () => {
         }
     ];
 
+    /**
+     * Handles the press event for a menu item.
+     * @param {Object} item - The menu item.
+     */
     const handlePress = (item) => {
         if (item.target) {
             navigation.navigate(item.target, { isEdit: true });
@@ -185,6 +216,12 @@ const MenuView = () => {
     );
 };
 
+/**
+ * Placeholder component for screens under construction.
+ * @param {Object} props
+ * @param {string} props.title - The title of the screen.
+ * @returns {JSX.Element} The rendered placeholder view.
+ */
 const UnderConstructionView = ({ title }) => (
     <View style={styles.centerContent}>
         <Text style={styles.ucTitle}>{title}</Text>
@@ -192,17 +229,23 @@ const UnderConstructionView = ({ title }) => (
     </View>
 );
 
+/**
+ * Main screen for the company profile page.
+ * Manages tab navigation and displays company details.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const CompanyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
-    
-    // Extract data
-    const companyInfo = data['会社概要'] || {};
-    const features = data['魅力/特徴'] || {};
-    const companyName = companyInfo['社名'] || '会社名未設定';
-    const businessContent = companyInfo['事業内容'] || '事業内容が設定されていません。';
-    const backgroundUrl = companyInfo['背景画像URL']; 
-    const logoUrl = companyInfo['ロゴ画像URL'];
+
+    // Adapt data using utility
+    const {
+        companyName,
+        businessContent,
+        backgroundUrl,
+        logoUrl,
+        raw: { companyInfo, features, techStack }
+    } = adaptCompanyData(data);
 
     // TabView State - Default to TechStack (index 2)
     const [index, setIndex] = useState(2);
@@ -215,6 +258,12 @@ export const CompanyPageScreen = () => {
         { key: 'menu', title: 'メニュー', icon: 'grid-outline' },
     ]);
 
+    /**
+     * Renders the scene for the current tab.
+     * @param {Object} props
+     * @param {Object} props.route - The route object.
+     * @returns {JSX.Element|null} The rendered scene.
+     */
     const renderScene = ({ route }) => {
         switch (route.key) {
             case 'jobs':
@@ -223,7 +272,7 @@ export const CompanyPageScreen = () => {
                 return <UnderConstructionView title="つながり" />;
             case 'tech_stack':
                 // Pass features to TechStackView
-                return <TechStackView features={features} />;
+                return <TechStackView features={features} techStack={techStack} />;
             case 'blog':
                 return <UnderConstructionView title="ブログ" />;
             case 'events':
@@ -235,6 +284,10 @@ export const CompanyPageScreen = () => {
         }
     };
 
+    /**
+     * Renders the tab bar.
+     * @returns {null} We use a custom footer instead.
+     */
     const renderTabBar = () => null; // We use our custom footer instead
 
     return (
@@ -246,12 +299,12 @@ export const CompanyPageScreen = () => {
                   We use a container with overflow hidden and absolute positioning for the image.
                 */}
                 <View style={styles.headerBackgroundContainer}>
-                     <Image
-                        source={backgroundUrl ? { uri: backgroundUrl } : DEFAULT_BG}
+                    <Image
+                        source={backgroundUrl ? { uri: backgroundUrl } : DEFAULT_BG_IMAGE}
                         style={styles.headerBackgroundImage}
                         resizeMode="cover"
                     />
-                     <View style={styles.headerOverlay} />
+                    <View style={styles.headerOverlay} />
                 </View>
 
                 <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
@@ -275,9 +328,9 @@ export const CompanyPageScreen = () => {
                                 />
                             </View>
                             <View style={styles.namePlate}>
-                                <Text style={styles.nameText}>{String(companyName)}</Text>
+                                <Text style={styles.nameText} testID="company_detail_name">{String(companyName)}</Text>
                                 <Text style={styles.industryText} numberOfLines={2}>{String(businessContent)}</Text>
-                                
+
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
                                     <TouchableOpacity style={styles.linkIcon}>
@@ -294,7 +347,7 @@ export const CompanyPageScreen = () => {
                         </View>
                     </View>
                 </SafeAreaView>
-                
+
                 {/* Announcement Bar */}
                 <View style={styles.announcementBar}>
                     <Ionicons name="information-circle-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
@@ -320,9 +373,9 @@ export const CompanyPageScreen = () => {
                 {routes.map((route, i) => {
                     const isActive = index === i;
                     return (
-                        <TouchableOpacity 
-                            key={route.key} 
-                            style={styles.navItem} 
+                        <TouchableOpacity
+                            key={route.key}
+                            style={styles.navItem}
                             onPress={() => setIndex(i)}
                         >
                             {isActive ? (
@@ -353,7 +406,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: THEME.background,
         zIndex: 10,
-        height: height * 0.28, // Increased height to prevent overlap
+        height: height * 0.28, // Adjusted to match corporate_user_app design
         justifyContent: 'flex-end', // Align content to bottom
     },
     headerBackgroundContainer: {
@@ -374,7 +427,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end', // Push content down
         paddingBottom: 10,
-        zIndex: 20, // Ensure profile info is above announcement bar
     },
     topProfileContainer: {
         paddingHorizontal: 15,
@@ -440,6 +492,7 @@ const styles = StyleSheet.create({
     linkIconsRow: {
         flexDirection: 'row',
         gap: 12,
+        columns: 3,
     },
     linkIcon: {
         padding: 2,
@@ -458,7 +511,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         flex: 1,
     },
-    
+
     // Tab Content Styles
     tabScrollContent: {
         paddingTop: 15,
@@ -481,7 +534,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 4,
     },
-    
+
     // Tech Stack Styles
     techGrid: {
         flexDirection: 'row',

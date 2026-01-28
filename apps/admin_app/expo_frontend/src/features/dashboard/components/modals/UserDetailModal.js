@@ -1,132 +1,155 @@
-import React from 'react';
-import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator, ScrollView, ImageBackground, Image, Dimensions } from 'react-native';
-import { GlassCard } from '@shared/src/core/components/GlassCard';
-import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
-import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { NavigationContext } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// Use individual_user_app's screen directly instead of shared component
+import { MyPageScreen as IndividualProfileScreen } from '../../../../../../../individual_user_app/expo_frontend/src/features/profile/MyPageScreen';
+import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
+import { CareerScreen } from '@shared/src/features/job/CareerScreen';
+import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
+import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
+import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+// Fix import path for JobDescriptionScreen using relative path to avoid alias issues
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '../../dashboardStyles';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const ENGINEER_TEMPLATE = require('../../../../../assets/json/engineer-profile-template.json');
 
-export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId, extractSkills }) => (
+/**
+ * Inner content component for UserDetailModal to manage internal navigation.
+ * @param {Object} props
+ * @param {string} props.userId - The user ID.
+ * @param {Object} props.userDoc - The user document data.
+ * @returns {JSX.Element|null} The rendered screen or null.
+ */
+const UserDetailContent = ({ userId, userDoc }) => {
+  const [stack, setStack] = useState([]);
+
+  useEffect(() => {
+    setStack([{ name: 'MyPage', params: { userId, userDoc, hideSafeArea: true } }]);
+  }, [userId, userDoc]);
+
+  /**
+   * Custom navigation object mimicking React Navigation.
+   * @type {Object}
+   */
+  const navigation = useMemo(() => ({
+    navigate: (name, params) => {
+      setStack(prev => [...prev, { name, params }]);
+    },
+    goBack: () => {
+      setStack(prev => prev.length > 1 ? prev.slice(0, -1) : prev);
+    },
+    canGoBack: () => stack.length > 1,
+    getParent: () => null,
+    addListener: () => () => {},
+    removeListener: () => {},
+    setOptions: () => {},
+    dispatch: () => {},
+    isFocused: () => true,
+  }), [stack]);
+
+  const currentRoute = stack[stack.length - 1];
+
+  if (!currentRoute) return null;
+
+  /**
+   * Renders the current screen based on the stack state.
+   * @returns {JSX.Element} The screen component.
+   */
+  const renderScreen = () => {
+    const props = {
+      route: currentRoute,
+      navigation: navigation,
+      hideSafeArea: false
+    };
+
+    switch (currentRoute.name) {
+      case 'MyPage':
+        return <IndividualProfileScreen {...props} userId={userId} userDoc={userDoc} />;
+      case 'Connection':
+        return <ConnectionScreen {...props} />;
+      case 'Career':
+        return <CareerScreen {...props} />;
+      case 'Menu':
+        return <IndividualMenuScreen {...props} />;
+      case 'ImageEdit':
+        return <IndividualImageEditScreen {...props} />;
+      case 'JobDescription':
+        return <JobDescriptionScreen {...props} />;
+      case 'Registration':
+        return (
+          <GenericRegistrationScreen
+            {...props}
+            title="エンジニア個人登録"
+            collectionName="individual"
+            idField="id_individual"
+            idPrefixChar="C"
+            orderTemplate={ENGINEER_TEMPLATE}
+          />
+        );
+      default:
+        return <View><Text>Unknown Screen: {currentRoute.name}</Text></View>;
+    }
+  };
+
+  return (
+    <NavigationContext.Provider value={navigation}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {renderScreen()}
+      </GestureHandlerRootView>
+    </NavigationContext.Provider>
+  );
+};
+
+/**
+ * Modal component for displaying detailed user information with internal navigation.
+ * @param {Object} props
+ * @param {boolean} props.visible - Whether the modal is visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {boolean} props.loading - Loading state.
+ * @param {Object} props.error - Error object.
+ * @param {Object} props.userDoc - The user document data.
+ * @param {string} props.userId - The user ID.
+ * @returns {JSX.Element} The rendered modal.
+ */
+export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => (
   <Modal
     visible={visible}
     transparent
     animationType="fade"
     onRequestClose={onClose}
   >
-    <Pressable style={styles.detailOverlay} onPress={onClose}>
-      <Pressable style={styles.detailWindow} onPress={(e) => e.stopPropagation()}>
+    <View style={styles.detailOverlay} pointerEvents="box-none">
+      <View style={styles.detailWindow} testID="user_detail_modal_view" pointerEvents="auto">
         <View style={styles.detailWindowHeader}>
-          <Text style={styles.detailWindowTitle}>個人ユーザー詳細</Text>
-          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose}>
+          <View style={{ flex: 1 }} />
+          <Text style={styles.detailWindowTitle} testID="user_detail_title">個人詳細</Text>
+          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID="user_detail_close">
             <Text style={styles.detailWindowCloseText}>閉じる</Text>
           </TouchableOpacity>
         </View>
 
         {loading && (
-          <View style={styles.detailWindowLoading}>
-            <ActivityIndicator size="large" color={THEME.accent} />
+          <View style={styles.detailWindowLoading} testID="user_detail_loading">
+            <ActivityIndicator size="large" color={THEME.accent} testID="loading_indicator" />
             <Text style={styles.detailWindowLoadingText}>読み込み中...</Text>
           </View>
         )}
 
         {!loading && error && (
-          <View style={styles.detailWindowLoading}>
-            <Text style={styles.detailWindowErrorText}>{error}</Text>
+          <View style={styles.detailWindowLoading} testID="user_detail_error_view">
+            <Text style={styles.detailWindowErrorText} testID="user_detail_error_text">{error}</Text>
           </View>
         )}
 
         {!loading && !error && userDoc && (
-          <ScrollView contentContainerStyle={styles.detailWindowScrollContent} bounces={false}>
-            {(() => {
-              const basicInfo = userDoc['基本情報'] || {};
-              const family = basicInfo['姓'] || '';
-              const first = basicInfo['名'] || '';
-              const mail = basicInfo['メール'] || basicInfo['メールアドレス'] || '';
-              const backgroundUri = basicInfo['背景画像URL'];
-              const profileUri = basicInfo['プロフィール画像URL'];
-
-              const skills = extractSkills(userDoc);
-              const coreSkill = skills.core[0] || '-';
-              const sub1Skill = skills.sub1[0] || '-';
-              const sub2Skill = skills.sub2[0] || '-';
-
-              const heatmapValues = HeatmapCalculator.calculate(userDoc);
-
-              return (
-                <>
-                  <ImageBackground
-                    source={backgroundUri ? { uri: backgroundUri } : undefined}
-                    style={styles.detailHero}
-                    imageStyle={styles.detailHeroImage}
-                  >
-                    <View style={styles.detailHeroTopRow}>
-                      <Text style={styles.detailHeroId}>ID: {userId}</Text>
-                    </View>
-
-                    <View style={styles.detailHeroProfileRow}>
-                      <View style={styles.detailPhotoContainer}>
-                        <Image
-                          source={{
-                            uri: profileUri || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400',
-                          }}
-                          style={styles.detailProfileImage}
-                        />
-                      </View>
-                      <View style={styles.detailNamePlate}>
-                        <Text style={styles.detailNameText}>{`${family} ${first}`.trim() || '名称未設定'}</Text>
-                        <Text style={styles.detailJobTitle}>フロントエンドエンジニア</Text>
-                        <Text style={styles.detailEmailText}>{mail || '-'}</Text>
-                        <Text style={styles.detailSourceText}>データ元: Firestore (individual)</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-
-                  <View style={styles.detailBadgeSection}>
-                    <View style={styles.detailBadgeRow}>
-                      <GlassCard
-                        label="コアスキル"
-                        skillName={coreSkill}
-                        width={(styles.detailBadgeRow.width - 12) / 3}
-                        labelStyle={styles.detailCardLabel}
-                        badgeStyle={styles.detailGlassBadge}
-                        skillNameStyle={styles.detailCardSkillName}
-                      />
-                      <GlassCard
-                        label="サブスキル1"
-                        skillName={sub1Skill}
-                        width={(styles.detailBadgeRow.width - 12) / 3}
-                        labelStyle={styles.detailCardLabel}
-                        badgeStyle={styles.detailGlassBadge}
-                        skillNameStyle={styles.detailCardSkillName}
-                      />
-                      <GlassCard
-                        label="サブスキル2"
-                        skillName={sub2Skill}
-                        width={(styles.detailBadgeRow.width - 12) / 3}
-                        labelStyle={styles.detailCardLabel}
-                        badgeStyle={styles.detailGlassBadge}
-                        skillNameStyle={styles.detailCardSkillName}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.detailHeatmapSection}>
-                    <Text style={styles.detailHeatmapTitle}>スキル・志向ヒートマップ</Text>
-                    <View style={{ alignItems: 'center', marginTop: 10 }}>
-                      <HeatmapGrid
-                        containerWidth={SCREEN_WIDTH * 0.8 - 40}
-                        dataValues={heatmapValues}
-                      />
-                    </View>
-                  </View>
-                </>
-              );
-            })()}
-          </ScrollView>
+          <View style={{ flex: 1 }}>
+            <UserDetailContent userId={userId} userDoc={userDoc} />
+          </View>
         )}
-      </Pressable>
-    </Pressable>
+      </View>
+    </View>
   </Modal>
 );

@@ -1,7 +1,20 @@
 import React, { createContext, useState, useCallback } from 'react';
 
+/**
+ * アプリケーション全体で共有するデータコンテキスト
+ * @type {React.Context<{data: Object, updateValue: (path: Array<string>, newValue: any) => void}>}
+ */
 export const DataContext = createContext(null);
 
+/**
+ * データプロバイダーコンポーネント
+ * アプリケーションの状態管理を提供します。
+ * 
+ * @param {Object} props
+ * @param {React.ReactNode} props.children 子コンポーネント
+ * @param {Object} [props.initialData] 初期データ
+ * @returns {JSX.Element}
+ */
 export const DataProvider = ({ children, initialData }) => {
   // Use useEffect to update state when initialData changes
   const [data, setData] = useState(initialData ? JSON.parse(JSON.stringify(initialData)) : {});
@@ -12,6 +25,11 @@ export const DataProvider = ({ children, initialData }) => {
     }
   }, [initialData]);
 
+  /**
+   * Updates a value at the specified path in the data object.
+   * @param {string[]} path - The path to the value.
+   * @param {any} newValue - The new value.
+   */
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
       const newData = JSON.parse(JSON.stringify(prevData));

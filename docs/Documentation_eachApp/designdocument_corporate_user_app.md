@@ -5,6 +5,11 @@
 - データソース: Firestore（プロジェクトは環境変数で指定）、テンプレートJSONのフォールバック
 - 目的: 企業プロフィールの表示・編集、技術スタックや魅力/特徴の提示、将来的な求人・つながり導線の提供
 
+## データ管理原則
+- **モデル利用の徹底 (Model-First)**:
+  - データの取得・操作には必ず `Company` モデルを使用します（`shared/common_frontend/src/core/models/Company.js`）。
+  - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`company.companyName` 等）を使用します。
+
 ## Firestore 接続
 - Firestoreへの接続は共有設定 [firebaseConfig.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/firebaseConfig.js) を介して行います
 - 使用環境変数（Expoの公開環境変数）:

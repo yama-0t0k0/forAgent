@@ -3,28 +3,67 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { GlassCard } from '../../../core/components/GlassCard';
 import { MiniHeatmap } from '../../../core/components/MiniHeatmap';
 import { THEME } from '../../../core/theme/theme';
+import { User } from '../../../core/models/User';
 
-export const EngineerListItem = ({ 
-  engineer, 
-  skills, 
-  heatmapData, 
+/**
+ * @typedef {Object} Skills
+ * @property {string[]} core - Core skills
+ * @property {string[]} sub1 - Sub skills 1
+ * @property {string[]} sub2 - Sub skills 2
+ */
+
+/**
+ * @typedef {Object} EngineerListItemProps
+ * @property {User|Object} engineer - Engineer data (User model or raw object)
+ * @property {Skills} skills - Skills data
+ * @property {Object} [heatmapData] - Heatmap data
+ * @property {function(): void} [onPress] - Press handler
+ * @property {Object} [style] - Container style
+ * @property {string} [testID] - Test ID
+ * @property {boolean} [showMatchScore] - Whether to show match score
+ */
+
+/**
+ * Engineer List Item Component
+ * Displays a summary of an engineer's profile.
+ * 
+ * @param {EngineerListItemProps} props
+ */
+export const EngineerListItem = ({
+  engineer,
+  skills,
+  heatmapData,
   onPress,
-  style 
+  style,
+  testID,
+  showMatchScore = true
 }) => {
-  const fullName = (engineer['基本情報']?.['姓'] && engineer['基本情報']?.['名']) 
-    ? `${engineer['基本情報']['姓']} ${engineer['基本情報']['名']}`
-    : (engineer.name || '名称未設定');
-    
-  // Handle both flat and nested data for ID
-  const displayId = engineer.id || engineer['基本情報']?.id || '-';
+  // Ensure we have a User model instance
+  const user = engineer instanceof User 
+    ? engineer 
+    : User.fromFirestore(engineer.id || engineer['基本情報']?.id, engineer);
+
+  const fullName = user.fullNameKanji || (user.rawData.name) || '名称未設定';
   
+  // Handle both flat and nested data for ID via model
+  const displayId = user.id || '-';
+
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
 
+  // Check matching score from rawData or the engineer object itself (if it was an augmented object)
+  // Since User model stores rawData, we can check there, but if the 'engineer' prop was an object with 'matchingScore' 
+  // at the root which wasn't part of Firestore data, it might be lost if we only look at User properties.
+  // However, User constructor takes 'rawData' as the last argument.
+  // If we created User from 'engineer' object, 'engineer' is passed as 'rawData'.
+  // So user.rawData.matchingScore should exist if engineer.matchingScore existed.
+  const matchingScore = user.rawData.matchingScore !== undefined ? user.rawData.matchingScore : engineer.matchingScore;
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.glassListItem, style]}
       activeOpacity={0.7}
       onPress={onPress}
+      testID={testID}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>
@@ -33,8 +72,14 @@ export const EngineerListItem = ({
               <Text style={styles.itemTitleModern}>{fullName}</Text>
               <Text style={styles.itemSubtitleModern}>ID: {displayId}</Text>
             </View>
+            {showMatchScore && matchingScore !== undefined && (
+              <View style={styles.matchBadge}>
+                <Text style={styles.matchScoreText}>{matchingScore}%</Text>
+                <Text style={styles.matchLabel}>Match</Text>
+              </View>
+            )}
           </View>
-          
+
           {hasAnySkill && (
             <ScrollView
               horizontal
@@ -90,10 +135,10 @@ export const EngineerListItem = ({
 
         {heatmapData && (
           <View pointerEvents="box-none">
-            <MiniHeatmap 
-              data={heatmapData.data} 
-              rows={heatmapData.rows || 3} 
-              cols={heatmapData.cols || 3} 
+            <MiniHeatmap
+              data={heatmapData.data}
+              rows={heatmapData.rows || 3}
+              cols={heatmapData.cols || 3}
             />
           </View>
         )}
@@ -137,5 +182,26 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingLeft: 2,
     alignItems: 'flex-start',
+  },
+  matchBadge: {
+    backgroundColor: '#F0F9FF',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  matchScoreText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: THEME.accent,
+  },
+  matchLabel: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: THEME.accent,
+    textTransform: 'uppercase',
   },
 });

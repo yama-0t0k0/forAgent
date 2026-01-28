@@ -15,6 +15,24 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
 
+/**
+ * @typedef {Object} GlassCardProps
+ * @property {string} [label] - Top label (e.g. "Main Skill")
+ * @property {string} skillName - Name of the skill
+ * @property {string} [iconName] - Ionicons name
+ * @property {Object} [style] - Container style
+ * @property {number|string} [width] - Card width
+ * @property {Object} [labelStyle] - Label text style
+ * @property {Object} [badgeStyle] - Badge style
+ * @property {Object} [skillNameStyle] - Skill name text style
+ */
+
+/**
+ * Glassmorphism Card Component.
+ * Displays a skill/badge with a frosted glass effect.
+ * 
+ * @param {GlassCardProps} props
+ */
 export const GlassCard = ({ 
   label, 
   skillName, 

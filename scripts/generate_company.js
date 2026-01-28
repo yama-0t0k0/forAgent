@@ -24,20 +24,39 @@ const TEMPLATE_COMPANY = path.join(
 );
 const OUT_COMPANY_DIR = path.join(ROOT, 'reference_information_fordev/json/ompany');
 
+/**
+ * Ensure directory exists
+ * @param {string} dir - Directory path
+ */
 function ensureDirSync(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
+/**
+ * Load JSON file
+ * @param {string} p - File path
+ * @returns {object} JSON data
+ */
 function loadJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
+/**
+ * Save data to JSON file
+ * @param {string} p - File path
+ * @param {object} data - Data to save
+ */
 function saveJson(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
 }
 
+/**
+ * Generate Company JSON
+ * @param {string} companyId - Company ID (e.g. B00003)
+ * @param {string} [outPath] - Optional output path
+ */
 async function generateCompany(companyId, outPath) {
   const id = (companyId || '').trim();
   if (!id || !id.startsWith('B')) {
@@ -53,6 +72,9 @@ async function generateCompany(companyId, outPath) {
   console.log(`Company JSON generated: ${finalPath}`);
 }
 
+/**
+ * Main function
+ */
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {

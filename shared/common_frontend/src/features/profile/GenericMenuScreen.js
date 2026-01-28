@@ -18,13 +18,47 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+/**
+ * @typedef {Object} MenuItem
+ * @property {string} id - Unique identifier for the menu item
+ * @property {string} label - Display label
+ * @property {string} icon - Icon name (Ionicons)
+ * @property {string} [target] - Navigation target route name
+ * @property {string} [color] - Text and icon color (hex string)
+ * @property {string} [rightIcon] - Icon name for the right side (default: chevron-forward)
+ */
+
+/**
+ * @typedef {Object} MenuGroup
+ * @property {string} title - Group title
+ * @property {MenuItem[]} items - List of menu items in this group
+ */
+
+/**
+ * @typedef {Object} GenericMenuScreenProps
+ * @property {MenuGroup[]} menuGroups - Configuration for menu groups and items
+ * @property {function(object): React.ReactNode} [renderBottomNav] - Function to render bottom navigation
+ * @property {function(MenuItem, object): void} [onItemPress] - Callback when a menu item is pressed
+ */
+
+/**
+ * Generic Menu Screen
+ * Displays a list of grouped menu items.
+ * Customizable via props for menu structure and navigation behavior.
+ * 
+ * @param {GenericMenuScreenProps} props
+ */
 export const GenericMenuScreen = ({
-  menuGroups,
-  renderBottomNav,
-  onItemPress
+    menuGroups,
+    renderBottomNav,
+    onItemPress
 }) => {
     const navigation = useNavigation();
 
+    /**
+     * Handles menu item press.
+     * @param {MenuItem} item - The pressed menu item.
+     */
     const handlePress = (item) => {
         if (onItemPress) {
             onItemPress(item, navigation);
@@ -49,7 +83,7 @@ export const GenericMenuScreen = ({
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {menuGroups.map((group, groupIdx) => (
                     <View key={groupIdx} style={styles.group}>
-                        <Text style={styles.groupTitle}>{group.title}</Text>
+                        <Text style={styles.groupTitle}>{String(group.title)}</Text>
                         <View style={styles.groupCard}>
                             {group.items.map((item, itemIdx) => (
                                 <TouchableOpacity
@@ -63,7 +97,7 @@ export const GenericMenuScreen = ({
                                     <View style={styles.menuItemLeft}>
                                         <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
                                         <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
-                                            {item.label}
+                                            {String(item.label)}
                                         </Text>
                                     </View>
                                     <Ionicons name={item.rightIcon || "chevron-forward"} size={18} color={THEME.subText} />

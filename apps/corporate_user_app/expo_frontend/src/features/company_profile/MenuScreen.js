@@ -4,6 +4,10 @@ import { GenericMenuScreen } from '@shared/src/features/profile/GenericMenuScree
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * Screen displaying the menu with various settings and options.
+ * @returns {JSX.Element} The rendered menu screen.
+ */
 export const MenuScreen = () => {
     const menuGroups = [
         {
@@ -30,6 +34,11 @@ export const MenuScreen = () => {
         }
     ];
 
+    /**
+     * Handles the press event for a menu item.
+     * @param {Object} item - The menu item.
+     * @param {Object} navigation - The navigation object.
+     */
     const handlePress = (item, navigation) => {
         if (item.target) {
             navigation.navigate(item.target, { isEdit: true });

@@ -71,12 +71,18 @@ graph TD
 - ポート: 8085（スクリプトで自動割り当て）
 
 ## データ管理原則
+- **モデル利用の徹底 (Model-First)**:
+  - データの取得・操作には必ず `SelectionProgress` モデルを使用します（`shared/common_frontend/src/core/models/SelectionProgress.js`）。
+  - 生のFirestoreデータ（`data['field']`）への直接アクセスは原則禁止とし、モデルのゲッター（`model.jobStatId` 等）を使用します。
+  - 既存コンポーネントとの互換性のために生データが必要な場合に限り、`model.rawData` プロパティの使用を許可します。
 - **ダミーデータの使用禁止**: 
   - 本アプリでは、ハードコードされたダミーデータ（`DUMMY_DATA` 等）の使用を固く禁じています。
   - 常に Firestore の `FeeMgmtAndJobStatDB` コレクションからリアルタイムデータを取得して表示します。
 
 ## データスキーマ
 ### 選考進捗・手数料管理データ（例）
+> **Note**: アプリ内では `SelectionProgress` モデルとして扱われます。
+
 ```json
 {
   "JobStatID": "S202412310001",

@@ -1,3 +1,6 @@
+/**
+ * アプリケーションの共通テーマカラー定義
+ */
 export const THEME = {
   background: '#F8FAFC',
   cardBg: '#FFFFFF',

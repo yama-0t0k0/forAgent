@@ -19,6 +19,14 @@ const DEFAULT_PHASES = [
     "短期離職_返金"
 ];
 
+/**
+ * Component for editing and visualizing the selection flow process.
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.initialData - Initial selection data including phases and status
+ * @param {Function} props.onSave - Callback function when data is saved
+ * @returns {JSX.Element} The rendered component
+ */
 const SelectionFlowEditor = ({ initialData, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [phases, setPhases] = useState([]);
@@ -48,6 +56,9 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         }
     }, [initialData]);
 
+    /**
+     * Toggles edit mode and saves data if exiting edit mode.
+     */
     const toggleEdit = () => {
         if (isEditing) {
             onSave && onSave(phases);
@@ -55,6 +66,10 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         setIsEditing(!isEditing);
     };
 
+    /**
+     * Adds a new phase to the flow.
+     * @param {number} lane - The lane index (1 or 2) to add the phase to
+     */
     const addPhase = (lane) => {
         const newPhase = {
             id: Date.now().toString(),
@@ -66,14 +81,28 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         setPhases([...phases, newPhase]);
     };
 
+    /**
+     * Deletes a phase by ID.
+     * @param {string} id - The ID of the phase to delete
+     */
     const deletePhase = (id) => {
         setPhases(phases.filter(p => p.id !== id));
     };
 
+    /**
+     * Updates specific properties of a phase.
+     * @param {string} id - The ID of the phase to update
+     * @param {Object} updates - The properties to update
+     */
     const updatePhase = (id, updates) => {
         setPhases(phases.map(p => p.id === id ? { ...p, ...updates } : p));
     };
 
+    /**
+     * Moves a phase up or down in the list.
+     * @param {number} index - The current index of the phase
+     * @param {number} direction - The direction to move (-1 for up, 1 for down)
+     */
     const movePhase = (index, direction) => {
         const newPhases = [...phases];
         const targetIndex = index + direction;
@@ -84,6 +113,12 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         setPhases(newPhases);
     };
 
+    /**
+     * Handles date change from the date picker.
+     * @param {Object} event - The event object
+     * @param {Date} selectedDate - The selected date
+     * @param {string} id - The ID of the phase being edited
+     */
     const onChangeDate = (event, selectedDate, id) => {
         setShowDatePicker(null);
         if (selectedDate) {
@@ -91,6 +126,12 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         }
     };
 
+    /**
+     * Renders a single phase box.
+     * @param {Object} phase - The phase data object
+     * @param {number} index - The index of the phase
+     * @returns {JSX.Element} The rendered box component
+     */
     const renderBox = (phase, index) => {
         const isToday = phase.date === new Date().toISOString().split('T')[0];
 

@@ -1,3 +1,7 @@
+/**
+ * Firebase Configuration
+ * Initializes Firebase app and exports Firestore instance.
+ */
 
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
