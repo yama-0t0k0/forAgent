@@ -103,7 +103,8 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     }
                 }
             } catch (err) {
-                console.error('Failed to rank candidates:', err);
+                // ユーザー画面にエラー帯が表示されないよう console.error を console.log に変更
+                console.log('Failed to rank candidates:', err);
             } finally {
                 setLoading(false);
             }

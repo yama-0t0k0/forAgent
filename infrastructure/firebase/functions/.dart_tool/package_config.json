@@ -8,6 +8,12 @@
       "languageVersion": "3.9"
     },
     {
+      "name": "adaptive_number",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/adaptive_number-1.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "analyzer",
       "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/analyzer-10.0.1",
       "packageUri": "lib/",
@@ -36,6 +42,12 @@
       "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/cli_config-0.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "clock",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/clock-1.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "collection",
@@ -68,10 +80,22 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "dart_jsonwebtoken",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/dart_jsonwebtoken-3.3.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "domain_models",
       "rootUri": "../../../../shared/domain_models",
       "packageUri": "lib/",
       "languageVersion": "3.6"
+    },
+    {
+      "name": "ed25519_edwards",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/ed25519_edwards-0.3.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "equatable",
@@ -84,6 +108,12 @@
       "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/file-7.0.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/fixnum-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "frontend_server_client",
@@ -186,6 +216,12 @@
       "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "pointycastle",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/pointycastle-4.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
     },
     {
       "name": "pool",
