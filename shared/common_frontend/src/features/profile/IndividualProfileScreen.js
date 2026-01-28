@@ -11,12 +11,12 @@ import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 
 const { width, height } = Dimensions.get('window');
 
 // Local custom generated rainforest background
-const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
+const RAINFOREST_BG = require('@shared/assets/generated/rainforest_bg.png');
 
 /**
  * @typedef {Object} IndividualProfileScreenProps

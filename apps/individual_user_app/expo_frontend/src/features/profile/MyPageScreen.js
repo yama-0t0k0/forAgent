@@ -15,7 +15,7 @@ import { User } from '@shared/src/core/models/User';
 const { width, height } = Dimensions.get('window');
 
 // Local custom generated rainforest background
-const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
+const RAINFOREST_BG = require('@assets/generated/rainforest_bg.png');
 
 /**
  * @typedef {Object} MyPageScreenProps

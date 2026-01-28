@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@shared/src/core/firebaseConfig';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
-import { JobDescription } from '../../../core/models/JobDescription';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
 
 const { width } = Dimensions.get('window');
 

@@ -29,6 +29,13 @@ const RULES = [
         message: 'Potential complex object literal found. Consider converting to Class. (Convention 1.1)',
         // Heuristic: specific patterns of data access that suggest raw JSON usage
         regex: /data\['.*?'\]/g
+    },
+    {
+        id: 'no-deep-relative-paths',
+        level: 'error',
+        message: 'Deep relative path detected. Use Path Aliases (e.g. @shared/) instead. (Convention 5.1)',
+        // Matches ../../ (2 levels up) or more
+        regex: /\.\.\/\.\.\//g
     }
 ];
 

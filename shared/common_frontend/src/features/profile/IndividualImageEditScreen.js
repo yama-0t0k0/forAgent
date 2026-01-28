@@ -1,6 +1,6 @@
 import React from 'react';
 import { GenericImageEditScreen } from './GenericImageEditScreen';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { View } from 'react-native';
 
 /**

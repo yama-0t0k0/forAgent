@@ -124,7 +124,7 @@ export default function DashboardScreen() {
         // E2E Test Fallback
         if (selectedUserId === 'C000000000000') {
           try {
-            const template = require('../../../assets/json/engineer-profile-template.json');
+            const template = require('@assets/json/engineer-profile-template.json');
             setSelectedUserDoc(template);
             setSelectedUserLoading(false);
             return;

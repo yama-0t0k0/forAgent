@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { CompanyListItem } from '@shared/src/features/company/components/CompanyListItem';
-import { styles } from '../../dashboardStyles';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 /**
  * Tab component for displaying and filtering the list of companies.

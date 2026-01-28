@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator, Modal } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,11 @@ import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
+// Import screens directly for modal display (using relative paths for cross-app access in shared)
+// Note: This assumes specific directory structure of the monorepo
+import { JobDescriptionScreen } from '@job_app/src/features/job_description/JobDescriptionScreen';
+import { MyPageScreen } from '@individual_app/src/features/profile/MyPageScreen';
 
 /**
  * @typedef {Object} ConnectionScreenProps
@@ -74,6 +79,10 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const [rankedUsers, setRankedUsers] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Modal States
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+
     useEffect(() => {
         /**
          * Fetches and ranks candidates based on the active type.
@@ -133,7 +142,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     skills={skills}
                     heatmapData={heatmapInfo}
                     companyName={companyName}
-                    onPress={() => navigation.navigate('JobDescription', { companyId: item.company_ID, jdNumber: item.JD_Number })}
+                    onPress={() => setSelectedJob(item)}
                 />
             );
         } else {
@@ -146,7 +155,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     engineer={item}
                     skills={skills}
                     heatmapData={heatmapInfo}
-                    onPress={() => navigation.navigate('MyPage', { userId: item.id, userDoc: item })}
+                    onPress={() => setSelectedUser(item)}
                 />
             );
         }
@@ -236,6 +245,39 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             )}
 
             {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Connection" />}
+
+            {/* Job Detail Modal */}
+            <DetailModal
+                visible={!!selectedJob}
+                onClose={() => setSelectedJob(null)}
+                title="求人詳細"
+            >
+                {selectedJob && (
+                    <View style={{ flex: 1, overflow: 'hidden' }}>
+                        <JobDescriptionScreen
+                            companyId={selectedJob.company_ID}
+                            jdNumber={selectedJob.JD_Number}
+                        />
+                    </View>
+                )}
+            </DetailModal>
+
+            {/* User Detail Modal */}
+            <DetailModal
+                visible={!!selectedUser}
+                onClose={() => setSelectedUser(null)}
+                title="個人詳細"
+            >
+                {selectedUser && (
+                    <View style={{ flex: 1 }}>
+                        <MyPageScreen
+                            userId={selectedUser.id}
+                            userDoc={selectedUser}
+                            hideSafeArea={true}
+                        />
+                    </View>
+                )}
+            </DetailModal>
         </View>
     );
 };
@@ -322,5 +364,5 @@ const styles = StyleSheet.create({
     },
 
     listContent: { padding: 15, paddingBottom: 100 },
-    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText }
+    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText },
 });

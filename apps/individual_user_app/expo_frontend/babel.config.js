@@ -15,6 +15,9 @@ module.exports = function (api) {
                     root: ['./'],
                     alias: {
                         '@shared': '../../../shared/common_frontend',
+                        '@job_app': '../../../apps/job_description/expo_frontend',
+                        '@individual_app': '../../../apps/individual_user_app/expo_frontend',
+                        '@assets': './assets',
                     },
                 },
             ],

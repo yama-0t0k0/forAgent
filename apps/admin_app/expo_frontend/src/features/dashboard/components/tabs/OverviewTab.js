@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
-import { styles } from '../../dashboardStyles';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 

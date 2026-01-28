@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
-import { styles } from '../../dashboardStyles';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 /**
  * Modal component for drilling down into selection data.

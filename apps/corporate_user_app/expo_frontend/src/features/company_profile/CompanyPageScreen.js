@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 // Fallback background image (assuming it exists in the app that consumes this component or pass as prop)
 // Using a placeholder or passing it from parent is better, but for now we try to resolve it if possible or use a color
 // Modified to not require local asset directly to avoid path issues across apps
-const DEFAULT_BG_IMAGE = require('../../../assets/generated/rainforest_bg.png');
+const DEFAULT_BG_IMAGE = require('@assets/generated/rainforest_bg.png');
 
 /**
  * Component to display the technology stack and features of a company.

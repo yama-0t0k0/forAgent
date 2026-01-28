@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
-import { styles } from '../../dashboardStyles';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 /**
  * Tab component for displaying and filtering the selection process list.

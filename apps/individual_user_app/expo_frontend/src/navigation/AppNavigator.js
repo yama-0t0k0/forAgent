@@ -9,7 +9,7 @@ import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 
 const Stack = createNativeStackNavigator();
-const ENGINEER_TEMPLATE = require('../../assets/json/engineer-profile-template.json');
+const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
 
 /**
  * Main application navigator.

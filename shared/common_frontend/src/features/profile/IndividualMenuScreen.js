@@ -1,6 +1,6 @@
 import React from 'react';
 import { GenericMenuScreen } from './GenericMenuScreen';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { View } from 'react-native';
 
 /**

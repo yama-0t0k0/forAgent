@@ -2,15 +2,15 @@ import React, { useContext, useMemo, useState } from 'react';
 import { View, ScrollView, Text, TouchableOpacity, ActivityIndicator, StyleSheet, StatusBar, Platform, UIManager, SafeAreaView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 // import { NavigationContainer } from '@react-navigation/native';
-import { DataContext } from '../../core/state/DataContext';
-import { RecursiveField } from '../../core/components/RecursiveField';
-import { THEME } from '../../core/theme/theme';
-import { db } from '../../core/firebaseConfig';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { RecursiveField } from '@shared/src/core/components/RecursiveField';
+import { THEME } from '@shared/src/core/theme/theme';
+import { db } from '@shared/src/core/firebaseConfig';
 import { collection, query, where, getDocs, setDoc, doc, documentId } from 'firebase/firestore';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 
 const Tab = createMaterialTopTabNavigator();
 
