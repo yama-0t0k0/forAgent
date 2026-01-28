@@ -25,11 +25,11 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
  */
 export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const { data } = useContext(DataContext);
-    
+
     // 2段階タブの状態管理
     // Main Tabs: 'recommendation' (おすすめ) | 'connected' (つながり済)
     const [activeMainTab, setActiveMainTab] = useState('recommendation');
-    
+
     // Sub Tabs: 
     // - recommendation: 'position' (ポジション) | 'person' (個人)
     // - connected: 'company' (法人) | 'person' (個人)
@@ -88,19 +88,18 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
                         setRankedJds(ranked);
                     } else if (activeSubTab === 'person' && data.users) {
-                        // Match against a default JD or similar
-                        const targetJd = data.jd?.[0] || {};
-                        const ranked = await MatchingService.rankCandidates(targetJd, data.users, 'individual');
+                        // Match current user against other users
+                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
                         setRankedUsers(ranked);
                     }
-                } 
+                }
                 // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
                 else if (activeMainTab === 'connected') {
                     // TODO: Implement logic for fetching connected companies/users
                     if (activeSubTab === 'company') {
-                         setRankedJds([]); 
+                        setRankedJds([]);
                     } else if (activeSubTab === 'person') {
-                         setRankedUsers([]);
+                        setRankedUsers([]);
                     }
                 }
             } catch (err) {
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15
     },
     headerTitle: { fontSize: 18, fontWeight: '900', color: THEME.text },
-    
+
     // Main Tab Styles
     mainTabBar: {
         flexDirection: 'row',

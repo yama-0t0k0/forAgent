@@ -5,13 +5,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
-import { db } from '@shared/src/core/firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
-// import { JDSelectionScreen } from '@shared/src/features/job/JDSelectionScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
@@ -32,106 +30,12 @@ const AdminAppWrapper = () => {
 
   useEffect(() => {
     /**
-     * Fetches all required data for the application.
-     * Retrieves users, companies, jobs, and fee management stats.
+     * Fetches all required data for the application using FirestoreDataService.
      */
     const fetchAllData = async () => {
       try {
-        /**
-         * Fetches documents from a Firestore collection.
-         * @param {string} collectionName - The name of the collection.
-         * @returns {Promise<Array<Object>>} List of documents with IDs.
-         */
-        const fetchDocs = async (collectionName) => {
-          try {
-            const snap = await getDocs(collection(db, collectionName));
-            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          } catch (e) {
-            return [];
-          }
-        };
-
-        /**
-         * Merges arrays of objects by ID, removing duplicates.
-         * @param {Array<Array<Object>>} arrays - Array of object arrays to merge.
-         * @returns {Array<Object>} Merged array of unique objects.
-         */
-        const mergeById = (arrays) => {
-          const map = new Map();
-          arrays.flat().forEach((item) => {
-            if (!item?.id) return;
-            if (!map.has(item.id)) map.set(item.id, item);
-          });
-          return Array.from(map.values());
-        };
-
-        const [
-          users,
-          companiesPrimary,
-          companiesFallback1,
-          companiesFallback2,
-          jobsPrimary,
-          fmjs,
-        ] = await Promise.all([
-          fetchDocs('individual'),
-          fetchDocs('Company'),
-          fetchDocs('company'),
-          fetchDocs('corporate'),
-          // Fetch nested job descriptions reliably by iterating companies
-          (async () => {
-            try {
-              // 1. Get all company IDs first
-              const companiesSnap = await getDocs(collection(db, 'job_description'));
-              console.log(`[DEBUG] Found ${companiesSnap.size} companies in job_description`);
-              const allJobs = [];
-
-              // 2. Fetch JD_Number subcollection for each company
-              const promises = companiesSnap.docs.map(
-                /**
-                 * Fetches JDs for a specific company.
-                 * @param {Object} companyDoc - The company document.
-                 * @returns {Promise<void>}
-                 */
-                async (companyDoc) => {
-                const companyId = companyDoc.id;
-                try {
-                  const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
-                  console.log(`[DEBUG] Company ${companyId}: Found ${jdSnap.size} JDs`);
-                  jdSnap.forEach(doc => {
-                    const data = doc.data();
-                    allJobs.push({
-                      id: `${companyId}_${doc.id}`,
-                      company_ID: companyId,
-                      JD_Number: data.JD_Number || doc.id,
-                      ...data
-                    });
-                  });
-                } catch (err) {
-                  console.error(`[DEBUG] Error fetching JDs for company ${companyId}:`, err);
-                }
-              });
-
-              await Promise.all(promises);
-              console.log(`[DEBUG] Total jobs fetched: ${allJobs.length}`);
-              return allJobs;
-            } catch (e) {
-              console.error("[DEBUG] Error fetching nested jobs:", e);
-              return [];
-            }
-          })(),
-          fetchDocs('FeeMgmtAndJobStatDB'),
-        ]);
-
-        const corporate = mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
-        // Only use the correctly fetched job descriptions, removing dummy data sources
-        const jd = jobsPrimary;
-
-        setInitialData({
-          users,
-          corporate,
-          jd,
-          fmjs
-        });
+        const data = await FirestoreDataService.fetchAdminData();
+        setInitialData(data);
       } catch (e) {
         console.error('Failed to fetch admin data:', e);
         // Fallback to empty structure to allow UI to render even if fetch fails
@@ -182,11 +86,6 @@ const AdminAppWrapper = () => {
               component={IndividualImageEditScreen}
               options={{ title: '画像編集', headerShown: false }}
             />
-            {/* <Stack.Screen
-              name="JDSelection"
-              component={JDSelectionScreen}
-              options={{ title: '求人選択', headerShown: false }}
-            /> */}
             <Stack.Screen
               name="Connection"
               component={ConnectionScreen}

@@ -6,8 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
-import { db } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 
@@ -24,46 +23,20 @@ const EngineerRegistrationWrapper = () => {
     let mounted = true;
     /**
      * Loads the initial data for the application.
-     * Fetches user data and job descriptions.
+     * Fetches user data, job descriptions, and other users.
      */
     const load = async () => {
       try {
         // Create a timeout promise to prevent indefinite loading
         /** @type {Promise<never>} */
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Data loading timeout")), 5000)
         );
 
-        /**
-         * Promise to fetch data from Firestore.
-         * @returns {Promise<{userData: Object, allJds: Array<Object>}>}
-         */
-        const fetchDataPromise = (async () => {
-          const [userSnap, jdSnap] = await Promise.all([
-            getDoc(doc(db, 'individual', 'C000000000000')),
-            getDocs(collection(db, 'job_description'))
-          ]);
-
-          let userData = userSnap.exists() ? userSnap.data() : ENGINEER_TEMPLATE;
-
-          // Extract JDs
-          const allJds = [];
-          if (jdSnap) {
-            const companyDocs = jdSnap.docs;
-            /**
-             * Promises to fetch nested JD collections.
-             * @type {Array<Promise<void>>}
-             */
-            const jdPromises = companyDocs.map(async (cDoc) => {
-              const innerSnap = await getDocs(collection(db, 'job_description', cDoc.id, 'JD_Number'));
-              innerSnap.forEach(doc => {
-                allJds.push({ ...doc.data(), id: `${cDoc.id}_${doc.id}`, company_ID: cDoc.id, JD_Number: doc.id });
-              });
-            });
-            await Promise.all(jdPromises);
-          }
-          return { userData, allJds };
-        })();
+        const fetchDataPromise = FirestoreDataService.fetchIndividualAppData(
+          'C000000000000',
+          ENGINEER_TEMPLATE
+        );
 
         // Race between fetch and timeout
         const result = await Promise.race([fetchDataPromise, timeoutPromise]);
@@ -71,12 +44,13 @@ const EngineerRegistrationWrapper = () => {
         if (mounted) {
           setInitialData({
             ...result.userData,
-            jd: result.allJds // Add JDs to context for matching
+            jd: result.jd,
+            users: result.users
           });
         }
       } catch (e) {
         console.warn("Initialization error or timeout:", e);
-        if (mounted) setInitialData({ ...ENGINEER_TEMPLATE, jd: [] });
+        if (mounted) setInitialData({ ...ENGINEER_TEMPLATE, jd: [], users: [] });
       } finally {
         if (mounted) setLoading(false);
       }
