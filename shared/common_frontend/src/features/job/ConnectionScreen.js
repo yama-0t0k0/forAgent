@@ -23,9 +23,30 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
  * 
  * @param {ConnectionScreenProps} props
  */
-export const ConnectionScreen = ({ navigation, route }) => {
+export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const { data } = useContext(DataContext);
-    const [activeType, setActiveType] = useState('jd'); // 'individual' or 'jd'
+
+    // 2段階タブの状態管理
+    // Main Tabs: 'recommendation' (おすすめ) | 'connected' (つながり済)
+    const [activeMainTab, setActiveMainTab] = useState('recommendation');
+
+    // Sub Tabs: 
+    // - recommendation: 'position' (ポジション) | 'person' (個人)
+    // - connected: 'company' (法人) | 'person' (個人)
+    const [activeSubTab, setActiveSubTab] = useState('position');
+
+    /**
+     * Handle main tab change and set default sub tab.
+     * @param {string} tab - 'recommendation' | 'connected'
+     */
+    const handleMainTabChange = (tab) => {
+        setActiveMainTab(tab);
+        if (tab === 'recommendation') {
+            setActiveSubTab('position');
+        } else {
+            setActiveSubTab('company');
+        }
+    };
 
     /**
      * Current user document based on route params or data context.
@@ -61,14 +82,25 @@ export const ConnectionScreen = ({ navigation, route }) => {
             if (!data || !currentUserDoc) return;
             setLoading(true);
             try {
-                if (activeType === 'jd' && data.jd) {
-                    const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-                    setRankedJds(ranked);
-                } else if (activeType === 'individual' && data.users) {
-                    // Match against a default JD or similar
-                    const targetJd = data.jd?.[0] || {};
-                    const ranked = await MatchingService.rankCandidates(targetJd, data.users, 'individual');
-                    setRankedUsers(ranked);
+                // おすすめタブのロジック
+                if (activeMainTab === 'recommendation') {
+                    if (activeSubTab === 'position' && data.jd) {
+                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
+                        setRankedJds(ranked);
+                    } else if (activeSubTab === 'person' && data.users) {
+                        // Match current user against other users
+                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
+                        setRankedUsers(ranked);
+                    }
+                }
+                // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
+                else if (activeMainTab === 'connected') {
+                    // TODO: Implement logic for fetching connected companies/users
+                    if (activeSubTab === 'company') {
+                        setRankedJds([]);
+                    } else if (activeSubTab === 'person') {
+                        setRankedUsers([]);
+                    }
                 }
             } catch (err) {
                 console.error('Failed to rank candidates:', err);
@@ -78,7 +110,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
         };
 
         fetchRankedData();
-    }, [data, currentUserDoc, activeType]);
+    }, [data, currentUserDoc, activeMainTab, activeSubTab]);
 
     /**
      * Renders a candidate item (Job or Engineer).
@@ -87,7 +119,8 @@ export const ConnectionScreen = ({ navigation, route }) => {
      * @returns {JSX.Element}
      */
     const renderCandidate = ({ item }) => {
-        if (activeType === 'jd') {
+        // ポジション(JD)または法人表示の場合
+        if (activeSubTab === 'position' || activeSubTab === 'company') {
             const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
             const skills = extractSkills(jobDataForSkills);
             const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
@@ -103,6 +136,7 @@ export const ConnectionScreen = ({ navigation, route }) => {
                 />
             );
         } else {
+            // 個人表示の場合
             const skills = extractSkills(item);
             const heatmapInfo = getHighDensityHeatmapData(item);
 
@@ -117,25 +151,73 @@ export const ConnectionScreen = ({ navigation, route }) => {
         }
     };
 
+    // 現在表示すべきデータリストの決定
+    const currentData = useMemo(() => {
+        if (activeMainTab === 'recommendation') {
+            return activeSubTab === 'position' ? rankedJds : rankedUsers;
+        } else {
+            // つながり済
+            return activeSubTab === 'company' ? [] : []; // 現状は空
+        }
+    }, [activeMainTab, activeSubTab, rankedJds, rankedUsers]);
+
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.header}>
                 <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
             </SafeAreaView>
 
-            <View style={styles.tabBar}>
+            {/* Main Tabs (Upper Level) */}
+            <View style={styles.mainTabBar}>
                 <TouchableOpacity
-                    style={[styles.tab, activeType === 'jd' && styles.activeTab]}
-                    onPress={() => setActiveType('jd')}
+                    style={[styles.mainTab, activeMainTab === 'recommendation' && styles.activeMainTab]}
+                    onPress={() => handleMainTabChange('recommendation')}
                 >
-                    <Text style={[styles.tabText, activeType === 'jd' && styles.activeTabText]}>求人 (JD)</Text>
+                    <Text style={[styles.mainTabText, activeMainTab === 'recommendation' && styles.activeMainTabText]}>おすすめ</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeType === 'individual' && styles.activeTab]}
-                    onPress={() => setActiveType('individual')}
+                    style={[styles.mainTab, activeMainTab === 'connected' && styles.activeMainTab]}
+                    onPress={() => handleMainTabChange('connected')}
                 >
-                    <Text style={[styles.tabText, activeType === 'individual' && styles.activeTabText]}>個人 (エンジニア)</Text>
+                    <Text style={[styles.mainTabText, activeMainTab === 'connected' && styles.activeMainTabText]}>つながり済</Text>
                 </TouchableOpacity>
+            </View>
+
+            {/* Sub Tabs (Lower Level) */}
+            <View style={styles.subTabBarContainer}>
+                <View style={styles.subTabBar}>
+                    {activeMainTab === 'recommendation' ? (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.subTab, activeSubTab === 'position' && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab('position')}
+                            >
+                                <Text style={[styles.subTabText, activeSubTab === 'position' && styles.activeSubTabText]}>ポジション</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.subTab, activeSubTab === 'person' && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab('person')}
+                            >
+                                <Text style={[styles.subTabText, activeSubTab === 'person' && styles.activeSubTabText]}>個人</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.subTab, activeSubTab === 'company' && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab('company')}
+                            >
+                                <Text style={[styles.subTabText, activeSubTab === 'company' && styles.activeSubTabText]}>法人</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.subTab, activeSubTab === 'person' && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab('person')}
+                            >
+                                <Text style={[styles.subTabText, activeSubTab === 'person' && styles.activeSubTabText]}>個人</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
             </View>
 
             {loading ? (
@@ -144,15 +226,15 @@ export const ConnectionScreen = ({ navigation, route }) => {
                 </View>
             ) : (
                 <FlatList
-                    data={activeType === 'jd' ? rankedJds : rankedUsers}
+                    data={currentData}
                     renderItem={renderCandidate}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item.id || String(Math.random())}
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={<Text style={styles.emptyText}>候補が見つかりません</Text>}
                 />
             )}
 
-            <BottomNav navigation={navigation} activeTab="Connection" />
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Connection" />}
         </View>
     );
 };
@@ -167,21 +249,77 @@ const styles = StyleSheet.create({
         paddingVertical: 15
     },
     headerTitle: { fontSize: 18, fontWeight: '900', color: THEME.text },
-    tabBar: {
+
+    // Main Tab Styles
+    mainTabBar: {
         flexDirection: 'row',
         backgroundColor: '#FFF',
-        marginBottom: 10
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 1,
+        zIndex: 10,
     },
-    tab: {
+    mainTab: {
         flex: 1,
         alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent'
+        paddingVertical: 14,
+        borderBottomWidth: 3,
+        borderBottomColor: 'transparent',
     },
-    activeTab: { borderBottomColor: THEME.accent },
-    tabText: { fontSize: 14, color: THEME.subText, fontWeight: '700' },
-    activeTabText: { color: THEME.accent },
+    activeMainTab: {
+        borderBottomColor: THEME.accent,
+    },
+    mainTabText: {
+        fontSize: 15,
+        color: '#94A3B8', // Lighter color for inactive
+        fontWeight: '600',
+    },
+    activeMainTabText: {
+        color: THEME.accent,
+        fontWeight: '800', // Bolder for active
+    },
+
+    // Sub Tab Styles
+    subTabBarContainer: {
+        backgroundColor: '#F1F5F9',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+    },
+    subTabBar: {
+        flexDirection: 'row',
+        backgroundColor: '#E2E8F0', // Background for the pill container
+        borderRadius: 25,
+        padding: 4,
+    },
+    subTab: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        borderRadius: 20,
+    },
+    activeSubTab: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+        elevation: 2,
+    },
+    subTabText: {
+        fontSize: 13,
+        color: '#64748B',
+        fontWeight: '600',
+    },
+    activeSubTabText: {
+        color: THEME.text, // Darker text for readability on white bg
+        fontWeight: '800',
+    },
+
     listContent: { padding: 15, paddingBottom: 100 },
     emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText }
 });

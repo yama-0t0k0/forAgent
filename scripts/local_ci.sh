@@ -12,7 +12,12 @@
 set -e # Exit immediately if any command fails
 
 PROJECT_ROOT=$(pwd)
-APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+
+if [ -n "$1" ]; then
+    APPS=("$1")
+else
+    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+fi
 
 echo "🚀 Starting Local CI/CD Pipeline..."
 echo "=================================================="

@@ -52,7 +52,23 @@ shared/
 - Firebase SDKの初期化と `Firestore` インスタンス (`db`) のエクスポート。
 - 環境変数 (`EXPO_PUBLIC_FIREBASE_*`) を使用。
 
-#### 5. Models (`src/core/models`)
+#### 5. Services (`services/FirestoreDataService.js`)
+- **概要**: Firestoreデータ取得ロジックを一元化した共通サービス。
+- **機能**:
+  - `fetchAllIndividuals()`: 全個人ユーザー取得
+  - `fetchIndividualById(id)`: 単一ユーザー取得
+  - `fetchAllJobDescriptions()`: 全JD取得（ネスト構造対応）
+  - `fetchAllCorporates()`: 全企業取得（複数コレクション名対応）
+  - `fetchAdminData()`: Admin App用一括取得
+  - `fetchIndividualAppData(userId, template)`: Individual App用データ取得
+  - `fetchCorporateAppData(id, template)`: Corporate App用データ取得
+- **利用例**:
+  ```javascript
+  import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+  const data = await FirestoreDataService.fetchAdminData();
+  ```
+
+#### 6. Models (`src/core/models`)
 - **概要**: アプリケーション全体で使用されるデータモデル定義。
 - **主要クラス**:
   - `User`: 個人ユーザー（エンジニア）

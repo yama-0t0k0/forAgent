@@ -191,15 +191,15 @@ export const MyPageScreen = (props) => {
             {!hideSafeArea && (
                 <>
                     <View style={styles.bottomNav}>
-                        <TouchableOpacity style={styles.navItem}>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Career')}>
                             <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
                             <Text style={styles.navText}>キャリア</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem}>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Connection')}>
                             <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
                             <Text style={styles.navText}>つながり</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem}>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
                             <View style={styles.activeIconContainer}>
                                 <Ionicons name="home" size={26} color={THEME.background} />
                             </View>

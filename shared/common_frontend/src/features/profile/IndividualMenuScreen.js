@@ -15,7 +15,7 @@ import { View } from 'react-native';
  * 
  * @param {IndividualMenuScreenProps} props
  */
-export const IndividualMenuScreen = ({ navigation }) => {
+export const IndividualMenuScreen = ({ navigation, hideSafeArea }) => {
     const menuGroups = [
         {
             title: '個人設定',
@@ -60,7 +60,7 @@ export const IndividualMenuScreen = ({ navigation }) => {
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
             />
-            <BottomNav navigation={navigation} activeTab="Menu" />
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Menu" />}
         </View>
     );
 };

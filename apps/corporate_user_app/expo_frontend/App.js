@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View, ActivityIndicator } from 'react-native';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@shared/src/core/firebaseConfig';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -29,21 +28,13 @@ const CorporateRegistrationWrapper = () => {
 
     useEffect(() => {
         /**
-         * Fetches company data from Firestore.
+         * Fetches company data using FirestoreDataService.
          * Falls back to a template if the document doesn't exist or an error occurs.
          */
         const fetchData = async () => {
             try {
-                // Hardcoded ID for now as per template
-                const docRef = doc(db, 'company', 'B00000');
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    setInitialData(docSnap.data());
-                } else {
-                    console.log("No such document! Using template.");
-                    setInitialData(COMPANY_TEMPLATE);
-                }
+                const data = await FirestoreDataService.fetchCorporateAppData('B00000', COMPANY_TEMPLATE);
+                setInitialData(data);
             } catch (error) {
                 console.error("Error fetching document:", error);
                 setInitialData(COMPANY_TEMPLATE);
