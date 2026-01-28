@@ -4,6 +4,18 @@ import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 import { SKILL_LEVELS, SKILL_LEVEL_TEXTS } from '../constants/index';
 
+/**
+ * @typedef {Object} SkillSelectorProps
+ * @property {Object} value - Current value object (e.g. { "Beginner": true })
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Skill Level Selector Component.
+ * Allows selecting a skill level from 0 to 4.
+ * 
+ * @param {SkillSelectorProps} props
+ */
 export const SkillSelector = ({ value, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
@@ -13,15 +25,21 @@ export const SkillSelector = ({ value, path }) => {
   let currentLevel = 0; // Default to 0
   if (value && typeof value === 'object') {
     // Check keys, ignoring metadata like '_displayType'
+    /** @type {[string, any]} */
     const entry = Object.entries(value).find(([key, val]) =>
       key !== '_displayType' && val === true && SKILL_LEVEL_TEXTS.includes(key)
     );
     if (entry) {
+      /** @type {string} */
       const levelNum = Object.keys(SKILL_LEVELS).find(num => SKILL_LEVELS[num] === entry[0]);
       if (levelNum !== undefined) currentLevel = parseInt(levelNum, 10);
     }
   }
 
+  /**
+   * Handles skill level selection.
+   * @param {number} level - Selected level (0-4)
+   */
   const handleSelect = (level) => {
     const text = SKILL_LEVELS[level];
     // Create new object with selected level set to true, preserving metadata

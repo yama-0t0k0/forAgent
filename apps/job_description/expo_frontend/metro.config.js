@@ -1,3 +1,9 @@
+/**
+ * Metro Configuration
+ * https://docs.expo.dev/guides/customizing-metro/
+ *
+ * @type {import('expo/metro-config').MetroConfig}
+ */
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 

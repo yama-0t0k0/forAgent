@@ -1,24 +1,30 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { GenericImageEditScreen } from '@shared/src/features/profile/GenericImageEditScreen';
+import { Company } from '@shared/src/core/models/Company';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * Screen for editing company profile images (logo, background).
+ * Uses GenericImageEditScreen to handle image selection and updates.
+ * @returns {JSX.Element} The rendered screen.
+ */
 export const ImageEditScreen = () => {
     return (
         <GenericImageEditScreen
-            dataSectionKey="会社概要"
+            dataSectionKey={Company.FIELDS.PROFILE}
             collectionName="company"
             idFieldKey="id"
             mainImageConfig={{
-                key: 'ロゴ画像URL',
+                key: Company.FIELDS.LOGO_URL,
                 label: 'ロゴ画像 URL',
                 placeholder: 'https://example.com/logo.jpg',
                 icon: 'business-outline',
                 previewLabel: 'ロゴプレビュー'
             }}
             bgImageConfig={{
-                key: '背景画像URL',
+                key: Company.FIELDS.BACKGROUND_URL,
                 label: '背景画像 URL',
                 placeholder: 'https://example.com/background.jpg',
                 icon: 'image-outline',

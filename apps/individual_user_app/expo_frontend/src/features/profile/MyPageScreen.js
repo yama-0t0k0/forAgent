@@ -10,80 +10,98 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { User } from '@shared/src/core/models/User';
 
 const { width, height } = Dimensions.get('window');
 
 // Local custom generated rainforest background
 const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
 
-export const MyPageScreen = () => {
+/**
+ * @typedef {Object} MyPageScreenProps
+ * @property {string} [userId] - User ID (optional, for Admin App)
+ * @property {Object} [userDoc] - User Data Document (optional, for Admin App)
+ * @property {boolean} [hideSafeArea] - Whether to hide SafeAreaView (optional, for Modal)
+ */
+
+/**
+ * MyPage Screen Component
+ * Displays individual user profile including heatmap and personal info.
+ * Can be used in both Individual App (standalone) and Admin App (modal).
+ * 
+ * @param {MyPageScreenProps} props
+ */
+export const MyPageScreen = (props) => {
+    const { userId: propUserId, userDoc: propUserDoc, hideSafeArea } = props;
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
-    const [remoteNames, setRemoteNames] = useState(null);
-    const [remoteEmail, setRemoteEmail] = useState('');
+    const [fetchedData, setFetchedData] = useState(null);
     const [heatmapValues, setHeatmapValues] = useState(null);
 
-    // Extract data safely
-    const basicInfo = data['基本情報'] || {};
-    const names = {
-        first: basicInfo['First name(半角英)'] || '',
-        family: basicInfo['Family name(半角英)'] || '',
-        kanjiFirst: basicInfo['名'] || '',
-        kanjiFamily: basicInfo['姓'] || '',
-    };
-    const email = basicInfo['メール'] || '';
+    // Use fetched data if available, otherwise prop data, otherwise Context data
+    const displayData = fetchedData || propUserDoc || data;
+    const targetUserId = propUserId || 'C000000000000';
+
+    // Create User model instance
+    const user = User.fromFirestore(targetUserId, displayData);
 
     useEffect(() => {
-        const fetchNames = async () => {
+        /**
+         * Fetches user data from Firestore if not provided via props.
+         */
+        const fetchRemoteData = async () => {
             try {
-                const snap = await getDoc(doc(db, 'individual', 'C000000000000'));
+                // If propUserDoc is provided, we don't need to fetch unless it's incomplete
+                if (propUserDoc) {
+                     const values = HeatmapCalculator.calculate(propUserDoc);
+                     setHeatmapValues(values);
+                     return;
+                }
+
+                const snap = await getDoc(doc(db, 'individual', targetUserId));
                 if (snap.exists()) {
                     const d = snap.data();
-                    const b = d['基本情報'] || {};
-                    const first = b['名'] || '';
-                    const family = b['姓'] || '';
-                    const mail = b['メール'] || '';
-                    if (first || family) {
-                        console.log('names fetched', { first, family });
-                        setRemoteNames({ first, family });
-                    }
-                    if (mail) {
-                        console.log('email fetched', { mail });
-                        setRemoteEmail(mail);
-                    }
+                    console.log('remote data fetched');
+                    setFetchedData(d);
+                    
                     const values = HeatmapCalculator.calculate(d);
                     setHeatmapValues(values);
                 }
             } catch (e) {
-                console.log('failed to fetch names', e);
+                console.log('failed to fetch remote data', e);
             }
         };
-        fetchNames();
-    }, []);
+        fetchRemoteData();
+    }, [targetUserId, propUserDoc]);
 
     // Fallback: calculate heatmap from local context data when remote not yet available
     useEffect(() => {
-        if (!heatmapValues && data) {
-            const values = HeatmapCalculator.calculate(data);
+        if (!heatmapValues && displayData) {
+            const values = HeatmapCalculator.calculate(displayData);
             setHeatmapValues(values);
         }
-    }, [data, heatmapValues]);
+    }, [displayData, heatmapValues]);
     // Heatmap grid logic moved to HeatmapGrid component
 
+    /**
+     * Navigates to registration screen in edit mode.
+     */
     const handleEdit = () => {
         navigation.navigate('Registration', { isEdit: true });
     };
+
+    const SafeAreaComponent = hideSafeArea ? View : SafeAreaView;
 
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
-                    source={basicInfo['背景画像URL'] ? { uri: basicInfo['背景画像URL'] } : RAINFOREST_BG}
+                    source={user.backgroundImageUrl ? { uri: user.backgroundImageUrl } : RAINFOREST_BG}
                     style={styles.headerBackground}
                     imageStyle={{ opacity: 0.95 }}
                 >
-                    <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+                    <SafeAreaComponent edges={['top']} style={styles.headerSafeArea}>
                         <View style={styles.topProfileContainer}>
                             {/* Header Action Buttons (Notifications and Image Edit) */}
                             <View style={styles.headerActionContainer}>
@@ -106,15 +124,15 @@ export const MyPageScreen = () => {
                             <View style={styles.profileRow}>
                                 <View style={styles.photoContainer}>
                                     <Image
-                                        source={{ uri: basicInfo['プロフィール画像URL'] || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
+                                        source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400' }}
                                         style={styles.profileImage}
                                     />
                                 </View>
                                 <View style={styles.namePlate}>
-                                    <Text style={styles.nameText}>{String(remoteNames?.family || names.kanjiFamily)} {String(remoteNames?.first || names.kanjiFirst)}</Text>
+                                    <Text style={styles.nameText}>{user.fullNameKanji}</Text>
                                     <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                    <Text style={styles.emailText}>{String(remoteEmail || email)}</Text>
-                                    <Text style={styles.dataSourceText}>{remoteNames ? 'データ元: Firestore' : 'データ元: テンプレート'}</Text>
+                                    <Text style={styles.emailText}>{user.email}</Text>
+                                    <Text style={styles.dataSourceText}>{String(fetchedData || propUserDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                     {/* Relocated Chatbot button */}
                                     <TouchableOpacity style={styles.chatBotCalloutOverlap}>
@@ -124,7 +142,7 @@ export const MyPageScreen = () => {
                                 </View>
                             </View>
                         </View>
-                    </SafeAreaView>
+                    </SafeAreaComponent>
                 </ImageBackground>
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
@@ -149,59 +167,63 @@ export const MyPageScreen = () => {
                 </View>
 
                 {/* 5. Heatmap Section (40% height, Visible Grid) */}
-                    <View style={styles.heatmapSection}>
-                        <View style={styles.heatmapHeader}>
-                            <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
-                            <View style={styles.chatBotIconSmall}>
-                                <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
-                            </View>
+                <View style={styles.heatmapSection}>
+                    <View style={styles.heatmapHeader}>
+                        <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
+                        <View style={styles.chatBotIconSmall}>
+                            <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
                         </View>
+                    </View>
 
-                        <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
+                    <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} />
 
-                        <View style={styles.chatBotCallout}>
-                            <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
-                            <Text style={styles.labelYellow}>チャットボット</Text>
-                        </View>
+                    <View style={styles.chatBotCallout}>
+                        <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                        <Text style={styles.labelYellow}>チャットボット</Text>
+                    </View>
                 </View>
 
                 {/* Whitespace buffer before footer */}
                 <View style={{ height: 100 }} />
             </ScrollView>
 
-            {/* Bottom Navigation */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>キャリア</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>つながり</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <View style={styles.activeIconContainer}>
-                        <Ionicons name="home" size={26} color={THEME.background} />
+            {/* Bottom Navigation - Only show if not in modal (hideSafeArea is false/undefined) */}
+            {!hideSafeArea && (
+                <>
+                    <View style={styles.bottomNav}>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Career')}>
+                            <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>キャリア</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Connection')}>
+                            <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>つながり</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
+                            <View style={styles.activeIconContainer}>
+                                <Ionicons name="home" size={26} color={THEME.background} />
+                            </View>
+                            <Text style={styles.navTextActive}>ホーム</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem}>
+                            <Ionicons name="book-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>学習</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
+                            <Ionicons name="grid-outline" size={28} color={THEME.subText} />
+                            <Text style={styles.navText}>メニュー</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.navTextActive}>ホーム</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="book-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>学習</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
-                    <Ionicons name="grid-outline" size={28} color={THEME.subText} />
-                    <Text style={styles.navText}>メニュー</Text>
-                </TouchableOpacity>
-            </View>
 
-            {/* 6. Renamed button + chevron */}
-            <View style={styles.bottomNavCenterOverlay}>
-                <TouchableOpacity style={styles.centerButton}>
-                    <Text style={styles.centerButtonText}>経歴詳細</Text>
-                    <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                </TouchableOpacity>
-            </View>
+                    {/* 6. Renamed button + chevron */}
+                    <View style={styles.bottomNavCenterOverlay}>
+                        <TouchableOpacity style={styles.centerButton}>
+                            <Text style={styles.centerButtonText}>経歴詳細</Text>
+                            <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </View>
     );
 };

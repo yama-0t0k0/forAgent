@@ -39,10 +39,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/**
+ * Load JSON file
+ * @param {string} p - File path
+ * @returns {object} JSON data
+ */
 function loadJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
+/**
+ * Seed Individual Data
+ * @param {string} individualId - Individual ID
+ * @param {string} jsonPath - JSON file path
+ */
 async function seedIndividual(individualId, jsonPath) {
   const id = (individualId || '').trim();
   if (!id || !id.startsWith('C')) {
@@ -60,6 +70,11 @@ async function seedIndividual(individualId, jsonPath) {
   console.log(`Seeded individual/${id} successfully!`);
 }
 
+/**
+ * Seed Company Data
+ * @param {string} companyId - Company ID
+ * @param {string} jsonPath - JSON file path
+ */
 async function seedCompany(companyId, jsonPath) {
   const id = (companyId || '').trim();
   if (!id || !id.startsWith('B')) {
@@ -77,6 +92,12 @@ async function seedCompany(companyId, jsonPath) {
   console.log(`Seeded company/${id} successfully!`);
 }
 
+/**
+ * Seed JD Data
+ * @param {string} companyId - Company ID
+ * @param {string} jdNumber - JD Number
+ * @param {string} jsonPath - JSON file path
+ */
 async function seedJD(companyId, jdNumber, jsonPath) {
   const cid = (companyId || '').trim();
   const jdn = (jdNumber || '').trim();
@@ -103,6 +124,9 @@ async function seedJD(companyId, jdNumber, jsonPath) {
   console.log(`Seeded job_description/${cid}/JD_Number/${jdn} successfully!`);
 }
 
+/**
+ * Main function
+ */
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {

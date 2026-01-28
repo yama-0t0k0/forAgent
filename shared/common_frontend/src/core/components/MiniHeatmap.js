@@ -6,12 +6,35 @@ import { HeatmapGeometry } from '../utils/HeatmapGeometry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+/**
+ * @typedef {Object} HeatmapData
+ * @property {string} id - Tile ID
+ * @property {number} value - Heatmap value (0-1)
+ */
+
+/**
+ * @typedef {Object} MiniHeatmapProps
+ * @property {HeatmapData[]} data - Array of heatmap data
+ * @property {number} rows - Number of rows
+ * @property {number} cols - Number of columns
+ */
+
+/**
+ * Mini Heatmap Component for displaying activity/skills in a grid.
+ * 
+ * @param {MiniHeatmapProps} props
+ */
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);
 
   const baseTileSize = HeatmapGeometry.computeStandardTileSize();
   const standardTileSize = baseTileSize * 0.7;
   
+  /**
+   * Gets the color for a heatmap value.
+   * @param {number} value - Normalized value (0-1).
+   * @returns {string} Hex color code.
+   */
   const getColor = (value) => {
     if (value === 0) return '#E2E8F0';
     if (value <= 0.2) return '#BAE6FD';
@@ -20,6 +43,11 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
     return '#0369A1';
   };
 
+  /**
+   * Handles tile press interaction.
+   * @param {HeatmapData} item - The heatmap data item.
+   * @param {number} index - Index in the data array.
+   */
   const handlePress = (item, index) => {
     if (selectedTile && selectedTile.id === item.id) {
       setSelectedTile(null);

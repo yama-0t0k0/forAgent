@@ -12,9 +12,26 @@ import { DatePickerInput } from './DatePickerInput';
 import { SingleSelectGroup } from './SingleSelectGroup';
 import { StatusRow } from './StatusRow';
 
+/**
+ * @typedef {Object} AccordionItemProps
+ * @property {string} label - Section label
+ * @property {Object} data - Nested data object
+ * @property {number} depth - Nesting depth
+ * @property {string[]} path - Data path
+ * @property {Object} [orderTemplate] - Template for key ordering
+ */
+
+/**
+ * Collapsible Accordion Item for RecursiveField.
+ * 
+ * @param {AccordionItemProps} props
+ */
 const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const [expanded, setExpanded] = useState(depth === 0);
 
+  /**
+   * Toggles the accordion expansion state.
+   */
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
@@ -27,7 +44,7 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
       <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
         <View style={styles.headerTitleRow}>
           <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
-          <Text style={styles.sectionTitle}>{label}</Text>
+          <Text style={styles.sectionTitle}>{String(label)}</Text>
         </View>
         <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
       </TouchableOpacity>
@@ -40,14 +57,33 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   );
 };
 
+/**
+ * @typedef {Object} RecursiveFieldProps
+ * @property {Object} data - Data object to render recursively
+ * @property {number} [depth=0] - Current depth
+ * @property {string[]} [path=[]] - Data path
+ * @property {Object} [orderTemplate=null] - Template for ordering
+ */
+
+/**
+ * Recursive Field Component.
+ * Renders a dynamic form based on a nested data structure.
+ * Supports various field types like SkillSelector, SwitchRow, etc.
+ * 
+ * @param {RecursiveFieldProps} props
+ */
 export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = null }) => {
   if (!data || typeof data !== 'object') return null;
 
+  /** @type {string[]} */
   const rawKeys = Object.keys(data).filter(k => k !== '_displayType');
   let orderedKeys = rawKeys;
   if (orderTemplate && typeof orderTemplate === 'object') {
+    /** @type {string[]} */
     const templateKeys = Object.keys(orderTemplate).filter(k => k !== '_displayType');
+    /** @type {string[]} */
     const inTemplate = rawKeys.filter(k => templateKeys.includes(k)).sort((a, b) => templateKeys.indexOf(a) - templateKeys.indexOf(b));
+    /** @type {string[]} */
     const notInTemplate = rawKeys.filter(k => !templateKeys.includes(k));
     orderedKeys = [...inTemplate, ...notInTemplate];
   }
@@ -82,6 +118,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
           } else if (value._displayType === 'readOnlyStatus') {
             isReadOnlyStatus = true;
           } else {
+            /** @type {string[]} */
             const valKeys = Object.keys(value).filter(k => k !== '_displayType');
             if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
               isSkillLevelObj = true;
@@ -92,7 +129,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isSkillLevelObj) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <SkillSelector value={value} path={currentPath} />
             </View>
           );
@@ -101,7 +138,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isSingleSelectGroup) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 16 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <SingleSelectGroup value={value} path={currentPath} />
             </View>
           );
@@ -110,7 +147,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         if (isConnectionLevelObj) {
           return (
             <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
-              <Text style={styles.label}>{key}</Text>
+              <Text style={styles.label}>{String(key)}</Text>
               <ConnectionLevelSelector value={value} path={currentPath} />
             </View>
           );

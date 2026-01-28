@@ -17,9 +17,22 @@
 | :--- | :--- | :--- | :--- |
 | **individual** | 個人ユーザー（エンジニア） | 登録者数推移分析、不正ユーザー監視、離脱分析 | DashboardScreen (Growth Chart) |
 | **corporate** | 法人ユーザー（企業） | 企業審査、アカウント管理、利用状況確認 | CompanyManagementScreen (Future) |
-| **fmjs** | 選考・手数料・サーベイ | 選考進捗パイプライン分析、満足度調査集計、売上予測 | DashboardScreen (Selection Flow, Satisfaction) |
+| **FeeMgmtAndJobStatDB** (FMJS) | 選考・手数料・サーベイ | 選考進捗パイプライン分析、満足度調査集計、売上予測 | DashboardScreen (Selection Flow, Satisfaction) |
 | **jd** | 求人票 (Job Description) | 不適切求人の監視、求人動向分析 | JobMonitorScreen (Future) |
 | **admin_users** | 管理者アカウント | 管理者権限管理、操作ログ | Auth (Future) |
+
+## データモデル原則 (Data Modeling)
+Admin Appは複数のドメインデータを統合して扱うため、生JSONではなく**共有モデルクラス**を使用してデータを正規化します。
+詳細は [CodingConventions_JS.md](../../CodingConventions_JS.md) を参照してください。
+
+- **User**: `shared/common_frontend/src/core/models/User.js`
+- **Company**: `shared/common_frontend/src/core/models/Company.js`
+- **JobDescription**: `shared/common_frontend/src/core/models/JobDescription.js`
+- **SelectionProgress**: `shared/common_frontend/src/core/models/SelectionProgress.js`
+
+### モデル利用のメリット
+- **安全性**: `user.fullName` のような型安全に近いアクセスが可能（`data['氏名']` 廃止）。
+- **互換性**: ヒートマップ等の既存ロジック向けに、モデルは `rawData` プロパティを保持し、必要に応じて生データへのフォールバックを許容します。
 
 ## データフロー (Dashboard)
 データ取得は `App.js` 内の `AdminAppWrapper` で一括して行い、`DataContext` を通じて各画面に配信するアーキテクチャを採用しています（Individual App等と統一）。
@@ -53,6 +66,11 @@ graph LR
 - Firebase: shared/common_frontend/src/core/firebaseConfig
   - `db` インスタンスの共有
 
+### 共通化の原則 (Shared Strategy)
+Adminは管理ツールとして個別アプリの機能を「利用」する立場であり、Adminが使うことだけを理由に共通化（Shared化）すべきではない。
+- **個別アプリAと個別アプリBが共通して使う機能**: Sharedへ配置する。
+- **個別アプリとAdminでのみ使う機能**: 個別アプリに配置し、Adminは個別アプリの機能を直接importして利用する。
+
 ## 画面構成
 ```mermaid
 graph TD
@@ -68,12 +86,12 @@ graph TD
 - **目的**: プラットフォームの成長率を監視する。
 
 ### 2. 選考プロセス (Selection Flow)
-- **ソース**: `fmjs` コレクション
+- **ソース**: `FeeMgmtAndJobStatDB` コレクション (FMJS)
 - **ロジック**: 各ドキュメントの `status` フィールド（`entry`, `doc_pass`, `interview_1`, etc.）を集計。
 - **目的**: 選考のボトルネックを特定し、マッチング効率を改善する。
 
 ### 3. マッチング満足度 (Satisfaction)
-- **ソース**: `fmjs` コレクション
+- **ソース**: `FeeMgmtAndJobStatDB` コレクション (FMJS)
 - **ロジック**: `satisfactionScore` (1-5) を集計し、分布を表示。
 - **目的**: サービスの質（Quality of Match）を担保する。
 

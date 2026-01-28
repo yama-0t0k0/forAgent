@@ -4,6 +4,20 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} DatePickerInputProps
+ * @property {string} label - Input label
+ * @property {Object} valueObj - Value object containing YYYYMMDD number
+ * @property {number} valueObj.value - YYYYMMDD format (e.g. 19900101)
+ * @property {string} path - Data path for context update
+ */
+
+/**
+ * Date Picker Input Component (YYYYMMDD).
+ * Uses DataContext to update values.
+ * 
+ * @param {DatePickerInputProps} props
+ */
 export const DatePickerInput = ({ label, valueObj, path }) => {
   const context = useContext(DataContext);
   if (!context) return null;
@@ -25,6 +39,11 @@ export const DatePickerInput = ({ label, valueObj, path }) => {
 
   const dateValue = new Date(safeYear, safeMonth, safeDay);
 
+  /**
+   * Handles date picker change.
+   * @param {Object} event - The event object.
+   * @param {Date} [selectedDate] - The selected date.
+   */
   const onChange = (event, selectedDate) => {
     setShow(false);
     if (selectedDate && event.type !== 'dismissed') {

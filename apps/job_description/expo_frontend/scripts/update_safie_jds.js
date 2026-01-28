@@ -12,10 +12,17 @@ const LEVELS = {
   NONE: '経験なし'
 };
 
-// ヘルパー: スキルオブジェクトをリセット（全てNONE=trueにする）
+/**
+ * Helper: Reset all skills to NONE=true
+ * @param {object} jsonObj - The JSON object to modify
+ */
 function resetAllSkills(jsonObj) {
   if (!jsonObj['スキル経験']) return;
 
+  /**
+   * Recursive traverse function
+   * @param {object} obj - Object to traverse
+   */
   const traverse = (obj) => {
     for (const key in obj) {
       if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -35,7 +42,13 @@ function resetAllSkills(jsonObj) {
   traverse(jsonObj['スキル経験']);
 }
 
-// ヘルパー: 特定のスキルを設定
+/**
+ * Helper: Set specific skill
+ * @param {object} jsonObj - JSON object
+ * @param {string} categoryPath - Dot-separated path to category
+ * @param {string} skillName - Name of the skill
+ * @param {string} levelKey - Level key to set to true
+ */
 function setSkill(jsonObj, categoryPath, skillName, levelKey) {
   let target = jsonObj['スキル経験'];
   const pathParts = categoryPath.split('.');
@@ -60,11 +73,18 @@ function setSkill(jsonObj, categoryPath, skillName, levelKey) {
   }
 }
 
-// ヘルパー: 現職種のcore_skillを全てリセット
+/**
+ * Helper: Reset core_skill for current job type
+ * @param {object} jsonObj - JSON object
+ */
 function resetCoreSkills(jsonObj) {
   if (!jsonObj['現職種'] || !jsonObj['現職種']['技術職']) return;
   const tech = jsonObj['現職種']['技術職'];
 
+  /**
+   * Recursive traverse function
+   * @param {object} obj - Object to traverse
+   */
   const traverse = (obj) => {
     for (const key in obj) {
       const value = obj[key];
@@ -86,7 +106,11 @@ function resetCoreSkills(jsonObj) {
   traverse(tech);
 }
 
-// ヘルパー: 指定パスの現職種にcore_skillを設定
+/**
+ * Helper: Set core_skill at specific path
+ * @param {object} jsonObj - JSON object
+ * @param {string} pathStr - Dot-separated path
+ */
 function setCoreSkill(jsonObj, pathStr) {
   if (!jsonObj['現職種']) return;
   let target = jsonObj['現職種'];
@@ -227,6 +251,9 @@ const CORE_SKILL_CONFIG = {
   'B00003_14.json': '技術職.サーバサイドエンジニア'
 };
 
+/**
+ * Main function
+ */
 async function main() {
   for (const filename in CONFIG) {
     const filePath = path.join(targetDir, filename);

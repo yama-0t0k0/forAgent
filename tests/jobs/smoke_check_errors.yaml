@@ -1,0 +1,26 @@
+appId: host.exp.Exponent
+---
+# Sanity check for common runtime/bundling errors
+# We assert that fatal error strings are NOT visible.
+# And wait longer for the dashboard to initialize (fetching data).
+
+- openLink: ${EXPO_URL}
+
+# 1. Check for Runtime Module Resolution Failure
+- assertNotVisible: "Unable to resolve module"
+
+# 2. Check for RedBox / Invariant Violations
+- assertNotVisible: "Invariant Violation"
+
+# 3. Check for Render Error screens
+- assertNotVisible: "Render Error"
+
+# 4. Check for Network/Tunnel Errors (as requested by user)
+- assertNotVisible: "HTTP response error"
+- assertNotVisible: "offline"
+
+# 5. Success Condition: Dashboard Header should eventually be visible
+- extendedWaitUntil:
+    visible:
+      id: "header_title"
+    timeout: 120000

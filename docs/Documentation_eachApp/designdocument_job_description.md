@@ -5,6 +5,11 @@
 - データソース: Firestore（プロジェクトは環境変数で指定）、テンプレートJSONのフォールバック
 - 目的: 求人票（Job Description）の閲覧・編集、スキル・志向ヒートマップの可視化
 
+## データ管理原則
+- **モデル利用の徹底 (Model-First)**:
+  - データの取得・操作には必ず `JobDescription` モデルを使用します（`shared/common_frontend/src/core/models/JobDescription.js`）。
+  - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`jd.title` 等）を使用します。
+
 ## Firestore 接続
 - Firestoreへの接続は共有設定 [firebaseConfig.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/firebaseConfig.js) を介して行います
 - 使用環境変数（Expoの公開環境変数）:

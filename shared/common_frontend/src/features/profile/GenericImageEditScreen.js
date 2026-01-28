@@ -21,24 +21,53 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
+/**
+ * @typedef {Object} ImageConfig
+ * @property {string} key - Data key for the image URL
+ * @property {string} [label] - Input field label
+ * @property {string} [placeholder] - Input placeholder
+ * @property {string} [icon] - Icon name for the input field
+ * @property {string} [previewLabel] - Label for the image preview
+ */
+
+/**
+ * @typedef {Object} GenericImageEditScreenProps
+ * @property {string} dataSectionKey - Key in DataContext to access the relevant data section
+ * @property {string} collectionName - Firestore collection name to save data to
+ * @property {string} idFieldKey - Key for the ID field in DataContext
+ * @property {ImageConfig} mainImageConfig - Configuration for the main profile image
+ * @property {ImageConfig} bgImageConfig - Configuration for the background image
+ * @property {function(object): React.ReactNode} [renderBottomNav] - Function to render bottom navigation
+ */
+
+/**
+ * Generic Image Edit Screen
+ * A generic component for editing profile and background images.
+ * Supports image URL input, preview, and Firestore saving.
+ * 
+ * @param {GenericImageEditScreenProps} props
+ */
 export const GenericImageEditScreen = ({
-  dataSectionKey,
-  collectionName,
-  idFieldKey,
-  mainImageConfig,
-  bgImageConfig,
-  renderBottomNav
+    dataSectionKey,
+    collectionName,
+    idFieldKey,
+    mainImageConfig,
+    bgImageConfig,
+    renderBottomNav
 }) => {
     const { data, updateValue } = useContext(DataContext);
     const navigation = useNavigation();
 
     const sectionData = data[dataSectionKey] || {};
-    
+
     // State
     const [mainUrl, setMainUrl] = useState(sectionData[mainImageConfig.key] || '');
     const [bgUrl, setBgUrl] = useState(sectionData[bgImageConfig.key] || '');
     const [saveStatus, setSaveStatus] = useState('idle');
 
+    /**
+     * Handles saving the image URLs to Firestore.
+     */
     const handleSave = async () => {
         setSaveStatus('saving');
         try {
@@ -49,6 +78,11 @@ export const GenericImageEditScreen = ({
             // Firestore Save
             const id = data[idFieldKey];
             if (id) {
+                /**
+                 * Recursively cleans data by removing keys starting with '_'.
+                 * @param {any} input - The data to clean.
+                 * @returns {any} The cleaned data.
+                 */
                 const cleanData = (input) => {
                     if (input === null || typeof input !== 'object') return input;
                     if (Array.isArray(input)) return input.map(cleanData);
@@ -70,7 +104,7 @@ export const GenericImageEditScreen = ({
 
                 await setDoc(doc(db, collectionName, id), cleanedData);
             }
-            
+
             setSaveStatus('success');
             setTimeout(() => {
                 setSaveStatus('idle');
@@ -106,7 +140,7 @@ export const GenericImageEditScreen = ({
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Background Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{bgImageConfig.label}</Text>
+                    <Text style={styles.sectionTitle}>{String(bgImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
                         value={bgUrl}
@@ -128,7 +162,7 @@ export const GenericImageEditScreen = ({
 
                 {/* Main Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{mainImageConfig.label}</Text>
+                    <Text style={styles.sectionTitle}>{String(mainImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
                         value={mainUrl}
@@ -148,7 +182,7 @@ export const GenericImageEditScreen = ({
                     </View>
                 </View>
             </ScrollView>
-            
+
             {renderBottomNav && renderBottomNav(navigation)}
         </View>
     );

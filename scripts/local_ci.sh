@@ -12,7 +12,12 @@
 set -e # Exit immediately if any command fails
 
 PROJECT_ROOT=$(pwd)
-APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+
+if [ -n "$1" ]; then
+    APPS=("$1")
+else
+    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+fi
 
 echo "🚀 Starting Local CI/CD Pipeline..."
 echo "=================================================="
@@ -90,6 +95,13 @@ for app in "${APPS[@]}"; do
     # --- Stage 5: Build Config Verification ---
     # Using 'npx expo config' to verify app.config.js/json validity
     run_stage "Build Config Verification" "npx expo config --type public > /dev/null" "false"
+
+    # --- Stage 6: Coding Convention Check (Added) ---
+    # Runs the custom Node.js script to check for JSDoc and other conventions
+    # Currently set to 'true' (optional) for existing code, but can be made strict later
+    if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
+         run_stage "Coding Convention Check" "node $PROJECT_ROOT/scripts/check_coding_conventions.js src" "true"
+    fi
 
     # Return to root
     cd "$PROJECT_ROOT"

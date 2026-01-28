@@ -3,9 +3,26 @@ import { View, Text, Switch, StyleSheet } from 'react-native';
 import { DataContext } from '../state/DataContext';
 import { THEME } from '../theme/theme';
 
+/**
+ * @typedef {Object} SingleSelectGroupProps
+ * @property {Object} value - Current value object (keys are options)
+ * @property {string[]} path - Data path for context update
+ */
+
+/**
+ * Single Select Group Component.
+ * Acts like a radio button group where only one option can be true.
+ * Includes complex logic for '現職種' exclusive selection across nested levels.
+ * 
+ * @param {SingleSelectGroupProps} props
+ */
 export const SingleSelectGroup = ({ value, path }) => {
   const { data, updateValue } = useContext(DataContext);
 
+  /**
+   * Handles toggle interaction.
+   * @param {string} key - The option key to toggle.
+   */
   const handleToggle = (key) => {
     // Check if we are inside '現職種' to apply specific exclusive logic
     const rootKeyIndex = path.indexOf('現職種');
@@ -14,6 +31,12 @@ export const SingleSelectGroup = ({ value, path }) => {
       // Scope update to the '現職種' root
       const rootPath = path.slice(0, rootKeyIndex + 1);
 
+      /**
+       * Gets data at the specified path.
+       * @param {Object} obj - Source object.
+       * @param {string[]} p - Path array.
+       * @returns {any} Value at path.
+       */
       const getAt = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : null), obj);
       const rootData = getAt(data, rootPath);
 
@@ -47,6 +70,11 @@ export const SingleSelectGroup = ({ value, path }) => {
           });
 
           // 3. Global Reset: Turn off the SAME key (e.g., 'sub1') in ALL other jobs (entire '現職種' tree)
+          /**
+           * Recursively resets the target key in the object tree.
+           * @param {Object} obj - The object to traverse.
+           * @param {string} targetKey - The key to reset.
+           */
           const resetKeyGlobal = (obj, targetKey) => {
             if (obj && typeof obj === 'object') {
               Object.keys(obj).forEach(k => {

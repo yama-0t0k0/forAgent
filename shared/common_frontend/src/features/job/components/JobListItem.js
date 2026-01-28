@@ -3,35 +3,75 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { GlassCard } from '../../../core/components/GlassCard';
 import { MiniHeatmap } from '../../../core/components/MiniHeatmap';
 import { THEME } from '../../../core/theme/theme';
+import { JobDescription } from '../../../core/models/JobDescription';
 
-export const JobListItem = ({ 
-  job, 
-  skills, 
-  heatmapData, 
+/**
+ * @typedef {Object} Skills
+ * @property {string[]} core - Core skills
+ * @property {string[]} sub1 - Sub skills 1
+ * @property {string[]} sub2 - Sub skills 2
+ */
+
+/**
+ * @typedef {Object} JobListItemProps
+ * @property {JobDescription|Object} job - Job data
+ * @property {Skills} skills - Skills data
+ * @property {Object} [heatmapData] - Heatmap data
+ * @property {string} [companyName] - Company name
+ * @property {function(): void} [onPress] - Press handler
+ * @property {Object} [style] - Container style
+ * @property {string} [testID] - Test ID
+ */
+
+/**
+ * Job List Item Component
+ * @param {JobListItemProps} props
+ */
+export const JobListItem = ({
+  job,
+  skills,
+  heatmapData,
   companyName,
   onPress,
-  style 
+  style,
+  testID
 }) => {
-  const title = job['求人基本項目']?.['ポジション名'] || job.title || 'タイトル未設定';
-  const jdNumber = job.JD_Number || job['求人基本項目']?.JD_Number || '-';
+  // Use JobDescription model
+  const jd = job instanceof JobDescription 
+    ? job 
+    : JobDescription.fromFirestore(job.JD_Number || job.id, job);
+
+  const title = jd.positionName || 'タイトル未設定';
+  const jdNumber = jd.id || '-';
+  
   const hasAnySkill = skills?.core?.length > 0 || skills?.sub1?.length > 0 || skills?.sub2?.length > 0;
 
+  // Handle matching score
+  const matchingScore = jd.rawData.matchingScore !== undefined ? jd.rawData.matchingScore : job.matchingScore;
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.glassListItem, style]}
       activeOpacity={0.7}
       onPress={onPress}
+      testID={testID}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>
           <View style={styles.listItemHeader}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.itemTitleModern}>{title}</Text>
               <Text style={styles.itemSubtitleModern}>JD No: {jdNumber}</Text>
               <Text style={styles.itemDetail}>Company: {companyName}</Text>
             </View>
+            {matchingScore !== undefined && (
+              <View style={styles.matchBadge}>
+                <Text style={styles.matchScoreText}>{matchingScore}%</Text>
+                <Text style={styles.matchLabel}>Match</Text>
+              </View>
+            )}
           </View>
-          
+
           {hasAnySkill && (
             <ScrollView
               horizontal
@@ -89,10 +129,10 @@ export const JobListItem = ({
 
         {heatmapData && (
           <View pointerEvents="box-none">
-            <MiniHeatmap 
-              data={heatmapData.data} 
-              rows={heatmapData.rows || 3} 
-              cols={heatmapData.cols || 3} 
+            <MiniHeatmap
+              data={heatmapData.data}
+              rows={heatmapData.rows || 3}
+              cols={heatmapData.cols || 3}
             />
           </View>
         )}
@@ -140,5 +180,26 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingLeft: 2,
     alignItems: 'flex-start',
+  },
+  matchBadge: {
+    backgroundColor: '#F0F9FF',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  matchScoreText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: THEME.accent,
+  },
+  matchLabel: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: THEME.accent,
+    textTransform: 'uppercase',
   },
 });

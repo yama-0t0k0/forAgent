@@ -20,6 +20,9 @@ const db = getFirestore(app);
 const args = process.argv.slice(2);
 const defaultJdPath = '/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/reference_information_fordev/json/jd.json';
 
+/**
+ * Seed data to Firestore
+ */
 async function seed() {
     try {
         let companyId = 'B00000';

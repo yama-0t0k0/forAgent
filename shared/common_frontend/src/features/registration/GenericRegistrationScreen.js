@@ -10,6 +10,7 @@ import { collection, query, where, getDocs, setDoc, doc, documentId } from 'fire
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { BottomNav } from '../../core/components/BottomNav';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -17,6 +18,18 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * @typedef {Object} CategoryScreenProps
+ * @property {Object} route - Route object
+ * @property {Object} route.params - Route parameters
+ * @property {string} route.params.rootKey - Root key for data
+ * @property {Object} [route.params.orderTemplateRoot] - Order template
+ */
+
+/**
+ * Category Screen for Tab Navigator
+ * @param {CategoryScreenProps} props
+ */
 const CategoryScreen = ({ route }) => {
   const { rootKey, orderTemplateRoot } = route.params;
   const { data } = useContext(DataContext);
@@ -31,11 +44,81 @@ const CategoryScreen = ({ route }) => {
   );
 };
 
+/**
+ * @typedef {Object} GenericRegistrationScreenProps
+ * @property {string} collectionName - Firestore collection name
+ * @property {string} idField - Field name for ID
+ * @property {string} [title] - Screen title
+ * @property {string} [idPrefixChar='C'] - ID prefix character
+ * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
+ * @property {Object} [orderTemplate] - Template for field ordering
+ */
+
+/**
+ * Generic Registration Screen
+ * Handles multi-tab registration forms with Firestore saving.
+ * 
+ * @param {GenericRegistrationScreenProps} props
+ */
+/**
+ * Removes internal fields (starting with '_') from data recursively.
+ * @param {any} input - Data to clean
+ * @returns {any} Cleaned data
+ */
+const cleanData = (input) => {
+  if (input === null || typeof input !== 'object') {
+    return input;
+  }
+  if (Array.isArray(input)) {
+    return input.map(cleanData);
+  }
+  const output = {};
+  Object.keys(input).forEach(key => {
+    if (!key.startsWith('_')) {
+      output[key] = cleanData(input[key]);
+    }
+  });
+  return output;
+};
+
+/**
+ * Helper to sort keys based on template.
+ * @param {Object} data - Source data
+ * @param {string} idField - ID field name to exclude
+ * @param {Object} [orderTemplate] - Template defining order
+ * @returns {string[]} Sorted keys
+ */
+const getSortedKeys = (data, idField, orderTemplate) => {
+  if (!data) return [];
+  /** @type {string[]} */
+  const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
+  if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+  
+  /** @type {string[]} */
+  const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
+  /** @type {string[]} */
+  const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
+  /** @type {string[]} */
+  const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
+  
+  return [...inTpl, ...notInTpl];
+};
+
+/**
+ * Generic Registration Screen
+ * Handles multi-tab registration forms with Firestore saving.
+ * 
+ * @param {GenericRegistrationScreenProps} props
+ */
 export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
 
+  /**
+   * Handles the save operation to Firestore.
+   * Generates a new ID and saves the cleaned data.
+   */
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
@@ -65,22 +148,6 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
       const nextNum = maxNum + 1;
       const newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
 
-      const cleanData = (input) => {
-        if (input === null || typeof input !== 'object') {
-          return input;
-        }
-        if (Array.isArray(input)) {
-          return input.map(cleanData);
-        }
-        const output = {};
-        Object.keys(input).forEach(key => {
-          if (!key.startsWith('_')) {
-            output[key] = cleanData(input[key]);
-          }
-        });
-        return output;
-      };
-
       const cleanedData = cleanData(data);
       const dataToSave = { ...cleanedData, [idField]: newId };
 
@@ -101,16 +168,17 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
     }
   };
 
+  /**
+   * Memoized top-level keys for rendering tabs.
+   * @type {string[]}
+   */
   const topLevelKeys = useMemo(() => {
-    if (!data) return [];
-    const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
-    if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
-    const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
-    const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
-    const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
-    return [...inTpl, ...notInTpl];
+    return getSortedKeys(data, idField, orderTemplate);
   }, [data, idField, orderTemplate]);
 
+  /**
+   * Navigates back to the home screen.
+   */
   const handleGoHome = () => {
     navigation.navigate(homeRouteName);
   };
@@ -119,9 +187,9 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
     <View style={{ flex: 1, backgroundColor: THEME.background }}>
       <View style={styles.appHeader}>
         <View>
-          <Text style={styles.appTitle}>{title}</Text>
+          <Text style={styles.appTitle}>{String(title || 'Registration')}</Text>
           <Text style={styles.appSubtitle}>
-            ID: {data[idField] || 'New'}
+            ID: {String(data[idField] || 'New')}
           </Text>
         </View>
         <TouchableOpacity
@@ -153,31 +221,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
         ))}
       </Tab.Navigator>
 
-      {/* Bottom Navigation (Replica of MyPageScreen) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>キャリア</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>つながり</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleGoHome}>
-          <View style={styles.activeIconContainer}>
-            <Ionicons name="home" size={26} color={THEME.background} />
-          </View>
-          <Text style={styles.navTextActive}>ホーム</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="book-outline" size={28} color={THEME.subText} />
-          <Text style={styles.navText}>学習</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
-          <Ionicons name="grid-outline" size={28} color={THEME.accent} />
-          <Text style={[styles.navText, { color: THEME.accent, fontWeight: '800' }]}>メニュー</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav navigation={navigation} activeTab="Registration" />
     </View>
   );
 };
@@ -201,39 +245,5 @@ const styles = StyleSheet.create({
   saveButtonSuccess: { backgroundColor: THEME.success },
   saveButtonError: { backgroundColor: '#EF4444' },
   saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: THEME.cardBg,
-    height: 85,
-    borderTopWidth: 1,
-    borderTopColor: THEME.cardBorder,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingBottom: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  activeIconContainer: {
-    width: 38,
-    height: 38,
-    backgroundColor: THEME.accent,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  navText: {
-    color: THEME.subText,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  navTextActive: {
-    color: THEME.accent,
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 2,
-  },
+  saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });
