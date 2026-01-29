@@ -2,8 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// Use individual_user_app's screen directly instead of shared component
-import { MyPageScreen as IndividualProfileScreen } from '@individual_app/src/features/profile/MyPageScreen';
+// 共有プロファイルスクリーンを使用（クロスアプリ依存を避ける）
+import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';

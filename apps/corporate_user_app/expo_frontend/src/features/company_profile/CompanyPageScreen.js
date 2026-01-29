@@ -10,6 +10,8 @@ import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 import { TechStackView } from '@shared/src/features/company/components/TechStackView';
+import { IconButton } from '@shared/src/core/components/IconButton';
+import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android') {
@@ -261,22 +263,14 @@ export const CompanyPageScreen = () => {
                 {routes.map((route, i) => {
                     const isActive = index === i;
                     return (
-                        <TouchableOpacity
+                        <BottomNavItem
                             key={route.key}
-                            style={styles.navItem}
+                            label={route.title}
+                            icon={route.icon}
+                            isActive={isActive}
                             onPress={() => setIndex(i)}
-                        >
-                            {isActive ? (
-                                <View style={styles.activeIconContainer}>
-                                    <Ionicons name={route.icon} size={20} color={THEME.background} />
-                                </View>
-                            ) : (
-                                <Ionicons name={route.icon} size={24} color={THEME.subText} />
-                            )}
-                            <Text style={isActive ? styles.navTextActive : styles.navText}>
-                                {route.title}
-                            </Text>
-                        </TouchableOpacity>
+                            style={styles.navItem}
+                        />
                     );
                 })}
             </View>

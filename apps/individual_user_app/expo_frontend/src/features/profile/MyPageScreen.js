@@ -106,12 +106,20 @@ export const MyPageScreen = (props) => {
                         <View style={styles.topProfileContainer}>
                             {/* Header Action Buttons (Notifications and Image Edit) */}
                             <View style={styles.headerActionContainer}>
-                                <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                    <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
-                                    <Ionicons name="create-outline" size={24} color="#FFF" />
-                                </TouchableOpacity>
+                                <IconButton 
+                                    name="notifications-outline" 
+                                    size={24} 
+                                    color="#FFF" 
+                                    style={styles.headerIconButton} 
+                                    onPress={() => console.log('Notifications')} 
+                                />
+                                <IconButton 
+                                    name="create-outline" 
+                                    size={24} 
+                                    color="#FFF" 
+                                    style={styles.headerIconButton} 
+                                    onPress={() => navigation.navigate('ImageEdit')} 
+                                />
                             </View>
 
                             {/* 2. Top-right repositioned button */}
@@ -191,32 +199,40 @@ export const MyPageScreen = (props) => {
                 <View style={{ height: 100 }} />
             </ScrollView>
 
-            {/* Bottom Navigation - Only show if not in modal (hideSafeArea is false/undefined) */}
+            {/* 5. Custom Bottom Navigation (Footer) - Only for Main Screen (not modal) */}
             {!hideSafeArea && (
                 <>
                     <View style={styles.bottomNav}>
-                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Career')}>
-                            <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-                            <Text style={styles.navText}>キャリア</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Connection')}>
-                            <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                            <Text style={styles.navText}>つながり</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-                            <View style={styles.activeIconContainer}>
-                                <Ionicons name="home" size={26} color={THEME.background} />
-                            </View>
-                            <Text style={styles.navTextActive}>ホーム</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem}>
-                            <Ionicons name="book-outline" size={28} color={THEME.subText} />
-                            <Text style={styles.navText}>学習</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Menu')}>
-                            <Ionicons name="grid-outline" size={28} color={THEME.subText} />
-                            <Text style={styles.navText}>メニュー</Text>
-                        </TouchableOpacity>
+                        <BottomNavItem 
+                            label="キャリア" 
+                            icon="briefcase-outline" 
+                            onPress={() => navigation.navigate('Career')} 
+                            style={styles.navItem} 
+                        />
+                        <BottomNavItem 
+                            label="つながり" 
+                            icon="people-circle-outline" 
+                            onPress={() => navigation.navigate('Connection')} 
+                            style={styles.navItem} 
+                        />
+                        <BottomNavItem 
+                            label="ホーム" 
+                            icon="home" 
+                            isActive={true} 
+                            onPress={() => navigation.navigate('MyPage')} 
+                            style={styles.navItem} 
+                        />
+                        <BottomNavItem 
+                            label="学習" 
+                            icon="book-outline" 
+                            style={styles.navItem} 
+                        />
+                        <BottomNavItem 
+                            label="メニュー" 
+                            icon="grid-outline" 
+                            onPress={() => navigation.navigate('Menu')} 
+                            style={styles.navItem} 
+                        />
                     </View>
 
                     {/* 6. Renamed button + chevron */}

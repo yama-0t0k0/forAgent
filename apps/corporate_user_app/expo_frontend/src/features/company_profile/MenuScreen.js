@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { GenericMenuScreen } from '@shared/src/features/profile/GenericMenuScreen';
+import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -55,32 +56,42 @@ export const MenuScreen = () => {
             onItemPress={handlePress}
             renderBottomNav={(navigation) => (
                 <View style={styles.bottomNav}>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Jobs')}>
-                        <Ionicons name="briefcase-outline" size={24} color={THEME.subText} />
-                        <Text style={styles.navText}>求人</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Connections')}>
-                        <Ionicons name="people-circle-outline" size={24} color={THEME.subText} />
-                        <Text style={styles.navText}>つながり</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('TechStack')}>
-                        <Ionicons name="code-slash-outline" size={24} color={THEME.subText} />
-                        <Text style={styles.navText}>使用技術</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Blog')}>
-                        <Ionicons name="newspaper-outline" size={24} color={THEME.subText} />
-                        <Text style={styles.navText}>ブログ</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Events')}>
-                        <Ionicons name="calendar-outline" size={24} color={THEME.subText} />
-                        <Text style={styles.navText}>イベント</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <View style={styles.activeIconContainer}>
-                            <Ionicons name="grid" size={20} color={THEME.background} />
-                        </View>
-                        <Text style={styles.navTextActive}>メニュー</Text>
-                    </TouchableOpacity>
+                    <BottomNavItem 
+                        label="求人" 
+                        icon="briefcase-outline" 
+                        onPress={() => navigation.navigate('Jobs')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="つながり" 
+                        icon="people-circle-outline" 
+                        onPress={() => navigation.navigate('Connections')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="使用技術" 
+                        icon="code-slash-outline" 
+                        onPress={() => navigation.navigate('TechStack')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="ブログ" 
+                        icon="newspaper-outline" 
+                        onPress={() => navigation.navigate('Blog')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="イベント" 
+                        icon="calendar-outline" 
+                        onPress={() => navigation.navigate('Events')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="メニュー" 
+                        icon="grid" 
+                        isActive={true} 
+                        style={styles.navItem} 
+                    />
                 </View>
             )}
         />

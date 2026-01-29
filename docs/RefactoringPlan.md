@@ -1,9 +1,11 @@
 # リファクタリング計画：共通コンポーネント化推進
 
 本ドキュメントは、Issue #212 で言及された「他の重複コンポーネントの共通化推進」に関する具体的な実行プランをまとめたものです。
-UIの一貫性向上とメンテナンスコストの削減を目的としています。
 
 ## 1. モーダル実装の完全統一
+
+- **目的**: アプリ内で散在する独自モーダル実装を排除し、ユーザー体験を統一する。
+- **期待される効果**: アプリ内の全モーダルの挙動とデザイン（オーバーレイ、閉じるボタン、アニメーション）が統一され、メンテナンス性が向上する。
 
 `UserDetailModal` と `JobDetailModal` は共通化済みですが、`DrillDownModal` がまだ独自実装のまま残っています。これを共通コンポーネントに移行します。
 
@@ -12,7 +14,6 @@ UIの一貫性向上とメンテナンスコストの削減を目的としてい
   - `apps/fmjs/expo_frontend/src/screens/SelectionProgressListScreen.js` (追加対応)
 - **現状**: `Modal` コンポーネントを直接使用し、独自のヘッダーや閉じるボタンを実装している。
 - **アクション**: `shared/common_frontend/src/core/components/DetailModal.js` を使用するようにリファクタリングする。
-- **期待効果**: アプリ内の全モーダルの挙動とデザイン（オーバーレイ、閉じるボタン、アニメーション）が統一される。
 - **ステータス**: ✅ 完了
   - `DrillDownModal` 対応完了
   - `SelectionProgressListScreen` 対応完了
@@ -21,15 +22,20 @@ UIの一貫性向上とメンテナンスコストの削減を目的としてい
 
 ## 2. TechStackView の切り出し
 
+- **目的**: Corporate App の会社詳細画面にある有用なUIコンポーネントを他アプリでも再利用可能にする。
+- **期待される効果**: Admin App の会社詳細画面など他画面での実装工数削減と、コードの重複排除。
+
 Corporate App の会社詳細画面に定義されている技術スタック表示コンポーネントは、Admin App や Job Description App でも再利用価値が高い機能です。
 
 - **対象**: `apps/corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen.js` 内の `TechStackView`
 - **現状**: ファイル内でインライン定義されており、他から参照できない。
 - **アクション**: `shared/common_frontend/src/features/company/components/TechStackView.js` として独立させる。
-- **期待効果**: 会社情報の表示パーツとして、Admin App の会社詳細画面 (`CompanyDetailScreen`) などでも容易に利用可能になる。
 - **ステータス**: ✅ 完了
 
 ## 3. 基本UIコンポーネントの整備
+
+- **目的**: 各画面で散在する基本的なUI要素（ボタン、バッジ）の実装を統一し、デザインの一貫性を担保する。
+- **期待される効果**: アプリ全体での色使いや操作感の統一、およびデザイン変更時の修正コスト削減。
 
 現在、各画面で `TouchableOpacity` や `Text` に直接スタイルを当ててボタンやバッジを作成している箇所が散見されます。これらを共通化します。
 
@@ -37,10 +43,12 @@ Corporate App の会社詳細画面に定義されている技術スタック表
 - **アクション**:
     - `PrimaryButton.js` / `SecondaryButton.js`: 統一されたデザインのボタンコンポーネントを作成。
     - `StatusBadge.js`: 「未対応」「対応中」などのステータス表示を統一。
-- **期待効果**: アプリ全体での色使いや操作感の統一、およびデザイン変更時の修正コスト削減。
 - **ステータス**: ✅ 完了
 
 ## 4. Buttonコンポーネントの機能拡張と適用拡大
+
+- **目的**: 各アプリで独自実装されているボタンを共通コンポーネントに置き換え、実装パターンを統一する。
+- **期待される効果**: 独自実装の削減によるコード量削減と、ボタンの振る舞い（ローディング、非活性時など）の統一。
 
 既存の `PrimaryButton` / `SecondaryButton` を拡張し、各アプリの独自実装ボタンを共通コンポーネントに置き換えます。
 
@@ -58,4 +66,20 @@ Corporate App の会社詳細画面に定義されている技術スタック表
   - `apps/fmjs/expo_frontend/src/screens/SelectionProgressListScreen.js`
     - アクションボタン等の確認と共通化
 
-- **ステータス**: ⏳ 未着手
+- **ステータス**: ✅ 完了
+
+## 5. IconButton と BottomNavItem の共通化
+
+- **目的**:
+  - アプリ全体でのアイコンボタンとボトムナビゲーションのタッチ領域、視覚的フィードバック（Opacity）、スタイルを統一する。
+  - 個別実装によるコードの重複を排除し、メンテナンス性を向上させる。
+
+- **ステータス**: ✅ 完了
+
+- **変更内容**:
+  - `shared/common_frontend/src/core/components/IconButton.js` を作成 (hitSlop, disabled, children対応)。
+  - `shared/common_frontend/src/core/components/BottomNavItem.js` を作成 (Active/Inactive状態, アイコン+ラベル)。
+  - 以下の画面での個別 `TouchableOpacity` 実装を共通コンポーネントに置き換え:
+    - Corporate App: `CompanyPageScreen.js`, `MenuScreen.js`
+    - Individual App: `MyPageScreen.js`
+    - Job App: `JobDescriptionContent.js` (編集ボタン)
