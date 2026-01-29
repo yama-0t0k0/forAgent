@@ -39,3 +39,23 @@ Corporate App の会社詳細画面に定義されている技術スタック表
     - `StatusBadge.js`: 「未対応」「対応中」などのステータス表示を統一。
 - **期待効果**: アプリ全体での色使いや操作感の統一、およびデザイン変更時の修正コスト削減。
 - **ステータス**: ✅ 完了
+
+## 4. Buttonコンポーネントの機能拡張と適用拡大
+
+既存の `PrimaryButton` / `SecondaryButton` を拡張し、各アプリの独自実装ボタンを共通コンポーネントに置き換えます。
+
+- **機能拡張**:
+  - `shared/common_frontend/src/core/components/PrimaryButton.js` / `SecondaryButton.js`
+    - `children` プロパティのサポート（アイコン＋テキスト対応）
+    - `variant` / `style` の柔軟性向上（Rounded, Smallなど）
+
+- **適用対象**:
+  - `apps/individual_user_app/expo_frontend/src/features/profile/MyPageScreen.js`
+    - 「職歴書作成」ボタン → `PrimaryButton` (Small)
+    - 「経歴詳細」ボタン → `PrimaryButton` (Rounded + Icon)
+  - `apps/job_description/expo_frontend/src/features/job_description/components/JobDescriptionContent.js`
+    - 「求人詳細」ボタン → `PrimaryButton` (Rounded + Icon)
+  - `apps/fmjs/expo_frontend/src/screens/SelectionProgressListScreen.js`
+    - アクションボタン等の確認と共通化
+
+- **ステータス**: ⏳ 未着手

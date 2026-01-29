@@ -4,6 +4,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
+import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -71,13 +72,13 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         {/* Edit Button (Top Right) - Retained */}
                         {onEdit && (
                             <View style={styles.headerActionContainer}>
-                                <TouchableOpacity
+                                <PrimaryButton
                                     style={styles.editButton}
                                     onPress={onEdit}
                                     activeOpacity={0.7}
                                 >
                                     <Ionicons name="create-outline" size={24} color={THEME.text} />
-                                </TouchableOpacity>
+                                </PrimaryButton>
                             </View>
                         )}
 
@@ -132,10 +133,14 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
                 {/* 4. Bottom Button (Renamed to Job Detail) - No Footer Navigation */}
                 <View style={styles.bottomButtonContainer}>
-                    <TouchableOpacity style={styles.centerButton} activeOpacity={0.8}>
+                    <PrimaryButton
+                        style={styles.centerButton}
+                        activeOpacity={0.8}
+                        onPress={() => {}}
+                    >
                         <Text style={styles.centerButtonText}>求人詳細</Text>
                         <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                    </TouchableOpacity>
+                    </PrimaryButton>
                 </View>
             </SafeAreaView>
         </View>

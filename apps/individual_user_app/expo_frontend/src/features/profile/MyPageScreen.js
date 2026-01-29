@@ -4,6 +4,7 @@ import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
+import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -115,9 +116,12 @@ export const MyPageScreen = (props) => {
 
                             {/* 2. Top-right repositioned button */}
                             <View style={styles.profileActionRow}>
-                                <TouchableOpacity style={styles.miniResumeButton}>
-                                    <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
-                                </TouchableOpacity>
+                                <PrimaryButton 
+                                    title="職歴書作成"
+                                    variant="small"
+                                    style={{ backgroundColor: THEME.success }}
+                                    onPress={() => {}}
+                                />
                             </View>
 
                             {/* 3. Profile Row directly below the button */}
@@ -217,10 +221,13 @@ export const MyPageScreen = (props) => {
 
                     {/* 6. Renamed button + chevron */}
                     <View style={styles.bottomNavCenterOverlay}>
-                        <TouchableOpacity style={styles.centerButton}>
+                        <PrimaryButton
+                            style={styles.centerButton}
+                            onPress={() => {}}
+                        >
                             <Text style={styles.centerButtonText}>経歴詳細</Text>
                             <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                        </TouchableOpacity>
+                        </PrimaryButton>
                     </View>
                 </>
             )}
