@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import { StatusBadge } from '@shared/src/core/components/StatusBadge';
+import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { styles } from '@features/dashboard/dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -31,6 +32,7 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
             style={styles.whiteCard}
             onPress={() => onStepPress(step)}
             testID={step.id}
+            activeOpacity={0.7}
           >
             <Text style={styles.cardCount}>{step.count}<Text style={styles.unitText}>件</Text></Text>
             <Text style={styles.cardLabel}>{step.label}</Text>
@@ -98,8 +100,20 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle}>繋がりの推移</Text>
         <View style={styles.segmentControl}>
-          <View style={styles.segmentActive}><Text style={styles.segmentTextActive}>個人×企業</Text></View>
-          <View style={styles.segmentInactive}><Text style={styles.segmentTextInactive}>個人×個人</Text></View>
+          <PrimaryButton 
+             label="個人×企業" 
+             variant="primary" 
+             style={styles.segmentActive} 
+             textStyle={styles.segmentTextActive}
+             onPress={() => {}} 
+          />
+          <PrimaryButton 
+             label="個人×個人" 
+             variant="outline" 
+             style={styles.segmentInactive} 
+             textStyle={styles.segmentTextInactive}
+             onPress={() => {}} 
+          />
         </View>
       </View>
       <LineChart

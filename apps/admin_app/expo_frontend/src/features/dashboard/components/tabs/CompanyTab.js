@@ -42,12 +42,11 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
       <GenericDataList
         data={filteredCompanies}
         renderItem={({ item }) => (
-          <TouchableOpacity
+          <CompanyListItem 
+            item={item} 
             onPress={() => navigation.push('CompanyDetail', { companyId: item.id, initialData: item })}
             testID="company_item"
-          >
-            <CompanyListItem item={item} />
-          </TouchableOpacity>
+          />
         )}
         contentContainerStyle={styles.listContainer}
       />

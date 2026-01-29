@@ -74,7 +74,7 @@ Corporate App の会社詳細画面に定義されている技術スタック表
   - アプリ全体でのアイコンボタンとボトムナビゲーションのタッチ領域、視覚的フィードバック（Opacity）、スタイルを統一する。
   - 個別実装によるコードの重複を排除し、メンテナンス性を向上させる。
 
-- **ステータス**: ✅ 完了
+- **ステータス**: 🏗️ 進行中
 
 - **変更内容**:
   - `shared/common_frontend/src/core/components/IconButton.js` を作成 (hitSlop, disabled, children対応)。
@@ -83,3 +83,40 @@ Corporate App の会社詳細画面に定義されている技術スタック表
     - Corporate App: `CompanyPageScreen.js`, `MenuScreen.js`
     - Individual App: `MyPageScreen.js`
     - Job App: `JobDescriptionContent.js` (編集ボタン)
+    - Admin App: `DashboardScreen.js` (進行中)
+
+## 6. 全アプリ共通化の中期実行計画（俯瞰分析に基づく）
+
+現在、複数のアプリで機能重複が見られる領域と、将来的に共通化が必要となる領域についての分析結果と実行計画です。
+
+### 🚨 即時対応（メンテナンスコスト削減）
+
+1. **画像編集・アップロード機能の統一**
+   - **現状**: Individual/Corporate/Shared に実装が散在。
+   - **計画**: `GenericImageEditScreen` (Shared) への完全移行。各アプリの `ImageEditScreen` を薄いラッパーにするか廃止する。
+
+2. **メニュー/設定画面の構成統一**
+   - **現状**: Individual/Corporate で似たような実装が存在。
+   - **計画**: `GenericMenuScreen` (Shared) を正とし、各アプリは設定データ（Config）を渡すだけの構造にする。
+
+3. **求人詳細表示の完全集約**
+   - **現状**: Adminアプリ等で古い独自実装（Modal内表示など）が残存している可能性。
+   - **計画**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一する。
+
+4. **詳細モーダルの残存移行**
+   - **現状**: 大部分は `DetailModal` に移行済みだが、Adminの `UserDetailModal` 等でアプリ間参照の不整合（今回修正済み）があったため、再点検と完全な正規化を行う。
+
+### 🔮 中期的・戦略的共通化（機能拡張への備え）
+
+1. **企業プロフィール表示 (`CompanyPageScreen`) のShared化**
+   - **目的**: Admin（審査・閲覧）とIndividual（企業研究）で同じビューを利用可能にする。
+   - **計画**: 現在Corporateアプリにある `CompanyPageScreen` を `shared/features/company_profile` に移動し、編集モード/閲覧モードを切り替えられる設計にする。
+
+2. **選考プロセスエディタ (`SelectionFlowEditor`) のShared化**
+   - **目的**: Adminアプリでのテンプレート管理機能実装を見越した共通化。
+   - **計画**: 現在FMJSにあるエディタを `shared/features/selection` へ移動。
+
+3. **エンジニアスキル分析 (Heatmap/TechStack) の高度化**
+   - **目的**: Corporate（自社分析）とAdmin（全体分析）での共通利用。
+   - **計画**: `heatmap_engine` のロジックとUIコンポーネントをセットで再利用可能なパッケージとして整備する。
+

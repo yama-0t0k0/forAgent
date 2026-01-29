@@ -19,6 +19,7 @@ import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@share
 
 // Components
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
+import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 import { OverviewTab } from './components/tabs/OverviewTab';
 import { IndividualTab } from './components/tabs/IndividualTab';
 import { CompanyTab } from './components/tabs/CompanyTab';
@@ -398,20 +399,16 @@ export default function DashboardScreen() {
           const tintColor = isActive ? '#2196F3' : '#666';
 
           return (
-            <TouchableOpacity
+            <BottomNavItem
               key={tab.id}
               testID={`tab_${tab.id}`}
-              style={[styles.tabItem, isActive && styles.activeTabItem]}
+              isActive={isActive}
+              label={tab.icon ? undefined : tab.label}
+              icon={tab.icon ? <DashboardIcon color={tintColor} /> : undefined}
               onPress={() => setActiveTab(tab.id)}
-            >
-              {tab.icon ? (
-                <DashboardIcon color={tintColor} />
-              ) : (
-                <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                  {tab.label}
-                </Text>
-              )}
-            </TouchableOpacity>
+              style={isActive ? styles.activeTabItem : styles.tabItem}
+              textStyle={isActive ? styles.activeTabText : styles.tabText}
+            />
           );
         })}
       </View>
