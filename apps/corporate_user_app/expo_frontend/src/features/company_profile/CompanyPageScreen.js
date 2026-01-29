@@ -201,12 +201,20 @@ export const CompanyPageScreen = () => {
                     <View style={styles.topProfileContainer}>
                         {/* Header Action Buttons */}
                         <View style={styles.headerActionContainer}>
-                            <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit')}>
-                                <Ionicons name="create-outline" size={24} color="#FFF" />
-                            </TouchableOpacity>
+                            <IconButton 
+                                name="notifications-outline" 
+                                size={24} 
+                                color="#FFF" 
+                                style={styles.headerIconButton} 
+                                onPress={() => console.log('Notifications')} 
+                            />
+                            <IconButton 
+                                name="create-outline" 
+                                size={24} 
+                                color="#FFF" 
+                                style={styles.headerIconButton} 
+                                onPress={() => navigation.navigate('ImageEdit')} 
+                            />
                         </View>
 
                         {/* Company Profile Row */}
@@ -223,15 +231,24 @@ export const CompanyPageScreen = () => {
 
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
-                                    <TouchableOpacity style={styles.linkIcon}>
-                                        <Ionicons name="globe-outline" size={16} color={THEME.accent} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.linkIcon}>
-                                        <Ionicons name="logo-github" size={16} color={THEME.text} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.linkIcon}>
-                                        <Ionicons name="document-text-outline" size={16} color={THEME.subText} />
-                                    </TouchableOpacity>
+                                    <IconButton 
+                                        name="globe-outline" 
+                                        size={16} 
+                                        color={THEME.accent} 
+                                        style={styles.linkIcon} 
+                                    />
+                                    <IconButton 
+                                        name="logo-github" 
+                                        size={16} 
+                                        color={THEME.text} 
+                                        style={styles.linkIcon} 
+                                    />
+                                    <IconButton 
+                                        name="document-text-outline" 
+                                        size={16} 
+                                        color={THEME.subText} 
+                                        style={styles.linkIcon} 
+                                    />
                                 </View>
                             </View>
                         </View>

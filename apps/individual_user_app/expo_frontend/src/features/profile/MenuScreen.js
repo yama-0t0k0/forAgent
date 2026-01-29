@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { GenericMenuScreen } from '@shared/src/features/profile/GenericMenuScreen';
+import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -55,28 +56,36 @@ export const MenuScreen = () => {
             onItemPress={handlePress}
             renderBottomNav={(navigation) => (
                 <View style={styles.bottomNav}>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-                        <Ionicons name="person-circle-outline" size={28} color={THEME.subText} />
-                        <Text style={styles.navText}>キャリア</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Ionicons name="people-circle-outline" size={28} color={THEME.subText} />
-                        <Text style={styles.navText}>つながり</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-                        <Ionicons name="home-outline" size={26} color={THEME.subText} />
-                        <Text style={styles.navText}>ホーム</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Ionicons name="book-outline" size={28} color={THEME.subText} />
-                        <Text style={styles.navText}>学習</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <View style={styles.activeIconContainer}>
-                            <Ionicons name="grid" size={26} color={THEME.background} />
-                        </View>
-                        <Text style={styles.navTextActive}>メニュー</Text>
-                    </TouchableOpacity>
+                    <BottomNavItem 
+                        label="キャリア" 
+                        icon="person-circle-outline" 
+                        onPress={() => navigation.navigate('MyPage')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="つながり" 
+                        icon="people-circle-outline" 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="ホーム" 
+                        icon="home-outline" 
+                        onPress={() => navigation.navigate('MyPage')} 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="学習" 
+                        icon="book-outline" 
+                        style={styles.navItem} 
+                    />
+                    <BottomNavItem 
+                        label="メニュー" 
+                        icon="grid" 
+                        isActive={true} 
+                        activeContainerColor={THEME.accent}
+                        activeColor={THEME.accent}
+                        style={styles.navItem} 
+                    />
                 </View>
             )}
         />
@@ -102,25 +111,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flex: 1,
-    },
-    activeIconContainer: {
-        width: 38,
-        height: 38,
-        backgroundColor: THEME.accent,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 3,
-    },
-    navText: {
-        color: THEME.subText,
-        fontSize: 11,
-        marginTop: 2,
-    },
-    navTextActive: {
-        color: THEME.accent,
-        fontSize: 11,
-        fontWeight: '800',
-        marginTop: 2,
     },
 });

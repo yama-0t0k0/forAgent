@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
@@ -147,10 +147,10 @@ export const MyPageScreen = (props) => {
                                     <Text style={styles.dataSourceText}>{String(fetchedData || propUserDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                     {/* Relocated Chatbot button */}
-                                    <TouchableOpacity style={styles.chatBotCalloutOverlap}>
+                                    <IconButton style={styles.chatBotCalloutOverlap}>
                                         <Ionicons name="chatbubble-ellipses" size={30} color={THEME.accent} />
                                         <Text style={styles.labelYellow}>チャット</Text>
-                                    </TouchableOpacity>
+                                    </IconButton>
                                 </View>
                             </View>
                         </View>
@@ -293,17 +293,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         width: '100%',
-    },
-    miniResumeButton: {
-        backgroundColor: THEME.success,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 20,
-    },
-    miniResumeButtonText: {
-        color: '#FFF',
-        fontSize: 11,
-        fontWeight: 'bold',
     },
     profileRow: {
         flexDirection: 'row',
@@ -456,26 +445,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flex: 1,
-    },
-    activeIconContainer: {
-        width: 38,
-        height: 38,
-        backgroundColor: THEME.accent,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 3,
-    },
-    navText: {
-        color: THEME.subText,
-        fontSize: 11,
-        marginTop: 2,
-    },
-    navTextActive: {
-        color: THEME.accent,
-        fontSize: 11,
-        fontWeight: '800',
-        marginTop: 2,
     },
     bottomNavCenterOverlay: {
         position: 'absolute',

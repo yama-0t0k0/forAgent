@@ -73,13 +73,13 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         {/* Edit Button (Top Right) - Retained */}
                         {onEdit && (
                             <View style={styles.headerActionContainer}>
-                                <PrimaryButton
+                                <IconButton
+                                    name="create-outline"
+                                    size={24}
+                                    color={THEME.text}
                                     style={styles.editButton}
                                     onPress={onEdit}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="create-outline" size={24} color={THEME.text} />
-                                </PrimaryButton>
+                                />
                             </View>
                         )}
 
