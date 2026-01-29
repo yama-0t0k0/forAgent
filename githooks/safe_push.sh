@@ -108,10 +108,10 @@ collect_issue_info() {
         fi
 
         if [ -z "$NEXT_TASKS" ]; then
-            NEXT_TASKS="Check CI/CD pipeline and verify deployment."
+            NEXT_TASKS="（推奨される次回のタスクを具体的に記述してください）"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="特になし"
+            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
         return
     fi
@@ -147,7 +147,7 @@ collect_issue_info() {
         echo "Please enter background/context details:"
         read -r CONTEXT_NOTES
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="No context provided."
+            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
     fi
 }
@@ -495,8 +495,10 @@ $RECENT_CONTEXT
     # to prevent false positives where past issue titles trigger the placeholder check.
     VALIDATION_BODY="${USER_PROMPT} ${WORK_PURPOSE} ${WORK_OUTCOME} ${CONTEXT_NOTES} ${NEXT_TASKS}"
     
-    # Check for placeholders or default text
+    # Check for placeholders or default/lazy text
     if [[ "$VALIDATION_BODY" == *"記述してください"* ]] || \
+       [[ "$VALIDATION_BODY" == *"特になし"* ]] || \
+       [[ "$VALIDATION_BODY" == *"provided"* ]] || \
        [[ "$VALIDATION_BODY" == *"Automated update via safe_push.sh"* ]]; then
         
         echo ""

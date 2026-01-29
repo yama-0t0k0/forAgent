@@ -130,7 +130,17 @@
 
 ## 📝 変更ログ (Dev Log)
 
-### 2026年1月6日: ヒートマップエンジンの統合とFirestore検証 (Job Description App)
+### 2026年1月30日: 画像編集・メニュー画面の共通化 (Shared 移行)
+- **Shared コンポーネントの新規作成・整理**:
+    - **CorporateBottomNav.js**: 法人アプリ共通のボトムナビゲーションを `shared/src/core/components/` に作成。
+    - **CorporateImageEditScreen.js**: `GenericImageEditScreen` を用いた法人用画像編集ラッパーを作成。
+    - **CorporateMenuScreen.js**: `GenericMenuScreen` を用いた法人用メニューラッパーを作成。
+- **アプリ側の最適化**:
+    - `corporate_user_app`, `individual_user_app` 内の重複するローカル Screen ファイルを削除し、Shared への移行を完了。
+- **開発基盤の強化**:
+    - `scripts/task_1.sh` における CI モードのサポートと、`safe_push.sh` における Issue 品質バリデーションを厳格化。
+
+### 2026年1月30日: IconButton と BottomNavItem の共通化
 - **ヒートマップロジックのJS移植**:
     - **HeatmapCalculator.js**: Dart版のスコア計算ロジック（`SKILL_SCORES`, `ASPIRATION_SCORES`）をJavaScriptへ移植し、`shared/common_frontend/src/core/utils/` に配置。
     - **HeatmapMapper.js**: スキル名・志向名をヒートマップのグリッドインデックス（0-89）に変換するマッピングロジックを実装。
