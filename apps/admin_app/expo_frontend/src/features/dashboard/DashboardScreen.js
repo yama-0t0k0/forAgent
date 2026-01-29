@@ -483,8 +483,6 @@ export default function DashboardScreen() {
         error={selectedUserError}
         userDoc={selectedUserDoc}
         userId={selectedUserId}
-        extractSkills={extractSkills}
-        navigation={navigation}
       />
 
       <JobDetailModal

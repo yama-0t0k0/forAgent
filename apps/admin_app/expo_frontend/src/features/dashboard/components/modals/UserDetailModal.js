@@ -61,7 +61,8 @@ const UserDetailContent = ({ userId, userDoc }) => {
     const props = {
       route: currentRoute,
       navigation: navigation,
-      hideSafeArea: false
+      hideSafeArea: true,
+      showBottomNav: false
     };
 
     switch (currentRoute.name) {

@@ -29,6 +29,7 @@ import { MyPageScreen } from '@individual_app/src/features/profile/MyPageScreen'
  * @param {ConnectionScreenProps} props
  */
 export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
+    const HeaderWrapper = hideSafeArea ? View : SafeAreaView;
     const { data } = useContext(DataContext);
 
     // 2段階タブの状態管理
@@ -173,9 +174,9 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 
     return (
         <View style={styles.container}>
-            <SafeAreaView style={styles.header}>
+            <HeaderWrapper style={styles.header}>
                 <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
-            </SafeAreaView>
+            </HeaderWrapper>
 
             {/* Main Tabs (Upper Level) */}
             <View style={styles.mainTabBar}>

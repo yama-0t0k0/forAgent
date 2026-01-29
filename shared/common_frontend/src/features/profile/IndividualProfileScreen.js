@@ -12,6 +12,7 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { IconButton } from '@shared/src/core/components/IconButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -113,12 +114,20 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                            <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit', { userDoc })}>
-                                            <Ionicons name="create-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
+                                        <IconButton
+                                            name="notifications-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => console.log('Notifications')}
+                                        />
+                                        <IconButton
+                                            name="create-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                        />
                                     </View>
 
                                     {/* 2. Top-right repositioned button */}
@@ -156,12 +165,20 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                            <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit', { userDoc })}>
-                                            <Ionicons name="create-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
+                                        <IconButton
+                                            name="notifications-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => console.log('Notifications')}
+                                        />
+                                        <IconButton
+                                            name="create-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                        />
                                     </View>
 
                                     {/* 2. Top-right repositioned button */}

@@ -105,8 +105,11 @@ Corporate App の会社詳細画面に定義されている技術スタック表
    - **ステータス**: ✅ 完了
    - **内容**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一。Job Description Appのローカルコンポーネントを廃止し、Admin AppからもSharedを参照するように変更。
 
-4. **詳細モーダルの残存移行**
+## 4. **詳細モーダルの残存移行**
    - **内容**: Adminの `UserDetailModal` 等の再点検と完全な正規化を行う。
+   - **ステータス**: ✅ 完了
+     - 2026-01-30: Admin App の `UserDetailModal` を `DetailModal` に完全準拠確認。
+     - 内部ナビゲーション (`UserDetailContent`) と `IndividualProfileScreen` の連携動作確認済み。
 
 ### 🔮 中期的・戦略的共通化（機能拡張への備え）
 

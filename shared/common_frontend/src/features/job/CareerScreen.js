@@ -17,9 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * @param {CareerScreenProps} props
  */
 export const CareerScreen = ({ navigation, hideSafeArea }) => {
+    const ContentWrapper = hideSafeArea ? View : SafeAreaView;
+
     return (
         <View style={styles.container}>
-            <SafeAreaView style={styles.contentContainer}>
+            <ContentWrapper style={styles.contentContainer}>
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>キャリア (選考進捗)</Text>
                 </View>
@@ -30,7 +32,7 @@ export const CareerScreen = ({ navigation, hideSafeArea }) => {
                     <Text style={styles.messageTitle}>現在進行中のデータはありません</Text>
                     <Text style={styles.messageSub}>新しい求人への応募や企業とのコンタクトが開始されると、こちらに進捗が表示されます。</Text>
                 </View>
-            </SafeAreaView>
+            </ContentWrapper>
             {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Career" />}
         </View>
     );
