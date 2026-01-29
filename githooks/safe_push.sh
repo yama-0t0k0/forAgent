@@ -453,13 +453,13 @@ create_push_issue() {
 
     ISSUE_BODY="## 🤖 AI Development Cycle
 
-### 📝 User Prompt / 指示内容
+### 📝 Implementation Details / 実装内容
 $USER_PROMPT
 
-### 🎯 Intent / 変更の目的
+### 🎯 Mission & Intent / 目的と期待される効果
 $WORK_PURPOSE
 
-### 🏆 Outcome / 実行結果
+### 🏆 Outcome & Result / 実際の結果
 $WORK_OUTCOME
 
 ---

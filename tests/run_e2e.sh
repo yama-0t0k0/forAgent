@@ -15,7 +15,7 @@ APP_NAME=$1
 if [ -z "$APP_NAME" ]; then
   echo "❌ Error: App name argument is required."
   echo "Usage: ./tests/run_e2e.sh <app_name>"
-  echo "Available apps: admin_app, individual_user_app"
+  echo "Available apps: admin_app, individual_user_app, corporate_user_app"
   exit 1
 fi
 
@@ -38,9 +38,13 @@ case $APP_NAME in
       "tests/jobs/individual_smoke_test.yaml"
     )
     ;;
+  corporate_user_app)
+    echo "⚙️  Configuring for Corporate User App..."
+    TEST_FILES=() # No specific E2E tests yet
+    ;;
   *)
     echo "❌ Unknown app: $APP_NAME"
-    echo "Supported apps: admin_app, individual_user_app"
+    echo "Supported apps: admin_app, individual_user_app, corporate_user_app"
     exit 1
     ;;
 esac

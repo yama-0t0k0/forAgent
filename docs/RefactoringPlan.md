@@ -92,19 +92,18 @@ Corporate App の会社詳細画面に定義されている技術スタック表
 ### 🚨 即時対応（メンテナンスコスト削減）
 
 1. **画像編集・アップロード機能の統一**
-   - **現状**: Individual/Corporate/Shared に実装が散在。
-   - **計画**: `GenericImageEditScreen` (Shared) への完全移行。各アプリの `ImageEditScreen` を薄いラッパーにするか廃止する。
+   - **ステータス**: ✅ 完了
+   - **内容**: `GenericImageEditScreen` (Shared) に統合。各アプリのローカル `ImageEditScreen` を廃止し、Shared のラッパー (`CorporateImageEditScreen`, `IndividualImageEditScreen`) へ移行。
 
 2. **メニュー/設定画面の構成統一**
-   - **現状**: Individual/Corporate で似たような実装が存在。
-   - **計画**: `GenericMenuScreen` (Shared) を正とし、各アプリは設定データ（Config）を渡すだけの構造にする。
+   - **ステータス**: ✅ 完了
+   - **内容**: `GenericMenuScreen` (Shared) を正とし、各アプリは `CorporateMenuScreen`, `IndividualMenuScreen` を通じて設定データを渡すだけの構造に統一。
 
 3. **求人詳細表示の完全集約**
-   - **現状**: Adminアプリ等で古い独自実装（Modal内表示など）が残存している可能性。
-   - **計画**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一する。
+   - **内容**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一する。
 
 4. **詳細モーダルの残存移行**
-   - **現状**: 大部分は `DetailModal` に移行済みだが、Adminの `UserDetailModal` 等でアプリ間参照の不整合（今回修正済み）があったため、再点検と完全な正規化を行う。
+   - **内容**: Adminの `UserDetailModal` 等の再点検と完全な正規化を行う。
 
 ### 🔮 中期的・戦略的共通化（機能拡張への備え）
 

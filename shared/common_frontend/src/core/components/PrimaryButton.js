@@ -15,17 +15,21 @@ import { THEME } from '@shared/src/core/theme/theme';
  * @param {'standard'|'rounded'|'small'} [props.variant] - Button style variant
  * @param {...Object} [props] - Other props passed to TouchableOpacity
  */
-export const PrimaryButton = ({ 
-    title, 
-    onPress, 
-    disabled = false, 
-    loading = false, 
-    style, 
+export const PrimaryButton = ({
+    title,
+    onPress,
+    disabled = false,
+    loading = false,
+    style,
     textStyle,
     children,
     variant = 'standard',
     ...props
 }) => {
+    /**
+     * Returns the style object based on the button variant.
+     * @returns {Object} The style object.
+     */
     const getVariantStyle = () => {
         switch (variant) {
             case 'rounded':
@@ -51,8 +55,8 @@ export const PrimaryButton = ({
     };
 
     return (
-        <TouchableOpacity 
-            style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]} 
+        <TouchableOpacity
+            style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]}
             onPress={onPress}
             disabled={disabled || loading}
             testID="primary_button"

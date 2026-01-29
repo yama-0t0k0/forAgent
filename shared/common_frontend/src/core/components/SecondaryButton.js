@@ -14,16 +14,20 @@ import { THEME } from '@shared/src/core/theme/theme';
  * @param {'standard'|'rounded'|'small'} [props.variant] - Button style variant
  * @param {...Object} [props] - Other props passed to TouchableOpacity
  */
-export const SecondaryButton = ({ 
-    title, 
-    onPress, 
-    disabled = false, 
-    style, 
+export const SecondaryButton = ({
+    title,
+    onPress,
+    disabled = false,
+    style,
     textStyle,
     children,
     variant = 'standard',
     ...props
 }) => {
+    /**
+     * Returns the style object based on the button variant.
+     * @returns {Object} The style object.
+     */
     const getVariantStyle = () => {
         switch (variant) {
             case 'rounded':
@@ -35,6 +39,10 @@ export const SecondaryButton = ({
         }
     };
 
+    /**
+     * Returns the text style object based on the button variant.
+     * @returns {Object} The text style object.
+     */
     const getVariantTextStyle = () => {
         switch (variant) {
             case 'small':
@@ -45,8 +53,8 @@ export const SecondaryButton = ({
     };
 
     return (
-        <TouchableOpacity 
-            style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]} 
+        <TouchableOpacity
+            style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]}
             onPress={onPress}
             disabled={disabled}
             testID="secondary_button"

@@ -32,6 +32,12 @@ export const BottomNavItem = ({
   activeContainerColor = THEME.text,
   ...props
 }) => {
+  /**
+   * Renders the icon based on whether it is a string or a React element.
+   * @param {number} size - The icon size.
+   * @param {string} color - The icon color.
+   * @returns {React.ReactNode} The rendered icon.
+   */
   const renderIcon = (size, color) => {
     if (typeof icon === 'string') {
       return <Ionicons name={icon} size={size} color={color} />;
