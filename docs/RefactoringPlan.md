@@ -75,6 +75,8 @@ Corporate App の会社詳細画面に定義されている技術スタック表
   - 個別実装によるコードの重複を排除し、メンテナンス性を向上させる。
 
 - **ステータス**: ✅ 完了
+  - 2026-01-30: Individual App (MyPageScreen) 起動確認済み。
+  - 2026-01-30: Job App / Admin App 起動確認済み。
 
 - **変更内容**:
   - `shared/common_frontend/src/core/components/IconButton.js` を作成 (hitSlop, disabled, children対応)。
