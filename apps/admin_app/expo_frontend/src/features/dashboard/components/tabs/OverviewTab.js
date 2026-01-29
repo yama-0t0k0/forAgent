@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
+import { StatusBadge } from '@shared/src/core/components/StatusBadge';
 import { styles } from '@features/dashboard/dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -21,9 +22,7 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
     {/* Selection Process Flow */}
     <View style={styles.sectionHeaderRow}>
       <Text style={styles.sectionTitle}>選考プロセス (FMJS)</Text>
-      <View style={styles.displayBadge}>
-        <Text style={styles.displayBadgeText}>表示: 件数</Text>
-      </View>
+      <StatusBadge status="表示: 件数" variant="neutral" />
     </View>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flowContainer} contentContainerStyle={{ paddingRight: 20 }}>
       {selectionFlowData.map((step, index) => (

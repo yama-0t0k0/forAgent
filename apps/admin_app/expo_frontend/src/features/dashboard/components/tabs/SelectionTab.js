@@ -41,9 +41,7 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
             <Text style={styles.itemTitle}>JobStatID: {jobId}</Text>
             <Text style={styles.itemSubtitle}>個人: {individualId}</Text>
             <Text style={styles.itemDetail}>求人: {jdNumber}</Text>
-            <Text style={styles.statusBadge}>
-              {status}
-            </Text>
+            <StatusBadge status={status} style={{ marginTop: 8 }} />
           </View>
         );
       }}

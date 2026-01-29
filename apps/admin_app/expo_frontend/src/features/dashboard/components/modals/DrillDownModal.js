@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
 import { styles } from '@features/dashboard/dashboardStyles';
 
 /**
@@ -13,14 +14,12 @@ import { styles } from '@features/dashboard/dashboardStyles';
  * @returns {JSX.Element} The rendered modal.
  */
 export const DrillDownModal = ({ visible, title, data, onClose }) => (
-  <Modal visible={visible} animationType="slide">
-    <View style={styles.modalContainer} testID="drill_down_modal_view">
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle} testID="drill_down_title">{title}</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="drill_down_close">
-          <Text style={styles.closeButtonText}>閉じる</Text>
-        </TouchableOpacity>
-      </View>
+  <DetailModal
+    visible={visible}
+    title={title}
+    onClose={onClose}
+  >
+    <View style={{ flex: 1 }} testID="drill_down_modal_view">
       <GenericDataList
         data={data}
         renderItem={({ item }) => {
@@ -42,6 +41,5 @@ export const DrillDownModal = ({ visible, title, data, onClose }) => (
         contentContainerStyle={styles.listContainer}
       />
     </View>
-  </Modal>
+  </DetailModal>
 );
-
