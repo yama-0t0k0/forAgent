@@ -498,7 +498,8 @@ $RECENT_CONTEXT
     # Check for placeholders or default/lazy text
     if [[ "$VALIDATION_BODY" == *"記述してください"* ]] || \
        [[ "$VALIDATION_BODY" == *"特になし"* ]] || \
-       [[ "$VALIDATION_BODY" == *"provided"* ]] || \
+       [[ "$VALIDATION_BODY" == *"No prompt summary provided"* ]] || \
+       [[ "$VALIDATION_BODY" == *"No context provided"* ]] || \
        [[ "$VALIDATION_BODY" == *"Automated update via safe_push.sh"* ]]; then
         
         echo ""
