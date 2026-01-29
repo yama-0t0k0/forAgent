@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { JobDescriptionScreen } from '@job_app/src/features/job_description/JobDescriptionScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
 
 /**

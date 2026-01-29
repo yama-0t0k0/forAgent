@@ -1,9 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
-import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
+import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
+import { IconButton } from '@shared/src/core/components/IconButton';
+import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -21,16 +23,12 @@ const BADGE_ITEMS = [
 ];
 
 /**
- * @typedef {Object} JobDescriptionContentProps
- * @property {string} companyId - Company ID
- * @property {string} jdNumber - JD Number
- * @property {function(): void} [onEdit] - Edit handler
- */
-
-/**
- * Job Description Content Component
- * Displays the details of a job description.
- * @param {JobDescriptionContentProps} props
+ * Component to display job description content.
+ * @param {object} props - Component props
+ * @param {string} props.companyId - Company ID
+ * @param {string} props.jdNumber - Job Description Number
+ * @param {Function} [props.onEdit] - Callback for edit action
+ * @returns {JSX.Element} The rendered content.
  */
 export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
     const { data: localData } = useContext(DataContext);
@@ -43,10 +41,6 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
         if (!companyId || !jdNumber) return;
 
         const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
-        
-        /**
-         * Subscribe to real-time updates
-         */
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const jdData = docSnap.data();
@@ -65,9 +59,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
     // Use firestore data if available, otherwise fallback to local data (context)
     const activeData = firestoreData || localData;
-    
-    // Convert to JobDescription model
-    const jd = JobDescription.fromFirestore(jdNumber, activeData, companyId);
+    const jd = JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
     const positionName = jd.positionName || 'ポジション名未設定';
 
     return (
@@ -81,13 +73,13 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         {/* Edit Button (Top Right) - Retained */}
                         {onEdit && (
                             <View style={styles.headerActionContainer}>
-                                <TouchableOpacity
+                                <IconButton
+                                    name="create-outline"
+                                    size={24}
+                                    color={THEME.text}
                                     style={styles.editButton}
                                     onPress={onEdit}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="create-outline" size={24} color={THEME.text} />
-                                </TouchableOpacity>
+                                />
                             </View>
                         )}
 
@@ -142,10 +134,14 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
                 {/* 4. Bottom Button (Renamed to Job Detail) - No Footer Navigation */}
                 <View style={styles.bottomButtonContainer}>
-                    <TouchableOpacity style={styles.centerButton} activeOpacity={0.8}>
+                    <PrimaryButton
+                        style={styles.centerButton}
+                        activeOpacity={0.8}
+                        onPress={() => { }}
+                    >
                         <Text style={styles.centerButtonText}>求人詳細</Text>
                         <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                    </TouchableOpacity>
+                    </PrimaryButton>
                 </View>
             </SafeAreaView>
         </View>

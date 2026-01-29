@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { THEME } from '@shared/src/core/theme/theme';
-import { JobDescriptionContent } from './components/JobDescriptionContent';
+import { JobDescriptionContent } from '@shared/src/features/job_profile/components/JobDescriptionContent';
 
 /**
  * Screen for displaying a specific job description.
