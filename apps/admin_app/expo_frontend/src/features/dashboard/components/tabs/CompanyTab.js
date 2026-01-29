@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
@@ -42,8 +42,8 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
       <GenericDataList
         data={filteredCompanies}
         renderItem={({ item }) => (
-          <CompanyListItem 
-            item={item} 
+          <CompanyListItem
+            item={item}
             onPress={() => navigation.push('CompanyDetail', { companyId: item.id, initialData: item })}
             testID="company_item"
           />

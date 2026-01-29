@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, ImageBackground, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { Company } from '@shared/src/core/models/Company';
 import { THEME } from '@shared/src/core/theme/theme';
@@ -81,13 +81,14 @@ const MenuView = () => {
                     <Text style={styles.menuGroupTitle}>{group.title}</Text>
                     <View style={styles.menuGroupCard}>
                         {group.items.map((item, itemIdx) => (
-                            <TouchableOpacity
+                            <IconButton
                                 key={item.id}
                                 style={[
                                     styles.menuItem,
                                     itemIdx < group.items.length - 1 && styles.menuItemBorder
                                 ]}
                                 onPress={() => handlePress(item)}
+                                hitSlop={null}
                             >
                                 <View style={styles.menuItemLeft}>
                                     <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
@@ -96,7 +97,7 @@ const MenuView = () => {
                                     </Text>
                                 </View>
                                 <Ionicons name="chevron-forward" size={18} color={THEME.subText} />
-                            </TouchableOpacity>
+                            </IconButton>
                         ))}
                     </View>
                 </View>
@@ -201,19 +202,19 @@ export const CompanyPageScreen = () => {
                     <View style={styles.topProfileContainer}>
                         {/* Header Action Buttons */}
                         <View style={styles.headerActionContainer}>
-                            <IconButton 
-                                name="notifications-outline" 
-                                size={24} 
-                                color="#FFF" 
-                                style={styles.headerIconButton} 
-                                onPress={() => console.log('Notifications')} 
+                            <IconButton
+                                name="notifications-outline"
+                                size={24}
+                                color="#FFF"
+                                style={styles.headerIconButton}
+                                onPress={() => console.log('Notifications')}
                             />
-                            <IconButton 
-                                name="create-outline" 
-                                size={24} 
-                                color="#FFF" 
-                                style={styles.headerIconButton} 
-                                onPress={() => navigation.navigate('ImageEdit')} 
+                            <IconButton
+                                name="create-outline"
+                                size={24}
+                                color="#FFF"
+                                style={styles.headerIconButton}
+                                onPress={() => navigation.navigate('ImageEdit')}
                             />
                         </View>
 
@@ -231,23 +232,23 @@ export const CompanyPageScreen = () => {
 
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
-                                    <IconButton 
-                                        name="globe-outline" 
-                                        size={16} 
-                                        color={THEME.accent} 
-                                        style={styles.linkIcon} 
+                                    <IconButton
+                                        name="globe-outline"
+                                        size={16}
+                                        color={THEME.accent}
+                                        style={styles.linkIcon}
                                     />
-                                    <IconButton 
-                                        name="logo-github" 
-                                        size={16} 
-                                        color={THEME.text} 
-                                        style={styles.linkIcon} 
+                                    <IconButton
+                                        name="logo-github"
+                                        size={16}
+                                        color={THEME.text}
+                                        style={styles.linkIcon}
                                     />
-                                    <IconButton 
-                                        name="document-text-outline" 
-                                        size={16} 
-                                        color={THEME.subText} 
-                                        style={styles.linkIcon} 
+                                    <IconButton
+                                        name="document-text-outline"
+                                        size={16}
+                                        color={THEME.subText}
+                                        style={styles.linkIcon}
                                     />
                                 </View>
                             </View>

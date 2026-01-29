@@ -74,7 +74,7 @@ Corporate App の会社詳細画面に定義されている技術スタック表
   - アプリ全体でのアイコンボタンとボトムナビゲーションのタッチ領域、視覚的フィードバック（Opacity）、スタイルを統一する。
   - 個別実装によるコードの重複を排除し、メンテナンス性を向上させる。
 
-- **ステータス**: 🏗️ 進行中
+- **ステータス**: ✅ 完了
 
 - **変更内容**:
   - `shared/common_frontend/src/core/components/IconButton.js` を作成 (hitSlop, disabled, children対応)。

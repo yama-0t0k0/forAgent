@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
@@ -137,7 +137,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                     <PrimaryButton
                         style={styles.centerButton}
                         activeOpacity={0.8}
-                        onPress={() => {}}
+                        onPress={() => { }}
                     >
                         <Text style={styles.centerButtonText}>求人詳細</Text>
                         <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />

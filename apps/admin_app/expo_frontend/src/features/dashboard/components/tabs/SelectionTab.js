@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
+import { StatusBadge } from '@shared/src/core/components/StatusBadge';
 import { styles } from '@features/dashboard/dashboardStyles';
 
 /**

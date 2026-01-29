@@ -12,6 +12,7 @@ import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
+import { IconButton } from '@shared/src/core/components/IconButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,9 +55,9 @@ export const MyPageScreen = (props) => {
             try {
                 // If propUserDoc is provided, we don't need to fetch unless it's incomplete
                 if (propUserDoc) {
-                     const values = HeatmapCalculator.calculate(propUserDoc);
-                     setHeatmapValues(values);
-                     return;
+                    const values = HeatmapCalculator.calculate(propUserDoc);
+                    setHeatmapValues(values);
+                    return;
                 }
 
                 const snap = await getDoc(doc(db, 'individual', targetUserId));
@@ -64,7 +65,7 @@ export const MyPageScreen = (props) => {
                     const d = snap.data();
                     console.log('remote data fetched');
                     setFetchedData(d);
-                    
+
                     const values = HeatmapCalculator.calculate(d);
                     setHeatmapValues(values);
                 }
@@ -106,29 +107,29 @@ export const MyPageScreen = (props) => {
                         <View style={styles.topProfileContainer}>
                             {/* Header Action Buttons (Notifications and Image Edit) */}
                             <View style={styles.headerActionContainer}>
-                                <IconButton 
-                                    name="notifications-outline" 
-                                    size={24} 
-                                    color="#FFF" 
-                                    style={styles.headerIconButton} 
-                                    onPress={() => console.log('Notifications')} 
+                                <IconButton
+                                    name="notifications-outline"
+                                    size={24}
+                                    color="#FFF"
+                                    style={styles.headerIconButton}
+                                    onPress={() => console.log('Notifications')}
                                 />
-                                <IconButton 
-                                    name="create-outline" 
-                                    size={24} 
-                                    color="#FFF" 
-                                    style={styles.headerIconButton} 
-                                    onPress={() => navigation.navigate('ImageEdit')} 
+                                <IconButton
+                                    name="create-outline"
+                                    size={24}
+                                    color="#FFF"
+                                    style={styles.headerIconButton}
+                                    onPress={() => navigation.navigate('ImageEdit')}
                                 />
                             </View>
 
                             {/* 2. Top-right repositioned button */}
                             <View style={styles.profileActionRow}>
-                                <PrimaryButton 
+                                <PrimaryButton
                                     title="職歴書作成"
                                     variant="small"
                                     style={{ backgroundColor: THEME.success }}
-                                    onPress={() => {}}
+                                    onPress={() => { }}
                                 />
                             </View>
 
@@ -203,35 +204,35 @@ export const MyPageScreen = (props) => {
             {!hideSafeArea && (
                 <>
                     <View style={styles.bottomNav}>
-                        <BottomNavItem 
-                            label="キャリア" 
-                            icon="briefcase-outline" 
-                            onPress={() => navigation.navigate('Career')} 
-                            style={styles.navItem} 
+                        <BottomNavItem
+                            label="キャリア"
+                            icon="briefcase-outline"
+                            onPress={() => navigation.navigate('Career')}
+                            style={styles.navItem}
                         />
-                        <BottomNavItem 
-                            label="つながり" 
-                            icon="people-circle-outline" 
-                            onPress={() => navigation.navigate('Connection')} 
-                            style={styles.navItem} 
+                        <BottomNavItem
+                            label="つながり"
+                            icon="people-circle-outline"
+                            onPress={() => navigation.navigate('Connection')}
+                            style={styles.navItem}
                         />
-                        <BottomNavItem 
-                            label="ホーム" 
-                            icon="home" 
-                            isActive={true} 
-                            onPress={() => navigation.navigate('MyPage')} 
-                            style={styles.navItem} 
+                        <BottomNavItem
+                            label="ホーム"
+                            icon="home"
+                            isActive={true}
+                            onPress={() => navigation.navigate('MyPage')}
+                            style={styles.navItem}
                         />
-                        <BottomNavItem 
-                            label="学習" 
-                            icon="book-outline" 
-                            style={styles.navItem} 
+                        <BottomNavItem
+                            label="学習"
+                            icon="book-outline"
+                            style={styles.navItem}
                         />
-                        <BottomNavItem 
-                            label="メニュー" 
-                            icon="grid-outline" 
-                            onPress={() => navigation.navigate('Menu')} 
-                            style={styles.navItem} 
+                        <BottomNavItem
+                            label="メニュー"
+                            icon="grid-outline"
+                            onPress={() => navigation.navigate('Menu')}
+                            style={styles.navItem}
                         />
                     </View>
 
@@ -239,7 +240,7 @@ export const MyPageScreen = (props) => {
                     <View style={styles.bottomNavCenterOverlay}>
                         <PrimaryButton
                             style={styles.centerButton}
-                            onPress={() => {}}
+                            onPress={() => { }}
                         >
                             <Text style={styles.centerButtonText}>経歴詳細</Text>
                             <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />

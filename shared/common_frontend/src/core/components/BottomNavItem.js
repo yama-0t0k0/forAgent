@@ -9,7 +9,7 @@ import { THEME } from '@shared/src/core/theme/theme';
  * 
  * @param {Object} props
  * @param {string} props.label - Text label.
- * @param {string} props.icon - Ionicons name.
+ * @param {string|React.ReactNode} props.icon - Ionicons name or custom icon component.
  * @param {boolean} [props.isActive=false] - Whether the item is active.
  * @param {Function} props.onPress - Press handler.
  * @param {string} [props.activeColor] - Text color when active.
@@ -17,6 +17,7 @@ import { THEME } from '@shared/src/core/theme/theme';
  * @param {string} [props.activeIconColor] - Icon color when active.
  * @param {string} [props.activeContainerColor] - Container background color when active.
  * @param {Object} [props.style] - Container style.
+ * @param {Object} [props.textStyle] - Text style.
  */
 export const BottomNavItem = ({
   label,
@@ -24,29 +25,46 @@ export const BottomNavItem = ({
   isActive = false,
   onPress,
   style,
+  textStyle,
   activeColor = THEME.text,
   inactiveColor = THEME.subText,
   activeIconColor = THEME.background,
   activeContainerColor = THEME.text,
+  ...props
 }) => {
+  const renderIcon = (size, color) => {
+    if (typeof icon === 'string') {
+      return <Ionicons name={icon} size={size} color={color} />;
+    }
+    return icon;
+  };
+
   return (
-    <TouchableOpacity style={[styles.navItem, style]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.navItem, style]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...props}
+    >
       {isActive ? (
         <View style={[styles.activeIconContainer, { backgroundColor: activeContainerColor }]}>
-          <Ionicons name={icon} size={20} color={activeIconColor} />
+          {renderIcon(20, activeIconColor)}
         </View>
       ) : (
-        <Ionicons name={icon} size={24} color={inactiveColor} />
+        renderIcon(24, inactiveColor)
       )}
-      <Text 
-        style={[
-          styles.navText, 
-          { color: isActive ? activeColor : inactiveColor },
-          isActive && styles.navTextActive
-        ]}
-      >
-        {label}
-      </Text>
+      {label && (
+        <Text
+          style={[
+            styles.navText,
+            { color: isActive ? activeColor : inactiveColor },
+            isActive && styles.navTextActive,
+            textStyle
+          ]}
+        >
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
