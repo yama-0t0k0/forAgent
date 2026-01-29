@@ -83,7 +83,7 @@ Corporate App の会社詳細画面に定義されている技術スタック表
     - Corporate App: `CompanyPageScreen.js`, `MenuScreen.js`
     - Individual App: `MyPageScreen.js`
     - Job App: `JobDescriptionContent.js` (編集ボタン)
-    - Admin App: `DashboardScreen.js` (進行中)
+    - Admin App: `DashboardScreen.js`
 
 ## 6. 全アプリ共通化の中期実行計画（俯瞰分析に基づく）
 
@@ -100,7 +100,8 @@ Corporate App の会社詳細画面に定義されている技術スタック表
    - **内容**: `GenericMenuScreen` (Shared) を正とし、各アプリは `CorporateMenuScreen`, `IndividualMenuScreen` を通じて設定データを渡すだけの構造に統一。
 
 3. **求人詳細表示の完全集約**
-   - **内容**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一する。
+   - **ステータス**: ✅ 完了
+   - **内容**: 全て `shared/features/job_profile` 以下のコンポーネント利用に統一。Job Description Appのローカルコンポーネントを廃止し、Admin AppからもSharedを参照するように変更。
 
 4. **詳細モーダルの残存移行**
    - **内容**: Adminの `UserDetailModal` 等の再点検と完全な正規化を行う。
