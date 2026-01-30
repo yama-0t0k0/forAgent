@@ -59,7 +59,7 @@ async function testTooltipPositions(mod) {
  * Runs all tests.
  */
 async function run() {
-  const mod = await import('../src/core/utils/HeatmapGeometry.js');
+  const mod = await import('../src/features/analytics/utils/HeatmapGeometry.js');
   await testTileSize(mod);
   await testTooltipPositions(mod);
   console.log('OK: HeatmapGeometry tests passed.');

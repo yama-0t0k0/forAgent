@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
-import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { HeatmapGrid } from '@shared/src/features/analytics/components/HeatmapGrid';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
 import { IconButton } from '@shared/src/core/components/IconButton';
 

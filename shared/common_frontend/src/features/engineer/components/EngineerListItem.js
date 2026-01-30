@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
-import { MiniHeatmap } from '@shared/src/core/components/MiniHeatmap';
+import { MiniHeatmap } from '@shared/src/features/analytics/components/MiniHeatmap';
 import { THEME } from '@shared/src/core/theme/theme';
 import { User } from '@shared/src/core/models/User';
 

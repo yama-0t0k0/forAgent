@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { THEME } from '@shared/src/core/theme/theme';
-import { TechStackView } from './TechStackView';
+import { TechStackView } from '@shared/src/features/analytics/components/TechStackView';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 
