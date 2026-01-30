@@ -130,10 +130,10 @@ collect_issue_info() {
         fi
 
         if [ -z "$NEXT_TASKS" ]; then
-            NEXT_TASKS="（記述なし）"
+            NEXT_TASKS="（推奨される次回のタスクを具体的に記述してください）"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="（記述なし）"
+            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
         return
     fi
