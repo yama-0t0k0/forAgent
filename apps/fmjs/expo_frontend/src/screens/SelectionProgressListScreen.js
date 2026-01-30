@@ -6,7 +6,7 @@ import { db } from '@shared/src/core/firebaseConfig';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
-import SelectionFlowEditor from '../components/SelectionFlowEditor';
+import SelectionFlowEditor from '@shared/src/features/selection/SelectionFlowEditor';
 
 /**
  * Formats a number as currency.

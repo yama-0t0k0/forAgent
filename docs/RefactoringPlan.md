@@ -120,8 +120,10 @@ Corporate App の会社詳細画面に定義されている技術スタック表
    - **完了内容**: `CompanyProfileView` をSharedコンポーネント化し、Corporate AppとAdmin Appで共有可能に。相対パスやJSDocの規約も遵守。
 
 2. **選考プロセスエディタ (`SelectionFlowEditor`) のShared化**
+   - **ステータス**: ✅ 完了
    - **目的**: Adminアプリでのテンプレート管理機能実装を見越した共通化。
    - **計画**: 現在FMJSにあるエディタを `shared/features/selection` へ移動。
+   - **完了内容**: `SelectionFlowEditor.js` を `shared/common_frontend/src/features/selection/` に移動し、FMJSからの参照を更新。
 
 3. **エンジニアスキル分析 (Heatmap/TechStack) の高度化**
    - **目的**: Corporate（自社分析）とAdmin（全体分析）での共通利用。
