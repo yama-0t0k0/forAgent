@@ -9,10 +9,11 @@ import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 import { CompanyPageScreen } from './src/features/company_profile/CompanyPageScreen';
-import { MenuScreen } from './src/features/company_profile/MenuScreen';
-import { ImageEditScreen } from './src/features/company_profile/ImageEditScreen';
+import { CorporateMenuScreen } from '@shared/src/features/profile/CorporateMenuScreen';
+import { CorporateImageEditScreen } from '@shared/src/features/profile/CorporateImageEditScreen';
 import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
+import { CorporateBottomNav } from '@shared/src/core/components/CorporateBottomNav';
 
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();
@@ -63,8 +64,8 @@ const CorporateRegistrationWrapper = () => {
                 <Stack.Screen name="Connections" component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
                 <Stack.Screen name="Blog" component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
                 <Stack.Screen name="Events" component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />
-                <Stack.Screen name="Menu" component={MenuScreen} />
-                <Stack.Screen name="ImageEdit" component={ImageEditScreen} />
+                <Stack.Screen name="Menu" component={CorporateMenuScreen} />
+                <Stack.Screen name="ImageEdit" component={CorporateImageEditScreen} />
                 <Stack.Screen name="Registration">
                     {(props) => (
                         <GenericRegistrationScreen
@@ -74,6 +75,7 @@ const CorporateRegistrationWrapper = () => {
                             idField="id"
                             idPrefixChar="B"
                             homeRouteName="CompanyPage"
+                            BottomNavComponent={CorporateBottomNav}
                         />
                     )}
                 </Stack.Screen>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, Modal, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// Use individual_user_app's screen directly instead of shared component
-import { MyPageScreen as IndividualProfileScreen } from '../../../../../../../individual_user_app/expo_frontend/src/features/profile/MyPageScreen';
+// 共有プロファイルスクリーンを使用（クロスアプリ依存を避ける）
+import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
@@ -11,10 +11,9 @@ import { IndividualImageEditScreen } from '@shared/src/features/profile/Individu
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // Fix import path for JobDescriptionScreen using relative path to avoid alias issues
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
-import { THEME } from '@shared/src/core/theme/theme';
-import { styles } from '../../dashboardStyles';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
 
-const ENGINEER_TEMPLATE = require('../../../../../assets/json/engineer-profile-template.json');
+const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
 
 /**
  * Inner content component for UserDetailModal to manage internal navigation.
@@ -62,7 +61,8 @@ const UserDetailContent = ({ userId, userDoc }) => {
     const props = {
       route: currentRoute,
       navigation: navigation,
-      hideSafeArea: false
+      hideSafeArea: true,
+      showBottomNav: false
     };
 
     switch (currentRoute.name) {
@@ -115,41 +115,17 @@ const UserDetailContent = ({ userId, userDoc }) => {
  * @returns {JSX.Element} The rendered modal.
  */
 export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => (
-  <Modal
+  <DetailModal
     visible={visible}
-    transparent
-    animationType="fade"
-    onRequestClose={onClose}
+    onClose={onClose}
+    title="個人詳細"
+    loading={loading}
+    error={error}
   >
-    <View style={styles.detailOverlay} pointerEvents="box-none">
-      <View style={styles.detailWindow} testID="user_detail_modal_view" pointerEvents="auto">
-        <View style={styles.detailWindowHeader}>
-          <View style={{ flex: 1 }} />
-          <Text style={styles.detailWindowTitle} testID="user_detail_title">個人詳細</Text>
-          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID="user_detail_close">
-            <Text style={styles.detailWindowCloseText}>閉じる</Text>
-          </TouchableOpacity>
-        </View>
-
-        {loading && (
-          <View style={styles.detailWindowLoading} testID="user_detail_loading">
-            <ActivityIndicator size="large" color={THEME.accent} testID="loading_indicator" />
-            <Text style={styles.detailWindowLoadingText}>読み込み中...</Text>
-          </View>
-        )}
-
-        {!loading && error && (
-          <View style={styles.detailWindowLoading} testID="user_detail_error_view">
-            <Text style={styles.detailWindowErrorText} testID="user_detail_error_text">{error}</Text>
-          </View>
-        )}
-
-        {!loading && !error && userDoc && (
-          <View style={{ flex: 1 }}>
-            <UserDetailContent userId={userId} userDoc={userDoc} />
-          </View>
-        )}
+    {userDoc && (
+      <View style={{ flex: 1 }}>
+        <UserDetailContent userId={userId} userDoc={userDoc} />
       </View>
-    </View>
-  </Modal>
+    )}
+  </DetailModal>
 );

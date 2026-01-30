@@ -8,6 +8,11 @@ import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
+// Import screens directly for modal display (using relative paths for cross-app access in shared)
+// Note: This assumes specific directory structure of the monorepo
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
+import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 
 /**
  * @typedef {Object} ConnectionScreenProps
@@ -24,6 +29,7 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
  * @param {ConnectionScreenProps} props
  */
 export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
+    const HeaderWrapper = hideSafeArea ? View : SafeAreaView;
     const { data } = useContext(DataContext);
 
     // 2段階タブの状態管理
@@ -74,6 +80,10 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const [rankedUsers, setRankedUsers] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Modal States
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+
     useEffect(() => {
         /**
          * Fetches and ranks candidates based on the active type.
@@ -103,7 +113,8 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     }
                 }
             } catch (err) {
-                console.error('Failed to rank candidates:', err);
+                // ユーザー画面にエラー帯が表示されないよう console.error を console.log に変更
+                console.log('Failed to rank candidates:', err);
             } finally {
                 setLoading(false);
             }
@@ -132,7 +143,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     skills={skills}
                     heatmapData={heatmapInfo}
                     companyName={companyName}
-                    onPress={() => navigation.navigate('JobDescription', { companyId: item.company_ID, jdNumber: item.JD_Number })}
+                    onPress={() => setSelectedJob(item)}
                 />
             );
         } else {
@@ -145,7 +156,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                     engineer={item}
                     skills={skills}
                     heatmapData={heatmapInfo}
-                    onPress={() => navigation.navigate('MyPage', { userId: item.id, userDoc: item })}
+                    onPress={() => setSelectedUser(item)}
                 />
             );
         }
@@ -163,9 +174,9 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 
     return (
         <View style={styles.container}>
-            <SafeAreaView style={styles.header}>
+            <HeaderWrapper style={styles.header}>
                 <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
-            </SafeAreaView>
+            </HeaderWrapper>
 
             {/* Main Tabs (Upper Level) */}
             <View style={styles.mainTabBar}>
@@ -235,6 +246,39 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             )}
 
             {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Connection" />}
+
+            {/* Job Detail Modal */}
+            <DetailModal
+                visible={!!selectedJob}
+                onClose={() => setSelectedJob(null)}
+                title="求人詳細"
+            >
+                {selectedJob && (
+                    <View style={{ flex: 1, overflow: 'hidden' }}>
+                        <JobDescriptionScreen
+                            companyId={selectedJob.company_ID}
+                            jdNumber={selectedJob.JD_Number}
+                        />
+                    </View>
+                )}
+            </DetailModal>
+
+            {/* User Detail Modal */}
+            <DetailModal
+                visible={!!selectedUser}
+                onClose={() => setSelectedUser(null)}
+                title="個人詳細"
+            >
+                {selectedUser && (
+                    <View style={{ flex: 1 }}>
+                        <IndividualProfileScreen
+                            userId={selectedUser.id}
+                            userDoc={selectedUser}
+                            hideSafeArea={true}
+                        />
+                    </View>
+                )}
+            </DetailModal>
         </View>
     );
 };
@@ -321,5 +365,5 @@ const styles = StyleSheet.create({
     },
 
     listContent: { padding: 15, paddingBottom: 100 },
-    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText }
+    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText },
 });

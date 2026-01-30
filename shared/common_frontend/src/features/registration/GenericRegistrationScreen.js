@@ -2,15 +2,15 @@ import React, { useContext, useMemo, useState } from 'react';
 import { View, ScrollView, Text, TouchableOpacity, ActivityIndicator, StyleSheet, StatusBar, Platform, UIManager, SafeAreaView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 // import { NavigationContainer } from '@react-navigation/native';
-import { DataContext } from '../../core/state/DataContext';
-import { RecursiveField } from '../../core/components/RecursiveField';
-import { THEME } from '../../core/theme/theme';
-import { db } from '../../core/firebaseConfig';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { RecursiveField } from '@shared/src/core/components/RecursiveField';
+import { THEME } from '@shared/src/core/theme/theme';
+import { db } from '@shared/src/core/firebaseConfig';
 import { collection, query, where, getDocs, setDoc, doc, documentId } from 'firebase/firestore';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -52,6 +52,7 @@ const CategoryScreen = ({ route }) => {
  * @property {string} [idPrefixChar='C'] - ID prefix character
  * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
  * @property {Object} [orderTemplate] - Template for field ordering
+ * @property {React.ComponentType} [BottomNavComponent] - Component to render for bottom navigation
  */
 
 /**
@@ -110,7 +111,15 @@ const getSortedKeys = (data, idField, orderTemplate) => {
  * 
  * @param {GenericRegistrationScreenProps} props
  */
-export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
+export const GenericRegistrationScreen = ({
+  collectionName,
+  idField,
+  title = "Registration",
+  idPrefixChar = 'C',
+  homeRouteName = 'MyPage',
+  orderTemplate,
+  BottomNavComponent = BottomNav
+}) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -221,7 +230,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
         ))}
       </Tab.Navigator>
 
-      <BottomNav navigation={navigation} activeTab="Registration" />
+      <BottomNavComponent navigation={navigation} activeTab="Registration" />
     </View>
   );
 };

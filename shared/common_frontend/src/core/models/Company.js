@@ -112,9 +112,17 @@ export class Company {
         /** @type {Object.<string, any>} */
         const connection = data[Company.FIELDS.CONNECTION] ?? data.connection ?? {};
         
+        // Fix: Admin data often has flat 'companyName' but carries 'ヤヲー株式会社' in nested profile from template.
+        // We should prioritize the flat real name if the nested name is the template placeholder.
+        let name = profile[Company.FIELDS.NAME];
+        const flatName = data.companyName || data.name;
+        if (name === 'ヤヲー株式会社' && flatName) {
+            name = flatName;
+        }
+
         return new Company(
             id,
-            String(profile[Company.FIELDS.NAME] ?? data.companyName ?? data.name ?? ""),
+            String(name ?? flatName ?? ""),
             String(profile[Company.FIELDS.WEBSITE_URL] ?? data.websiteUrl ?? ""),
             String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? ""),
             String(profile[Company.FIELDS.ADDRESS] ?? profile[Company.FIELDS.ADDRESS_ALT1] ?? profile[Company.FIELDS.ADDRESS_ALT2] ?? data.address ?? ""),

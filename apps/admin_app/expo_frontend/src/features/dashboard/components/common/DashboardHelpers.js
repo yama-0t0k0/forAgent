@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Rect, Path } from 'react-native-svg';
-import { styles } from '../../dashboardStyles';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 // Dashboard Icon Component
 /**

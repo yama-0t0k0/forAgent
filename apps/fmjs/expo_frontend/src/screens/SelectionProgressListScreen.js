@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Modal, ScrollView, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView, Button } from 'react-native';
+import { StatusBadge } from '@shared/src/core/components/StatusBadge';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
 import { db } from '@shared/src/core/firebaseConfig';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
-import SelectionFlowEditor from '../components/SelectionFlowEditor';
+import SelectionFlowEditor from '@shared/src/features/selection/SelectionFlowEditor';
 
 /**
  * Formats a number as currency.
@@ -86,12 +88,10 @@ const SelectionProgressListScreen = () => {
       <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>JD: {item.jdNumber}</Text>
-          <View style={[
-            styles.statusBadge, 
-            item.activeStatus === 'Open' ? styles.statusOpen : styles.statusClosed
-          ]}>
-            <Text style={styles.statusText}>{item.activeStatus}</Text>
-          </View>
+          <StatusBadge 
+            status={item.activeStatus} 
+            variant={item.activeStatus === 'Open' ? 'success' : 'neutral'} 
+          />
         </View>
         
         <View style={styles.cardBody}>
@@ -267,54 +267,46 @@ const SelectionProgressListScreen = () => {
         stickyHeaderIndices={[0]}
       />
 
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <DetailModal
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onClose={() => setModalVisible(false)}
+        title={`詳細: ${selectedItem?.JobStatID || selectedItem?.id}`}
+        width="90%"
+        height="85%"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>詳細: {selectedItem?.JobStatID || selectedItem?.id}</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.tabBar}>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'basic' && styles.activeTabItem]}
+              onPress={() => setActiveTab('basic')}
+            >
+              <Text style={[styles.tabText, activeTab === 'basic' && styles.activeTabText]}>基本情報</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'progress' && styles.activeTabItem]}
+              onPress={() => setActiveTab('progress')}
+            >
+              <Text style={[styles.tabText, activeTab === 'progress' && styles.activeTabText]}>選考進捗</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'fee' && styles.activeTabItem]}
+              onPress={() => setActiveTab('fee')}
+            >
+              <Text style={[styles.tabText, activeTab === 'fee' && styles.activeTabText]}>手数料</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'survey' && styles.activeTabItem]}
+              onPress={() => setActiveTab('survey')}
+            >
+              <Text style={[styles.tabText, activeTab === 'survey' && styles.activeTabText]}>サーベイ</Text>
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.tabBar}>
-              <TouchableOpacity
-                style={[styles.tabItem, activeTab === 'basic' && styles.activeTabItem]}
-                onPress={() => setActiveTab('basic')}
-              >
-                <Text style={[styles.tabText, activeTab === 'basic' && styles.activeTabText]}>基本情報</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tabItem, activeTab === 'progress' && styles.activeTabItem]}
-                onPress={() => setActiveTab('progress')}
-              >
-                <Text style={[styles.tabText, activeTab === 'progress' && styles.activeTabText]}>選考進捗</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tabItem, activeTab === 'fee' && styles.activeTabItem]}
-                onPress={() => setActiveTab('fee')}
-              >
-                <Text style={[styles.tabText, activeTab === 'fee' && styles.activeTabText]}>手数料</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tabItem, activeTab === 'survey' && styles.activeTabItem]}
-                onPress={() => setActiveTab('survey')}
-              >
-                <Text style={[styles.tabText, activeTab === 'survey' && styles.activeTabText]}>サーベイ</Text>
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody}>
-              {renderTabContent()}
-            </ScrollView>
+          <View style={styles.modalBody}>
+            {renderTabContent()}
           </View>
         </View>
-      </Modal>
+      </DetailModal>
     </View>
   );
 };
@@ -374,48 +366,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 10,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: '100%',
-    maxHeight: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    backgroundColor: '#fff',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#999',
-    fontWeight: '300',
-  },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#f8f9fa',

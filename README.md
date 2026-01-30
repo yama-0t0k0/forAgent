@@ -1,137 +1,99 @@
-# エンジニア個人登録アプリ (Engineer Registration App)
+# エンジニアキャリア考案・支援プラットフォーム (Career Development SNS)
 
-このアプリケーションは、エンジニアの経歴やスキル情報を登録するためのモバイルアプリケーションです。Expo (React Native) で構築され、データはFirestoreに保存されます。
+## 🎯 プロジェクトのパーパス (Vision)
 
-## 🏗 アーキテクチャ概要
+**「エンジニアのキャリア実現度を最大化することで、日本の技術革新を支え、社会の豊かさの底上げを図る。」**
 
-本アプリは、設定ファイル（`engineer-profile-template.json`）を読み込み、その構造に基づいて動的にUIフォームを生成する「メタデータ駆動型UI」アーキテクチャを採用しています。
+本サービスは、単なる求人マッチングサービスではありません。エンジニア一人ひとりの「技術・個性・想い」を深く理解し、その人の未来価値を起点としたキャリア形成を支援する「エンジニア価値増幅者（Value Amplifier）」としてのプラットフォームを目指しています。
 
-### ディレクトリ構造
+---
 
-```mermaid
-graph TD
-    Root[Project Root]
-    Root --> App[App.js: エントリーポイント]
-    Root --> Assets[assets/]
-    Assets --> JSON[json/engineer-profile-template.json: テンプレートデータ]
-    Root --> Src[src/]
-    Src --> Comps[components/: UIコンポーネント]
-    Src --> Context[context/: 状態管理]
-    Src --> Const[constants/: 定数・テーマ]
-    Src --> Screens[screens/: 画面]
-    
-    Comps --> Recursive[RecursiveField.js: 再帰的フォーム生成]
-    Comps --> Inputs[InputRow.js, etc.: 各種入力部品]
-    Context --> DataCtx[DataContext.js: データ保持・更新]
-    Screens --> Main[MainScreen.js: メイン画面・保存ロジック]
+## 🏗 アーキテクチャ構成
+
+本プロジェクトは、言語的な統一（Pure Dart）と効率的なクロスプラットフォーム開発を目標とする **Modular Monolith (Monorepo)** アーキテクチャを採用しています。
+
+### 🚀 ロードマップ
+- **Phase 1 (現在)**:
+    - フロントエンド: **Expo (React Native) + JavaScript**
+    - バックエンド: **Firebase + Pure Dart**
+- **Phase 2 (将来)**:
+    - フロントエンドも **Flutter** へ移行し、全層を **Pure Dart** で統一。JavaScript を完全に排除します。
+
+---
+
+## 🏢 アプリケーション・エコシステム
+
+単一リポジトリ内で、以下の5つの独立したドメインアプリ/モジュールを管理しています。
+
+| アプリ/モジュール | 役割 | 実行ポート |
+| :--- | :--- | :--- |
+| **Admin App** | システム全体の統括・審査用ダッシュボード | `8081` |
+| **Individual App** | 個人エンジニア向け：キャリアログ・スキル登録・マイページ | `8082` |
+| **Corporate App** | 企業向け：自社分析・候補者管理・採用ダッシュボード | `8083` |
+| **Job Description** | 求人票の作成・編集・構造化管理サービス | `8084` |
+| **FMJS** | 選考進捗・手数料計算・入社後成功（Survey）管理 | `8085` |
+
+---
+
+## 🌟 主要機能と技術的特徴
+
+- **高精度マッチング (Heatmap Engine)**:
+  スキルと志向のギャップをヒートマップで可視化。Pure Dart による高度な計算ロジックを共有。
+- **メタデータ駆動型 UI**:
+  JSON テンプレートに基づいて動的に UI フォームを生成。要件変更に強い柔軟なアーキテクチャ。
+- **Pure Dart バックエンド**:
+  Node.js を一切使用せず、Firebase + Dart (Cloud Run) で全ビジネスロジックを実装。
+- **AI 連携 (Google Gemini)**:
+  職歴の自動生成や、キャリアドメイン知識に基づいた高度な分析・フィードバックを提供。
+
+---
+
+## 🛠 技術スタック
+
+- **Frontend**: Expo (React Native), React Context API
+- **Backend**: Firebase (Firestore, Auth, Storage), Pure Dart (server.dart)
+- **Infrastructure**: Google Cloud Run
+- **Documentation**: Markdown, Mermaid diagrams
+- **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management)
+
+---
+
+## 📂 プロジェクト構造
+
+```text
+.
+├── apps/                # 独立した機能アプリ群 (Admin, Individual, Corporate, etc.)
+├── shared/              # 全アプリ共通資産 (共通UI, ドメインモデル, 核心ロジック)
+│   ├── common_frontend/ # Expo 共通コンポーネント (UI Kit)
+│   └── domain_logic/    # ヒートマップ、マッチング等の共有エンジン
+├── infrastructure/      # Firebase, CI/CD, Docker 等の設定
+├── scripts/             # 開発・運用支援スクリプト
+└── docs/                # プロジェクトドキュメント
 ```
 
-## 🧩 コンポーネント構成とデータフロー
+---
 
-`DataContext` がアプリケーション全体のデータ状態（JSONツリー）を保持し、各コンポーネントに提供します。`RecursiveField` はデータを再帰的に走査し、データの型やメタデータ（`_displayType`）に応じて適切な入力コンポーネントをレンダリングします。
+## 🚀 開発の始め方
 
-```mermaid
-classDiagram
-    class App {
-        +DataProvider
-    }
-    class DataContext {
-        +data: JSON Object
-        +updateValue(path, value)
-    }
-    class MainScreen {
-        +Tab.Navigator
-        +handleSave()
-    }
-    class RecursiveField {
-        +render()
-        +AccordionItem
-    }
-    class InputComponents {
-        <<Inputs>>
-        +InputRow
-        +SwitchRow
-        +SkillSelector
-        +MonthYearPickerInput
-        +DatePickerInput
-    }
+### アプリの起動
+全てのアプリは `scripts/start_expo.sh` を介して、ポート競合の自動解決を行いながら起動します。
 
-    App --> DataContext : Provides
-    App --> MainScreen : Renders
-    MainScreen --> DataContext : Consumes & Updates
-    MainScreen --> RecursiveField : Renders Root Objects
-    RecursiveField --> RecursiveField : Recursively Renders
-    RecursiveField --> InputComponents : Renders Leafs
-    InputComponents --> DataContext : Call updateValue()
+```bash
+# 例: 個人用アプリを起動
+./scripts/start_expo.sh individual_user_app
 ```
 
-## 🔄 処理フロー
+### 安全なプッシュ (Commit & Push)
+`safe_push.sh` を使用することで、ローカル CI 検証（Lint, Test）と GitHub Issue の自動生成を伴う安全なワークフローを強制します。
 
-### 1. フォーム生成フロー
-
-JSONデータの階層構造をそのままタブとアコーディオンUIに変換します。
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant MainScreen
-    participant RecursiveField
-    participant DataContext
-
-    MainScreen->>DataContext: Load JSON Template
-    DataContext-->>MainScreen: Provide 'data'
-    MainScreen->>MainScreen: Generate Tabs from Top-Level Keys
-    Note over MainScreen: "基本情報", "スキル経験", ...
-    User->>MainScreen: Select Tab
-    MainScreen->>RecursiveField: Render Tab Content (Root Object)
-    loop Recursive Rendering
-        RecursiveField->>RecursiveField: Check value type
-        alt is Object
-            RecursiveField->>RecursiveField: Render AccordionItem
-        else is Boolean
-            RecursiveField->>RecursiveField: Render SwitchRow
-        else is String/Number
-            RecursiveField->>RecursiveField: Render InputRow
-        else _displayType specified
-            RecursiveField->>RecursiveField: Render Specific Component
-        end
-    end
+```bash
+./githooks/safe_push.sh "commit message" --prompt "指示内容" --intent "目的" --outcome "結果"
 ```
 
-### 2. データ保存フロー (Firestore)
+---
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant MainScreen
-    participant Firestore
-
-    User->>MainScreen: Tap "Save" Button
-    MainScreen->>MainScreen: Request ID Generation
-    MainScreen->>Firestore: Query existing IDs (yyyyMMdd range)
-    Firestore-->>MainScreen: Return existing docs
-    MainScreen->>MainScreen: Calculate new ID (CyyyyMMddnnnn)
-    MainScreen->>MainScreen: Clean Data (Remove internal metadata)
-    MainScreen->>Firestore: setDoc(individual/{newID})
-    Firestore-->>MainScreen: Success
-    MainScreen->>User: Show "Saved!"
-```
-
-## 🛠 Tech Stack
-
-*   **Framework**: Expo (React Native)
-*   **Language**: JavaScript (React)
-*   **Database**: Firebase Firestore
-*   **UI Architecture**: Metadata-Driven UI, Recursive Components
-*   **State Management**: React Context API
-*   **Components**: Custom Components + `@react-native-community/datetimepicker`
-
-## 📁 主要ファイル解説
-
-| ファイル名 | 説明 |
-| --- | --- |
-| `App.js` | アプリケーションのエントリーポイント。プロバイダーの設定等。 |
-| `src/context/DataContext.js` | JSONデータの読み込み、保持、更新ロジックを提供。 |
-| `src/screens/MainScreen.js` | タブナビゲーションの構築と、Firestoreへの保存処理を担当。 |
-| `src/components/RecursiveField.js` | JSONツリーを再帰的にコンポーネントに変換する中核コンポーネント。 |
-| `assets/json/engineer-profile-template.json` | フォームの構造と初期値を定義するテンプレートファイル。これを編集するだけでUIが変化します。 |
+## � ドキュメント一覧
+詳細な情報は `docs/` ディレクトリを参照してください。
+- [開発基本情報 (dev_basicinfo.md)](docs/dev_basicinfo.md)
+- [プロジェクト構造詳細 (project_tree_structure.md)](docs/project_tree_structure.md)
+- [リファクタリング計画 (RefactoringPlan.md)](docs/RefactoringPlan.md)

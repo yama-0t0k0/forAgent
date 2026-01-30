@@ -91,7 +91,7 @@ if [ -d "$APP_DIR" ]; then
      echo "🤖 [Step 3.8] Running E2E Interaction Tests..."
      # Check if maestro is installed
      if command -v maestro &> /dev/null; then
-         bash tests/run_e2e.sh
+         bash tests/run_e2e.sh "$APP_NAME"
          E2E_EXIT=$?
          if [ $E2E_EXIT -ne 0 ]; then
              echo "❌ E2E Tests FAILED. Please fix the UI interactions."
@@ -114,22 +114,32 @@ echo "   (Press Ctrl+C to stop the app and proceed to verification confirmation)
 # Ideally, start_expo.sh should return error code if immediate failure, but Expo starts a server.
 # We will trust start_expo.sh to output errors if it fails early.
 
-# Trap SIGINT to allow script to continue after Expo is stopped
-trap 'echo -e "\n🛑 Expo server stopped. Proceeding to verification step..."' SIGINT
+# Trap SIGINT to allow script to continue after Expo is stopped IF in interactive mode
+if [ "$CI" != "true" ]; then
+    trap 'echo -e "\n🛑 Expo server stopped. Proceeding to verification step..."' SIGINT
+fi
 
+# Run start_expo.sh
 bash scripts/start_expo.sh "$APP_NAME"
 EXPO_EXIT_CODE=$?
 
 # Reset trap
-trap - SIGINT
-
-# Check if Expo failed immediately (non-zero exit not caused by SIGINT)
-if [ $EXPO_EXIT_CODE -ne 0 ] && [ $EXPO_EXIT_CODE -ne 130 ]; then
-    echo "❌ Error: Expo app failed to start or crashed."
-    exit 1
+if [ "$CI" != "true" ]; then
+    trap - SIGINT
 fi
 
-# Step 5: Post-Verification
+# In CI/Non-interactive mode, we don't wait for human verification
+if [ "$CI" = "true" ]; then
+    if [ $EXPO_EXIT_CODE -ne 0 ]; then
+        echo "❌ Error: Expo app failed to produce a URL in non-interactive mode."
+        exit 1
+    fi
+    echo "✅ [CI Mode] App produced a URL successfully."
+    echo "✨ Task 1 Workflow Completed (Automated)."
+    exit 0
+fi
+
+# Step 5: Post-Verification (Interactive Only)
 echo ""
 echo "=================================================="
 echo "🏁 [Step 5] Post-Verification Actions"

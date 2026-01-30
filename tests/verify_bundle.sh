@@ -4,7 +4,7 @@ set -e
 # verify_bundle.sh
 # Checks for 'Unable to resolve module' and other bundling errors by running a dry-run export.
 
-APPS=("apps/admin_app/expo_frontend" "apps/individual_user_app/expo_frontend")
+APPS=("apps/admin_app/expo_frontend" "apps/individual_user_app/expo_frontend" "apps/corporate_user_app/expo_frontend")
 ROOT_DIR=$(pwd)
 
 for APP_DIR in "${APPS[@]}"; do

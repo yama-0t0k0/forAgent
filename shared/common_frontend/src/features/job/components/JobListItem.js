@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { GlassCard } from '../../../core/components/GlassCard';
-import { MiniHeatmap } from '../../../core/components/MiniHeatmap';
-import { THEME } from '../../../core/theme/theme';
-import { JobDescription } from '../../../core/models/JobDescription';
+import { GlassCard } from '@shared/src/core/components/GlassCard';
+import { MiniHeatmap } from '@shared/src/features/analytics/components/MiniHeatmap';
+import { THEME } from '@shared/src/core/theme/theme';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
 
 /**
  * @typedef {Object} Skills

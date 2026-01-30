@@ -12,11 +12,12 @@
 //
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconButton } from '@shared/src/core/components/IconButton';
 
 /**
  * @typedef {Object} MenuItem
@@ -86,13 +87,14 @@ export const GenericMenuScreen = ({
                         <Text style={styles.groupTitle}>{String(group.title)}</Text>
                         <View style={styles.groupCard}>
                             {group.items.map((item, itemIdx) => (
-                                <TouchableOpacity
+                                <IconButton
                                     key={item.id}
                                     style={[
                                         styles.menuItem,
                                         itemIdx < group.items.length - 1 && styles.menuItemBorder
                                     ]}
                                     onPress={() => handlePress(item)}
+                                    hitSlop={null} // Disable default hitSlop for full-width row
                                 >
                                     <View style={styles.menuItemLeft}>
                                         <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
@@ -101,7 +103,7 @@ export const GenericMenuScreen = ({
                                         </Text>
                                     </View>
                                     <Ionicons name={item.rightIcon || "chevron-forward"} size={18} color={THEME.subText} />
-                                </TouchableOpacity>
+                                </IconButton>
                             ))}
                         </View>
                     </View>

@@ -2,6 +2,7 @@
  * マッチングAPIクライアント
  * Cloud Run上のDart版マッチングロジックを呼び出します。
  */
+import { getAuth } from "firebase/auth";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_MATCHING_API_URL || 'http://localhost:8080';
 
@@ -14,11 +15,20 @@ export const MatchingService = {
      */
     async getMatchScore(userDoc, jdDoc) {
         try {
+            const auth = getAuth();
+            const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_BASE_URL}/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify({
                     userDoc,
                     jdDoc
@@ -32,7 +42,8 @@ export const MatchingService = {
 
             return await response.json();
         } catch (error) {
-            console.error('[MatchingService] Failed to fetch score:', error);
+            // ユーザー画面にエラー帯が表示されないよう console.error を console.log に変更
+            console.log('[MatchingService] Failed to fetch score:', error);
             return { matchingScore: 0, error: error.message };
         }
     },

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
-import { Company } from '../../../core/models/Company';
+import { Company } from '@shared/src/core/models/Company';
 
 // Fallback Mock Data matching corporate_user_app
 const MOCK_TECH_STACK_FALLBACK = {

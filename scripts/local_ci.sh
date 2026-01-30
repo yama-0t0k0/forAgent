@@ -46,6 +46,17 @@ echo ""
 echo "[Stage 1] Checking Global Integrity"
 if [ -d "shared/common_frontend" ]; then
     echo "   ✅ Shared modules present"
+    
+    # Check Coding Conventions for Shared Frontend
+    if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
+         echo "   🔍 Checking Shared Frontend Conventions..."
+         if node "$PROJECT_ROOT/scripts/check_coding_conventions.js" "shared/common_frontend"; then
+             echo "   ✅ Shared Frontend Conventions Passed"
+         else
+             echo "   ⚠️  Shared Frontend Conventions Failed (Optional)"
+             # You can change to 'exit 1' if you want to enforce this strictly
+         fi
+    fi
 else
     echo "   ❌ Shared modules missing"
     exit 1

@@ -58,6 +58,37 @@ check_git_repo() {
   fi
 }
 
+# Flag to track if we stashed changes
+STASHED=false
+
+handle_uncommitted_changes() {
+  echo "🔍 未コミットの変更を確認しています..."
+  
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "⚠️  未コミットの変更が検出されました。自動的にstashします..."
+    if git stash push -m "Auto-stash by merge_yama_into_main.sh at $(date '+%Y-%m-%d %H:%M:%S')"; then
+      STASHED=true
+      echo "✅ 変更をstashしました。スクリプト終了時に自動的にpopします。"
+    else
+      echo "❌ Error: stashに失敗しました。手動で対処してください。"
+      exit 1
+    fi
+  else
+    echo "✅ 未コミットの変更はありません。"
+  fi
+}
+
+restore_stashed_changes() {
+  if [ "$STASHED" = true ]; then
+    echo "🔄 stashした変更を復元しています..."
+    if git stash pop; then
+      echo "✅ stashした変更を復元しました。"
+    else
+      echo "⚠️  stash popに失敗しました。手動で 'git stash pop' を実行してください。"
+    fi
+  fi
+}
+
 sync_source_branch() {
   echo "🔍 origin から最新情報を取得しています..."
   git fetch origin
@@ -131,11 +162,13 @@ main() {
   echo "🚀 $SOURCE_BRANCH ブランチの変更を $TARGET_MAIN_BRANCH へマージするスクリプトを実行します..."
   check_project_dir
   check_git_repo
+  handle_uncommitted_changes
   sync_source_branch
   update_main_branch
   merge_source_into_main
   push_main
   return_to_source_branch
+  restore_stashed_changes
   echo "🎉 $SOURCE_BRANCH の変更を $TARGET_MAIN_BRANCH / origin/$TARGET_MAIN_BRANCH にマージし、$SOURCE_BRANCH に戻りました。"
 }
 

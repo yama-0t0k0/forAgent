@@ -2,9 +2,47 @@ import 'dart:convert';
 import 'package:functions_framework/functions_framework.dart';
 import 'package:shelf/shelf.dart';
 import 'package:common_logic/common_logic.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 @CloudFunction()
 Future<Response> calculateMatch(Request request) async {
+  // 0. Auth Check
+  final authHeader = request.headers['Authorization'];
+  if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+    return Response.forbidden(
+      jsonEncode({'error': 'Authorization header is required'}),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
+  final token = authHeader.substring(7);
+  try {
+    // Decode the token to check expiration (Signature verification requires fetching public keys)
+    final jwt = JWT.decode(token);
+    
+    // Check expiration if 'exp' claim exists
+    if (jwt.payload is Map<String, dynamic>) {
+      final payload = jwt.payload as Map<String, dynamic>;
+      if (payload.containsKey('exp')) {
+        final exp = payload['exp'];
+        if (exp is int) {
+          final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+          if (DateTime.now().isAfter(expirationDate)) {
+            return Response.forbidden(
+              jsonEncode({'error': 'Token expired'}),
+              headers: {'Content-Type': 'application/json'},
+            );
+          }
+        }
+      }
+    }
+  } catch (e) {
+    return Response.forbidden(
+      jsonEncode({'error': 'Invalid token'}),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
   try {
     final payload = await request.readAsString();
     final data = jsonDecode(payload) as Map<String, dynamic>;

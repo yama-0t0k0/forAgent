@@ -15,9 +15,9 @@ export const styles = StyleSheet.create({
   // Tab Bar
   tabBar: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.8)', marginHorizontal: 20, borderRadius: 16, padding: 4, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
   tabItem: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, justifyContent: 'center' },
-  activeTabItem: { backgroundColor: '#fff', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  activeTabItem: { backgroundColor: '#fff', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, justifyContent: 'center' },
   tabText: { fontSize: 13, color: THEME.subText, fontWeight: '600' },
-  activeTabText: { color: THEME.accent, fontWeight: 'bold' },
+  activeTabText: { color: THEME.accent, fontWeight: 'bold', fontSize: 13 },
 
   contentArea: { flex: 1 },
   tabContent: { flex: 1, padding: 20 },
