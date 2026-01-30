@@ -127,6 +127,22 @@ collect_issue_info() {
                     exit 1
                 fi
             fi
+
+            if [ -z "$NEXT_TASKS" ]; then
+                echo "Please enter recommended next tasks:"
+                if ! read -t 10 -r NEXT_TASKS; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
+
+            if [ -z "$CONTEXT_NOTES" ]; then
+                echo "Please enter background/context details:"
+                if ! read -t 10 -r CONTEXT_NOTES; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
         fi
 
         if [ -z "$NEXT_TASKS" ]; then
