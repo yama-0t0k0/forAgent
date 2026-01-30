@@ -676,11 +676,11 @@ main() {
 
     check_git_repo
     ensure_yama_branch
-    sync_remote
     handle_changes
     check_staged_changes
     collect_issue_info
     commit_changes
+    sync_remote
     
     # Capture remote hash before pushing
     PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")

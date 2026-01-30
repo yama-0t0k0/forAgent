@@ -244,7 +244,7 @@ ${parsedArgs.next || '（記述なし）'}
     `.trim();
 
     // Determine Labels based on commit message
-    const labels = ['automation'];
+    const labels = [];
     const lowerMsg = commitMessage.toLowerCase();
     if (lowerMsg.includes('fix') || lowerMsg.includes('bug')) labels.push('bug');
     if (lowerMsg.includes('feat') || lowerMsg.includes('add')) labels.push('enhancement');

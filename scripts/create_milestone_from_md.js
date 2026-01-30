@@ -3,16 +3,8 @@
 /**
  * scripts/create_milestone_from_md.js
  * 
- * 指定されたMarkdownファイルを解析し、GitHubマイルストーンを作成または更新するスクリプト。
- * 
- * 機能:
- * 1. MarkdownファイルのH1タイトル (# Title) をマイルストーン名として抽出
- * 2. ファイル全体の内容をマイルストーンの説明(Description)として使用
- * 3. シェルエスケープ問題を回避するため spawnSync を使用
- * 4. 既存のマイルストーンがある場合は更新(PATCH)を行う
- * 
- * 使用方法:
- * node scripts/create_milestone_from_md.js <path_to_md_file> [due_date]
+ * RefactoringPlan.md を解析し、セクションごとにGitHubマイルストーンを作成し、
+ * 各タスクをIssueとして作成・紐付け・ステータス同期を行うスクリプト。
  */
 
 const fs = require('fs');
@@ -26,13 +18,12 @@ const REPO_NAME = 'engineer-registration-app';
 
 // --- Helpers ---
 
-// シェルを経由せずにコマンドを実行するヘルパー
 function runCommandSafe(command, args) {
+    // console.log(`DEBUG: ${command} ${args.join(' ')}`);
     const result = spawnSync(command, args, { encoding: 'utf-8', shell: false });
     
     if (result.error) {
         console.error(`❌ Execution failed: ${command} ${args.join(' ')}`);
-        console.error(result.error);
         return null;
     }
 
@@ -45,121 +36,193 @@ function runCommandSafe(command, args) {
     return result.stdout.trim();
 }
 
+// --- Main Logic ---
+
 function parseMarkdown(filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const lines = content.split('\n');
     
-    // Find H1 title
-    let title = '';
-    const h1Match = lines.find(line => line.startsWith('# '));
-    if (h1Match) {
-        title = h1Match.replace('# ', '').trim();
-    } else {
-        // Fallback: Use filename
-        title = path.basename(filePath, path.extname(filePath));
-    }
+    const milestones = [];
+    let currentMilestone = null;
+    let currentTask = null;
 
-    const description = content;
-    return { title, description };
+    lines.forEach(line => {
+        const h2Match = line.match(/^##\s+(.+)/);
+        const h3Match = line.match(/^###\s+(.+)/);
+        
+        // H2または特定のH3をマイルストーンとして扱う
+        // ユーザー要望により "🔮" を含むH3もマイルストーン候補とする
+        let milestoneTitle = null;
+        if (h2Match) {
+            milestoneTitle = h2Match[1].trim();
+        } else if (h3Match && line.includes('🔮')) {
+            milestoneTitle = h3Match[1].trim();
+        }
+
+        if (milestoneTitle) {
+            currentMilestone = {
+                title: milestoneTitle,
+                description: line + '\n', // タイトル行も含める
+                tasks: [],
+                isCompleted: false // セクション全体の完了フラグ
+            };
+            milestones.push(currentMilestone);
+            currentTask = null;
+            return;
+        }
+
+        if (currentMilestone) {
+            currentMilestone.description += line + '\n';
+
+            // タスク検出: "1. **タイトル**" 形式
+            const taskMatch = line.match(/^\s*\d+\.\s+\*\*(.+?)\*\*/);
+            if (taskMatch) {
+                currentTask = {
+                    title: taskMatch[1].trim(),
+                    isCompleted: false
+                };
+                currentMilestone.tasks.push(currentTask);
+            }
+
+            // 完了ステータス検出
+            if (line.includes('✅ 完了')) {
+                if (currentTask) {
+                    currentTask.isCompleted = true;
+                } else {
+                    currentMilestone.isCompleted = true;
+                }
+            }
+        }
+    });
+
+    return milestones;
 }
 
 async function main() {
     const args = process.argv.slice(2);
     if (args.length < 1) {
-        console.error('Usage: node scripts/create_milestone_from_md.js <path_to_md_file> [due_date YYYY-MM-DD]');
+        console.error('Usage: node scripts/create_milestone_from_md.js <path_to_md_file>');
         process.exit(1);
     }
 
     const mdPath = args[0];
-    const dueDate = args[1] || null;
-
     if (!fs.existsSync(mdPath)) {
         console.error(`❌ File not found: ${mdPath}`);
         process.exit(1);
     }
 
     console.log(`🔍 Parsing ${mdPath}...`);
-    const { title, description } = parseMarkdown(mdPath);
+    const milestonesData = parseMarkdown(mdPath);
+    console.log(`Found ${milestonesData.length} milestones.`);
 
-    console.log('\n--- Milestone Preview ---');
-    console.log(`Title:    ${title}`);
-    console.log(`Due Date: ${dueDate || 'None'}`);
-    console.log(`Desc Len: ${description.length} chars`);
-    console.log('-------------------------');
-
-    // 既存マイルストーンの確認
-    console.log('🔍 Checking for existing milestones...');
-    // -f を使うとデフォルトで POST になるため、明示的に GET を指定する
-    const milestonesJson = runCommandSafe('gh', ['api', `repos/${REPO_OWNER}/${REPO_NAME}/milestones`, '--method', 'GET', '-f', 'state=all']);
-    
-    if (!milestonesJson) {
-        console.error('❌ Failed to fetch milestones.');
-        process.exit(1);
-    }
-
-    const milestones = JSON.parse(milestonesJson);
-    const existingMilestone = milestones.find(m => m.title === title);
-
-    let action = 'create';
-    if (existingMilestone) {
-        console.log(`⚠️  Milestone "${title}" already exists (ID: ${existingMilestone.number}).`);
-        action = 'update';
-    }
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
+    // Preview
+    milestonesData.forEach(m => {
+        console.log(`\n📌 Milestone: ${m.title}`);
+        console.log(`   Completed: ${m.isCompleted}`);
+        console.log(`   Tasks (${m.tasks.length}):`);
+        if (m.tasks.length === 0) {
+             console.log(`     - (No sub-tasks, will create Issue for milestone itself)`);
+        } else {
+            m.tasks.forEach(t => console.log(`     - [${t.isCompleted ? 'x' : ' '}] ${t.title}`));
+        }
     });
 
-    const promptMsg = action === 'create' 
-        ? 'Create this milestone on GitHub? (y/N) ' 
-        : 'Update this existing milestone on GitHub? (y/N) ';
-
-    const answer = await new Promise(resolve => {
-        rl.question(promptMsg, resolve);
-    });
+    // Confirm
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise(resolve => rl.question('\nProceed to sync with GitHub? (y/N) ', resolve));
     rl.close();
-
     if (!answer.match(/^[Yy]/)) {
-        console.log('❌ Cancelled.');
+        console.log('Cancelled.');
         process.exit(0);
     }
 
-    console.log(`\n🚀 ${action === 'create' ? 'Creating' : 'Updating'} Milestone...`);
-    
-    const apiPath = action === 'create' 
-        ? `repos/${REPO_OWNER}/${REPO_NAME}/milestones`
-        : `repos/${REPO_OWNER}/${REPO_NAME}/milestones/${existingMilestone.number}`;
-    
-    const method = action === 'create' ? 'POST' : 'PATCH';
+    // 1. Fetch existing milestones
+    console.log('Fetching existing milestones...');
+    const msJson = runCommandSafe('gh', ['api', `repos/${REPO_OWNER}/${REPO_NAME}/milestones`, '--method', 'GET', '-f', 'state=all', '--paginate']);
+    const existingMilestones = msJson ? JSON.parse(msJson) : [];
 
-    // gh api に渡す引数を構築 (spawnSync用配列)
-    const ghArgs = ['api', apiPath, '--method', method];
-    
-    // パラメータを個別の引数として渡す（シェルエスケープ不要）
-    ghArgs.push('-f', `title=${title}`);
-    ghArgs.push('-f', `description=${description}`);
-    
-    if (dueDate) {
-         if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
-            console.error('❌ Invalid date format. Use YYYY-MM-DD.');
-            process.exit(1);
+    // 2. Fetch all issues (to avoid duplicates)
+    console.log('Fetching existing issues...');
+    const issuesJson = runCommandSafe('gh', ['issue', 'list', '--state', 'all', '--limit', '1000', '--json', 'title,number,state,milestone']);
+    const existingIssues = issuesJson ? JSON.parse(issuesJson) : [];
+
+    for (const mData of milestonesData) {
+        // --- Milestone Sync ---
+        let milestone = existingMilestones.find(m => m.title === mData.title);
+        
+        if (!milestone) {
+            console.log(`Creating Milestone: ${mData.title}`);
+            const res = runCommandSafe('gh', ['api', `repos/${REPO_OWNER}/${REPO_NAME}/milestones`, '--method', 'POST', '-f', `title=${mData.title}`, '-f', `description=${mData.description.slice(0, 1000)}...`]); // Description length limit precaution
+            if (res) milestone = JSON.parse(res);
+        } else {
+            console.log(`Updating Milestone: ${mData.title}`);
+            runCommandSafe('gh', ['api', `repos/${REPO_OWNER}/${REPO_NAME}/milestones/${milestone.number}`, '--method', 'PATCH', '-f', `description=${mData.description.slice(0, 1000)}...`]);
         }
-        ghArgs.push('-f', `due_on=${dueDate}T00:00:00Z`);
-    }
 
-    const result = runCommandSafe('gh', ghArgs);
-    
-    if (result) {
-        const m = JSON.parse(result);
-        console.log(`✅ Milestone ${action === 'create' ? 'Created' : 'Updated'} Successfully!`);
-        console.log(`   Title: ${m.title}`);
-        console.log(`   URL:   ${m.html_url}`);
-        console.log(`   ID:    ${m.number}`);
-    } else {
-        console.error(`❌ Failed to ${action} milestone.`);
-        process.exit(1);
+        if (!milestone) continue;
+
+        // --- Issue Sync ---
+        // タスクがある場合はタスクごとにIssue作成、なければマイルストーン自体を1つのIssueとする
+        const tasksToProcess = mData.tasks.length > 0 
+            ? mData.tasks 
+            : [{ title: `Implement: ${mData.title}`, isCompleted: mData.isCompleted }];
+
+        for (const task of tasksToProcess) {
+            // Find existing issue by title
+            let issue = existingIssues.find(i => i.title === task.title);
+            
+            // Issue Body にセクション全体の説明を含める
+            const issueBody = `Generated from RefactoringPlan.md\n\n${mData.description}`;
+
+            if (!issue) {
+                console.log(`  Creating Issue: ${task.title}`);
+                const createArgs = [
+                    'issue', 'create',
+                    '--title', task.title,
+                    '--body', issueBody,
+                    '--milestone', mData.title,
+                    '--label', 'refactoring_plan'
+                ];
+                const res = runCommandSafe('gh', createArgs);
+                
+                if (task.isCompleted) {
+                    if (res) {
+                        const match = res.match(/\/issues\/(\d+)$/);
+                        if (match) {
+                            console.log(`  Closing Issue #${match[1]}`);
+                            runCommandSafe('gh', ['issue', 'close', match[1]]);
+                        }
+                    }
+                }
+            } else {
+                // Issue exists
+                console.log(`  Issue exists: ${task.title} (#${issue.number})`);
+                
+                // Check Milestone Link
+                if (!issue.milestone || issue.milestone.title !== milestone.title) {
+                    console.log(`    Linking to milestone...`);
+                    runCommandSafe('gh', ['issue', 'edit', issue.number.toString(), '--milestone', milestone.title]);
+                }
+
+                // Update Body to reflect latest MD content
+                // runCommandSafe('gh', ['issue', 'edit', issue.number.toString(), '--body', issueBody]);
+
+                // Check Status
+                const shouldBeClosed = task.isCompleted;
+                const isClosed = issue.state === 'closed';
+
+                if (shouldBeClosed && !isClosed) {
+                    console.log(`    Closing...`);
+                    runCommandSafe('gh', ['issue', 'close', issue.number.toString()]);
+                } else if (!shouldBeClosed && isClosed) {
+                    console.log(`    Re-opening...`);
+                    runCommandSafe('gh', ['issue', 'reopen', issue.number.toString()]);
+                }
+            }
+        }
     }
+    
+    console.log('\n✅ Sync Completed!');
 }
 
 main().catch(err => {
