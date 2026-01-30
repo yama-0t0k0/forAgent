@@ -29,7 +29,7 @@ jest.mock('firebase/firestore', () => ({
   getDoc: jest.fn(),
 }));
 
-jest.mock('../../../../../../../corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen', () => ({
+jest.mock('@corporate_app/src/features/company_profile/CompanyPageScreen', () => ({
   CompanyPageScreen: () => <mock-CompanyPageScreen />,
 }));
 

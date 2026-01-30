@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["../../../shared/common_frontend/*"],
+      "@job_app/*": ["../../../apps/job_description/expo_frontend/*"],
+      "@corporate_app/*": ["../../../apps/corporate_user_app/expo_frontend/*"],
+      "@individual_app/*": ["../../../apps/individual_user_app/expo_frontend/*"],
+      "@assets/*": ["./assets/*"],
+      "@features/*": ["./src/features/*"]
+    },
+    "jsx": "react-native"
+  },
+  "exclude": ["node_modules", ".expo"]
+}

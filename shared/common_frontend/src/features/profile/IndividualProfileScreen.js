@@ -2,21 +2,22 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
-import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { HeatmapGrid } from '@shared/src/features/analytics/components/HeatmapGrid';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
-import { BottomNav } from '../../core/components/BottomNav';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { IconButton } from '@shared/src/core/components/IconButton';
 
 const { width, height } = Dimensions.get('window');
 
 // Local custom generated rainforest background
-const RAINFOREST_BG = require('../../../assets/generated/rainforest_bg.png');
+const RAINFOREST_BG = require('@shared/assets/generated/rainforest_bg.png');
 
 /**
  * @typedef {Object} IndividualProfileScreenProps
@@ -113,12 +114,20 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                            <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit', { userDoc })}>
-                                            <Ionicons name="create-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
+                                        <IconButton
+                                            name="notifications-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => console.log('Notifications')}
+                                        />
+                                        <IconButton
+                                            name="create-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                        />
                                     </View>
 
                                     {/* 2. Top-right repositioned button */}
@@ -156,12 +165,20 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => console.log('Notifications')}>
-                                            <Ionicons name="notifications-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('ImageEdit', { userDoc })}>
-                                            <Ionicons name="create-outline" size={24} color="#FFF" />
-                                        </TouchableOpacity>
+                                        <IconButton
+                                            name="notifications-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => console.log('Notifications')}
+                                        />
+                                        <IconButton
+                                            name="create-outline"
+                                            size={24}
+                                            color="#FFF"
+                                            style={styles.headerIconButton}
+                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                        />
                                     </View>
 
                                     {/* 2. Top-right repositioned button */}

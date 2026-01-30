@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
-import { styles } from '../../dashboardStyles';
+import { StatusBadge } from '@shared/src/core/components/StatusBadge';
+import { styles } from '@features/dashboard/dashboardStyles';
 
 /**
  * Tab component for displaying and filtering the selection process list.
@@ -41,9 +42,7 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
             <Text style={styles.itemTitle}>JobStatID: {jobId}</Text>
             <Text style={styles.itemSubtitle}>個人: {individualId}</Text>
             <Text style={styles.itemDetail}>求人: {jdNumber}</Text>
-            <Text style={styles.statusBadge}>
-              {status}
-            </Text>
+            <StatusBadge status={status} style={{ marginTop: 8 }} />
           </View>
         );
       }}

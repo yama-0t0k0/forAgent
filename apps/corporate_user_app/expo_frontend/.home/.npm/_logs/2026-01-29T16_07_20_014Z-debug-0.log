@@ -8,18 +8,13 @@
 7 silly config load:file:/usr/local/etc/npmrc
 8 verbose title npm exec expo start --tunnel --port 8083
 9 verbose argv "exec" "--" "expo" "start" "--tunnel" "--port" "8083"
-10 verbose logfile logs-max:10 dir:/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend/.home/.npm/_logs/2026-01-26T13_44_33_767Z-
-11 verbose logfile /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend/.home/.npm/_logs/2026-01-26T13_44_33_767Z-debug-0.log
-12 silly logfile done cleaning log files
-13 http fetch GET 200 https://registry.npmjs.org/npm 284ms
+10 verbose logfile logs-max:10 dir:/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend/.home/.npm/_logs/2026-01-29T16_07_20_014Z-
+11 verbose logfile /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend/.home/.npm/_logs/2026-01-29T16_07_20_014Z-debug-0.log
+12 silly logfile start cleaning logs, removing 1 files
+13 silly logfile done cleaning log files
 14 verbose cwd /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/corporate_user_app/expo_frontend
 15 verbose os Darwin 25.2.0
 16 verbose node v23.11.0
 17 verbose npm  v10.9.2
-18 notice
-18 notice New major version of npm available! 10.9.2 -> 11.8.0
-18 notice Changelog: https://github.com/npm/cli/releases/tag/v11.8.0
-18 notice To update run: npm install -g npm@11.8.0
-18 notice  { force: true, [Symbol(proc-log.meta)]: true }
-19 verbose exit 0
-20 info ok
+18 verbose exit 0
+19 info ok

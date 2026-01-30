@@ -126,16 +126,42 @@ if (status === UserStatus.PENDING) { ... }
 
 ---
 
-## 5. チェックリスト（PR提出前）
+## 5. Path Aliases（エイリアス）の利用
+
+### 5.1 基本ルール
+相対パス（`../../../../`）の使用は、ファイル移動時のパス崩れや可読性低下の原因となるため、原則禁止とします。
+代わりに、`babel.config.js` で定義された Path Aliases（`@shared/`, `@job_app/` 等）を使用してください。
+
+**❌ Bad (相対パス地獄)**
+```javascript
+import { THEME } from '../../../../shared/common_frontend/src/theme/theme';
+import { JobDescriptionScreen } from '../../../../../apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+```
+
+**✅ Good (エイリアス利用)**
+```javascript
+import { THEME } from '@shared/src/core/theme/theme';
+import { JobDescriptionScreen } from '@job_app/src/features/job_description/JobDescriptionScreen';
+```
+
+### 5.2 エイリアスの追加運用
+新しいエイリアスが必要になった場合は、以下の手順で追加してください。
+1. 各アプリの `babel.config.js` の `plugins` -> `module-resolver` -> `alias` に追加。
+2. IDEの補完を効かせるため、`jsconfig.json` (または `tsconfig.json`) の `compilerOptions` -> `paths` にも同様に追加。
+
+---
+
+## 6. チェックリスト（PR提出前）
 
 - [ ] 変数は宣言時に初期化されているか？（`undefined` になっていないか）
 - [ ] JSDocで引数と戻り値の型が明記されているか？
 - [ ] データ構造はクラス（または明確な構造体）として定義されているか？
 - [ ] マジックナンバーを使用せず、定数（Enum）を使用しているか？
+- [ ] 深い相対パス（`../../`）を使わず、Path Alias（`@shared/`等）を使用しているか？
 
 ---
 
-## 6. 本規約遵守のメリット（JS環境での継続運用における価値）
+## 7. 本規約遵守のメリット（JS環境での継続運用における価値）
 
 本規約に従って実装することは、将来的なDart移行を円滑にするだけでなく、仮にJavaScript/React Nativeでの運用を継続する場合においても、技術的負債を最小化し、以下の多大なメリットをもたらします。
 

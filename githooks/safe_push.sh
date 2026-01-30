@@ -11,6 +11,11 @@ set -e  # Exit on any error
 AUTO_MODE=true
 TARGET_BRANCH="yama"
 DRY_RUN=false
+AUTHORIZATION_EVIDENCE=""
+TARGET_MILESTONE=""
+
+# Capture original arguments for delegation
+ORIGINAL_ARGS=("$@")
 
 # Parse command line arguments
 parse_arguments() {
@@ -19,6 +24,14 @@ parse_arguments() {
             --auto)
                 AUTO_MODE=true
                 shift
+                ;;
+            --authorized-by)
+                AUTHORIZATION_EVIDENCE="$2"
+                shift 2
+                ;;
+            --milestone)
+                TARGET_MILESTONE="$2"
+                shift 2
                 ;;
             --prompt)
                 PROMPT_SUMMARY="$2"
@@ -77,6 +90,15 @@ collect_issue_info() {
             missing_args=true
         fi
 
+        if [ -z "$NEXT_TASKS" ]; then
+            echo "⚠️  Missing argument: --next (Next Tasks)"
+            missing_args=true
+        fi
+        if [ -z "$CONTEXT_NOTES" ]; then
+            echo "⚠️  Missing argument: --context (Context)"
+            missing_args=true
+        fi
+
         if [ "$missing_args" = true ]; then
             echo "🤖 Auto mode is active but mandatory arguments are missing."
             echo "   Attempting interactive input (Timeout: 10s)..."
@@ -105,13 +127,29 @@ collect_issue_info() {
                     exit 1
                 fi
             fi
+
+            if [ -z "$NEXT_TASKS" ]; then
+                echo "Please enter recommended next tasks:"
+                if ! read -t 10 -r NEXT_TASKS; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
+
+            if [ -z "$CONTEXT_NOTES" ]; then
+                echo "Please enter background/context details:"
+                if ! read -t 10 -r CONTEXT_NOTES; then
+                    echo "❌ Input timed out."
+                    exit 1
+                fi
+            fi
         fi
 
         if [ -z "$NEXT_TASKS" ]; then
-            NEXT_TASKS="Check CI/CD pipeline and verify deployment."
+            NEXT_TASKS="（推奨される次回のタスクを具体的に記述してください）"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="特になし"
+            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
         return
     fi
@@ -147,7 +185,7 @@ collect_issue_info() {
         echo "Please enter background/context details:"
         read -r CONTEXT_NOTES
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="No context provided."
+            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
     fi
 }
@@ -230,6 +268,9 @@ detect_labels() {
 
 echo "🚀 Universal Safe Push Script for UI-centric Development"
 echo "=================================================="
+
+
+
 if [ "$AUTO_MODE" = true ]; then
     echo "🤖 Running in automatic mode"
 fi
@@ -453,13 +494,13 @@ create_push_issue() {
 
     ISSUE_BODY="## 🤖 AI Development Cycle
 
-### 📝 User Prompt / 指示内容
+### 📝 Implementation Details / 実装内容
 $USER_PROMPT
 
-### 🎯 Intent / 変更の目的
+### 🎯 Mission & Intent / 目的と期待される効果
 $WORK_PURPOSE
 
-### 🏆 Outcome / 実行結果
+### 🏆 Outcome & Result / 実際の結果
 $WORK_OUTCOME
 
 ---
@@ -495,8 +536,11 @@ $RECENT_CONTEXT
     # to prevent false positives where past issue titles trigger the placeholder check.
     VALIDATION_BODY="${USER_PROMPT} ${WORK_PURPOSE} ${WORK_OUTCOME} ${CONTEXT_NOTES} ${NEXT_TASKS}"
     
-    # Check for placeholders or default text
+    # Check for placeholders or default/lazy text
     if [[ "$VALIDATION_BODY" == *"記述してください"* ]] || \
+       [[ "$VALIDATION_BODY" == *"特になし"* ]] || \
+       [[ "$VALIDATION_BODY" == *"No prompt summary provided"* ]] || \
+       [[ "$VALIDATION_BODY" == *"No context provided"* ]] || \
        [[ "$VALIDATION_BODY" == *"Automated update via safe_push.sh"* ]]; then
         
         echo ""
@@ -588,11 +632,62 @@ check_project_dir() {
     echo "✅ Correct project directory verified"
 }
 
+# Function to verify explicit user instruction
+verify_user_instruction() {
+    # Check if we have explicit authorization evidence
+    if [ -n "$AUTHORIZATION_EVIDENCE" ]; then
+        echo "🛡️  Authorization Evidence: \"$AUTHORIZATION_EVIDENCE\""
+        return 0
+    fi
+
+    echo "🛑 SAFETY CHECK: Has the user EXPLICITLY requested this push?"
+    echo "   (Check chat history. Do not assume 'proceed' or 'fix' means 'push'.)"
+
+    if [ "$AUTO_MODE" = true ]; then
+        echo "❌ Error: Missing --authorized-by argument in auto mode."
+        echo "   You must provide the EXACT command/text from the user that authorized this push."
+        echo "   Example: ./safe_push.sh --authorized-by \"Please push the changes\" ..."
+        echo "   (This prevents 'brain-dead' confirmation by requiring evidence extraction)"
+        exit 1
+    else
+        read -p "Please type the keyword that authorized this push (e.g. 'push'): " AUTH_INPUT
+        if [ -z "$AUTH_INPUT" ]; then
+            echo "❌ Push cancelled: No authorization evidence provided."
+            exit 1
+        fi
+        AUTHORIZATION_EVIDENCE="$AUTH_INPUT"
+    fi
+}
+
 # Main execution
 main() {
     parse_arguments "$@"
+
+    # Ensure we are in the project root before attempting delegation
     check_project_dir
+
+    # --- Milestone Branching Logic ---
+    # Case 1: Milestone explicitly provided via argument
+    if [ -n "$TARGET_MILESTONE" ]; then
+        echo "🔄 Delegating to Milestone Push Script (Milestone: $TARGET_MILESTONE)..."
+        exec node scripts/push_with_milestone.js "${ORIGINAL_ARGS[@]}"
+    fi
+
+    # Case 2: Interactive mode - Ask user
+    if [ "$AUTO_MODE" = false ]; then
+        echo "❓ Is this task related to a GitHub Milestone? (y/N)"
+        read -n 1 -r REPLY
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "🔄 Delegating to Milestone Push Script..."
+            exec node scripts/push_with_milestone.js "${ORIGINAL_ARGS[@]}"
+        fi
+    fi
+    # ---------------------------------
     
+    # 1. Permission Check (Poka-yoke)
+    verify_user_instruction
+
     # Run Local CI Pipeline
     if [ -x "./scripts/local_ci.sh" ]; then
         echo "🛡️  Running Local CI Pipeline..."
@@ -606,11 +701,11 @@ main() {
 
     check_git_repo
     ensure_yama_branch
-    sync_remote
     handle_changes
     check_staged_changes
     collect_issue_info
     commit_changes
+    sync_remote
     
     # Capture remote hash before pushing
     PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")

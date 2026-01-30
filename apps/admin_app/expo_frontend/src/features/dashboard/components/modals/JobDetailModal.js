@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
-import { JobDescriptionScreen } from '../../../../../../../job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
-import { styles } from '../../dashboardStyles';
+import { View } from 'react-native';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
+import { DetailModal } from '@shared/src/core/components/DetailModal';
 
 /**
  * Modal component for displaying job description details.
@@ -12,30 +12,20 @@ import { styles } from '../../dashboardStyles';
  * @returns {JSX.Element} The rendered modal.
  */
 export const JobDetailModal = ({ visible, onClose, jobDoc }) => (
-  <Modal
+  <DetailModal
     visible={visible}
-    transparent
-    animationType="fade"
-    onRequestClose={onClose}
+    onClose={onClose}
+    title="求人詳細プレビュー"
+    width="95%"
+    height="90%"
   >
-    <View style={styles.detailOverlay} pointerEvents="box-none">
-      <View style={[styles.detailWindow, { width: '95%', height: '90%', maxWidth: 600 }]} pointerEvents="auto">
-        <View style={styles.detailWindowHeader}>
-          <Text style={styles.detailWindowTitle} testID="job_detail_title">求人詳細プレビュー</Text>
-          <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID="job_detail_close">
-            <Text style={styles.detailWindowCloseText}>閉じる</Text>
-          </TouchableOpacity>
-        </View>
-
-        {jobDoc && (
-          <View style={{ flex: 1, overflow: 'hidden' }}>
-            <JobDescriptionScreen
-              companyId={jobDoc.company_ID}
-              jdNumber={jobDoc.JD_Number}
-            />
-          </View>
-        )}
+    {jobDoc && (
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <JobDescriptionScreen
+          companyId={jobDoc.company_ID}
+          jdNumber={jobDoc.JD_Number}
+        />
       </View>
-    </View>
-  </Modal>
+    )}
+  </DetailModal>
 );
