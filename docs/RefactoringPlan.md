@@ -114,8 +114,10 @@ Corporate App の会社詳細画面に定義されている技術スタック表
 ### 🔮 中期的・戦略的共通化（機能拡張への備え）
 
 1. **企業プロフィール表示 (`CompanyPageScreen`) のShared化**
+   - **ステータス**: ✅ 完了
    - **目的**: Admin（審査・閲覧）とIndividual（企業研究）で同じビューを利用可能にする。
    - **計画**: 現在Corporateアプリにある `CompanyPageScreen` を `shared/features/company_profile` に移動し、編集モード/閲覧モードを切り替えられる設計にする。
+   - **完了内容**: `CompanyProfileView` をSharedコンポーネント化し、Corporate AppとAdmin Appで共有可能に。相対パスやJSDocの規約も遵守。
 
 2. **選考プロセスエディタ (`SelectionFlowEditor`) のShared化**
    - **目的**: Adminアプリでのテンプレート管理機能実装を見越した共通化。
