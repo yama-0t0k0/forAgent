@@ -90,6 +90,15 @@ collect_issue_info() {
             missing_args=true
         fi
 
+        if [ -z "$NEXT_TASKS" ]; then
+            echo "⚠️  Missing argument: --next (Next Tasks)"
+            missing_args=true
+        fi
+        if [ -z "$CONTEXT_NOTES" ]; then
+            echo "⚠️  Missing argument: --context (Context)"
+            missing_args=true
+        fi
+
         if [ "$missing_args" = true ]; then
             echo "🤖 Auto mode is active but mandatory arguments are missing."
             echo "   Attempting interactive input (Timeout: 10s)..."
@@ -121,10 +130,10 @@ collect_issue_info() {
         fi
 
         if [ -z "$NEXT_TASKS" ]; then
-            NEXT_TASKS="（推奨される次回のタスクを具体的に記述してください）"
+            NEXT_TASKS="（記述なし）"
         fi
         if [ -z "$CONTEXT_NOTES" ]; then
-            CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
+            CONTEXT_NOTES="（記述なし）"
         fi
         return
     fi
