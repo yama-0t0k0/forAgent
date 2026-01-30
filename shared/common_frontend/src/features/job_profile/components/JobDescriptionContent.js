@@ -5,12 +5,12 @@ import { DataContext } from '@shared/src/core/state/DataContext';
 import { GlassCard } from '@shared/src/core/components/GlassCard';
 import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { IconButton } from '@shared/src/core/components/IconButton';
-import { HeatmapGrid } from '@shared/src/core/components/HeatmapGrid';
+import { HeatmapGrid } from '@shared/src/features/analytics/components/HeatmapGrid';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@shared/src/core/firebaseConfig';
-import { HeatmapCalculator } from '@shared/src/core/utils/HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
 
 const { width } = Dimensions.get('window');

@@ -13,6 +13,7 @@ import { CorporateMenuScreen } from '@shared/src/features/profile/CorporateMenuS
 import { CorporateImageEditScreen } from '@shared/src/features/profile/CorporateImageEditScreen';
 import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
+import { CorporateBottomNav } from '@shared/src/core/components/CorporateBottomNav';
 
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();
@@ -74,6 +75,7 @@ const CorporateRegistrationWrapper = () => {
                             idField="id"
                             idPrefixChar="B"
                             homeRouteName="CompanyPage"
+                            BottomNavComponent={CorporateBottomNav}
                         />
                     )}
                 </Stack.Screen>

@@ -127,7 +127,7 @@ Corporate App の会社詳細画面に定義されている技術スタック表
 
 3. **エンジニアスキル分析 (Heatmap/TechStack) の高度化**
    - **ステータス**: ✅ 完了
-   - **目的**: Corporate（自社分析）とAdmin（全体分析）での共通利用。
+   - **目的**: Corporate, Individual, Admin, JD 全てのアプリでの共通利用。
    - **計画**: `heatmap_engine` のロジックとUIコンポーネントをセットで再利用可能なパッケージとして整備する。
    - **完了内容**: Heatmap関連コンポーネント(Grid, Mini, Calculator等)とTechStackViewを `shared/features/analytics` に集約。各アプリからの参照パスを `@shared` エイリアス経由に統一し、依存関係を整理しました。
 

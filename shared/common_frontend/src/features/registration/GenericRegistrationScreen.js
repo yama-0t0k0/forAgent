@@ -52,6 +52,7 @@ const CategoryScreen = ({ route }) => {
  * @property {string} [idPrefixChar='C'] - ID prefix character
  * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
  * @property {Object} [orderTemplate] - Template for field ordering
+ * @property {React.ComponentType} [BottomNavComponent] - Component to render for bottom navigation
  */
 
 /**
@@ -110,7 +111,15 @@ const getSortedKeys = (data, idField, orderTemplate) => {
  * 
  * @param {GenericRegistrationScreenProps} props
  */
-export const GenericRegistrationScreen = ({ collectionName, idField, title, idPrefixChar = 'C', homeRouteName = 'MyPage', orderTemplate = null }) => {
+export const GenericRegistrationScreen = ({
+  collectionName,
+  idField,
+  title = "Registration",
+  idPrefixChar = 'C',
+  homeRouteName = 'MyPage',
+  orderTemplate,
+  BottomNavComponent = BottomNav
+}) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -221,7 +230,7 @@ export const GenericRegistrationScreen = ({ collectionName, idField, title, idPr
         ))}
       </Tab.Navigator>
 
-      <BottomNav navigation={navigation} activeTab="Registration" />
+      <BottomNavComponent navigation={navigation} activeTab="Registration" />
     </View>
   );
 };

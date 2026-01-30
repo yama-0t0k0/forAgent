@@ -11,8 +11,8 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
 // Import screens directly for modal display (using relative paths for cross-app access in shared)
 // Note: This assumes specific directory structure of the monorepo
-import { JobDescriptionScreen } from '@job_app/src/features/job_description/JobDescriptionScreen';
-import { MyPageScreen } from '@individual_app/src/features/profile/MyPageScreen';
+import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
+import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 
 /**
  * @typedef {Object} ConnectionScreenProps
@@ -271,7 +271,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             >
                 {selectedUser && (
                     <View style={{ flex: 1 }}>
-                        <MyPageScreen
+                        <IndividualProfileScreen
                             userId={selectedUser.id}
                             userDoc={selectedUser}
                             hideSafeArea={true}
