@@ -11,6 +11,7 @@ set -e  # Exit on any error
 AUTO_MODE=true
 TARGET_BRANCH="yama"
 DRY_RUN=false
+AUTHORIZATION_EVIDENCE=""
 
 # Parse command line arguments
 parse_arguments() {
@@ -19,6 +20,10 @@ parse_arguments() {
             --auto)
                 AUTO_MODE=true
                 shift
+                ;;
+            --authorized-by)
+                AUTHORIZATION_EVIDENCE="$2"
+                shift 2
                 ;;
             --prompt)
                 PROMPT_SUMMARY="$2"
@@ -591,9 +596,40 @@ check_project_dir() {
     echo "✅ Correct project directory verified"
 }
 
+# Function to verify explicit user instruction
+verify_user_instruction() {
+    # Check if we have explicit authorization evidence
+    if [ -n "$AUTHORIZATION_EVIDENCE" ]; then
+        echo "🛡️  Authorization Evidence: \"$AUTHORIZATION_EVIDENCE\""
+        return 0
+    fi
+
+    echo "🛑 SAFETY CHECK: Has the user EXPLICITLY requested this push?"
+    echo "   (Check chat history. Do not assume 'proceed' or 'fix' means 'push'.)"
+
+    if [ "$AUTO_MODE" = true ]; then
+        echo "❌ Error: Missing --authorized-by argument in auto mode."
+        echo "   You must provide the EXACT command/text from the user that authorized this push."
+        echo "   Example: ./safe_push.sh --authorized-by \"Please push the changes\" ..."
+        echo "   (This prevents 'brain-dead' confirmation by requiring evidence extraction)"
+        exit 1
+    else
+        read -p "Please type the keyword that authorized this push (e.g. 'push'): " AUTH_INPUT
+        if [ -z "$AUTH_INPUT" ]; then
+            echo "❌ Push cancelled: No authorization evidence provided."
+            exit 1
+        fi
+        AUTHORIZATION_EVIDENCE="$AUTH_INPUT"
+    fi
+}
+
 # Main execution
 main() {
     parse_arguments "$@"
+    
+    # 1. Permission Check (Poka-yoke)
+    verify_user_instruction
+
     check_project_dir
     
     # Run Local CI Pipeline
