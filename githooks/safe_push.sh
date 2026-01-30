@@ -12,6 +12,10 @@ AUTO_MODE=true
 TARGET_BRANCH="yama"
 DRY_RUN=false
 AUTHORIZATION_EVIDENCE=""
+TARGET_MILESTONE=""
+
+# Capture original arguments for delegation
+ORIGINAL_ARGS=("$@")
 
 # Parse command line arguments
 parse_arguments() {
@@ -23,6 +27,10 @@ parse_arguments() {
                 ;;
             --authorized-by)
                 AUTHORIZATION_EVIDENCE="$2"
+                shift 2
+                ;;
+            --milestone)
+                TARGET_MILESTONE="$2"
                 shift 2
                 ;;
             --prompt)
@@ -235,6 +243,9 @@ detect_labels() {
 
 echo "🚀 Universal Safe Push Script for UI-centric Development"
 echo "=================================================="
+
+
+
 if [ "$AUTO_MODE" = true ]; then
     echo "🤖 Running in automatic mode"
 fi
@@ -626,12 +637,32 @@ verify_user_instruction() {
 # Main execution
 main() {
     parse_arguments "$@"
+
+    # Ensure we are in the project root before attempting delegation
+    check_project_dir
+
+    # --- Milestone Branching Logic ---
+    # Case 1: Milestone explicitly provided via argument
+    if [ -n "$TARGET_MILESTONE" ]; then
+        echo "🔄 Delegating to Milestone Push Script (Milestone: $TARGET_MILESTONE)..."
+        exec node scripts/push_with_milestone.js "${ORIGINAL_ARGS[@]}"
+    fi
+
+    # Case 2: Interactive mode - Ask user
+    if [ "$AUTO_MODE" = false ]; then
+        echo "❓ Is this task related to a GitHub Milestone? (y/N)"
+        read -n 1 -r REPLY
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "🔄 Delegating to Milestone Push Script..."
+            exec node scripts/push_with_milestone.js "${ORIGINAL_ARGS[@]}"
+        fi
+    fi
+    # ---------------------------------
     
     # 1. Permission Check (Poka-yoke)
     verify_user_instruction
 
-    check_project_dir
-    
     # Run Local CI Pipeline
     if [ -x "./scripts/local_ci.sh" ]; then
         echo "🛡️  Running Local CI Pipeline..."
