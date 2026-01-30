@@ -210,7 +210,7 @@ async function main() {
     }
 
     console.log('\n🚀 Pushing...');
-    runCommand('git', ['push', 'origin', TARGET_BRANCH]);
+    runCommand('git', ['push', 'origin', TARGET_BRANCH], { env: { ...process.env, ALLOW_PUSH: '1' } });
 
     // 5. Create Issue
     console.log('\n📋 Creating Issue...');
