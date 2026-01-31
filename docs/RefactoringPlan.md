@@ -129,5 +129,33 @@ Corporate App の会社詳細画面に定義されている技術スタック表
    - **ステータス**: ✅ 完了
    - **目的**: Corporate, Individual, Admin, JD 全てのアプリでの共通利用。
    - **計画**: `heatmap_engine` のロジックとUIコンポーネントをセットで再利用可能なパッケージとして整備する。
-   - **完了内容**: Heatmap関連コンポーネント(Grid, Mini, Calculator等)とTechStackViewを `shared/features/analytics` に集約。各アプリからの参照パスを `@shared` エイリアス経由に統一し、依存関係を整理しました。
+    - **完了内容**: Heatmap関連コンポーネント(Grid, Mini, Calculator等)とTechStackViewを `shared/features/analytics` に集約。各アプリからの参照パスを `@shared` エイリアス経由に統一し、依存関係を整理しました。
 
+
+## 7. 追加の共通化提案（フェーズ2：基盤と一貫性の強化）
+
+既存の機能単位の共通化に加え、開発効率とユーザー体験のさらなる向上のための基盤強化案です。
+
+### 1. App Shell (共通基盤コンポーネント) の導入
+- **目的**: 各アプリの `App.js` にある共通のボイラープレートを統一。
+- **内容**: `SafeAreaProvider`, `StatusBar`, 初期ロード画面 (`ActivityIndicator`) を内包した `AppShell.js` を作成。
+
+### 2. デザインシステム (Typography & Spacing) の拡張
+- **目的**: 「マジックナンバー」を排除し、デザインの一貫性を担保。
+- **内容**: `shared/theme.js` にフォントサイズ (`h1`, `h2`, `body`...) と余白定数 (`sm: 8`, `md: 16`...) を追加。
+
+### 3. ステート表示 (Empty / Error / Loading) の共通化
+- **目的**: 状態に応じた標準的なUIフィードバックを全アプリで一貫させる。
+- **内容**: `EmptyState.js`, `ErrorState.js`, `GlobalLoadingOverlay.js` の作成と適用。
+
+### 4. 共通カスタムフックの整備 (useFirestore / useForm)
+- **目的**: ロジックの再利用性を高め、各画面のコードを簡潔にする。
+- **内容**: ローディング・エラー処理をラップしたデータ取得フックや、バリデーション機能付きフォーム管理フックの作成。
+
+### 5. ナビゲーション定数 (Route Names) の集約
+- **目的**: 文字列リテラルによる遷移エラーの防止。
+- **内容**: `shared/constants/navigation.js` でルート名（`CompanyDetail` 等）を定数化。
+
+### 6. 共通ヘッダーコンポーネント (`ScreenHeader`)
+- **目的**: 戻るボタンやアクションボタンを含む標準的なヘッダーを統一。
+- **内容**: 各アプリの実装を `shared` の標準コンポーネントに移行。
