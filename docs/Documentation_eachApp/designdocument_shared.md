@@ -92,6 +92,23 @@ shared/
   - `collectionName`: 保存先コレクション（例: `engineer`）
   - `idPrefixChar`: ID接頭辞（例: `C`）
 
+#### Analytics (`features/analytics`)
+- **HeatmapGrid.js / MiniHeatmap.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。
+- **TechStackView.js**: 技術スタックの視覚化コンポーネント。
+- **utils/**: `HeatmapCalculator`, `HeatmapGeometry`, `HeatmapMapper` などの計算ロジックを含む。
+
+#### Job Profile (`features/job_profile`)
+- **JobDescriptionContent.js**: 求人詳細情報の統一表示コンポーネント。AdminアプリとJobアプリで共通利用される。
+- **JobDescriptionScreen.js**: 求人詳細画面のコンテナ。
+
+#### Profile (`features/profile`)
+- **GenericMenuScreen.js**: 各アプリのメニュー画面の基底コンポーネント。
+- **IndividualProfileScreen.js**: 個人ユーザー向けプロフィール画面。
+- **ImageEditScreen.js**: 画像編集・アップロード機能（Corporate/Individual/Generic）。
+
+#### Selection (`features/selection`)
+- **SelectionFlowEditor.js**: 選考プロセスの進捗管理・編集コンポーネント。フェーズごとのステータス管理や日付設定を行う。
+
 #### Engineer (`features/engineer`)
 - **EngineerListItem.js**: エンジニア一覧表示用のリストアイテム。スキルタグやヒートマップを表示。
 
@@ -100,10 +117,7 @@ shared/
 
 #### Company (`features/company`)
 - **CompanyListItem.js**: 法人一覧表示用のリストアイテム。使用技術スタック（Main）のバッジを表示。
-
-#### Company Profile (`features/company_profile`)
-- **CompanyPageScreen.js**: 法人プロフィール詳細画面。AdminアプリとCorporateアプリで共有される。
-- **TechStackScreen.js**: 使用技術スタックの表示画面。
+- **CompanyProfileView.js**: 法人プロフィール表示コンポーネント。
 
 ---
 
