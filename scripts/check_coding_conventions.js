@@ -36,6 +36,14 @@ const RULES = [
         message: 'Deep relative path detected. Use Path Aliases (e.g. @shared/) instead. (Convention 5.1)',
         // Matches ../../ (2 levels up) or more
         regex: /\.\.\/\.\.\//g
+    },
+    {
+        id: 'no-magic-values',
+        level: 'warning',
+        message: 'Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)',
+        // Matches comparisons (===, !==, ==, !=, >, <, >=, <=) with raw numbers (excluding -1, 0, 1) or strings (excluding empty "")
+        // Heuristic: looks for space surrounding op, then literal.
+        regex: /(?:===|!==|==|!=|>=|<=|>|<)\s*(?!0\b|1\b|-1\b|""\b|''\b)(?:['"`][^'"`]+['"`]|-?\d+)/g
     }
 ];
 
@@ -117,6 +125,38 @@ function checkFile(filePath) {
     });
 
     // 2. Context-aware checks (JSDoc)
+    // 2.1 File Naming Convention Check (Convention 5.2)
+    const fileName = path.basename(filePath, path.extname(filePath));
+    if (fileName !== 'index') {
+        // Check for Class definition
+        if (/class\s+\w+/.test(content)) {
+            if (/^[a-z]/.test(fileName)) {
+                report(filePath, 0, 'warning', `File contains 'class' definition but filename is camelCase. Rename to PascalCase (e.g. ${fileName.charAt(0).toUpperCase() + fileName.slice(1)}.js). (Convention 5.2)`, fileName);
+            }
+        }
+        // Check for Component definition (heuristic: PascalCase export)
+        else if (/export\s+(?:default\s+)?(?:const|function)\s+([A-Z]\w+)/.test(content)) {
+             // If it exports a PascalCase symbol, it's likely a component, so filename should be PascalCase
+             // Exception: sometimes we export Types/Constants from utils, but typically main export matches filename.
+             // We'll stick to: if filename is camelCase, verify it doesn't export a Component-like name as default or main
+             const match = content.match(/export\s+(?:default\s+)?(?:const|function)\s+([A-Z]\w+)/);
+             if (match && /^[a-z]/.test(fileName)) {
+                 // Weak warning: might be utility exporting a constant?
+                 // Let's restrict to 'default' export or strict match
+                 // If export name matches filename (case-insensitive) but case differs
+                 if (match[1].toLowerCase() === fileName.toLowerCase()) {
+                      report(filePath, 0, 'warning', `File exports component '${match[1]}' but filename is camelCase. Rename to PascalCase. (Convention 5.2)`, fileName);
+                 }
+             }
+        }
+        // If filename is PascalCase, it should likely contain a class or component
+        else if (/^[A-Z]/.test(fileName)) {
+             // If no class and no PascalCase export found above...
+             // Maybe check if it's just a screen or component defined differently?
+             // Skipping reverse check to avoid false positives.
+        }
+    }
+
     lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         // Skip comments
