@@ -204,7 +204,8 @@ function checkFile(filePath) {
                    // Check if @param exists for this arg
                     // We allow @param {Type} argName OR @param {Type} props.argName (common convention) OR params.argName
                     // Handle optional parameters like [arg] or [props.arg] or [arg=default]
-                    const paramRegex = new RegExp(`@param\\s+\\{[^}]+\\}\\s+(?:\\[\\s*)?(?:props\\.|params\\.)?${cleanArg}(?:\\s*=[^\\]]+)?(?:\\s*\\])?(?:\\s|$)`);
+                    // Updated regex to allow [] in default values (e.g. [arg=[]])
+                    const paramRegex = new RegExp(`@param\\s+\\{[^}]+\\}\\s+(?:\\[\\s*)?(?:props\\.|params\\.)?${cleanArg}(?:\\s*=(?:[^\\]]|\\[\\])+)?(?:\\s*\\])?(?:\\s|$)`);
                     if (!paramRegex.test(jsDocContent)) {
                          report(filePath, index + 1, 'warning', `Missing or incomplete @param JSDoc for argument '${cleanArg}'. Expected format: @param {Type} ${cleanArg} ...`, line.trim());
                     }

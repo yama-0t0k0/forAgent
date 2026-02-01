@@ -25,6 +25,11 @@ import { StatusRow } from './StatusRow';
  * Collapsible Accordion Item for RecursiveField.
  * 
  * @param {AccordionItemProps} props
+ * @param {string} props.label - Section label
+ * @param {Object} props.data - Nested data object
+ * @param {number} props.depth - Nesting depth
+ * @param {string[]} props.path - Data path
+ * @param {Object} [props.orderTemplate] - Template for key ordering
  */
 const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const [expanded, setExpanded] = useState(depth === 0);

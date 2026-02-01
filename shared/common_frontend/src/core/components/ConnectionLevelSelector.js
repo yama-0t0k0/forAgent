@@ -15,6 +15,8 @@ import { CONNECTION_LEVELS, CONNECTION_LEVEL_TEXTS } from '@shared/src/core/cons
  * Allows selecting a connection level (1, 2, 3).
  * 
  * @param {ConnectionLevelSelectorProps} props
+ * @param {Object} props.value - Current value object (e.g. { "Interested": true })
+ * @param {string[]} props.path - Data path for context update
  */
 export const ConnectionLevelSelector = ({ value, path }) => {
   const context = useContext(DataContext);

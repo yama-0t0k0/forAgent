@@ -13,6 +13,9 @@ import { GenericBottomNav } from './GenericBottomNav';
  * Provides navigation between main screens (Home, Career, Connection, etc.).
  * 
  * @param {BottomNavProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {string} [props.activeTab='Home'] - Currently active tab ID
+ * @param {Object} [props.userDoc=null] - User document (optional)
  */
 export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) => {
     const tabs = [
