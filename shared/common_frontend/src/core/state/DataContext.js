@@ -16,27 +16,41 @@ export const DataContext = createContext(null);
  * @returns {JSX.Element}
  */
 export const DataProvider = ({ children, initialData }) => {
-  // Use useEffect to update state when initialData changes
-  const [data, setData] = useState(initialData ? JSON.parse(JSON.stringify(initialData)) : {});
+  // Use initialData directly without JSON serialization to preserve Model instances
+  const [data, setData] = useState(initialData || {});
 
   React.useEffect(() => {
     if (initialData) {
-      setData(JSON.parse(JSON.stringify(initialData)));
+      setData(initialData);
     }
   }, [initialData]);
 
   /**
    * Updates a value at the specified path in the data object.
+   * Uses prototype-preserving shallow copy to maintain Model instances.
    * @param {string[]} path - The path to the value.
    * @param {any} newValue - The new value.
    */
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
-      const newData = JSON.parse(JSON.stringify(prevData));
+      // Helper to shallow clone while preserving prototype (for Models)
+      const shallowClone = (obj) => {
+        if (obj === null || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return [...obj];
+        const clone = Object.create(Object.getPrototypeOf(obj));
+        return Object.assign(clone, obj);
+      };
+
+      const newData = shallowClone(prevData);
       let current = newData;
+      
       for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]];
+        const key = path[i];
+        // Clone the next level
+        current[key] = shallowClone(current[key] || {});
+        current = current[key];
       }
+      
       current[path[path.length - 1]] = newValue;
       return newData;
     });

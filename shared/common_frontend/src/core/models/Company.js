@@ -103,6 +103,11 @@ export class Company {
     static fromFirestore(id, data) {
         if (!data) return new Company(id, "", "", "", "", "", "", "", "", "", "", {}, {}, {}, {});
 
+        // If data is already a Company instance, return it directly
+        if (data instanceof Company) {
+            return data;
+        }
+
         /** @type {Object.<string, any>} */
         const profile = data[Company.FIELDS.PROFILE] ?? {};
         /** @type {Object.<string, any>} */

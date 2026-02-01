@@ -55,7 +55,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
     // Use useFirestoreSnapshot for real-time updates when it's not the current user in local data
     const docRef = useMemo(() => (!isCurrentUser && userId ? doc(db, 'individual', userId) : null), [userId, isCurrentUser]);
-    const { data: remoteUserDoc, loading: remoteLoading } = useFirestoreSnapshot(docRef);
+    const { data: remoteUserDoc, loading: remoteLoading } = useFirestoreSnapshot(docRef, User);
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
     const [heatmapValues, setHeatmapValues] = useState(null);
@@ -67,8 +67,8 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
         if (remoteUserDoc) setUserDoc(remoteUserDoc);
     }, [remoteUserDoc]);
 
-    // Convert raw doc to User model
-    const user = User.fromFirestore(userId, userDoc);
+    // Ensure we have a User model instance (handles hydration from nav params if needed)
+    const user = userDoc instanceof User ? userDoc : User.fromFirestore(userId, userDoc);
 
     // Fallback: calculate heatmap from local context data when remote not yet available and it is current user
     useEffect(() => {

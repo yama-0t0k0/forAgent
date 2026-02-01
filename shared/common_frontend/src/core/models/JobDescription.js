@@ -44,6 +44,10 @@ export class JobDescription {
     static fromFirestore(id, data, companyId = "") {
         if (!data) return new JobDescription(id, companyId, "", {}, {});
 
+        if (data instanceof JobDescription) {
+            return data;
+        }
+
         /** @type {Object.<string, any>} */
         const basicItems = data.basicItems ?? data[JobDescription.FIELDS.BASIC_ITEMS] ?? {};
         const jdNumber = id || data.JD_Number || basicItems.JD_Number || "";

@@ -172,11 +172,11 @@ export default function DashboardScreen() {
    */
   const filteredUsers = useMemo(() => {
     const query = searchQueries.individual.toLowerCase();
-    const rawUsers = [...(data?.users || [])];
+    const users = [...(data?.users || [])];
 
     // Inject E2E Dummy User if empty
-    if (rawUsers.length === 0) {
-      rawUsers.push({
+    if (users.length === 0) {
+      users.push(User.fromFirestore('C000000000000', {
         id: 'C000000000000',
         name: '【テスト】開発者 (E2E用)',
         '基本情報': {
@@ -185,11 +185,8 @@ export default function DashboardScreen() {
           'メール': 'test@example.com'
         },
         createdAt: 0
-      });
+      }));
     }
-
-    // Convert to User models
-    const users = rawUsers.map(u => User.fromFirestore(u.id, u));
 
     return users.filter(u => {
       // Use rawData for nested fields not fully mapped in User model yet
@@ -256,16 +253,16 @@ export default function DashboardScreen() {
     const rawJobs = [...(data?.jd || [])];
 
     if (rawJobs.length === 0) {
-      rawJobs.push({
+      rawJobs.push(JobDescription.fromFirestore('J00000', {
         id: 'J00000',
         JD_Number: '02',
         company_ID: 'B00000',
         title: '【テスト】フロントエンドエンジニア (E2E用)',
         createdAt: 0
-      });
+      }));
     }
 
-    const jobs = rawJobs.map(j => JobDescription.fromFirestore(j.id, j));
+    const jobs = rawJobs;
 
     return jobs.filter(j => {
       // 検索対象のフィールドを定義
@@ -293,8 +290,7 @@ export default function DashboardScreen() {
    * @type {Array<Object>}
    */
   const selectionFlowData = useMemo(() => {
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    const fmjs = data?.fmjs || [];
     const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
 
     fmjs.forEach(item => {
@@ -329,8 +325,7 @@ export default function DashboardScreen() {
    */
   const filteredSelections = useMemo(() => {
     const query = searchQueries.selection.toLowerCase();
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    const fmjs = data?.fmjs || [];
 
     return fmjs.filter(s =>
       (s.rawData.JobStatID && s.rawData.JobStatID.toLowerCase().includes(query)) ||
@@ -345,8 +340,7 @@ export default function DashboardScreen() {
    */
   const modalData = useMemo(() => {
     if (!modalFilter) return [];
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    const fmjs = data?.fmjs || [];
 
     return fmjs.filter(item => {
       const phases = item.progress[SelectionProgress.FIELDS.PHASE] || {};

@@ -5,6 +5,10 @@
 
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
+import { Company } from '@shared/src/core/models/Company';
+import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 
 /**
  * Merges arrays of objects by ID, removing duplicates.
@@ -57,24 +61,26 @@ const fetchDocument = async (collectionName, docId) => {
 export const FirestoreDataService = {
     /**
      * Fetches all individuals from the 'individual' collection.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<User>>}
      */
     async fetchAllIndividuals() {
-        return fetchCollection('individual');
+        const docs = await fetchCollection('individual');
+        return docs.map(d => User.fromFirestore(d.id, d));
     },
 
     /**
      * Fetches a single individual by ID.
      * @param {string} id - The individual ID.
-     * @returns {Promise<Object|null>}
+     * @returns {Promise<User|null>}
      */
     async fetchIndividualById(id) {
-        return fetchDocument('individual', id);
+        const data = await fetchDocument('individual', id);
+        return data ? User.fromFirestore(id, data) : null;
     },
 
     /**
      * Fetches all job descriptions with nested JD_Number subcollections.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<JobDescription>>}
      */
     async fetchAllJobDescriptions() {
         try {
@@ -87,12 +93,16 @@ export const FirestoreDataService = {
                     const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
                     jdSnap.forEach(d => {
                         const data = d.data();
-                        allJobs.push({
-                            id: `${companyId}_${d.id}`,
-                            company_ID: companyId,
-                            JD_Number: data.JD_Number || d.id,
-                            ...data
-                        });
+                        allJobs.push(JobDescription.fromFirestore(
+                            `${companyId}_${d.id}`,
+                            {
+                                id: `${companyId}_${d.id}`,
+                                company_ID: companyId,
+                                JD_Number: data.JD_Number || d.id,
+                                ...data
+                            },
+                            companyId
+                        ));
                     });
                 } catch (err) {
                     console.error(`[FirestoreDataService] Error fetching JDs for ${companyId}:`, err);
@@ -109,7 +119,7 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all corporates from multiple possible collection names.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<Company>>}
      */
     async fetchAllCorporates() {
         const [companiesPrimary, companiesFallback1, companiesFallback2] = await Promise.all([
@@ -117,25 +127,28 @@ export const FirestoreDataService = {
             fetchCollection('company'),
             fetchCollection('corporate')
         ]);
-        return mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
+        const merged = mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
+        return merged.map(d => Company.fromFirestore(d.id, d));
     },
 
     /**
      * Fetches a single corporate by ID.
      * @param {string} id - The corporate ID.
      * @param {string} [collectionName='company'] - The collection name.
-     * @returns {Promise<Object|null>}
+     * @returns {Promise<Company|null>}
      */
     async fetchCorporateById(id, collectionName = 'company') {
-        return fetchDocument(collectionName, id);
+        const data = await fetchDocument(collectionName, id);
+        return data ? Company.fromFirestore(id, data) : null;
     },
 
     /**
      * Fetches all Fee Management & Job Stats data.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
-        return fetchCollection('FeeMgmtAndJobStatDB');
+        const docs = await fetchCollection('FeeMgmtAndJobStatDB');
+        return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
     },
 
     /**

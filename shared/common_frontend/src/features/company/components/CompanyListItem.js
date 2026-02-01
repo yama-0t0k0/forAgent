@@ -53,8 +53,9 @@ export const CompanyListItem = ({ item }) => {
     return techs;
   }, [item]);
 
-  // Use Company model to handle data normalization
-  const company = item instanceof Company ? item : Company.fromFirestore(item.id, item);
+  // Item prop is expected to be a Company model instance
+  /** @type {Company} */
+  const company = item;
 
   const companyName = company.name || '名称未設定';
   const address = company.formattedAddress;

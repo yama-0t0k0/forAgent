@@ -38,10 +38,9 @@ export const EngineerListItem = ({
   testID,
   showMatchScore = true
 }) => {
-  // Ensure we have a User model instance
-  const user = engineer instanceof User 
-    ? engineer 
-    : User.fromFirestore(engineer.id || engineer['基本情報']?.id, engineer);
+  // Engineer prop is expected to be a User model instance from FirestoreDataService
+  /** @type {User} */
+  const user = engineer;
 
   const fullName = user.fullNameKanji || (user.rawData.name) || '名称未設定';
   

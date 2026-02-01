@@ -256,8 +256,8 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                 {selectedJob && (
                     <View style={{ flex: 1, overflow: 'hidden' }}>
                         <JobDescriptionScreen
-                            companyId={selectedJob.company_ID}
-                            jdNumber={selectedJob.JD_Number}
+                            companyId={selectedJob.companyId || selectedJob.company_ID}
+                            jdNumber={selectedJob.id || selectedJob.JD_Number}
                         />
                     </View>
                 )}

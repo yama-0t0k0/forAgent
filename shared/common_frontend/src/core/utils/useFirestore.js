@@ -37,9 +37,10 @@ export const useFirestore = (fetchFn, dependencies = []) => {
  * useFirestoreSnapshot - A custom hook for real-time Firestore document updates.
  * 
  * @param {import('firebase/firestore').DocumentReference} docRef - The Firestore document reference
+ * @param {Class} [ModelClass] - Optional Model class to convert the data to
  * @returns {Object} { data, loading, error }
  */
-export const useFirestoreSnapshot = (docRef) => {
+export const useFirestoreSnapshot = (docRef, ModelClass = null) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -53,7 +54,12 @@ export const useFirestoreSnapshot = (docRef) => {
         const unsubscribe = onSnapshot(docRef,
             (docSnap) => {
                 if (docSnap.exists()) {
-                    setData(docSnap.data());
+                    const rawData = docSnap.data();
+                    if (ModelClass && typeof ModelClass.fromFirestore === 'function') {
+                        setData(ModelClass.fromFirestore(docSnap.id, rawData));
+                    } else {
+                        setData(rawData);
+                    }
                 } else {
                     setData(null);
                 }
@@ -67,7 +73,7 @@ export const useFirestoreSnapshot = (docRef) => {
         );
 
         return () => unsubscribe();
-    }, [docRef]);
+    }, [docRef, ModelClass]);
 
     return { data, loading, error };
 };

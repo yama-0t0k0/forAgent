@@ -68,6 +68,11 @@ export class User {
     static fromFirestore(id, data) {
         if (!data) return new User(id, "", "", "", "", "", "", "", {}, {}, {});
 
+        // If data is already a User instance, return it directly
+        if (data instanceof User) {
+            return data;
+        }
+
         /** @type {Object.<string, any>} */
         const basicInfo = data.basicInfo ?? data[User.FIELDS.BASIC_INFO] ?? {};
         const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || "";
