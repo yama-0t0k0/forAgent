@@ -1,8 +1,8 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DataContext } from '../state/DataContext';
-import { THEME } from '../theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} DatePickerInputProps

@@ -20,6 +20,7 @@ import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@share
 // Components
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
+import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
 import { OverviewTab } from './components/tabs/OverviewTab';
 import { IndividualTab } from './components/tabs/IndividualTab';
 import { CompanyTab } from './components/tabs/CompanyTab';
@@ -202,7 +203,7 @@ export default function DashboardScreen() {
         u.familyNameKanji,
         u.email,
         // Fallback checks for raw data
-        u.rawData.name, 
+        u.rawData.name,
         basicInfo['姓'],
         basicInfo['名'],
         basicInfo['メールアドレス'],
@@ -271,7 +272,7 @@ export default function DashboardScreen() {
       const id = j.id || '';
       const jdNumber = j.id || ''; // JD_Number is often the ID
       const positionName = j.positionName || '';
-      
+
       // Also check raw fields for safety
       const rawTitle = j.rawData.title || '';
       const rawJdNumber = j.rawData.JD_Number || '';
@@ -346,7 +347,7 @@ export default function DashboardScreen() {
     if (!modalFilter) return [];
     const rawFmjs = data?.fmjs || [];
     const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
-    
+
     return fmjs.filter(item => {
       const phases = item.progress[SelectionProgress.FIELDS.PHASE] || {};
       return phases[modalFilter.key] === true;
@@ -387,10 +388,11 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container} testID="dashboard_screen">
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle} testID="header_title">管理ダッシュボード</Text>
-        <NotificationIcon />
-      </View>
+      <ScreenHeader
+        title="管理ダッシュボード"
+        showBack={false}
+        rightAction={<NotificationIcon />}
+      />
 
       {/* Tabs */}
       <View style={styles.tabBar}>

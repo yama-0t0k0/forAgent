@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, ActivityIndicator, View, Text } from 'react-native';
 
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+import { AppShell } from '@shared/src/core/components/AppShell';
 
 const ENGINEER_TEMPLATE = require('./assets/json/engineer-profile-template.json');
 
@@ -59,18 +60,12 @@ const EngineerRegistrationWrapper = () => {
     return () => { mounted = false; };
   }, []);
 
-  if (loading || !initialData) {
-    return (
-      <View testID="app_loading_view" style={{ flex: 1, backgroundColor: THEME.background, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={THEME.accent} />
-      </View>
-    );
-  }
-
   return (
-    <DataProvider initialData={initialData}>
-      <AppNavigator />
-    </DataProvider>
+    <AppShell isLoading={loading || !initialData}>
+      <DataProvider initialData={initialData}>
+        <AppNavigator />
+      </DataProvider>
+    </AppShell>
   );
 };
 
@@ -81,13 +76,8 @@ const EngineerRegistrationWrapper = () => {
  */
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: 'yellow' }}>
-        <StatusBar barStyle="dark-content" />
-        <NavigationContainer>
-          <EngineerRegistrationWrapper />
-        </NavigationContainer>
-      </View>
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <EngineerRegistrationWrapper />
+    </NavigationContainer>
   );
 }

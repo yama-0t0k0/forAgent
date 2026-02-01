@@ -133,8 +133,15 @@ Corporate App の会社詳細画面に定義されている技術スタック表
 
 
 ## 7. 追加の共通化提案（フェーズ2：基盤と一貫性の強化）
-
-既存の機能単位の共通化に加え、開発効率とユーザー体験のさらなる向上のための基盤強化案です。
+- **ステータス**: ✅ 完了 (2026-02-01)
+- **完了内容**:
+  - `AppShell` による基盤ボイラープレートの集約。
+  - `THEME` オブジェクトへの Typography / Spacing システムの導入。
+  - `EmptyState`, `ErrorState`, `GlobalLoadingOverlay` によるエラー/ローディング表示の共通化。
+  - `useFirestore`, `useFirestoreSnapshot`, `useForm` カスタムフックの整備。
+  - `ROUTES` 定数によるナビゲーション管理の集約。
+  - `ScreenHeader` によるヘッダーコンポーネントの標準化。
+  - `IndividualProfileScreen`, `SelectionProgressListScreen`, `DashboardScreen` 等への適用。
 
 ### 1. App Shell (共通基盤コンポーネント) の導入
 - **目的**: 各アプリの `App.js` にある共通のボイラープレートを統一。

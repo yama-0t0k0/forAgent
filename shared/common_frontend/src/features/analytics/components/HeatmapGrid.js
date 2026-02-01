@@ -14,8 +14,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
-import { HeatmapMapper } from '../utils/HeatmapMapper';
-import { HeatmapGeometry } from '../utils/HeatmapGeometry';
+import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMapper';
+import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
 
 const { width } = Dimensions.get('window');
 
@@ -118,13 +118,13 @@ export const HeatmapGrid = ({
   };
 
   return (
-    <View 
+    <View
       testID={testID}
-      style={[styles.heatmapGrid, { width: containerWidth }]} 
+      style={[styles.heatmapGrid, { width: containerWidth }]}
       onLayout={(e) => {
-      const { width: w, height: h } = e.nativeEvent.layout;
-      setContainerSize({ width: w, height: h });
-    }}>
+        const { width: w, height: h } = e.nativeEvent.layout;
+        setContainerSize({ width: w, height: h });
+      }}>
       {gridData.map((item, index) => (
         <TouchableOpacity
           key={item.id}

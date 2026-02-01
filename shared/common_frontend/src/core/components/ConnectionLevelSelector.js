@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { DataContext } from '../state/DataContext';
-import { THEME } from '../theme/theme';
-import { CONNECTION_LEVELS, CONNECTION_LEVEL_TEXTS } from '../constants/index';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
+import { CONNECTION_LEVELS, CONNECTION_LEVEL_TEXTS } from '@shared/src/core/constants/index';
 
 /**
  * @typedef {Object} ConnectionLevelSelectorProps

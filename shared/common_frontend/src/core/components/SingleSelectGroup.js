@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
-import { DataContext } from '../state/DataContext';
-import { THEME } from '../theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} SingleSelectGroupProps

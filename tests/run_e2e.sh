@@ -28,6 +28,7 @@ case $APP_NAME in
     echo "⚙️  Configuring for Admin App..."
     TEST_FILES=(
       "tests/jobs/smoke_check_errors.yaml"
+      "tests/jobs/smoke_check_ui.yaml"
       "tests/jobs/full_coverage_test.yaml"
       "tests/jobs/admin_modal_interaction_test.yaml"
     )
@@ -70,7 +71,8 @@ fi
 
 # 🌐 Step 2: Start Expo Server
 echo "🌐 Step 2: Starting Expo Server for $APP_NAME..."
-./scripts/start_expo.sh "$APP_NAME" > "$LOG_FILE" 2>&1 &
+touch "$LOG_FILE"
+./scripts/start_expo.sh "$APP_NAME" >> "$LOG_FILE" 2>&1 &
 EXPO_PID=$!
 
 # Wait for URL to appear (up to 80s for tunnel stability)
@@ -78,8 +80,9 @@ echo "⏳ Waiting for Expo Go Tunnel URL..."
 COUNT=0
 MAX_WAIT=80
 while [ $COUNT -lt $MAX_WAIT ] && ! grep -q "exp://" "$LOG_FILE"; do
-  sleep 2
-  COUNT=$((COUNT + 2))
+  sleep 5
+  COUNT=$((COUNT + 5))
+  echo "... still waiting ($COUNT/$MAX_WAIT)"
 done
 
 if ! grep -q "exp://" "$LOG_FILE"; then
@@ -116,10 +119,17 @@ if command -v maestro &> /dev/null; then
     
     if [ $TEST_EXIT -ne 0 ]; then
       echo "❌ Test failed: $TEST_FILE"
+      # Capture failure screenshot using simctl
+      mkdir -p "tests/screenshots/$APP_NAME"
+      xcrun simctl io booted screenshot "tests/screenshots/$APP_NAME/failure_${TEST_FILE##*/}.png"
       exit 1
     fi
     echo "✅ Test passed: $TEST_FILE"
   done
+
+  # Organize audit screenshots
+  mkdir -p "tests/screenshots/$APP_NAME"
+  mv *.png "tests/screenshots/$APP_NAME/" 2>/dev/null 2>&1
 
   echo "🎉 ALL TESTS PASSED for $APP_NAME!"
   exit 0

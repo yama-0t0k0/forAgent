@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, LayoutAnimation, StyleSheet } from 'react-native';
-import { THEME } from '../theme/theme';
-import { SKILL_LEVEL_TEXTS } from '../constants/index';
+import { THEME } from '@shared/src/core/theme/theme';
+import { SKILL_LEVEL_TEXTS } from '@shared/src/core/constants/index';
 
 import { InputRow } from './InputRow';
 import { SwitchRow } from './SwitchRow';

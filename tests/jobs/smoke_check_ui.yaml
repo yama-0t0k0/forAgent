@@ -1,0 +1,52 @@
+appId: com.engineer_registration_app_yama.admin
+---
+- openLink: "${EXPO_URL}"
+- tapOn:
+      text: "開く"
+      optional: true
+- tapOn:
+      point: "75%, 54%"
+      optional: true
+- tapOn:
+      text: "Continue"
+      optional: true
+- tapOn:
+      point: "50%, 90%"
+      optional: true
+- tapOn:
+      text: "開く"
+      optional: true
+- tapOn:
+      text: "Dismiss"
+      optional: true
+- tapOn:
+      text: "Minimize"
+      optional: true
+
+# 1. Verify Login/Dashboard
+- extendedWaitUntil:
+      visible:
+          id: "header_title"
+      timeout: 30000
+
+# 2. Check Global UI Consistency (Footer presence in main screen if applicable)
+# Note: Dashboard usually doesn't have the BottomNav, but ConnectionScreen does.
+
+- tapOn: "個人"
+- assertVisible: "個人一覧"
+
+# 3. Open Detail Modal
+- tapOn:
+      id: "engineer_item"
+      index: 0
+
+# 4. CRITICAL: Verify Footer in Modal
+- assertVisible:
+      id: "profile_footer"
+
+# 5. Check for Clipping (Screen Audit)
+- takeScreenshot: "modal_ui_audit"
+
+# 6. Verify Interaction
+- tapOn: "キャリア"
+- assertVisible: "職務経歴"

@@ -1,4 +1,4 @@
-import { HeatmapCalculator } from './HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 
 /**
  * FMJSのタイムスタンプ (YYYYMMDDtttttt) をDateオブジェクトに変換します。

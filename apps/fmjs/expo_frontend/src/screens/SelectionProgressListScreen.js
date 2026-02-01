@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView, Button } from 'react-native';
-import { StatusBadge } from '@shared/src/core/components/StatusBadge';
-import { DetailModal } from '@shared/src/core/components/DetailModal';
-import { db } from '@shared/src/core/firebaseConfig';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 import SelectionFlowEditor from '@shared/src/features/selection/SelectionFlowEditor';
+import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
+import { useFirestore } from '@shared/src/core/utils/useFirestore';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+import { EmptyState, ErrorState } from '@shared/src/core/components/StateComponents';
 
 /**
  * Formats a number as currency.
@@ -22,50 +20,14 @@ const formatCurrency = (amount) => {
  * @returns {JSX.Element} The rendered screen component
  */
 const SelectionProgressListScreen = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, refetch } = useFirestore(
+    () => FirestoreDataService.fetchAllFMJS(),
+    []
+  );
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-
-  useEffect(() => {
-    /**
-     * Fetches data from Firestore.
-     */
-    const fetchData = async () => {
-      try {
-        console.log("Starting fetch data...");
-        console.log("Connected to Project ID:", db.app.options.projectId);
-        
-        const querySnapshot = await getDocs(collection(db, 'FeeMgmtAndJobStatDB'));
-        console.log("Firestore snapshot size:", querySnapshot.size);
-        
-        const list = [];
-        querySnapshot.forEach((doc) => {
-          // Create model instance immediately
-          list.push(SelectionProgress.fromFirestore(doc.id, doc.data()));
-        });
-        // Log sample for debugging (using rawData if needed)
-        if (list.length > 0) {
-            console.log("First item loaded:", JSON.stringify(list[0].rawData, null, 2));
-        }
-
-        // Remove duplicates if any (based on JobStatID)
-        const uniqueData = Array.from(new Map(list.map(item => [item.id, item])).values());
-        console.log("Unique data length:", uniqueData.length);
-
-        setData(uniqueData);
-      } catch (error) {
-        console.error("Error fetching data details: ", error);
-        Alert.alert("Error", "Failed to fetch data from Firestore.");
-        setData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   /**
    * Handles item press to open details modal.
@@ -88,12 +50,12 @@ const SelectionProgressListScreen = () => {
       <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>JD: {item.jdNumber}</Text>
-          <StatusBadge 
-            status={item.activeStatus} 
-            variant={item.activeStatus === 'Open' ? 'success' : 'neutral'} 
+          <StatusBadge
+            status={item.activeStatus}
+            variant={item.activeStatus === 'Open' ? 'success' : 'neutral'}
           />
         </View>
-        
+
         <View style={styles.cardBody}>
           <View style={styles.infoRow}>
             <Text style={styles.label}>フェーズ:</Text>
@@ -181,7 +143,7 @@ const SelectionProgressListScreen = () => {
     return (
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>選考フィードバック</Text>
-        
+
         <Text style={styles.subTitle}>書類選考</Text>
         {renderFeedbackDetail(item.documentScreening)}
 
@@ -217,8 +179,8 @@ const SelectionProgressListScreen = () => {
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>選考ステータス</Text>
-              <SelectionFlowEditor 
-                initialData={selectedItem.progress} 
+              <SelectionFlowEditor
+                initialData={selectedItem.progress}
                 onSave={(newPhases) => console.log("Saved phases:", newPhases)}
               />
             </View>
@@ -256,16 +218,23 @@ const SelectionProgressListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>選考進捗一覧 (FMJS)</Text>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.JobStatID || item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<Text style={styles.emptyText}>No data found.</Text>}
-        contentContainerStyle={styles.listContent}
-        stickyHeaderIndices={[0]}
-      />
+      <ScreenHeader title="選考進捗一覧 (FMJS)" showBack={false} />
+
+      {error ? (
+        <ErrorState message="データの読み込みに失敗しました" onRetry={refetch} />
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.JobStatID || item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={loading ? null : <EmptyState message="選考進捗データがありません" />}
+          contentContainerStyle={styles.listContent}
+          stickyHeaderIndices={[0]}
+          refreshing={loading}
+          onRefresh={refetch}
+        />
+      )}
 
       <DetailModal
         visible={modalVisible}

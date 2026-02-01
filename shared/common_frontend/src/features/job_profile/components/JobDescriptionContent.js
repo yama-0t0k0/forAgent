@@ -117,7 +117,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         </View>
 
                         <HeatmapGrid
-                            containerWidth={width - 40}
+                            containerWidth={containerWidth - 40}
                             dataValues={heatmapValues}
                         />
 

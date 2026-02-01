@@ -60,12 +60,9 @@ const styles = StyleSheet.create({
         borderTopColor: THEME.cardBorder,
         alignItems: 'center',
         justifyContent: 'space-around',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         paddingBottom: 15,
         zIndex: 10,
+        width: '100%',
     },
     navItem: {
         alignItems: 'center',

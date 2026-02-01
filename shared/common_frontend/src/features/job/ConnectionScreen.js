@@ -275,6 +275,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                             userId={selectedUser.id}
                             userDoc={selectedUser}
                             hideSafeArea={true}
+                            showBottomNav={true}
                         />
                     </View>
                 )}

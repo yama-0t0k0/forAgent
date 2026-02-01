@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { THEME } from '../theme/theme';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} StatusRowProps

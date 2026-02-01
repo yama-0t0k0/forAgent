@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { AppShell } from '@shared/src/core/components/AppShell';
 
 // Load initial data from jd.json
 const JD_DATA = require('./assets/json/jd.json');
@@ -16,15 +17,12 @@ const JD_DATA = require('./assets/json/jd.json');
  */
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: THEME.background }}>
-        <StatusBar barStyle="dark-content" backgroundColor={THEME.background} />
-        <DataProvider initialData={JD_DATA}>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
-        </DataProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <AppShell>
+      <DataProvider initialData={JD_DATA}>
+        <NavigationContainer>
+          <AppNavigator />
+        </NavigationContainer>
+      </DataProvider>
+    </AppShell>
   );
 }

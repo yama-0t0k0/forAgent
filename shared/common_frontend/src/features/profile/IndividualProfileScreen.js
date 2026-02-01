@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
@@ -13,6 +13,8 @@ import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapC
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { IconButton } from '@shared/src/core/components/IconButton';
+import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,7 +43,8 @@ const RAINFOREST_BG = require('@shared/assets/generated/rainforest_bg.png');
  */
 export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {
     const hideSafeArea = propHideSafeArea || route?.params?.hideSafeArea || false;
-    const showBottomNav = propShowBottomNav && (route?.params?.showBottomNav !== false);
+    // Simplify showBottomNav logic to rely more on prop
+    const showBottomNav = propShowBottomNav;
     const { data: localData } = useContext(DataContext);
     const navigation = useNavigation();
 
@@ -50,39 +53,22 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     // If it's the current user (from context) and no specific user requested, use context data
     const isCurrentUser = userId === 'C000000000000';
 
-    const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : null));
+    // Use useFirestoreSnapshot for real-time updates when it's not the current user in local data
+    const docRef = useMemo(() => (!isCurrentUser && userId ? doc(db, 'individual', userId) : null), [userId, isCurrentUser]);
+    const { data: remoteUserDoc, loading: remoteLoading } = useFirestoreSnapshot(docRef);
+
+    const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
     const [heatmapValues, setHeatmapValues] = useState(null);
+
+    const [containerWidth, setContainerWidth] = useState(width);
+
+    // Update userDoc when remote data changes
+    useEffect(() => {
+        if (remoteUserDoc) setUserDoc(remoteUserDoc);
+    }, [remoteUserDoc]);
 
     // Convert raw doc to User model
     const user = User.fromFirestore(userId, userDoc);
-
-    // Effect to fetch user data if not provided or to keep it updated
-    useEffect(() => {
-        // If we already have a userDoc passed via props/params, we might still want to listen for updates
-        // especially if it's not the logged-in user.
-
-        /** @type {() => void} */
-        let unsubscribe = () => { };
-
-        /**
-         * Fetches remote user data if necessary.
-         */
-        const fetchData = async () => {
-            if (userId && !isCurrentUser) {
-                const docRef = doc(db, 'individual', userId);
-                unsubscribe = onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const d = docSnap.data();
-                        setUserDoc(d);
-                        setHeatmapValues(HeatmapCalculator.calculate(d));
-                    }
-                });
-            }
-        };
-
-        fetchData();
-        return () => unsubscribe();
-    }, [userId]);
 
     // Fallback: calculate heatmap from local context data when remote not yet available and it is current user
     useEffect(() => {
@@ -96,12 +82,16 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
      * Navigates to the registration/edit screen.
      */
     const handleEdit = () => {
-        navigation.navigate('Registration', { isEdit: true, userDoc });
+        navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc });
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <View style={styles.container} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
+            <ScrollView
+                style={styles.mainScrollView}
+                contentContainerStyle={styles.scrollContent}
+                bounces={false}
+            >
                 {/* 1. Header Background (Instruction: ~1/3 of screen height) */}
                 <ImageBackground
                     source={user.backgroundImageUrl ? { uri: user.backgroundImageUrl } : RAINFOREST_BG}
@@ -126,7 +116,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             size={24}
                                             color="#FFF"
                                             style={styles.headerIconButton}
-                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                            onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
                                     </View>
 
@@ -177,7 +167,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             size={24}
                                             color="#FFF"
                                             style={styles.headerIconButton}
-                                            onPress={() => navigation.navigate('ImageEdit', { userDoc })}
+                                            onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
                                     </View>
 
@@ -226,7 +216,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     label={label}
                                     skillName={skills[index]}
                                     iconName={index === 0 ? "star" : index === 1 ? "medal" : "trophy"}
-                                    width={(width * 0.75) / 3.2} // Responsive width
+                                    width={(containerWidth - 40) / 3.2} // Responsive width
                                     labelStyle={styles.cardLabel}
                                     badgeStyle={styles.glassBadge}
                                     skillNameStyle={styles.cardSkillName}
@@ -236,8 +226,8 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     </View>
                 </View>
 
-                {/* 5. Heatmap Section (40% height, Visible Grid) */}
-                <View style={styles.heatmapSection}>
+                {/* 5. Heatmap Section (Visible Grid) */}
+                <View style={styles.heatmapSection} testID="skill_heatmap">
                     <View style={styles.heatmapHeader}>
                         <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                         <View style={styles.chatBotIconSmall}>
@@ -245,7 +235,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                         </View>
                     </View>
 
-                    <HeatmapGrid containerWidth={width - 40} dataValues={heatmapValues} testID="skill_heatmap" />
+                    <HeatmapGrid containerWidth={containerWidth - 40} dataValues={heatmapValues} testID="skill_heatmap" />
 
                     <View style={styles.chatBotCallout} testID="chatbot_button">
                         <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
@@ -254,22 +244,27 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                 </View>
 
                 {/* Whitespace buffer before footer */}
-                <View style={{ height: 100 }} />
+                <View style={{ height: 120 }} />
             </ScrollView>
 
-            {/* Bottom Navigation */}
+            {/* 6. Footer Navigation (Optional) */}
             {showBottomNav && (
-                <>
+                <View style={styles.footerContainer} testID="profile_footer">
                     <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
+                </View>
+            )}
 
-                    {/* 6. Renamed button + chevron */}
-                    <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
-                        <TouchableOpacity style={styles.centerButton} testID="career_detail_button">
-                            <Text style={styles.centerButtonText}>経歴詳細</Text>
-                            <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
-                        </TouchableOpacity>
-                    </View>
-                </>
+            {/* 7. Center Overlay Button (e.g. "Career Detail" or "Chat") */}
+            {showBottomNav && (
+                <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
+                    <TouchableOpacity
+                        style={styles.centerButton}
+                        onPress={() => navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc })}
+                    >
+                        <Text style={styles.centerButtonText}>経歴詳細</Text>
+                        <Ionicons name="create-outline" size={18} color="#FFF" style={{ marginTop: -2 }} />
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
@@ -422,7 +417,6 @@ const styles = StyleSheet.create({
     },
     heatmapSection: {
         paddingHorizontal: 15,
-        height: height * 0.45, // Target 40-45% height
         justifyContent: 'flex-start',
         marginTop: 10,
         zIndex: 10, // Ensure tooltips show above other elements
@@ -490,5 +484,15 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontWeight: '900',
         fontSize: 15,
+    },
+    footerContainer: {
+        height: 75,
+        width: '100%',
+        backgroundColor: THEME.cardBg,
+        zIndex: 50,
+        flexShrink: 0,
+    },
+    mainScrollView: {
+        flex: 1,
     },
 });

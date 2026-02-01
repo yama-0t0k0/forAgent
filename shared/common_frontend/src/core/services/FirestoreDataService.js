@@ -3,7 +3,7 @@
  * 共通データ取得ロジックを提供するサービス
  */
 
-import { db } from '../firebaseConfig';
+import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 
 /**
