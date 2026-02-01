@@ -33,7 +33,11 @@ export const DataProvider = ({ children, initialData }) => {
    */
   const updateValue = useCallback((path, newValue) => {
     setData((prevData) => {
-      // Helper to shallow clone while preserving prototype (for Models)
+      /**
+       * Helper to shallow clone while preserving prototype (for Models)
+       * @param {Object} obj - Object to clone
+       * @returns {Object} Cloned object
+       */
       const shallowClone = (obj) => {
         if (obj === null || typeof obj !== 'object') return obj;
         if (Array.isArray(obj)) return [...obj];

@@ -71,6 +71,10 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
  * Supports various field types like SkillSelector, SwitchRow, etc.
  * 
  * @param {RecursiveFieldProps} props
+ * @param {Object} props.data - Data object to render recursively
+ * @param {number} [props.depth=0] - Current depth
+ * @param {string[]} [props.path=[]] - Data path
+ * @param {Object} [props.orderTemplate=null] - Template for ordering
  */
 export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = null }) => {
   if (!data || typeof data !== 'object') return null;

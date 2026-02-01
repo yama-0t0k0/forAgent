@@ -24,6 +24,9 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
  * Mini Heatmap Component for displaying activity/skills in a grid.
  * 
  * @param {MiniHeatmapProps} props
+ * @param {HeatmapData[]} props.data - Array of heatmap data
+ * @param {number} props.rows - Number of rows
+ * @param {number} props.cols - Number of columns
  */
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);

@@ -15,6 +15,8 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Includes complex logic for '現職種' exclusive selection across nested levels.
  * 
  * @param {SingleSelectGroupProps} props
+ * @param {Object} props.value - Current value object (keys are options)
+ * @param {string[]} props.path - Data path for context update
  */
 export const SingleSelectGroup = ({ value, path }) => {
   const { data, updateValue } = useContext(DataContext);

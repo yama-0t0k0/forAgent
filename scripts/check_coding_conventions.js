@@ -133,12 +133,25 @@ function checkFile(filePath) {
             
             // Look backward for JSDoc end "*/"
             let hasJSDoc = false;
+            let jsDocContent = '';
+            let jsDocStartFound = false;
+            
             // Check previous non-empty lines
             for (let i = index - 1; i >= 0; i--) {
                 const prevLine = lines[i].trim();
                 if (prevLine === '') continue; // skip empty lines
+                
                 if (prevLine.endsWith('*/')) {
                     hasJSDoc = true;
+                    // Read JSDoc content backwards
+                    for (let j = i; j >= 0; j--) {
+                        const docLine = lines[j].trim();
+                        jsDocContent = docLine + '\n' + jsDocContent;
+                        if (docLine.startsWith('/**')) {
+                            jsDocStartFound = true;
+                            break;
+                        }
+                    }
                 }
                 break; // only check the immediate preceding code block
             }
@@ -149,6 +162,53 @@ function checkFile(filePath) {
                 if (!line.includes('useEffect') && !line.includes('useState') && !line.includes('useContext')) {
                     report(filePath, index + 1, 'warning', 'Missing JSDoc for function/class definition. (Convention 2.1)', line.trim());
                 }
+            } else if (jsDocStartFound) {
+                // Check for @param if function has arguments
+                let args = [];
+                
+                // Extract arguments based on pattern
+                // 1. Arrow function with parentheses: const foo = (a, b) =>
+                const arrowMatchParens = line.match(/=\s*(?:async\s*)?\(([^)]*)\)\s*=>/);
+                if (arrowMatchParens) {
+                    args = arrowMatchParens[1].split(',').map(a => a.trim().split('=')[0].trim()).filter(a => a);
+                } 
+                // 2. Arrow function without parentheses: const foo = a =>
+                else if (line.match(/=\s*(?:async\s*)?\w+\s*=>/)) {
+                    const match = line.match(/=\s*(?:async\s*)?(\w+)\s*=>/);
+                    if (match) args = [match[1]];
+                }
+                // 3. Regular function: function foo(a, b)
+                else if (line.match(/function\s+\w+\s*\(/)) {
+                    const match = line.match(/function\s+\w+\s*\(([^)]*)\)/);
+                    if (match) {
+                        args = match[1].split(',').map(a => a.trim().split('=')[0].trim()).filter(a => a);
+                    }
+                }
+
+                // Verify @param for each arg
+                args.forEach(arg => {
+                    // Clean up destructuring syntax
+                     let cleanArg = arg.replace(/[{}]/g, '').trim();
+                    // Handle aliases in destructuring (e.g. "companyId: propCompanyId" -> "companyId")
+                    cleanArg = cleanArg.split(':')[0].trim();
+                    // Handle default values in function signature (e.g. "columns = 9" -> "columns")
+                    cleanArg = cleanArg.split('=')[0].trim();
+                    
+                    if (!cleanArg) return;
+                   
+                   // If it was a destructuring pattern like { a, b }, we might have split it.
+                   // But here we are iterating over the split results.
+                   // e.g. "({ navigation, route })" -> split(",") -> ["{ navigation", " route }"]
+                   // cleanArg -> "navigation", "route"
+                   
+                   // Check if @param exists for this arg
+                    // We allow @param {Type} argName OR @param {Type} props.argName (common convention) OR params.argName
+                    // Handle optional parameters like [arg] or [props.arg] or [arg=default]
+                    const paramRegex = new RegExp(`@param\\s+\\{[^}]+\\}\\s+(?:\\[\\s*)?(?:props\\.|params\\.)?${cleanArg}(?:\\s*=[^\\]]+)?(?:\\s*\\])?(?:\\s|$)`);
+                    if (!paramRegex.test(jsDocContent)) {
+                         report(filePath, index + 1, 'warning', `Missing or incomplete @param JSDoc for argument '${cleanArg}'. Expected format: @param {Type} ${cleanArg} ...`, line.trim());
+                    }
+                });
             }
         }
     });

@@ -22,6 +22,9 @@ export const ScreenHeader = ({
 }) => {
     const navigation = useNavigation();
 
+    /**
+     * Handles back navigation.
+     */
     const handleBack = () => {
         if (onBack) {
             onBack();

@@ -14,6 +14,9 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Row component with a label and a toggle switch.
  * 
  * @param {SwitchRowProps} props
+ * @param {string} props.label - Label text
+ * @param {boolean} props.value - Current switch value
+ * @param {string[]} props.path - Data path for context update
  */
 export const SwitchRow = ({ label, value, path }) => {
   const context = useContext(DataContext);

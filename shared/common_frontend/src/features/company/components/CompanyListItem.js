@@ -25,6 +25,7 @@ const MOCK_TECH_STACK_FALLBACK = {
 /**
  * Company List Item Component
  * @param {CompanyListItemProps} props
+ * @param {Company|Object} props.item - Company data
  */
 export const CompanyListItem = ({ item }) => {
   /**

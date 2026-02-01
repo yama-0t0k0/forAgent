@@ -15,6 +15,8 @@ import { SKILL_LEVELS, SKILL_LEVEL_TEXTS } from '@shared/src/core/constants/inde
  * Allows selecting a skill level from 0 to 4.
  * 
  * @param {SkillSelectorProps} props
+ * @param {Object} props.value - Current value object (e.g. { "Beginner": true })
+ * @param {string[]} props.path - Data path for context update
  */
 export const SkillSelector = ({ value, path }) => {
   const context = useContext(DataContext);

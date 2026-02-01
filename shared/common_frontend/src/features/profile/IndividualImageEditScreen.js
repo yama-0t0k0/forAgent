@@ -15,6 +15,8 @@ import { View } from 'react-native';
  * Configured with individual-specific data keys and collection names.
  * 
  * @param {IndividualImageEditScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {Object} props.route - Route object
  */
 export const IndividualImageEditScreen = ({ navigation, route }) => {
     return (

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo, useEffect } from 'react';
+import React, { useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
@@ -27,6 +27,9 @@ import { IndividualProfileScreen } from '@shared/src/features/profile/Individual
  * Displays a list of connection candidates (Jobs or Engineers).
  * 
  * @param {ConnectionScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {Object} [props.route] - Route object
+ * @param {boolean} [props.hideSafeArea] - Whether to hide safe area
  */
 export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const HeaderWrapper = hideSafeArea ? View : SafeAreaView;
@@ -129,7 +132,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
      * @param {Object} params.item - Candidate data
      * @returns {JSX.Element}
      */
-    const renderCandidate = ({ item }) => {
+    const renderCandidate = useCallback(({ item }) => {
         // ポジション(JD)または法人表示の場合
         if (activeSubTab === 'position' || activeSubTab === 'company') {
             const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
@@ -160,7 +163,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                 />
             );
         }
-    };
+    }, [activeSubTab, data]);
 
     // 現在表示すべきデータリストの決定
     const currentData = useMemo(() => {

@@ -19,6 +19,9 @@ import { JobDescriptionContent } from '@shared/src/features/job_profile/componen
  * Displays the full details of a job description.
  * 
  * @param {JobDescriptionScreenProps} props
+ * @param {Object} props.route - Navigation route
+ * @param {string} [props.companyId] - Company ID
+ * @param {string} [props.jdNumber] - JD Number
  */
 export const JobDescriptionScreen = ({ route, companyId: propCompanyId, jdNumber: propJdNumber }) => {
     const navigation = useNavigation();

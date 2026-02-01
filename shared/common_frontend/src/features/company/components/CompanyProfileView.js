@@ -20,6 +20,9 @@ const { width, height } = Dimensions.get('window');
 
 /**
  * Component for displaying the menu.
+ * @param {Object} props
+ * @param {Array} props.menuGroups - Menu configuration
+ * @param {Function} props.onMenuPress - Callback for menu item press
  */
 const MenuView = ({ menuGroups, onMenuPress }) => {
     return (
@@ -57,6 +60,8 @@ const MenuView = ({ menuGroups, onMenuPress }) => {
 
 /**
  * Placeholder component for screens under construction.
+ * @param {Object} props
+ * @param {string} props.title - Screen title
  */
 const UnderConstructionView = ({ title }) => (
     <View style={styles.centerContent}>

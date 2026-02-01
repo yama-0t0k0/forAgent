@@ -4,6 +4,9 @@ import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * EmptyState - Standard component to show when a list or view has no data.
+ * @param {Object} props
+ * @param {string} [props.message] - Message to display
+ * @param {JSX.Element} [props.icon] - Icon to display
  */
 export const EmptyState = ({ message = 'データがありません', icon }) => (
     <View style={styles.centerContainer}>
@@ -14,6 +17,9 @@ export const EmptyState = ({ message = 'データがありません', icon }) =>
 
 /**
  * ErrorState - Standard component to show when an error occurs.
+ * @param {Object} props
+ * @param {string} [props.message] - Error message
+ * @param {Function} [props.onRetry] - Retry callback
  */
 export const ErrorState = ({ message = 'エラーが発生しました', onRetry }) => (
     <View style={styles.centerContainer}>
@@ -28,6 +34,9 @@ export const ErrorState = ({ message = 'エラーが発生しました', onRetry
 
 /**
  * GlobalLoadingOverlay - A full-screen overlay to show during async actions.
+ * @param {Object} props
+ * @param {boolean} props.visible - Whether the overlay is visible
+ * @param {string} [props.message] - Loading message
  */
 export const GlobalLoadingOverlay = ({ visible, message }) => {
     if (!visible) return null;

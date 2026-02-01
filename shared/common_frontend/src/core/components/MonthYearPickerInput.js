@@ -17,6 +17,9 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Uses DataContext to update values.
  * 
  * @param {MonthYearPickerInputProps} props
+ * @param {string} props.label - Label for the input
+ * @param {Object} props.valueObj - Value object containing YYYYMM number
+ * @param {string} props.path - Data path for context update
  */
 export const MonthYearPickerInput = ({ label, valueObj, path }) => {
   const context = useContext(DataContext);

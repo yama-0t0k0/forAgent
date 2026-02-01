@@ -40,6 +40,11 @@ const RAINFOREST_BG = require('@shared/assets/generated/rainforest_bg.png');
  * Displays the profile of an individual engineer.
  * 
  * @param {IndividualProfileScreenProps} props
+ * @param {Object} props.route - Route object
+ * @param {string} [props.userId] - User ID
+ * @param {Object} [props.userDoc] - User Document
+ * @param {boolean} [props.hideSafeArea] - Hide Safe Area
+ * @param {boolean} [props.showBottomNav] - Show Bottom Nav
  */
 export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: propUserDoc, hideSafeArea: propHideSafeArea = false, showBottomNav: propShowBottomNav = true }) => {
     const hideSafeArea = propHideSafeArea || route?.params?.hideSafeArea || false;

@@ -23,6 +23,9 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Reusable component for bottom navigation bars.
  * 
  * @param {GenericBottomNavProps} props
+ * @param {TabItem[]} props.tabs - List of tabs to display
+ * @param {string} props.activeTab - Currently active tab ID
+ * @param {function(string): void} props.onTabPress - Callback when a tab is pressed
  */
 export const GenericBottomNav = ({ tabs, activeTab, onTabPress }) => {
     return (

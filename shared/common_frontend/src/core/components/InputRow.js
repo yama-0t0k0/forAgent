@@ -15,6 +15,9 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Supports special handling for Zip Code (address auto-fill).
  * 
  * @param {InputRowProps} props
+ * @param {string} props.label - Input label
+ * @param {string|number} props.value - Input value
+ * @param {string[]} props.path - Data path for context update
  */
 export const InputRow = ({ label, value, path }) => {
   const context = useContext(DataContext);

@@ -78,6 +78,11 @@ export const GenericImageEditScreen = ({
             // Firestore Save
             const id = data[idFieldKey];
             if (id) {
+                /**
+                 * Recursively cleans data by removing underscore-prefixed keys.
+                 * @param {any} input - The data to clean.
+                 * @returns {any} The cleaned data.
+                 */
                 const cleanData = (input) => {
                     if (input === null || typeof input !== 'object') return input;
                     if (Array.isArray(input)) return input.map(cleanData);

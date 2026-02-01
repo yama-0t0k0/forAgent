@@ -29,6 +29,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 /**
  * Category Screen for Tab Navigator
  * @param {CategoryScreenProps} props
+ * @param {Object} props.route - Route object
  */
 const CategoryScreen = ({ route }) => {
   const { rootKey, orderTemplateRoot } = route.params;
