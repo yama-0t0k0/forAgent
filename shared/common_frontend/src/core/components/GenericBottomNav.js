@@ -23,6 +23,9 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Reusable component for bottom navigation bars.
  * 
  * @param {GenericBottomNavProps} props
+ * @param {TabItem[]} props.tabs - List of tabs to display
+ * @param {string} props.activeTab - Currently active tab ID
+ * @param {function(string): void} props.onTabPress - Callback when a tab is pressed
  */
 export const GenericBottomNav = ({ tabs, activeTab, onTabPress }) => {
     return (
@@ -60,12 +63,9 @@ const styles = StyleSheet.create({
         borderTopColor: THEME.cardBorder,
         alignItems: 'center',
         justifyContent: 'space-around',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         paddingBottom: 15,
         zIndex: 10,
+        width: '100%',
     },
     navItem: {
         alignItems: 'center',

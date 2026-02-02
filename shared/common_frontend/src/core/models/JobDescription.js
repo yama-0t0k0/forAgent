@@ -44,8 +44,13 @@ export class JobDescription {
     static fromFirestore(id, data, companyId = "") {
         if (!data) return new JobDescription(id, companyId, "", {}, {});
 
+        if (data instanceof JobDescription) {
+            return data;
+        }
+
         /** @type {Object.<string, any>} */
         const basicItems = data.basicItems ?? data[JobDescription.FIELDS.BASIC_ITEMS] ?? {};
+        // Add fallback to top-level properties for flattened JSON (e.g. from API response)
         const jdNumber = id || data.JD_Number || basicItems.JD_Number || "";
         const positionName = basicItems[JobDescription.FIELDS.POSITION_NAME] || data.title || data.positionName || "";
         

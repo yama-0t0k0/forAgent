@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * Standardized Bottom Navigation Item component.
@@ -39,7 +40,7 @@ export const BottomNavItem = ({
    * @returns {React.ReactNode} The rendered icon.
    */
   const renderIcon = (size, color) => {
-    if (typeof icon === 'string') {
+    if (typeof icon === DATA_TYPE.STRING) {
       return <Ionicons name={icon} size={size} color={color} />;
     }
     return icon;

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
@@ -8,10 +8,11 @@ import { IconButton } from '@shared/src/core/components/IconButton';
 import { HeatmapGrid } from '@shared/src/features/analytics/components/HeatmapGrid';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { db } from '@shared/src/core/firebaseConfig';
 import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
+import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 
 const { width } = Dimensions.get('window');
 
@@ -32,34 +33,32 @@ const BADGE_ITEMS = [
  */
 export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
     const { data: localData } = useContext(DataContext);
-    const [firestoreData, setFirestoreData] = useState(null);
     const [heatmapValues, setHeatmapValues] = useState(null);
     const [containerWidth, setContainerWidth] = useState(width);
 
-    // Fetch actual data from Firestore
-    useEffect(() => {
-        if (!companyId || !jdNumber) return;
-
-        const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
-        const unsubscribe = onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const jdData = docSnap.data();
-                setFirestoreData(jdData);
-
-                // Calculate heatmap values
-                const values = HeatmapCalculator.calculate(jdData);
-                setHeatmapValues(values);
-            }
-        }, (error) => {
-            console.error("Firestore error:", error);
-        });
-
-        return () => unsubscribe();
-    }, [companyId, jdNumber]);
+    // Use useFirestoreSnapshot for real-time updates
+    const docRef = useMemo(() => 
+        (companyId && jdNumber) ? doc(db, 'job_description', companyId, 'JD_Number', jdNumber) : null,
+        [companyId, jdNumber]
+    );
+    const { data: firestoreData } = useFirestoreSnapshot(docRef, JobDescription);
 
     // Use firestore data if available, otherwise fallback to local data (context)
     const activeData = firestoreData || localData;
-    const jd = JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
+    
+    // Ensure we have a JobDescription instance (hydrate if needed)
+    const jd = activeData instanceof JobDescription 
+        ? activeData 
+        : JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
+
+    // Calculate heatmap values when data changes
+    useEffect(() => {
+        if (jd && jd.rawData) {
+            const values = HeatmapCalculator.calculate(jd.rawData);
+            setHeatmapValues(values);
+        }
+    }, [jd]);
+
     const positionName = jd.positionName || 'ポジション名未設定';
 
     return (
@@ -117,7 +116,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         </View>
 
                         <HeatmapGrid
-                            containerWidth={width - 40}
+                            containerWidth={containerWidth - 40}
                             dataValues={heatmapValues}
                         />
 

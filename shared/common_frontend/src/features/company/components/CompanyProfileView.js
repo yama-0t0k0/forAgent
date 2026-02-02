@@ -5,12 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { THEME } from '@shared/src/core/theme/theme';
+import { PLATFORM } from '@shared/src/core/constants/system';
 import { TechStackView } from '@shared/src/features/analytics/components/TechStackView';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 
 // Enable LayoutAnimation on Android
-if (Platform.OS === 'android') {
+if (Platform.OS === PLATFORM.ANDROID) {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
         UIManager.setLayoutAnimationEnabledExperimental(true);
     }
@@ -20,6 +21,9 @@ const { width, height } = Dimensions.get('window');
 
 /**
  * Component for displaying the menu.
+ * @param {Object} props
+ * @param {Array} props.menuGroups - Menu configuration
+ * @param {Function} props.onMenuPress - Callback for menu item press
  */
 const MenuView = ({ menuGroups, onMenuPress }) => {
     return (
@@ -57,6 +61,8 @@ const MenuView = ({ menuGroups, onMenuPress }) => {
 
 /**
  * Placeholder component for screens under construction.
+ * @param {Object} props
+ * @param {string} props.title - Screen title
  */
 const UnderConstructionView = ({ title }) => (
     <View style={styles.centerContent}>

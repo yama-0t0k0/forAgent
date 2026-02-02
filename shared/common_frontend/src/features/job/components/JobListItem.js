@@ -36,10 +36,9 @@ export const JobListItem = ({
   style,
   testID
 }) => {
-  // Use JobDescription model
-  const jd = job instanceof JobDescription 
-    ? job 
-    : JobDescription.fromFirestore(job.JD_Number || job.id, job);
+  // Job prop is expected to be a JobDescription model instance
+  /** @type {JobDescription} */
+  const jd = job;
 
   const title = jd.positionName || 'タイトル未設定';
   const jdNumber = jd.id || '-';

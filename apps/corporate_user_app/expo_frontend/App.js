@@ -14,6 +14,8 @@ import { CorporateImageEditScreen } from '@shared/src/features/profile/Corporate
 import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
 import { CorporateBottomNav } from '@shared/src/core/components/CorporateBottomNav';
+import { AppShell } from '@shared/src/core/components/AppShell';
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 const COMPANY_TEMPLATE = require('./assets/json/company-profile-template.json');
 const Stack = createNativeStackNavigator();
@@ -47,40 +49,34 @@ const CorporateRegistrationWrapper = () => {
         fetchData();
     }, []);
 
-    if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: THEME.background }}>
-                <ActivityIndicator size="large" color={THEME.primary || '#000'} />
-            </View>
-        );
-    }
-
     return (
-        <DataProvider initialData={initialData}>
-            <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="CompanyPage">
-                <Stack.Screen name="CompanyPage" component={CompanyPageScreen} />
-                <Stack.Screen name="TechStack" component={TechStackScreen} />
-                <Stack.Screen name="Jobs" component={UnderConstructionScreen} initialParams={{ title: '求人' }} />
-                <Stack.Screen name="Connections" component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
-                <Stack.Screen name="Blog" component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
-                <Stack.Screen name="Events" component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />
-                <Stack.Screen name="Menu" component={CorporateMenuScreen} />
-                <Stack.Screen name="ImageEdit" component={CorporateImageEditScreen} />
-                <Stack.Screen name="Registration">
-                    {(props) => (
-                        <GenericRegistrationScreen
-                            {...props}
-                            title="企業プロフィール登録"
-                            collectionName="company"
-                            idField="id"
-                            idPrefixChar="B"
-                            homeRouteName="CompanyPage"
-                            BottomNavComponent={CorporateBottomNav}
-                        />
-                    )}
-                </Stack.Screen>
-            </Stack.Navigator>
-        </DataProvider>
+        <AppShell isLoading={loading}>
+            <DataProvider initialData={initialData}>
+                <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={ROUTES.CORPORATE_PAGE}>
+                    <Stack.Screen name={ROUTES.CORPORATE_PAGE} component={CompanyPageScreen} />
+                    <Stack.Screen name={ROUTES.CORPORATE_TECH_STACK} component={TechStackScreen} />
+                    <Stack.Screen name={ROUTES.CORPORATE_JOBS} component={UnderConstructionScreen} initialParams={{ title: '求人' }} />
+                    <Stack.Screen name={ROUTES.CORPORATE_CONNECTIONS} component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
+                    <Stack.Screen name={ROUTES.CORPORATE_BLOG} component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
+                    <Stack.Screen name={ROUTES.CORPORATE_EVENTS} component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />
+                    <Stack.Screen name={ROUTES.MENU} component={CorporateMenuScreen} />
+                    <Stack.Screen name={ROUTES.IMAGE_EDIT} component={CorporateImageEditScreen} />
+                    <Stack.Screen name={ROUTES.REGISTRATION}>
+                        {(props) => (
+                            <GenericRegistrationScreen
+                                {...props}
+                                title="企業プロフィール登録"
+                                collectionName="company"
+                                idField="id"
+                                idPrefixChar="B"
+                                homeRouteName={ROUTES.CORPORATE_PAGE}
+                                BottomNavComponent={CorporateBottomNav}
+                            />
+                        )}
+                    </Stack.Screen>
+                </Stack.Navigator>
+            </DataProvider>
+        </AppShell>
     );
 };
 
@@ -91,13 +87,8 @@ const CorporateRegistrationWrapper = () => {
  */
 export default function App() {
     return (
-        <SafeAreaProvider>
-            <SafeAreaView style={{ flex: 1, backgroundColor: THEME.background }}>
-                <StatusBar barStyle="dark-content" />
-                <NavigationContainer>
-                    <CorporateRegistrationWrapper />
-                </NavigationContainer>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        <NavigationContainer>
+            <CorporateRegistrationWrapper />
+        </NavigationContainer>
     );
 }

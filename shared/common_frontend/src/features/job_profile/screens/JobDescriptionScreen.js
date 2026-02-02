@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { THEME } from '@shared/src/core/theme/theme';
-import { JobDescriptionContent } from '../components/JobDescriptionContent';
+import { JobDescriptionContent } from '@shared/src/features/job_profile/components/JobDescriptionContent';
 
 /**
  * @typedef {Object} JobDescriptionScreenProps
@@ -19,6 +19,9 @@ import { JobDescriptionContent } from '../components/JobDescriptionContent';
  * Displays the full details of a job description.
  * 
  * @param {JobDescriptionScreenProps} props
+ * @param {Object} props.route - Navigation route
+ * @param {string} [props.companyId] - Company ID
+ * @param {string} [props.jdNumber] - JD Number
  */
 export const JobDescriptionScreen = ({ route, companyId: propCompanyId, jdNumber: propJdNumber }) => {
     const navigation = useNavigation();

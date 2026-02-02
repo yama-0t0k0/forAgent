@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { styles } from '@features/dashboard/dashboardStyles';
+import { MOCK_DATA } from '@core/constants';
 
 // Dashboard Icon Component
 /**
@@ -31,7 +32,7 @@ export const NotificationIcon = () => (
        <Path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </Svg>
     <View style={styles.badge}>
-      <Text style={styles.badgeText}>3</Text>
+      <Text style={styles.badgeText}>{MOCK_DATA.NOTIFICATION_COUNT}</Text>
     </View>
   </View>
 );

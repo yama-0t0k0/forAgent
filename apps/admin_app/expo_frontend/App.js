@@ -15,6 +15,8 @@ import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/J
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
+import { AppShell } from '@shared/src/core/components/AppShell';
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 
 const Stack = createNativeStackNavigator();
@@ -48,60 +50,52 @@ const AdminAppWrapper = () => {
     fetchAllData();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={THEME.accent || '#000'} />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaProvider>
+    <AppShell isLoading={loading}>
       <DataProvider initialData={initialData}>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="Dashboard">
+          <Stack.Navigator initialRouteName={ROUTES.ADMIN_DASHBOARD}>
             <Stack.Screen
-              name="Dashboard"
+              name={ROUTES.ADMIN_DASHBOARD}
               component={DashboardScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="CompanyDetail"
+              name={ROUTES.ADMIN_COMPANY_DETAIL}
               component={CompanyDetailScreen}
               options={{ title: '会社詳細', headerBackTitle: '戻る' }}
             />
             <Stack.Screen
-              name="MyPage"
+              name={ROUTES.INDIVIDUAL_MY_PAGE}
               component={IndividualProfileScreen}
               options={{ title: '個人マイページ', headerShown: false }}
             />
             <Stack.Screen
-              name="Menu"
+              name={ROUTES.MENU}
               component={IndividualMenuScreen}
               options={{ title: 'メニュー', headerShown: false }}
             />
             <Stack.Screen
-              name="ImageEdit"
+              name={ROUTES.IMAGE_EDIT}
               component={IndividualImageEditScreen}
               options={{ title: '画像編集', headerShown: false }}
             />
             <Stack.Screen
-              name="Connection"
+              name={ROUTES.INDIVIDUAL_CONNECTION}
               component={ConnectionScreen}
               options={{ title: 'つながり', headerShown: false }}
             />
             <Stack.Screen
-              name="Career"
+              name={ROUTES.INDIVIDUAL_CAREER}
               component={CareerScreen}
               options={{ title: 'キャリア', headerShown: false }}
             />
             <Stack.Screen
-              name="JobDescription"
+              name={ROUTES.JOB_DESCRIPTION}
               component={JobDescriptionScreen}
               options={{ title: '求人詳細', headerShown: false }}
             />
-            <Stack.Screen name="Registration">
+            <Stack.Screen name={ROUTES.REGISTRATION}>
               {(props) => (
                 <GenericRegistrationScreen
                   {...props}
@@ -114,9 +108,8 @@ const AdminAppWrapper = () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-        <StatusBar barStyle="dark-content" />
       </DataProvider>
-    </SafeAreaProvider>
+    </AppShell>
   );
 };
 

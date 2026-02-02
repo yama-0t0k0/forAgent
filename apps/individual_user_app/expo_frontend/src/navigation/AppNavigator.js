@@ -7,6 +7,7 @@ import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -17,8 +18,8 @@ const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json')
  * @returns {JSX.Element} The navigation stack.
  */
 export const AppNavigator = () => (
-    <Stack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Registration">
+    <Stack.Navigator initialRouteName={ROUTES.INDIVIDUAL_MY_PAGE} screenOptions={{ headerShown: false }}>
+        <Stack.Screen name={ROUTES.REGISTRATION}>
             {(props) => (
                 <GenericRegistrationScreen
                     {...props}
@@ -30,11 +31,11 @@ export const AppNavigator = () => (
                 />
             )}
         </Stack.Screen>
-        <Stack.Screen name="MyPage" component={IndividualProfileScreen} />
-        <Stack.Screen name="ImageEdit" component={IndividualImageEditScreen} />
-        <Stack.Screen name="Menu" component={IndividualMenuScreen} />
-        <Stack.Screen name="Connection" component={ConnectionScreen} />
-        <Stack.Screen name="Career" component={CareerScreen} />
-        <Stack.Screen name="JobDescription" component={JobDescriptionScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_MY_PAGE} component={IndividualProfileScreen} />
+        <Stack.Screen name={ROUTES.IMAGE_EDIT} component={IndividualImageEditScreen} />
+        <Stack.Screen name={ROUTES.MENU} component={IndividualMenuScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_CONNECTION} component={ConnectionScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_CAREER} component={CareerScreen} />
+        <Stack.Screen name={ROUTES.JOB_DESCRIPTION} component={JobDescriptionScreen} />
     </Stack.Navigator>
 );

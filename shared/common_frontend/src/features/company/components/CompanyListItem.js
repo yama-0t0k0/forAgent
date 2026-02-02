@@ -25,6 +25,7 @@ const MOCK_TECH_STACK_FALLBACK = {
 /**
  * Company List Item Component
  * @param {CompanyListItemProps} props
+ * @param {Company|Object} props.item - Company data
  */
 export const CompanyListItem = ({ item }) => {
   /**
@@ -53,8 +54,9 @@ export const CompanyListItem = ({ item }) => {
     return techs;
   }, [item]);
 
-  // Use Company model to handle data normalization
-  const company = item instanceof Company ? item : Company.fromFirestore(item.id, item);
+  // Item prop is expected to be a Company model instance
+  /** @type {Company} */
+  const company = item;
 
   const companyName = company.name || '名称未設定';
   const address = company.formattedAddress;

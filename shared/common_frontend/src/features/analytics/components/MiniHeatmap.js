@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { HeatmapMapper } from '../utils/HeatmapMapper';
-import { THEME } from '../theme/theme';
-import { HeatmapGeometry } from '../utils/HeatmapGeometry';
+import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMapper';
+import { THEME } from '@shared/src/core/theme/theme';
+import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
+import { db } from '@shared/src/core/firebaseConfig';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -23,13 +24,16 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
  * Mini Heatmap Component for displaying activity/skills in a grid.
  * 
  * @param {MiniHeatmapProps} props
+ * @param {HeatmapData[]} props.data - Array of heatmap data
+ * @param {number} props.rows - Number of rows
+ * @param {number} props.cols - Number of columns
  */
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);
 
   const baseTileSize = HeatmapGeometry.computeStandardTileSize();
   const standardTileSize = baseTileSize * 0.7;
-  
+
   /**
    * Gets the color for a heatmap value.
    * @param {number} value - Normalized value (0-1).
@@ -55,7 +59,7 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
     }
 
     const label = HeatmapMapper.getLabel(item.id) || `Tile ${item.id}`;
-    
+
     // Calculate level (0-4)
     let level = 0;
     const v = item.value;
@@ -66,7 +70,7 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 
     const row = Math.floor(index / cols);
     const col = index % cols;
-    
+
     const totalTileSize = standardTileSize + 2;
     const tooltipWidth = 90;
     const containerWidth = cols * totalTileSize;
@@ -118,8 +122,8 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 
       {selectedTile && (
         <View style={[
-          styles.tooltip, 
-          { 
+          styles.tooltip,
+          {
             top: selectedTile.top,
             left: selectedTile.left,
             width: 90,

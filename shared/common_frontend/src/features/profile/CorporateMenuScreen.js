@@ -15,6 +15,8 @@ import { View } from 'react-native';
  * Defines the menu structure for corporate users.
  * 
  * @param {CorporateMenuScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {boolean} [props.hideSafeArea=false] - Whether to hide the bottom navigation
  */
 export const CorporateMenuScreen = ({ navigation, hideSafeArea = false }) => {
     const menuGroups = [

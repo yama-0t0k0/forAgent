@@ -20,6 +20,7 @@ import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@share
 // Components
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
+import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
 import { OverviewTab } from './components/tabs/OverviewTab';
 import { IndividualTab } from './components/tabs/IndividualTab';
 import { CompanyTab } from './components/tabs/CompanyTab';
@@ -28,6 +29,7 @@ import { SelectionTab } from './components/tabs/SelectionTab';
 import { DrillDownModal } from './components/modals/DrillDownModal';
 import { UserDetailModal } from './components/modals/UserDetailModal';
 import { JobDetailModal } from './components/modals/JobDetailModal';
+import { DASHBOARD_TABS, E2E_CONFIG } from '@core/constants';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -35,11 +37,11 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 // Constants & Config
 // ---------------------------
 const TABS = [
-  { id: 'dashboard', label: 'ホーム', icon: true },
-  { id: 'individual', label: '個人' },
-  { id: 'company', label: '法人' },
-  { id: 'job', label: '求人' },
-  { id: 'selection', label: '選考' },
+  { id: DASHBOARD_TABS.DASHBOARD, label: 'ホーム', icon: true },
+  { id: DASHBOARD_TABS.INDIVIDUAL, label: '個人' },
+  { id: DASHBOARD_TABS.COMPANY, label: '法人' },
+  { id: DASHBOARD_TABS.JOB, label: '求人' },
+  { id: DASHBOARD_TABS.SELECTION, label: '選考' },
 ];
 
 // ---------------------------
@@ -52,11 +54,14 @@ const TABS = [
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const { data } = useContext(DataContext);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(DASHBOARD_TABS.DASHBOARD);
 
   // Search States
   const [searchQueries, setSearchQueries] = useState({
-    individual: '', company: '', job: '', selection: ''
+    [DASHBOARD_TABS.INDIVIDUAL]: '',
+    [DASHBOARD_TABS.COMPANY]: '',
+    [DASHBOARD_TABS.JOB]: '',
+    [DASHBOARD_TABS.SELECTION]: ''
   });
 
   // Drill-down Modal State
@@ -123,7 +128,7 @@ export default function DashboardScreen() {
 
       try {
         // E2E Test Fallback
-        if (selectedUserId === 'C000000000000') {
+        if (selectedUserId === E2E_CONFIG.DUMMY_USER_ID) {
           try {
             const template = require('@assets/json/engineer-profile-template.json');
             setSelectedUserDoc(template);
@@ -132,7 +137,7 @@ export default function DashboardScreen() {
           } catch (e) {
             console.log('Template not found, using minimal mock');
             const mock = {
-              id: 'C000000000000',
+              id: E2E_CONFIG.DUMMY_USER_ID,
               '基本情報': { '姓': '開発者', '名': '【テスト】', 'メール': 'test@example.com' }
             };
             setSelectedUserDoc(mock);
@@ -170,13 +175,13 @@ export default function DashboardScreen() {
    * @type {Array<User>}
    */
   const filteredUsers = useMemo(() => {
-    const query = searchQueries.individual.toLowerCase();
-    const rawUsers = [...(data?.users || [])];
+    const query = searchQueries[DASHBOARD_TABS.INDIVIDUAL].toLowerCase();
+    const users = [...(data?.users || [])];
 
     // Inject E2E Dummy User if empty
-    if (rawUsers.length === 0) {
-      rawUsers.push({
-        id: 'C000000000000',
+    if (users.length === 0) {
+      users.push(User.fromFirestore(E2E_CONFIG.DUMMY_USER_ID, {
+        id: E2E_CONFIG.DUMMY_USER_ID,
         name: '【テスト】開発者 (E2E用)',
         '基本情報': {
           '姓': '開発者',
@@ -184,11 +189,8 @@ export default function DashboardScreen() {
           'メール': 'test@example.com'
         },
         createdAt: 0
-      });
+      }));
     }
-
-    // Convert to User models
-    const users = rawUsers.map(u => User.fromFirestore(u.id, u));
 
     return users.filter(u => {
       // Use rawData for nested fields not fully mapped in User model yet
@@ -202,7 +204,7 @@ export default function DashboardScreen() {
         u.familyNameKanji,
         u.email,
         // Fallback checks for raw data
-        u.rawData.name, 
+        u.rawData.name,
         basicInfo['姓'],
         basicInfo['名'],
         basicInfo['メールアドレス'],
@@ -220,7 +222,7 @@ export default function DashboardScreen() {
    * @type {Array<Company>}
    */
   const filteredCompanies = useMemo(() => {
-    const query = searchQueries.company.toLowerCase();
+    const query = searchQueries[DASHBOARD_TABS.COMPANY].toLowerCase();
     const rawCompanies = [...(data?.corporate || [])];
 
     if (rawCompanies.length === 0) {
@@ -243,7 +245,7 @@ export default function DashboardScreen() {
       (c.name && c.name.toLowerCase().includes(query)) ||
       (c.rawData.companyName && c.rawData.companyName.toLowerCase().includes(query))
     ).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0));
-  }, [data?.corporate, searchQueries.company]);
+  }, [data?.corporate, searchQueries[DASHBOARD_TABS.COMPANY]]);
 
   // Job Tab Data
   /**
@@ -251,27 +253,27 @@ export default function DashboardScreen() {
    * @type {Array<JobDescription>}
    */
   const filteredJobs = useMemo(() => {
-    const query = searchQueries.job.toLowerCase();
+    const query = searchQueries[DASHBOARD_TABS.JOB].toLowerCase();
     const rawJobs = [...(data?.jd || [])];
 
     if (rawJobs.length === 0) {
-      rawJobs.push({
+      rawJobs.push(JobDescription.fromFirestore('J00000', {
         id: 'J00000',
         JD_Number: '02',
         company_ID: 'B00000',
         title: '【テスト】フロントエンドエンジニア (E2E用)',
         createdAt: 0
-      });
+      }));
     }
 
-    const jobs = rawJobs.map(j => JobDescription.fromFirestore(j.id, j));
+    const jobs = rawJobs;
 
     return jobs.filter(j => {
       // 検索対象のフィールドを定義
       const id = j.id || '';
       const jdNumber = j.id || ''; // JD_Number is often the ID
       const positionName = j.positionName || '';
-      
+
       // Also check raw fields for safety
       const rawTitle = j.rawData.title || '';
       const rawJdNumber = j.rawData.JD_Number || '';
@@ -284,7 +286,7 @@ export default function DashboardScreen() {
         rawJdNumber.toLowerCase().includes(query)
       );
     }).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0));
-  }, [data?.jd, searchQueries.job]);
+  }, [data?.jd, searchQueries[DASHBOARD_TABS.JOB]]);
 
   // Selection Tab Data
   /**
@@ -292,8 +294,7 @@ export default function DashboardScreen() {
    * @type {Array<Object>}
    */
   const selectionFlowData = useMemo(() => {
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    const fmjs = data?.fmjs || [];
     const counts = { entry: 0, doc_pass: 0, interview_1: 0, interview_final: 0, offer: 0 };
 
     fmjs.forEach(item => {
@@ -328,8 +329,7 @@ export default function DashboardScreen() {
    */
   const filteredSelections = useMemo(() => {
     const query = searchQueries.selection.toLowerCase();
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
+    const fmjs = data?.fmjs || [];
 
     return fmjs.filter(s =>
       (s.rawData.JobStatID && s.rawData.JobStatID.toLowerCase().includes(query)) ||
@@ -344,9 +344,8 @@ export default function DashboardScreen() {
    */
   const modalData = useMemo(() => {
     if (!modalFilter) return [];
-    const rawFmjs = data?.fmjs || [];
-    const fmjs = rawFmjs.map(s => SelectionProgress.fromFirestore(s.id, s));
-    
+    const fmjs = data?.fmjs || [];
+
     return fmjs.filter(item => {
       const phases = item.progress[SelectionProgress.FIELDS.PHASE] || {};
       return phases[modalFilter.key] === true;
@@ -387,10 +386,11 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container} testID="dashboard_screen">
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle} testID="header_title">管理ダッシュボード</Text>
-        <NotificationIcon />
-      </View>
+      <ScreenHeader
+        title="管理ダッシュボード"
+        showBack={false}
+        rightAction={<NotificationIcon />}
+      />
 
       {/* Tabs */}
       <View style={styles.tabBar}>
@@ -415,7 +415,7 @@ export default function DashboardScreen() {
 
       {/* Content */}
       <View style={styles.contentArea}>
-        {activeTab === 'dashboard' && (
+        {activeTab === DASHBOARD_TABS.DASHBOARD && (
           <OverviewTab
             selectionFlowData={selectionFlowData}
             userGrowthData={userGrowthData}
@@ -428,27 +428,27 @@ export default function DashboardScreen() {
             }}
           />
         )}
-        {activeTab === 'individual' && (
+        {activeTab === DASHBOARD_TABS.INDIVIDUAL && (
           <IndividualTab
-            searchQuery={searchQueries.individual}
-            setSearchQuery={(t) => updateSearch('individual', t)}
+            searchQuery={searchQueries[DASHBOARD_TABS.INDIVIDUAL]}
+            setSearchQuery={(t) => updateSearch(DASHBOARD_TABS.INDIVIDUAL, t)}
             filteredUsers={filteredUsers}
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
             onUserPress={(item) => setSelectedUserId(item.id)}
           />
         )}
-        {activeTab === 'company' && (
+        {activeTab === DASHBOARD_TABS.COMPANY && (
           <CompanyTab
-            searchQuery={searchQueries.company}
-            setSearchQuery={(t) => updateSearch('company', t)}
+            searchQuery={searchQueries[DASHBOARD_TABS.COMPANY]}
+            setSearchQuery={(t) => updateSearch(DASHBOARD_TABS.COMPANY, t)}
             filteredCompanies={filteredCompanies}
           />
         )}
-        {activeTab === 'job' && (
+        {activeTab === DASHBOARD_TABS.JOB && (
           <JobTab
-            searchQuery={searchQueries.job}
-            setSearchQuery={(t) => updateSearch('job', t)}
+            searchQuery={searchQueries[DASHBOARD_TABS.JOB]}
+            setSearchQuery={(t) => updateSearch(DASHBOARD_TABS.JOB, t)}
             filteredJobs={filteredJobs}
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
@@ -459,10 +459,10 @@ export default function DashboardScreen() {
             }}
           />
         )}
-        {activeTab === 'selection' && (
+        {activeTab === DASHBOARD_TABS.SELECTION && (
           <SelectionTab
-            searchQuery={searchQueries.selection}
-            setSearchQuery={(t) => updateSearch('selection', t)}
+            searchQuery={searchQueries[DASHBOARD_TABS.SELECTION]}
+            setSearchQuery={(t) => updateSearch(DASHBOARD_TABS.SELECTION, t)}
             filteredSelections={filteredSelections}
           />
         )}

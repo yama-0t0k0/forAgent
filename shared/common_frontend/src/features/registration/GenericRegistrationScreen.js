@@ -11,10 +11,11 @@ import { collection, query, where, getDocs, setDoc, doc, documentId } from 'fire
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { PLATFORM, DATA_TYPE, SAVE_STATUS, FIELD_NAMES, ID_CONSTANTS } from '@shared/src/core/constants';
 
 const Tab = createMaterialTopTabNavigator();
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (Platform.OS === PLATFORM.ANDROID && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -29,6 +30,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 /**
  * Category Screen for Tab Navigator
  * @param {CategoryScreenProps} props
+ * @param {Object} props.route - Route object
  */
 const CategoryScreen = ({ route }) => {
   const { rootKey, orderTemplateRoot } = route.params;
@@ -67,7 +69,7 @@ const CategoryScreen = ({ route }) => {
  * @returns {any} Cleaned data
  */
 const cleanData = (input) => {
-  if (input === null || typeof input !== 'object') {
+  if (input === null || typeof input !== DATA_TYPE.OBJECT) {
     return input;
   }
   if (Array.isArray(input)) {
@@ -92,11 +94,11 @@ const cleanData = (input) => {
 const getSortedKeys = (data, idField, orderTemplate) => {
   if (!data) return [];
   /** @type {string[]} */
-  const dataKeys = Object.keys(data).filter(key => key !== idField && key !== '_displayType');
-  if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+  const dataKeys = Object.keys(data).filter(key => key !== idField && key !== FIELD_NAMES.DISPLAY_TYPE);
+  if (!orderTemplate || typeof orderTemplate !== DATA_TYPE.OBJECT) return dataKeys;
   
   /** @type {string[]} */
-  const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== '_displayType');
+  const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== FIELD_NAMES.DISPLAY_TYPE);
   /** @type {string[]} */
   const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
   /** @type {string[]} */
@@ -122,14 +124,14 @@ export const GenericRegistrationScreen = ({
 }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
-  const [saveStatus, setSaveStatus] = useState('idle');
+  const [saveStatus, setSaveStatus] = useState(SAVE_STATUS.IDLE);
 
   /**
    * Handles the save operation to Firestore.
    * Generates a new ID and saves the cleaned data.
    */
   const handleSave = async () => {
-    setSaveStatus('saving');
+    setSaveStatus(SAVE_STATUS.SAVING);
     try {
       const now = new Date();
       const year = now.getFullYear();
@@ -139,8 +141,8 @@ export const GenericRegistrationScreen = ({
 
       const q = query(
         collection(db, collectionName),
-        where(documentId(), ">=", datePrefix + "0000"),
-        where(documentId(), "<=", datePrefix + "9999")
+        where(documentId(), ">=", datePrefix + ID_CONSTANTS.SUFFIX_START),
+        where(documentId(), "<=", datePrefix + ID_CONSTANTS.SUFFIX_END)
       );
 
       const querySnapshot = await getDocs(q);
@@ -163,17 +165,17 @@ export const GenericRegistrationScreen = ({
       await setDoc(doc(db, collectionName, newId), dataToSave);
 
       updateValue([idField], newId);
-      setSaveStatus('success');
+      setSaveStatus(SAVE_STATUS.SUCCESS);
 
       // Auto-navigate back to home after success
       setTimeout(() => {
-        setSaveStatus('idle');
+        setSaveStatus(SAVE_STATUS.IDLE);
         navigation.navigate(homeRouteName);
       }, 1500);
     } catch (error) {
       console.error("Error saving document: ", error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setSaveStatus(SAVE_STATUS.ERROR);
+      setTimeout(() => setSaveStatus(SAVE_STATUS.IDLE), 3000);
     }
   };
 
@@ -202,12 +204,12 @@ export const GenericRegistrationScreen = ({
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.saveButton, saveStatus === 'success' && styles.saveButtonSuccess, saveStatus === 'error' && styles.saveButtonError]}
+          style={[styles.saveButton, saveStatus === SAVE_STATUS.SUCCESS && styles.saveButtonSuccess, saveStatus === SAVE_STATUS.ERROR && styles.saveButtonError]}
           onPress={handleSave}
-          disabled={saveStatus === 'saving'}
+          disabled={saveStatus === SAVE_STATUS.SAVING}
         >
-          {saveStatus === 'saving' ? <ActivityIndicator size="small" color="#FFF" /> : (
-            <Text style={styles.saveButtonText}>{saveStatus === 'success' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</Text>
+          {saveStatus === SAVE_STATUS.SAVING ? <ActivityIndicator size="small" color="#FFF" /> : (
+            <Text style={styles.saveButtonText}>{saveStatus === SAVE_STATUS.SUCCESS ? 'Saved' : saveStatus === SAVE_STATUS.ERROR ? 'Error' : 'Save'}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
   appHeader: {
     padding: 16,
-    paddingTop: Platform.OS === 'ios' ? 40 : 16,
+    paddingTop: Platform.OS === PLATFORM.IOS ? 40 : 16,
     backgroundColor: THEME.background,
     borderBottomWidth: 1,
     borderBottomColor: THEME.cardBorder,

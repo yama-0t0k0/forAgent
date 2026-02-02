@@ -12,14 +12,18 @@
 // shared/common_frontend/src/features/profile/GenericImageEditScreen.js
 //
 
-import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import React, { useContext, useMemo } from 'react';
+import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from '@shared/src/core/firebaseConfig';
+import { PLATFORM, DATA_TYPE, SAVE_STATUS } from '@shared/src/core/constants';
 import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@shared/src/core/firebaseConfig';
+import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
+import { useForm } from '@shared/src/core/utils/useForm';
+import { GlobalLoadingOverlay } from '@shared/src/core/components/StateComponents';
 
 /**
  * @typedef {Object} ImageConfig
@@ -58,19 +62,16 @@ export const GenericImageEditScreen = ({
     const { data, updateValue } = useContext(DataContext);
     const navigation = useNavigation();
 
-    const sectionData = data[dataSectionKey] || {};
+    const sectionData = useMemo(() => data[dataSectionKey] || {}, [data, dataSectionKey]);
 
-    // State
-    const [mainUrl, setMainUrl] = useState(sectionData[mainImageConfig.key] || '');
-    const [bgUrl, setBgUrl] = useState(sectionData[bgImageConfig.key] || '');
-    const [saveStatus, setSaveStatus] = useState('idle');
+    const { values, handleChange, handleSubmit, isSubmitting, status } = useForm({
+        initialValues: {
+            mainUrl: sectionData[mainImageConfig.key] || '',
+            bgUrl: sectionData[bgImageConfig.key] || '',
+        },
+        onSubmit: async (formValues) => {
+            const { mainUrl, bgUrl } = formValues;
 
-    /**
-     * Handles saving the image URLs to Firestore.
-     */
-    const handleSave = async () => {
-        setSaveStatus('saving');
-        try {
             // Update Context
             updateValue([dataSectionKey, mainImageConfig.key], mainUrl);
             updateValue([dataSectionKey, bgImageConfig.key], bgUrl);
@@ -79,12 +80,12 @@ export const GenericImageEditScreen = ({
             const id = data[idFieldKey];
             if (id) {
                 /**
-                 * Recursively cleans data by removing keys starting with '_'.
+                 * Recursively cleans data by removing underscore-prefixed keys.
                  * @param {any} input - The data to clean.
                  * @returns {any} The cleaned data.
                  */
                 const cleanData = (input) => {
-                    if (input === null || typeof input !== 'object') return input;
+                    if (input === null || typeof input !== DATA_TYPE.OBJECT) return input;
                     if (Array.isArray(input)) return input.map(cleanData);
                     const output = {};
                     Object.keys(input).forEach(key => {
@@ -93,68 +94,62 @@ export const GenericImageEditScreen = ({
                     return output;
                 };
 
-                const cleanedData = cleanData({
+                const dataToSave = {
                     ...data,
                     [dataSectionKey]: {
                         ...data[dataSectionKey],
                         [mainImageConfig.key]: mainUrl,
                         [bgImageConfig.key]: bgUrl,
                     }
-                });
+                };
 
+                const cleanedData = cleanData(dataToSave);
                 await setDoc(doc(db, collectionName, id), cleanedData);
             }
 
-            setSaveStatus('success');
             setTimeout(() => {
-                setSaveStatus('idle');
                 navigation.goBack();
-            }, 1500);
-        } catch (error) {
-            console.error("Error saving images: ", error);
-            setSaveStatus('error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
+            }, 1000);
         }
-    };
+    });
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>画像変更</Text>
-                <TouchableOpacity
-                    style={[styles.saveButton, saveStatus === 'success' && styles.saveButtonSuccess]}
-                    onPress={handleSave}
-                    disabled={saveStatus === 'saving'}
-                >
-                    {saveStatus === 'saving' ? (
-                        <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
+            <ScreenHeader
+                title="画像設定"
+                rightAction={
+                    <TouchableOpacity
+                        style={[styles.saveButton, status === SAVE_STATUS.SUCCESS && styles.saveButtonSuccess]}
+                        onPress={handleSubmit}
+                        disabled={isSubmitting}
+                    >
                         <Text style={styles.saveButtonText}>
-                            {saveStatus === 'success' ? 'Saved' : 'Save'}
+                            {status === SAVE_STATUS.SUCCESS ? '保存済' : '保存'}
                         </Text>
-                    )}
-                </TouchableOpacity>
-            </View>
+                    </TouchableOpacity>
+                }
+            />
+
+            <GlobalLoadingOverlay visible={isSubmitting} message="保存中..." />
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Background Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{String(bgImageConfig.label)}</Text>
+                    <Text style={[THEME.typography.h3, styles.sectionTitle]}>{String(bgImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
-                        value={bgUrl}
-                        onChangeText={setBgUrl}
+                        value={values.bgUrl}
+                        onChangeText={(text) => handleChange('bgUrl', text)}
                         placeholder={bgImageConfig.placeholder}
                         placeholderTextColor={THEME.subText}
                     />
                     <View style={styles.bgPreviewContainer}>
-                        {bgUrl ? (
-                            <Image source={{ uri: bgUrl }} style={styles.bgPreview} />
+                        {values.bgUrl ? (
+                            <Image source={{ uri: values.bgUrl }} style={styles.bgPreview} />
                         ) : (
                             <View style={[styles.bgPreview, styles.placeholder]}>
                                 <Ionicons name={bgImageConfig.icon || "image-outline"} size={40} color={THEME.subText} />
-                                <Text style={styles.placeholderText}>{bgImageConfig.previewLabel}</Text>
+                                <Text style={[THEME.typography.caption, styles.placeholderText]}>{bgImageConfig.previewLabel}</Text>
                             </View>
                         )}
                     </View>
@@ -162,21 +157,21 @@ export const GenericImageEditScreen = ({
 
                 {/* Main Image Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{String(mainImageConfig.label)}</Text>
+                    <Text style={[THEME.typography.h3, styles.sectionTitle]}>{String(mainImageConfig.label)}</Text>
                     <TextInput
                         style={styles.input}
-                        value={mainUrl}
-                        onChangeText={setMainUrl}
+                        value={values.mainUrl}
+                        onChangeText={(text) => handleChange('mainUrl', text)}
                         placeholder={mainImageConfig.placeholder}
                         placeholderTextColor={THEME.subText}
                     />
                     <View style={styles.profilePreviewContainer}>
-                        {mainUrl ? (
-                            <Image source={{ uri: mainUrl }} style={styles.profilePreview} />
+                        {values.mainUrl ? (
+                            <Image source={{ uri: values.mainUrl }} style={styles.profilePreview} />
                         ) : (
                             <View style={[styles.profilePreview, styles.placeholder]}>
                                 <Ionicons name={mainImageConfig.icon || "person-outline"} size={40} color={THEME.subText} />
-                                <Text style={styles.placeholderText}>{mainImageConfig.previewLabel}</Text>
+                                <Text style={[THEME.typography.caption, styles.placeholderText]}>{mainImageConfig.previewLabel}</Text>
                             </View>
                         )}
                     </View>
@@ -198,7 +193,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 50 : 20,
+        paddingTop: Platform.OS === PLATFORM.IOS ? 50 : 20,
         paddingBottom: 15,
         backgroundColor: THEME.background,
         borderBottomWidth: 1,

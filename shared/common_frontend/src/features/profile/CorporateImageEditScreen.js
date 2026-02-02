@@ -16,6 +16,8 @@ import { Company } from '@shared/src/core/models/Company';
  * Configured with corporate-specific data keys and collection names.
  * 
  * @param {CorporateImageEditScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {Object} props.route - Route object
  */
 export const CorporateImageEditScreen = ({ navigation, route }) => {
     return (

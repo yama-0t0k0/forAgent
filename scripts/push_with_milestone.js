@@ -144,7 +144,7 @@ async function main() {
             // Fetch specific milestone or filter list
             const json = runCommandOutput(`gh api repos/${REPO_OWNER}/${REPO_NAME}/milestones --method GET -f state=open`);
             const allMilestones = JSON.parse(json);
-            targetMilestone = allMilestones.find(m => m.title === parsedArgs.milestone);
+            targetMilestone = allMilestones.find(m => m.title === parsedArgs.milestone || String(m.number) === String(parsedArgs.milestone));
             
             if (!targetMilestone) {
                 console.error(`❌ Milestone "${parsedArgs.milestone}" not found.`);

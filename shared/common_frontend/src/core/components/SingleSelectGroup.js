@@ -1,7 +1,9 @@
 import React, { useContext } from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
-import { DataContext } from '../state/DataContext';
-import { THEME } from '../theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
+import { FIELD_META } from '@shared/src/core/constants/index';
 
 /**
  * @typedef {Object} SingleSelectGroupProps
@@ -15,6 +17,8 @@ import { THEME } from '../theme/theme';
  * Includes complex logic for '現職種' exclusive selection across nested levels.
  * 
  * @param {SingleSelectGroupProps} props
+ * @param {Object} props.value - Current value object (keys are options)
+ * @param {string[]} props.path - Data path for context update
  */
 export const SingleSelectGroup = ({ value, path }) => {
   const { data, updateValue } = useContext(DataContext);
@@ -64,7 +68,7 @@ export const SingleSelectGroup = ({ value, path }) => {
         if (targetJobObj) {
           // 2. Local Reset: Turn off ALL booleans in this job object first
           Object.keys(targetJobObj).forEach(k => {
-            if (typeof targetJobObj[k] === 'boolean') {
+            if (typeof targetJobObj[k] === DATA_TYPE.BOOLEAN) {
               targetJobObj[k] = false;
             }
           });
@@ -76,9 +80,9 @@ export const SingleSelectGroup = ({ value, path }) => {
            * @param {string} targetKey - The key to reset.
            */
           const resetKeyGlobal = (obj, targetKey) => {
-            if (obj && typeof obj === 'object') {
+            if (obj && typeof obj === DATA_TYPE.OBJECT) {
               Object.keys(obj).forEach(k => {
-                if (k === targetKey && typeof obj[k] === 'boolean') {
+                if (k === targetKey && typeof obj[k] === DATA_TYPE.BOOLEAN) {
                   obj[k] = false;
                 } else {
                   resetKeyGlobal(obj[k], targetKey);
@@ -114,7 +118,7 @@ export const SingleSelectGroup = ({ value, path }) => {
 
       if (nextVal) {
         Object.keys(newObject).forEach(k => {
-          if (k !== '_displayType' && typeof newObject[k] === 'boolean') {
+          if (k !== FIELD_META.DISPLAY_TYPE && typeof newObject[k] === DATA_TYPE.BOOLEAN) {
             newObject[k] = (k === key);
           }
         });
@@ -128,8 +132,8 @@ export const SingleSelectGroup = ({ value, path }) => {
   return (
     <View>
       {Object.keys(value).map(key => {
-        if (key === '_displayType') return null;
-        if (typeof value[key] !== 'boolean') return null;
+        if (key === FIELD_META.DISPLAY_TYPE) return null;
+        if (typeof value[key] !== DATA_TYPE.BOOLEAN) return null;
 
         return (
           <View key={key} style={styles.switchContainer}>

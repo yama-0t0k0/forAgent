@@ -1,4 +1,5 @@
-import { HeatmapCalculator } from './HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * FMJSのタイムスタンプ (YYYYMMDDtttttt) をDateオブジェクトに変換します。
@@ -46,7 +47,7 @@ export const extractSkills = (user) => {
      */
     const traverse = (obj) => {
         Object.entries(obj).forEach(([key, value]) => {
-            if (typeof value === 'object' && value !== null) {
+            if (typeof value === DATA_TYPE.OBJECT && value !== null) {
                 if (value.core_skill) skills.core.push(key);
                 if (value.sub1) skills.sub1.push(key);
                 if (value.sub2) skills.sub2.push(key);

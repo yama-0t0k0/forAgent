@@ -33,6 +33,10 @@ export class SelectionProgress {
     static fromFirestore(id, data) {
         if (!data) return new SelectionProgress(id, {}, {}, {}, {});
 
+        if (data instanceof SelectionProgress) {
+            return data;
+        }
+
         const progress = data[SelectionProgress.FIELDS.PROGRESS] || {};
         const fee = data[SelectionProgress.FIELDS.FEE] || {};
         const survey = data[SelectionProgress.FIELDS.SURVEY] || {};

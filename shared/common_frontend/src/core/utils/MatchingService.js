@@ -3,6 +3,7 @@
  * Cloud Run上のDart版マッチングロジックを呼び出します。
  */
 import { getAuth } from "firebase/auth";
+import { MATCHING_TARGET_TYPE } from '@shared/src/core/constants/system';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_MATCHING_API_URL || 'http://localhost:8080';
 
@@ -49,36 +50,56 @@ export const MatchingService = {
     },
 
     /**
-     * リスト形式のデータをランク付けします（プロトタイプ版）
-     * ※ 本来はバックエンド側でバッチ処理することが望ましいですが、
-     * 現状の画面ロジックを維持するため、個別にAPIを叩く暫定的な実装です。
+     * リスト形式のデータをランク付けします
+     * バックエンドの一括計算APIを使用します。
      * 
      * @param {Object} targetDoc 比較対象のドキュメント（ユーザーまたは求人）
      * @param {Array<Object>} candidates 候補リスト
      * @param {'jd'|'user'} [type='jd'] ターゲットの種類 ('jd': 求人に対するユーザーランク, 'user': ユーザーに対する求人ランク)
      * @returns {Promise<Array<Object>>} スコア順にソートされた候補リスト
      */
-    async rankCandidates(targetDoc, candidates, type = 'jd') {
-        /**
-         * 候補者ごとにマッチングスコアを計算する内部関数
-         * @param {Object} candidate - 候補データ
-         * @returns {Promise<Object>} スコア付き候補データ
-         */
-        const processCandidate = async (candidate) => {
-            const userDoc = type === 'jd' ? targetDoc : candidate;
-            const jdDoc = type === 'jd' ? candidate : targetDoc;
+    async rankCandidates(targetDoc, candidates, type = MATCHING_TARGET_TYPE.JD) {
+        if (!candidates || candidates.length === 0) return [];
 
-            const result = await this.getMatchScore(userDoc, jdDoc);
-            return {
-                ...candidate,
-                matchingScore: result.matchingScore,
-                matchDetails: result
+        try {
+            const auth = getAuth();
+            const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+
+            const headers = {
+                'Content-Type': 'application/json',
             };
-        };
 
-        const promises = candidates.map(processCandidate);
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
 
-        const results = await Promise.all(promises);
-        return results.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            // APIの仕様に合わせてパラメータを変換
+            // type='jd' (default) -> targetDoc=User, candidates=JDs -> targetType='user'
+            // type='user' -> targetDoc=JD, candidates=Users -> targetType='jd'
+            const apiTargetType = type === MATCHING_TARGET_TYPE.JD ? 'user' : 'jd';
+
+            const response = await fetch(`${API_BASE_URL}/`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    targetDoc,
+                    candidates,
+                    targetType: apiTargetType
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Matching API error: ${response.status} - ${errorText}`);
+            }
+
+            const results = await response.json();
+            return results; // API returns sorted list
+
+        } catch (error) {
+            console.log('[MatchingService] Failed to rank candidates:', error);
+            // エラー時はスコア0で返す（画面がクラッシュしないように）
+            return candidates.map(c => ({ ...c, matchingScore: 0 }));
+        }
     }
 };

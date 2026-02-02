@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * Displays career progress and selection status.
  * 
  * @param {CareerScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {boolean} [props.hideSafeArea] - Whether to hide safe area
  */
 export const CareerScreen = ({ navigation, hideSafeArea }) => {
     const ContentWrapper = hideSafeArea ? View : SafeAreaView;

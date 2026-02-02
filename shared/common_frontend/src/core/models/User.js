@@ -68,15 +68,21 @@ export class User {
     static fromFirestore(id, data) {
         if (!data) return new User(id, "", "", "", "", "", "", "", {}, {}, {});
 
+        // If data is already a User instance, return it directly
+        if (data instanceof User) {
+            return data;
+        }
+
         /** @type {Object.<string, any>} */
         const basicInfo = data.basicInfo ?? data[User.FIELDS.BASIC_INFO] ?? {};
-        const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || "";
-        const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || "";
-        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || "";
-        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || "";
-        const email = basicInfo[User.FIELDS.EMAIL] || "";
-        const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || "";
-        const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || "";
+        // Add fallback to top-level properties for flattened JSON (e.g. from API response)
+        const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || data.firstNameEn || "";
+        const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || data.familyNameEn || "";
+        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || "";
+        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || "";
+        const email = basicInfo[User.FIELDS.EMAIL] || data.email || "";
+        const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || data.profileImageUrl || "";
+        const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || data.backgroundImageUrl || "";
         /** @type {Object.<string, any>} */
         const skillsExperience = data.skillsExperience ?? data[User.FIELDS.SKILLS_EXPERIENCE] ?? {};
         /** @type {Object.<string, any>} */
