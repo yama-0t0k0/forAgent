@@ -6,6 +6,8 @@ import { CONNECTION_TABS } from '@shared/src/core/constants';
 import { SYSTEM_USER_ID } from '@shared/src/core/constants/system';
 import { Ionicons } from '@expo/vector-icons';
 import { MatchingService } from '@shared/src/core/utils/MatchingService';
+import { User } from '@shared/src/core/models/User';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
@@ -101,11 +103,15 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                 if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
                     if (activeSubTab === CONNECTION_TABS.SUB.POSITION && data.jd) {
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-                        setRankedJds(ranked);
+                        // モデルインスタンスに変換して、ゲッター(positionName等)を利用可能にする
+                        const rankedJds = ranked.map(item => JobDescription.fromFirestore(item.id || item.JD_Number, item));
+                        setRankedJds(rankedJds);
                     } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
                         // Match current user against other users
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
-                        setRankedUsers(ranked);
+                        // モデルインスタンスに変換して、ゲッター(fullNameKanji等)を利用可能にする
+                        const rankedUsers = ranked.map(item => User.fromFirestore(item.id, item));
+                        setRankedUsers(rankedUsers);
                     }
                 }
                 // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
