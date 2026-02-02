@@ -452,7 +452,8 @@ create_push_issue() {
 
     # Use captured PREV_PUSH_HASH
     if [ -z "$PREV_PUSH_HASH" ]; then
-         PREV_PUSH_HASH=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
+         # Fallback: try origin first, then HEAD~1
+         PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH" 2>/dev/null || git rev-parse HEAD~1)
     fi
 
     CURRENT_HASH=$(git rev-parse HEAD)
@@ -481,9 +482,12 @@ create_push_issue() {
     DIFF_STAT=$(git diff --stat ${PREV_PUSH_HASH}..${CURRENT_HASH})
     # Diff Log
     DIFF_LOG=$(git log --pretty=format:"- %h %s (%an)" ${PREV_PUSH_HASH}..${CURRENT_HASH})
+    # Simple Commit List for Description
+    COMMIT_LIST_SIMPLE=$(git log --pretty=format:"- %s" ${PREV_PUSH_HASH}..${CURRENT_HASH})
     
     if [ -z "$DIFF_LOG" ]; then
          DIFF_LOG="(このPushに新しいコミットはありません)"
+         COMMIT_LIST_SIMPLE="(No new commits)"
     fi
 
     # Recent issues (latest 20) for context building
@@ -496,6 +500,9 @@ create_push_issue() {
 
 ### 📝 Implementation Details / 実装内容
 $USER_PROMPT
+
+**Included Commits:**
+$COMMIT_LIST_SIMPLE
 
 ### 🎯 Mission & Intent / 目的と期待される効果
 $WORK_PURPOSE
