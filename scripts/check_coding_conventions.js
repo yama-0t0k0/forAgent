@@ -8,12 +8,18 @@ const EXCLUDE_DIRS = ['node_modules', '.git', '.firebase', '.expo', 'dist', 'web
 // Rules configuration
 const RULES = [
     {
+        id: 'no-var',
+        level: 'error',
+        message: 'Unexpected var, use let or const instead. (Convention 1.2)',
+        regex: /var\s+/g
+    },
+    {
         id: 'no-uninitialized-vars',
         level: 'error',
         message: 'Variable declared without initialization. Initialize with null, "", 0, etc. (Convention 1.2)',
         // Simple regex to catch uninitialized variable declarations
         // Note: This is a heuristic and might have false positives/negatives compared to a real AST parser.
-        regex: /(?:let|var)\s+[a-zA-Z0-9_$]+\s*;/g
+        regex: /let\s+[a-zA-Z0-9_$]+\s*;/g
     },
     {
         id: 'require-jsdoc-functions',
@@ -33,9 +39,36 @@ const RULES = [
     {
         id: 'no-deep-relative-paths',
         level: 'error',
-        message: 'Deep relative path detected. Use Path Aliases (e.g. @shared/) instead. (Convention 5.1)',
+        message: 'Deep relative path detected. Use Path Aliases (e.g. @shared/) instead. (Convention 6.1)',
         // Matches ../../ (2 levels up) or more
         regex: /\.\.\/\.\.\//g
+    },
+    {
+        id: 'strict-equality',
+        level: 'error',
+        message: 'Expected === and !== instead of == and !=. (Convention 4.1)',
+        // Matches ' == ' or ' != ' but not ' === ' or ' !== '. Uses negative lookahead/lookbehind logic simulation.
+        // Matches space or non-symbol before ==/!=, and non-symbol after.
+        regex: /(?:^|[^=!<>])\s*(==|!=)(?!=)/g
+    },
+    {
+        id: 'prefer-single-quotes',
+        level: 'warning',
+        message: 'Strings must use singlequote. (Convention 4.2)',
+        // Checks for double quotes. Logic handled in manualCheck to allow double quotes if string contains single quote.
+        manualCheck: 'quotes'
+    },
+    {
+        id: 'no-object-assign',
+        level: 'warning',
+        message: 'Use spread syntax (...) instead of Object.assign. (Convention 4.3)',
+        regex: /Object\.assign/g
+    },
+    {
+        id: 'prefer-array-methods',
+        level: 'warning',
+        message: 'Use array methods (map, filter, etc) instead of for loops. (Convention 4.4)',
+        regex: /for\s*\(/g
     },
     {
         id: 'no-magic-values',
@@ -163,6 +196,24 @@ function checkFile(filePath) {
         const trimmedLine = line.trim();
         // Skip comments
         if (trimmedLine.startsWith('//') || trimmedLine.startsWith('*') || trimmedLine.startsWith('/*')) return;
+
+        // Check for double quotes (Rule: prefer-single-quotes)
+        // Allow double quotes only if the string contains a single quote (to avoid escaping)
+        const quoteRule = RULES.find(r => r.id === 'prefer-single-quotes');
+        if (quoteRule) {
+            const doubleQuoteRegex = /"((?:[^"\\]|\\.)*)"/g;
+            let match;
+            // We only check the code part, roughly trying to exclude trailing comments
+            // This is imperfect but helps reduce false positives in comments
+            const codePart = line.replace(/\/\/.*$/, ''); 
+            
+            while ((match = doubleQuoteRegex.exec(codePart)) !== null) {
+                // If content does not contain single quote, it should be single-quoted
+                if (!match[1].includes("'")) {
+                    report(filePath, index + 1, quoteRule.level, quoteRule.message, match[0]);
+                }
+            }
+        }
 
         // Simple heuristic for function definitions
         // Improved regex to avoid false positives on arrow functions passed as arguments (e.g. map(d => ...))
