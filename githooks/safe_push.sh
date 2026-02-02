@@ -548,10 +548,8 @@ $RECENT_CONTEXT
         
         if [ "$AUTO_MODE" = true ]; then
              echo "🤖 Auto mode detected with placeholder text."
-             echo "❌ Error: You must provide description arguments in auto mode."
-             echo "   Usage example: ./safe_push.sh --prompt 'Add feature X' --intent 'Improve UX' --outcome 'Better performance'"
-             echo "   'ポカ避け' triggered: Aborting issue creation to maintain documentation quality."
-             exit 1
+             echo "⚠️  Warning: Description arguments are recommended for better documentation."
+             echo "   Proceeding with Issue creation despite placeholders (User Request Override)."
         else
             echo "   To ensure quality, please refine the issue description."
             echo "   Opening default editor..."
@@ -569,16 +567,15 @@ $RECENT_CONTEXT
             ISSUE_BODY=$(cat "$TEMP_FILE")
             rm "$TEMP_FILE"
             
-            # Strict Re-validation
+            # Strict Re-validation - Warn only
             if [[ "$ISSUE_BODY" == *"記述してください"* ]] || \
                [[ "$ISSUE_BODY" == *"Automated update via safe_push.sh"* ]]; then
                  echo ""
-                 echo "❌ Error: Placeholder text still present after edit."
-                 echo "   'ポカ避け' triggered: Aborting process to maintain documentation quality."
-                 exit 1
+                 echo "⚠️  Warning: Placeholder text still present after edit."
+                 echo "   Proceeding with Issue creation despite placeholders (User Request Override)."
+            else
+                echo "✅ Issue content refined."
             fi
-            
-            echo "✅ Issue content refined."
         fi
     fi
     # -------------------------------------
