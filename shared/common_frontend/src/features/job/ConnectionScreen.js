@@ -103,14 +103,57 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                 if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
                     if (activeSubTab === CONNECTION_TABS.SUB.POSITION && data.jd) {
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-                        // モデルインスタンスに変換して、ゲッター(positionName等)を利用可能にする
-                        const rankedJds = ranked.map(item => JobDescription.fromFirestore(item.id || item.JD_Number, item));
+                        
+                        // Merge matchingScore from API result into local full data
+                        // ranked items might be stripped, so we use data.jd as the source of truth
+                        const rankedMap = new Map(ranked.map(item => [item.id || item.JD_Number, item]));
+                        
+                        const rankedJds = data.jd
+                            .filter(jd => {
+                                const id = jd.id || jd.JD_Number;
+                                return rankedMap.has(id);
+                            })
+                            .map(jd => {
+                                const id = jd.id || jd.JD_Number;
+                                const rankedItem = rankedMap.get(id);
+                                // Create a new instance with merged data
+                                // Ensure matchingScore is passed in rawData so JobListItem can use it
+                                const mergedRawData = { 
+                                    ...(jd.rawData || {}), 
+                                    matchingScore: rankedItem.matchingScore 
+                                };
+                                return JobDescription.fromFirestore(id, mergedRawData, jd.companyId);
+                            })
+                            .sort((a, b) => {
+                                const scoreA = a.rawData.matchingScore || 0;
+                                const scoreB = b.rawData.matchingScore || 0;
+                                return scoreB - scoreA;
+                            });
+
                         setRankedJds(rankedJds);
                     } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
                         // Match current user against other users
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
-                        // モデルインスタンスに変換して、ゲッター(fullNameKanji等)を利用可能にする
-                        const rankedUsers = ranked.map(item => User.fromFirestore(item.id, item));
+                        
+                        // Merge matchingScore for Users as well
+                        const rankedMap = new Map(ranked.map(item => [item.id, item]));
+                        
+                        const rankedUsers = data.users
+                            .filter(user => rankedMap.has(user.id))
+                            .map(user => {
+                                const rankedItem = rankedMap.get(user.id);
+                                const mergedRawData = {
+                                    ...(user.rawData || {}),
+                                    matchingScore: rankedItem.matchingScore
+                                };
+                                return User.fromFirestore(user.id, { ...user, ...mergedRawData });
+                            })
+                            .sort((a, b) => {
+                                const scoreA = a.rawData.matchingScore || 0;
+                                const scoreB = b.rawData.matchingScore || 0;
+                                return scoreB - scoreA;
+                            });
+
                         setRankedUsers(rankedUsers);
                     }
                 }
@@ -143,9 +186,8 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const renderCandidate = useCallback(({ item }) => {
         // ポジション(JD)または法人表示の場合
         if (activeSubTab === CONNECTION_TABS.SUB.POSITION || activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
-            const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
-            const skills = extractSkills(jobDataForSkills);
-            const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
+            const skills = extractSkills(item);
+            const heatmapInfo = getHighDensityHeatmapData(item);
             const companyName = getCompanyName(item.company_ID, data?.corporate);
 
             return (
