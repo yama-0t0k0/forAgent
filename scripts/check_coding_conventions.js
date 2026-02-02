@@ -129,17 +129,19 @@ function checkFile(filePath) {
     const fileName = path.basename(filePath, path.extname(filePath));
     if (fileName !== 'index') {
         // Check for Class definition
-        if (/class\s+\w+/.test(content)) {
+        // Regex looks for 'class' keyword at start of line (ignoring whitespace) to avoid matching JSDoc comments
+        if (/(?:^|[\r\n])\s*(?:export\s+)?class\s+\w+/.test(content)) {
             if (/^[a-z]/.test(fileName)) {
                 report(filePath, 0, 'warning', `File contains 'class' definition but filename is camelCase. Rename to PascalCase (e.g. ${fileName.charAt(0).toUpperCase() + fileName.slice(1)}.js). (Convention 5.2)`, fileName);
             }
         }
         // Check for Component definition (heuristic: PascalCase export)
-        else if (/export\s+(?:default\s+)?(?:const|function)\s+([A-Z]\w+)/.test(content)) {
+        // Matches UpperThenLower (e.g. MyComponent) to exclude ALLCAPS constants (e.g. THEME)
+        else if (/export\s+(?:default\s+)?(?:const|function)\s+([A-Z][a-z0-9]\w*)/.test(content)) {
              // If it exports a PascalCase symbol, it's likely a component, so filename should be PascalCase
              // Exception: sometimes we export Types/Constants from utils, but typically main export matches filename.
              // We'll stick to: if filename is camelCase, verify it doesn't export a Component-like name as default or main
-             const match = content.match(/export\s+(?:default\s+)?(?:const|function)\s+([A-Z]\w+)/);
+             const match = content.match(/export\s+(?:default\s+)?(?:const|function)\s+([A-Z][a-z0-9]\w*)/);
              if (match && /^[a-z]/.test(fileName)) {
                  // Weak warning: might be utility exporting a constant?
                  // Let's restrict to 'default' export or strict match

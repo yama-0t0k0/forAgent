@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * useFirestore - A custom hook for fetching data from Firestore.
@@ -55,7 +56,7 @@ export const useFirestoreSnapshot = (docRef, ModelClass = null) => {
             (docSnap) => {
                 if (docSnap.exists()) {
                     const rawData = docSnap.data();
-                    if (ModelClass && typeof ModelClass.fromFirestore === 'function') {
+                    if (ModelClass && typeof ModelClass.fromFirestore === DATA_TYPE.FUNCTION) {
                         setData(ModelClass.fromFirestore(docSnap.id, rawData));
                     } else {
                         setData(rawData);

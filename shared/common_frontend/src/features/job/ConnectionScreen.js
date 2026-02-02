@@ -2,6 +2,8 @@ import React, { useState, useContext, useMemo, useEffect, useCallback } from 're
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
+import { CONNECTION_TABS } from '@shared/src/core/constants';
+import { SYSTEM_USER_ID } from '@shared/src/core/constants/system';
 import { Ionicons } from '@expo/vector-icons';
 import { MatchingService } from '@shared/src/core/utils/MatchingService';
 import { JobListItem } from '@shared/src/features/job/components/JobListItem';
@@ -37,12 +39,12 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 
     // 2段階タブの状態管理
     // Main Tabs: 'recommendation' (おすすめ) | 'connected' (つながり済)
-    const [activeMainTab, setActiveMainTab] = useState('recommendation');
+    const [activeMainTab, setActiveMainTab] = useState(CONNECTION_TABS.MAIN.RECOMMENDATION);
 
     // Sub Tabs: 
     // - recommendation: 'position' (ポジション) | 'person' (個人)
     // - connected: 'company' (法人) | 'person' (個人)
-    const [activeSubTab, setActiveSubTab] = useState('position');
+    const [activeSubTab, setActiveSubTab] = useState(CONNECTION_TABS.SUB.POSITION);
 
     /**
      * Handle main tab change and set default sub tab.
@@ -50,10 +52,10 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
      */
     const handleMainTabChange = (tab) => {
         setActiveMainTab(tab);
-        if (tab === 'recommendation') {
-            setActiveSubTab('position');
+        if (tab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
+            setActiveSubTab(CONNECTION_TABS.SUB.POSITION);
         } else {
-            setActiveSubTab('company');
+            setActiveSubTab(CONNECTION_TABS.SUB.COMPANY);
         }
     };
 
@@ -68,7 +70,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
         }
 
         if (data.users && Array.isArray(data.users) && data.users.length > 0) {
-            return data.users.find(u => u.id === 'C000000000000') || data.users[0];
+            return data.users.find(u => u.id === SYSTEM_USER_ID) || data.users[0];
         }
 
         // 個人アプリの場合、dataそのものがユーザーデータである可能性がある
@@ -96,22 +98,22 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             setLoading(true);
             try {
                 // おすすめタブのロジック
-                if (activeMainTab === 'recommendation') {
-                    if (activeSubTab === 'position' && data.jd) {
+                if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
+                    if (activeSubTab === CONNECTION_TABS.SUB.POSITION && data.jd) {
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
                         setRankedJds(ranked);
-                    } else if (activeSubTab === 'person' && data.users) {
+                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
                         // Match current user against other users
                         const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
                         setRankedUsers(ranked);
                     }
                 }
                 // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
-                else if (activeMainTab === 'connected') {
+                else if (activeMainTab === CONNECTION_TABS.MAIN.CONNECTED) {
                     // TODO: Implement logic for fetching connected companies/users
-                    if (activeSubTab === 'company') {
+                    if (activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
                         setRankedJds([]);
-                    } else if (activeSubTab === 'person') {
+                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON) {
                         setRankedUsers([]);
                     }
                 }
@@ -134,7 +136,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
      */
     const renderCandidate = useCallback(({ item }) => {
         // ポジション(JD)または法人表示の場合
-        if (activeSubTab === 'position' || activeSubTab === 'company') {
+        if (activeSubTab === CONNECTION_TABS.SUB.POSITION || activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
             const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
             const skills = extractSkills(jobDataForSkills);
             const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
@@ -167,11 +169,11 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 
     // 現在表示すべきデータリストの決定
     const currentData = useMemo(() => {
-        if (activeMainTab === 'recommendation') {
-            return activeSubTab === 'position' ? rankedJds : rankedUsers;
+        if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
+            return activeSubTab === CONNECTION_TABS.SUB.POSITION ? rankedJds : rankedUsers;
         } else {
             // つながり済
-            return activeSubTab === 'company' ? [] : []; // 現状は空
+            return activeSubTab === CONNECTION_TABS.SUB.COMPANY ? [] : []; // 現状は空
         }
     }, [activeMainTab, activeSubTab, rankedJds, rankedUsers]);
 
@@ -184,50 +186,50 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             {/* Main Tabs (Upper Level) */}
             <View style={styles.mainTabBar}>
                 <TouchableOpacity
-                    style={[styles.mainTab, activeMainTab === 'recommendation' && styles.activeMainTab]}
-                    onPress={() => handleMainTabChange('recommendation')}
+                    style={[styles.mainTab, activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION && styles.activeMainTab]}
+                    onPress={() => handleMainTabChange(CONNECTION_TABS.MAIN.RECOMMENDATION)}
                 >
-                    <Text style={[styles.mainTabText, activeMainTab === 'recommendation' && styles.activeMainTabText]}>おすすめ</Text>
+                    <Text style={[styles.mainTabText, activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION && styles.activeMainTabText]}>おすすめ</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.mainTab, activeMainTab === 'connected' && styles.activeMainTab]}
-                    onPress={() => handleMainTabChange('connected')}
+                    style={[styles.mainTab, activeMainTab === CONNECTION_TABS.MAIN.CONNECTED && styles.activeMainTab]}
+                    onPress={() => handleMainTabChange(CONNECTION_TABS.MAIN.CONNECTED)}
                 >
-                    <Text style={[styles.mainTabText, activeMainTab === 'connected' && styles.activeMainTabText]}>つながり済</Text>
+                    <Text style={[styles.mainTabText, activeMainTab === CONNECTION_TABS.MAIN.CONNECTED && styles.activeMainTabText]}>つながり済</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Sub Tabs (Lower Level) */}
             <View style={styles.subTabBarContainer}>
                 <View style={styles.subTabBar}>
-                    {activeMainTab === 'recommendation' ? (
+                    {activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION ? (
                         <>
                             <TouchableOpacity
-                                style={[styles.subTab, activeSubTab === 'position' && styles.activeSubTab]}
-                                onPress={() => setActiveSubTab('position')}
+                                style={[styles.subTab, activeSubTab === CONNECTION_TABS.SUB.POSITION && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab(CONNECTION_TABS.SUB.POSITION)}
                             >
-                                <Text style={[styles.subTabText, activeSubTab === 'position' && styles.activeSubTabText]}>ポジション</Text>
+                                <Text style={[styles.subTabText, activeSubTab === CONNECTION_TABS.SUB.POSITION && styles.activeSubTabText]}>ポジション</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.subTab, activeSubTab === 'person' && styles.activeSubTab]}
-                                onPress={() => setActiveSubTab('person')}
+                                style={[styles.subTab, activeSubTab === CONNECTION_TABS.SUB.PERSON && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab(CONNECTION_TABS.SUB.PERSON)}
                             >
-                                <Text style={[styles.subTabText, activeSubTab === 'person' && styles.activeSubTabText]}>個人</Text>
+                                <Text style={[styles.subTabText, activeSubTab === CONNECTION_TABS.SUB.PERSON && styles.activeSubTabText]}>個人</Text>
                             </TouchableOpacity>
                         </>
                     ) : (
                         <>
                             <TouchableOpacity
-                                style={[styles.subTab, activeSubTab === 'company' && styles.activeSubTab]}
-                                onPress={() => setActiveSubTab('company')}
+                                style={[styles.subTab, activeSubTab === CONNECTION_TABS.SUB.COMPANY && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab(CONNECTION_TABS.SUB.COMPANY)}
                             >
-                                <Text style={[styles.subTabText, activeSubTab === 'company' && styles.activeSubTabText]}>法人</Text>
+                                <Text style={[styles.subTabText, activeSubTab === CONNECTION_TABS.SUB.COMPANY && styles.activeSubTabText]}>法人</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.subTab, activeSubTab === 'person' && styles.activeSubTab]}
-                                onPress={() => setActiveSubTab('person')}
+                                style={[styles.subTab, activeSubTab === CONNECTION_TABS.SUB.PERSON && styles.activeSubTab]}
+                                onPress={() => setActiveSubTab(CONNECTION_TABS.SUB.PERSON)}
                             >
-                                <Text style={[styles.subTabText, activeSubTab === 'person' && styles.activeSubTabText]}>個人</Text>
+                                <Text style={[styles.subTabText, activeSubTab === CONNECTION_TABS.SUB.PERSON && styles.activeSubTabText]}>個人</Text>
                             </TouchableOpacity>
                         </>
                     )}

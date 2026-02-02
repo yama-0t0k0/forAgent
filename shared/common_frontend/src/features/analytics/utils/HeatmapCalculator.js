@@ -1,4 +1,6 @@
 import { HeatmapMapper } from './HeatmapMapper';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
+import { HEATMAP_LEVELS, HEATMAP_THRESHOLDS, ASPIRATION_WEIGHTS } from '@shared/src/features/analytics/constants/heatmap';
 
 /**
  * ヒートマップの表示データを計算するクラス。
@@ -7,18 +9,18 @@ import { HeatmapMapper } from './HeatmapMapper';
 export class HeatmapCalculator {
     static SKILL_SCORES = {
         '専門的な知識やスキルを有し他者を育成/指導できる': 1.0,
-        '実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる': 0.8,
-        '実務で基礎的なタスクを遂行可能': 0.5,
-        '実務経験は無いが個人活動で経験あり': 0.2,
-        '経験なし': 0.0,
+        '実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる': HEATMAP_THRESHOLDS.LEVEL_4,
+        '実務で基礎的なタスクを遂行可能': HEATMAP_THRESHOLDS.LEVEL_3,
+        '実務経験は無いが個人活動で経験あり': HEATMAP_THRESHOLDS.LEVEL_2,
+        '経験なし': HEATMAP_THRESHOLDS.LEVEL_1,
     };
 
     static ASPIRATION_SCORES = {
-        'とてもやりたい': 1.0,
-        'やりたい': 0.7,
-        'どちらでもない': 0.3,
-        'あまり興味なし': 0.1,
-        '興味なし': 0.0,
+        'とてもやりたい': ASPIRATION_WEIGHTS.VERY_HIGH,
+        'やりたい': ASPIRATION_WEIGHTS.HIGH,
+        'どちらでもない': ASPIRATION_WEIGHTS.MEDIUM,
+        'あまり興味なし': ASPIRATION_WEIGHTS.LOW,
+        '興味なし': ASPIRATION_WEIGHTS.NONE,
     };
 
     /**
@@ -54,17 +56,17 @@ export class HeatmapCalculator {
             // 基本的な志向
             Object.keys(aspirationData).forEach(categoryKey => {
                 const categoryVal = aspirationData[categoryKey];
-                if (typeof categoryVal === 'object' && categoryVal !== null) {
+                if (typeof categoryVal === DATA_TYPE.OBJECT && categoryVal !== null) {
                     Object.keys(categoryVal).forEach(key => {
                         const val = categoryVal[key];
-                        if (typeof val === 'boolean') {
+                        if (typeof val === DATA_TYPE.BOOLEAN) {
                             if (val) {
                                 const index = HeatmapMapper.getIndex(key, true);
                                 if (index !== null) {
                                     grid[index] = 1.0; // ブール値の場合は 1.0
                                 }
                             }
-                        } else if (typeof val === 'string' && this.ASPIRATION_SCORES[val] !== undefined) {
+                        } else if (typeof val === DATA_TYPE.STRING && this.ASPIRATION_SCORES[val] !== undefined) {
                             const index = HeatmapMapper.getIndex(key, true);
                             if (index !== null) {
                                 grid[index] = Math.max(grid[index], this.ASPIRATION_SCORES[val]);
@@ -119,7 +121,7 @@ export class HeatmapCalculator {
      * @private
      */
     static _evaluateSkillsRecursive(node, currentPath, onFound) {
-        if (typeof node !== 'object' || node === null) return;
+        if (typeof node !== DATA_TYPE.OBJECT || node === null) return;
 
         // このノード自体が評価ノード（5項目を持つ）かチェック
         const score = this._getSkillScore(node);
@@ -142,7 +144,7 @@ export class HeatmapCalculator {
      * @private
      */
     static _evaluateAspirationsRecursive(node, onFound) {
-        if (typeof node !== 'object' || node === null) return;
+        if (typeof node !== DATA_TYPE.OBJECT || node === null) return;
 
         // このノード自体が評価ノード（志向の選択肢を持つ）かチェック
         const score = this._getAspirationScore(node);

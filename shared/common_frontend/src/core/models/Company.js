@@ -1,3 +1,5 @@
+import { DATA_TYPE, STRINGIFIED_OBJECT } from '@shared/src/core/constants/system';
+
 /**
  * Company Model
  * Represents a company entity in the system.
@@ -94,6 +96,8 @@ export class Company {
         LOGO_URL: 'ロゴ画像URL'
     };
 
+    static TEMPLATE_NAME = 'ヤヲー株式会社';
+
     /**
      * Creates a Company instance from Firestore data.
      * @param {string} id - Document ID
@@ -121,7 +125,7 @@ export class Company {
         // We should prioritize the flat real name if the nested name is the template placeholder.
         let name = profile[Company.FIELDS.NAME];
         const flatName = data.companyName || data.name;
-        if (name === 'ヤヲー株式会社' && flatName) {
+        if (name === Company.TEMPLATE_NAME && flatName) {
             name = flatName;
         }
 
@@ -153,7 +157,7 @@ export class Company {
         if (!addr) return '-';
         
         // If it's a string, return as is
-        if (typeof addr === 'string' && !addr.startsWith('[object')) return addr;
+        if (typeof addr === DATA_TYPE.STRING && !addr.startsWith('[object')) return addr;
 
         // If it's an object (from rawData or parsed), try to format it
         // Note: this.address is typed as string in constructor, but raw data might have put an object there 
@@ -164,7 +168,7 @@ export class Company {
         const rawProfile = this.rawData['会社概要'] || {};
         const rawAddr = rawProfile['所在地'] || rawProfile['住所'] || rawProfile['本社所在地'] || this.rawData.address;
 
-        if (typeof rawAddr === 'object' && rawAddr !== null) {
+        if (typeof rawAddr === DATA_TYPE.OBJECT && rawAddr !== null) {
             const parts = [
                 rawAddr['郵便番号(ハイフンなし)'] ? `〒${rawAddr['郵便番号(ハイフンなし)']}` : null,
                 rawAddr['都道府県'],
@@ -176,6 +180,6 @@ export class Company {
             return joined || '-';
         }
         
-        return this.address !== "[object Object]" ? this.address : '-';
+        return this.address !== STRINGIFIED_OBJECT ? this.address : '-';
     }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { GenericBottomNav } from './GenericBottomNav';
+import { APP_TABS } from '@shared/src/core/constants/ui';
 
 /**
  * @typedef {Object} BottomNavProps
@@ -17,13 +18,13 @@ import { GenericBottomNav } from './GenericBottomNav';
  * @param {string} [props.activeTab='Home'] - Currently active tab ID
  * @param {Object} [props.userDoc=null] - User document (optional)
  */
-export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) => {
+export const BottomNav = ({ navigation, activeTab = APP_TABS.HOME, userDoc = null }) => {
     const tabs = [
-        { id: 'Career', label: 'キャリア', icon: 'person-circle-outline' },
-        { id: 'Connection', label: 'つながり', icon: 'people-circle-outline' },
-        { id: 'Home', label: 'ホーム', icon: 'home', activeIcon: 'home' },
-        { id: 'Learning', label: '学習', icon: 'book-outline' },
-        { id: 'Menu', label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
+        { id: APP_TABS.CAREER, label: 'キャリア', icon: 'person-circle-outline' },
+        { id: APP_TABS.CONNECTION, label: 'つながり', icon: 'people-circle-outline' },
+        { id: APP_TABS.HOME, label: 'ホーム', icon: 'home', activeIcon: 'home' },
+        { id: APP_TABS.LEARNING, label: '学習', icon: 'book-outline' },
+        { id: APP_TABS.MENU, label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
     ];
 
     /**
@@ -31,15 +32,15 @@ export const BottomNav = ({ navigation, activeTab = 'Home', userDoc = null }) =>
      * @param {string} tabId - The ID of the tab to navigate to.
      */
     const handlePress = (tabId) => {
-        if (tabId === 'Home') {
+        if (tabId === APP_TABS.HOME) {
             navigation.navigate('MyPage', { userDoc });
-        } else if (tabId === 'Connection') {
+        } else if (tabId === APP_TABS.CONNECTION) {
             navigation.navigate('Connection', { userDoc });
-        } else if (tabId === 'Menu') {
+        } else if (tabId === APP_TABS.MENU) {
             navigation.navigate('Menu', { userDoc });
-        } else if (tabId === 'Career') {
+        } else if (tabId === APP_TABS.CAREER) {
             navigation.navigate('Career', { userDoc });
-        } else if (tabId === 'Registration') {
+        } else if (tabId === APP_TABS.REGISTRATION) {
             navigation.navigate('Registration', { isEdit: true, userDoc });
         } else {
             console.log(`Navigating to ${tabId}`);

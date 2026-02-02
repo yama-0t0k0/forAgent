@@ -15,6 +15,7 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 import { ROUTES } from '@shared/src/core/constants/navigation';
+import { SYSTEM_USER_ID } from '@shared/src/core/constants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,9 +55,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     const navigation = useNavigation();
 
     // Resolve userId and initial userDoc from props or route params
-    const userId = propUserId || route?.params?.userId || 'C000000000000';
+    const userId = propUserId || route?.params?.userId || SYSTEM_USER_ID;
     // If it's the current user (from context) and no specific user requested, use context data
-    const isCurrentUser = userId === 'C000000000000';
+    const isCurrentUser = userId === SYSTEM_USER_ID;
 
     // Use useFirestoreSnapshot for real-time updates when it's not the current user in local data
     const docRef = useMemo(() => (!isCurrentUser && userId ? doc(db, 'individual', userId) : null), [userId, isCurrentUser]);

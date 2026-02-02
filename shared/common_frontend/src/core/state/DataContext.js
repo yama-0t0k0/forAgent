@@ -1,4 +1,5 @@
 import React, { createContext, useState, useCallback } from 'react';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * アプリケーション全体で共有するデータコンテキスト
@@ -39,7 +40,7 @@ export const DataProvider = ({ children, initialData }) => {
        * @returns {Object} Cloned object
        */
       const shallowClone = (obj) => {
-        if (obj === null || typeof obj !== 'object') return obj;
+        if (obj === null || typeof obj !== DATA_TYPE.OBJECT) return obj;
         if (Array.isArray(obj)) return [...obj];
         const clone = Object.create(Object.getPrototypeOf(obj));
         return Object.assign(clone, obj);

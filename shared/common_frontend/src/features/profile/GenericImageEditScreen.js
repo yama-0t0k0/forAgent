@@ -18,8 +18,9 @@ import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from '@shared/src/core/firebaseConfig';
+import { PLATFORM, DATA_TYPE, SAVE_STATUS } from '@shared/src/core/constants';
 import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@shared/src/core/firebaseConfig';
 import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
 import { useForm } from '@shared/src/core/utils/useForm';
 import { GlobalLoadingOverlay } from '@shared/src/core/components/StateComponents';
@@ -84,7 +85,7 @@ export const GenericImageEditScreen = ({
                  * @returns {any} The cleaned data.
                  */
                 const cleanData = (input) => {
-                    if (input === null || typeof input !== 'object') return input;
+                    if (input === null || typeof input !== DATA_TYPE.OBJECT) return input;
                     if (Array.isArray(input)) return input.map(cleanData);
                     const output = {};
                     Object.keys(input).forEach(key => {
@@ -118,12 +119,12 @@ export const GenericImageEditScreen = ({
                 title="画像設定"
                 rightAction={
                     <TouchableOpacity
-                        style={[styles.saveButton, status === 'success' && styles.saveButtonSuccess]}
+                        style={[styles.saveButton, status === SAVE_STATUS.SUCCESS && styles.saveButtonSuccess]}
                         onPress={handleSubmit}
                         disabled={isSubmitting}
                     >
                         <Text style={styles.saveButtonText}>
-                            {status === 'success' ? '保存済' : '保存'}
+                            {status === SAVE_STATUS.SUCCESS ? '保存済' : '保存'}
                         </Text>
                     </TouchableOpacity>
                 }
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 50 : 20,
+        paddingTop: Platform.OS === PLATFORM.IOS ? 50 : 20,
         paddingBottom: 15,
         backgroundColor: THEME.background,
         borderBottomWidth: 1,

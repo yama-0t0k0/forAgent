@@ -3,6 +3,7 @@
  * Cloud Run上のDart版マッチングロジックを呼び出します。
  */
 import { getAuth } from "firebase/auth";
+import { MATCHING_TARGET_TYPE } from '@shared/src/core/constants/system';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_MATCHING_API_URL || 'http://localhost:8080';
 
@@ -58,15 +59,15 @@ export const MatchingService = {
      * @param {'jd'|'user'} [type='jd'] ターゲットの種類 ('jd': 求人に対するユーザーランク, 'user': ユーザーに対する求人ランク)
      * @returns {Promise<Array<Object>>} スコア順にソートされた候補リスト
      */
-    async rankCandidates(targetDoc, candidates, type = 'jd') {
+    async rankCandidates(targetDoc, candidates, type = MATCHING_TARGET_TYPE.JD) {
         /**
          * 候補者ごとにマッチングスコアを計算する内部関数
          * @param {Object} candidate - 候補データ
          * @returns {Promise<Object>} スコア付き候補データ
          */
         const processCandidate = async (candidate) => {
-            const userDoc = type === 'jd' ? targetDoc : candidate;
-            const jdDoc = type === 'jd' ? candidate : targetDoc;
+            const userDoc = type === MATCHING_TARGET_TYPE.JD ? targetDoc : candidate;
+            const jdDoc = type === MATCHING_TARGET_TYPE.JD ? candidate : targetDoc;
 
             const result = await this.getMatchScore(userDoc, jdDoc);
             return {

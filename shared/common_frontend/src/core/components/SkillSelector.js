@@ -2,7 +2,8 @@ import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
-import { SKILL_LEVELS, SKILL_LEVEL_TEXTS } from '@shared/src/core/constants/index';
+import { SKILL_LEVELS, SKILL_LEVEL_TEXTS, FIELD_META } from '@shared/src/core/constants/index';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * @typedef {Object} SkillSelectorProps
@@ -25,11 +26,11 @@ export const SkillSelector = ({ value, path }) => {
 
   // Determine current level from the value object { "LevelText": true }
   let currentLevel = 0; // Default to 0
-  if (value && typeof value === 'object') {
+  if (value && typeof value === DATA_TYPE.OBJECT) {
     // Check keys, ignoring metadata like '_displayType'
     /** @type {[string, any]} */
     const entry = Object.entries(value).find(([key, val]) =>
-      key !== '_displayType' && val === true && SKILL_LEVEL_TEXTS.includes(key)
+      key !== FIELD_META.DISPLAY_TYPE && val === true && SKILL_LEVEL_TEXTS.includes(key)
     );
     if (entry) {
       /** @type {string} */
@@ -47,8 +48,8 @@ export const SkillSelector = ({ value, path }) => {
     // Create new object with selected level set to true, preserving metadata
     const newValue = { [text]: true };
     // Preserve _displayType if it exists
-    if (value && value._displayType) {
-      newValue._displayType = value._displayType;
+    if (value && value[FIELD_META.DISPLAY_TYPE]) {
+      newValue[FIELD_META.DISPLAY_TYPE] = value[FIELD_META.DISPLAY_TYPE];
     }
     updateValue(path, newValue);
   };

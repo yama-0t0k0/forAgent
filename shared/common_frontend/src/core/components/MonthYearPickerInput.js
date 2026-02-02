@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
+import { PICKER_EVENT_TYPE, DATE_CONSTRAINTS } from '@shared/src/core/constants/field';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * @typedef {Object} MonthYearPickerInputProps
@@ -29,13 +31,13 @@ export const MonthYearPickerInput = ({ label, valueObj, path }) => {
   const [show, setShow] = useState(false);
 
   // Parse YYYYMM (number)
-  const yyyymm = valueObj?.value || 202001;
-  const safeYyyymm = typeof yyyymm === 'number' ? yyyymm : 202001;
+  const yyyymm = valueObj?.value || DATE_CONSTRAINTS.DEFAULT_YYYYMM;
+  const safeYyyymm = typeof yyyymm === DATA_TYPE.NUMBER ? yyyymm : DATE_CONSTRAINTS.DEFAULT_YYYYMM;
 
   const year = Math.floor(safeYyyymm / 100);
   const month = (safeYyyymm % 100) - 1; // 0-indexed
-  const safeYear = year > 1900 && year < 2100 ? year : 2020;
-  const safeMonth = month >= 0 && month < 12 ? month : 0;
+  const safeYear = year > DATE_CONSTRAINTS.MIN_YEAR && year < DATE_CONSTRAINTS.MAX_YEAR ? year : DATE_CONSTRAINTS.DEFAULT_YEAR_MONTH;
+  const safeMonth = month >= 0 && month < DATE_CONSTRAINTS.MONTHS_IN_YEAR ? month : 0;
 
   const dateValue = new Date(safeYear, safeMonth, 1);
 
@@ -46,7 +48,7 @@ export const MonthYearPickerInput = ({ label, valueObj, path }) => {
    */
   const onChange = (event, selectedDate) => {
     setShow(false);
-    if (selectedDate && event.type !== 'dismissed') {
+    if (selectedDate && event.type !== PICKER_EVENT_TYPE.DISMISSED) {
       const y = selectedDate.getFullYear();
       const m = selectedDate.getMonth() + 1;
       const newVal = y * 100 + m;

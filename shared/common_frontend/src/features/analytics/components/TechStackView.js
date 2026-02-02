@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
+import { PLATFORM, DATA_TYPE } from '@shared/src/core/constants/system';
 import { Company } from '@shared/src/core/models/Company';
 
 // Enable LayoutAnimation on Android
-if (Platform.OS === 'android') {
+if (Platform.OS === PLATFORM.ANDROID) {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
         UIManager.setLayoutAnimationEnabledExperimental(true);
     }
@@ -102,7 +103,7 @@ export const TechStackView = ({ features, techStack }) => {
                 {isFeaturesExpanded && (
                     <View style={styles.accordionContent}>
                         {Object.entries(features).map(([key, value]) => {
-                            if (typeof value === 'boolean') {
+                            if (typeof value === DATA_TYPE.BOOLEAN) {
                                 return (
                                     <View key={key} style={styles.featureItem}>
                                         <Ionicons

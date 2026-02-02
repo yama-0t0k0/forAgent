@@ -15,6 +15,7 @@ module.exports = function (api) {
             '@individual_app': '../../../apps/individual_user_app/expo_frontend',
             '@assets': './assets',
             '@features': './src/features',
+            '@core': './src/core',
           },
         },
       ],

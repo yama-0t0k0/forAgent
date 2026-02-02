@@ -5,6 +5,7 @@ import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
 import { useFirestore } from '@shared/src/core/utils/useFirestore';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 import { EmptyState, ErrorState } from '@shared/src/core/components/StateComponents';
+import { FMJS_TABS, SELECTION_STATUS, STATUS_VARIANTS, UI_TEXT } from '@core/constants';
 
 /**
  * Formats a number as currency.
@@ -27,7 +28,7 @@ const SelectionProgressListScreen = () => {
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState(FMJS_TABS.BASIC);
 
   /**
    * Handles item press to open details modal.
@@ -35,7 +36,7 @@ const SelectionProgressListScreen = () => {
    */
   const handlePress = (item) => {
     setSelectedItem(item);
-    setActiveTab('basic');
+    setActiveTab(FMJS_TABS.BASIC);
     setModalVisible(true);
   };
 
@@ -52,7 +53,7 @@ const SelectionProgressListScreen = () => {
           <Text style={styles.cardTitle}>JD: {item.jdNumber}</Text>
           <StatusBadge
             status={item.activeStatus}
-            variant={item.activeStatus === 'Open' ? 'success' : 'neutral'}
+            variant={item.activeStatus === SELECTION_STATUS.OPEN ? STATUS_VARIANTS.SUCCESS : STATUS_VARIANTS.NEUTRAL}
           />
         </View>
 
@@ -150,7 +151,7 @@ const SelectionProgressListScreen = () => {
         <Text style={styles.subTitle}>1次面接</Text>
         {renderFeedbackDetail(item.firstInterview)}
 
-        <Text style={styles.subTitle}>2次面接</Text>
+        <Text style={styles.subTitle}>{UI_TEXT.SECOND_INTERVIEW}</Text>
         {renderFeedbackDetail(item.secondInterview)}
 
         <Text style={styles.subTitle}>最終面接</Text>
@@ -167,7 +168,7 @@ const SelectionProgressListScreen = () => {
     if (!selectedItem) return null;
 
     switch (activeTab) {
-      case 'basic':
+      case FMJS_TABS.BASIC:
         return (
           <ScrollView>
             <View style={styles.sectionContainer}>
@@ -186,19 +187,19 @@ const SelectionProgressListScreen = () => {
             </View>
           </ScrollView>
         );
-      case 'feedback':
+      case FMJS_TABS.FEEDBACK:
         return (
           <ScrollView>
             {renderFeedbackSection(selectedItem)}
           </ScrollView>
         );
-      case 'survey':
+      case FMJS_TABS.SURVEY:
         return (
           <ScrollView>
             {renderSurveySection(selectedItem.survey)}
           </ScrollView>
         );
-      case 'fee':
+      case FMJS_TABS.FEE:
         return (
           <ScrollView>
             <View style={styles.sectionContainer}>
@@ -246,28 +247,28 @@ const SelectionProgressListScreen = () => {
         <View style={{ flex: 1 }}>
           <View style={styles.tabBar}>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'basic' && styles.activeTabItem]}
-              onPress={() => setActiveTab('basic')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.BASIC && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.BASIC)}
             >
-              <Text style={[styles.tabText, activeTab === 'basic' && styles.activeTabText]}>基本情報</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.BASIC && styles.activeTabText]}>{UI_TEXT.BASIC_INFO}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'progress' && styles.activeTabItem]}
-              onPress={() => setActiveTab('progress')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.PROGRESS && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.PROGRESS)}
             >
-              <Text style={[styles.tabText, activeTab === 'progress' && styles.activeTabText]}>選考進捗</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.PROGRESS && styles.activeTabText]}>{UI_TEXT.SELECTION_PROGRESS}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'fee' && styles.activeTabItem]}
-              onPress={() => setActiveTab('fee')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.FEE && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.FEE)}
             >
-              <Text style={[styles.tabText, activeTab === 'fee' && styles.activeTabText]}>手数料</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.FEE && styles.activeTabText]}>{UI_TEXT.FEE}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'survey' && styles.activeTabItem]}
-              onPress={() => setActiveTab('survey')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.SURVEY && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.SURVEY)}
             >
-              <Text style={[styles.tabText, activeTab === 'survey' && styles.activeTabText]}>サーベイ</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.SURVEY && styles.activeTabText]}>{UI_TEXT.SURVEY}</Text>
             </TouchableOpacity>
           </View>
 

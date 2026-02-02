@@ -2,6 +2,8 @@ import React, { useContext } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet } from 'react-native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
+import { HTTP_STATUS } from '@shared/src/core/constants/system';
+import { INPUT_LABELS, ZIP_CODE_CONFIG, COUNTRY } from '@shared/src/core/constants/field';
 
 /**
  * @typedef {Object} InputRowProps
@@ -24,7 +26,7 @@ export const InputRow = ({ label, value, path }) => {
   if (!context) return null;
   const { data, updateValue } = context;
 
-  const isZipCode = label === '郵便番号';
+  const isZipCode = label === INPUT_LABELS.ZIP_CODE;
 
   /**
    * Handles text change events.
@@ -37,7 +39,7 @@ export const InputRow = ({ label, value, path }) => {
       updateValue(path, numericText);
 
       // Verify length for Japanese Zip Code
-      if (numericText.length === 7) {
+      if (numericText.length === ZIP_CODE_CONFIG.LENGTH) {
         // Find '国' sibling
         const parentPath = path.slice(0, -1);
         const countryPath = [...parentPath, '国'];
@@ -50,11 +52,11 @@ export const InputRow = ({ label, value, path }) => {
         const getValue = (obj, p) => p.reduce((o, k) => (o && o[k] ? o[k] : undefined), obj);
         const country = getValue(data, countryPath);
 
-        if (country === '日本') {
+        if (country === COUNTRY.JAPAN) {
           try {
             const response = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${numericText}`);
             const json = await response.json();
-            if (json.status === 200 && json.results) {
+            if (json.status === HTTP_STATUS.OK && json.results) {
               const result = json.results[0];
               updateValue([...parentPath, '都道府県or州など'], result.address1);
               updateValue([...parentPath, '市区町村'], result.address2);
@@ -82,7 +84,7 @@ export const InputRow = ({ label, value, path }) => {
         onChangeText={handleTextChange}
         placeholderTextColor={THEME.subText}
         keyboardType={isZipCode ? 'numeric' : 'default'}
-        maxLength={isZipCode ? 7 : undefined}
+        maxLength={isZipCode ? ZIP_CODE_CONFIG.LENGTH : undefined}
       />
     </View>
   );
