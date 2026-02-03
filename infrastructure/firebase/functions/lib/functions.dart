@@ -6,7 +6,10 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 @CloudFunction()
 Future<Response> calculateMatch(Request request) async {
-  // 0. Auth Check
+  // 0. Auth Check - DISABLED for Public Access
+  // Cloud Run is configured to allow unauthenticated invocations.
+  // We skip token validation to match this configuration.
+  /*
   final authHeader = request.headers['Authorization'];
   if (authHeader == null || !authHeader.startsWith('Bearer ')) {
     return Response.forbidden(
@@ -42,6 +45,7 @@ Future<Response> calculateMatch(Request request) async {
       headers: {'Content-Type': 'application/json'},
     );
   }
+  */
 
   try {
     final payload = await request.readAsString();
