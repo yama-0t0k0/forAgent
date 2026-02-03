@@ -1,56 +1,134 @@
-import 'dart:convert';
 import 'package:test/test.dart';
-import 'package:matching_functions/functions.dart';
-import 'package:shelf/shelf.dart';
+import 'package:common_logic/common_logic.dart';
 
 void main() {
-  test('calculateMatch returns a score for valid input', () async {
-    final userDoc = {
-      'スキル経験': {
-        'Java': {'実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる': true}
-      }
-    };
-    final jdDoc = {
-      'スキル経験': {
-        'Java': {'実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる': true}
-      }
-    };
+  final logic = MatchingLogic();
 
-    final request = Request(
-      'POST',
-      Uri.parse('http://localhost:8080/'),
-      body: jsonEncode({'userDoc': userDoc, 'jdDoc': jdDoc}),
-    );
+  group('MatchingLogic', () {
+    test('Job Match: Over-spec should be penalized', () {
+      // Source: 5, Target: 3 (Diff -2)
+      final userSkills = {'Dart': 5};
+      final jdSkills = {'Dart': 3};
+      
+      final result = logic.calculateMatchResult(userSkills, jdSkills, isJobMatching: true);
+      
+      expect(result['matchedSkills']['Dart'], -50);
+      expect(result['netScore'], -50);
+    });
 
-    final response = await calculateMatch(request);
-    expect(response.statusCode, equals(200));
+    test('User Match: Over-spec should NOT be penalized', () {
+      // Source: 5, Target: 3 (Diff -2)
+      final sourceSkills = {'Dart': 5};
+      final targetSkills = {'Dart': 3};
+      
+      final result = logic.calculateMatchResult(sourceSkills, targetSkills, isJobMatching: false);
+      
+      expect(result['matchedSkills']['Dart'], 100);
+      expect(result['netScore'], 100);
+    });
 
-    final body = jsonDecode(await response.readAsString());
-    expect(body['matchPoints'], greaterThan(0));
-    expect(body['netScore'], equals(body['matchPoints'])); // No penalties in this test
-    expect(body['matchingScore'], equals(20)); // 100 / 5 = 20
-  });
+    test('Job Match: Target > Source (Upskilling) should be rewarded', () {
+      // Source: 3, Target: 4 (Diff +1) -> 110
+      // Source: 3, Target: 5 (Diff +2) -> 115
+      
+      final userSkills = {'Dart': 3, 'Flutter': 3};
+      final jdSkills = {'Dart': 4, 'Flutter': 5};
+      
+      final result = logic.calculateMatchResult(userSkills, jdSkills, isJobMatching: true);
+      
+      expect(result['matchedSkills']['Dart'], 110);
+      expect(result['matchedSkills']['Flutter'], 115);
+    });
 
-  test('calculateMatch handles missing skills with penalties', () async {
-    final userDoc = {'スキル経験': {}};
-    final jdDoc = {
-      'スキル経験': {
-        'Java': {'実務で数年の経験があり、主要メンバーとして応用的な問題を解決できる': true}
-      }
-    };
+    test('Job Match: Over-spec JD should be penalized/excluded even with Intent Match', () {
+      // Source: 5, Target: 3 (Diff -2) -> -50 penalty
+      // Intent Match: 3 tags -> +30 bonus
+      // Net: -20 (Still penalized/low score)
+      
+      final userSkills = {'Dart': 5};
+      final jdSkills = {'Dart': 3};
+      final sourceIntent = ['remote', 'startup', 'agile'];
+      final targetIntent = ['remote', 'startup', 'agile'];
+      
+      final result = logic.calculateMatchResult(
+        userSkills, 
+        jdSkills, 
+        isJobMatching: true,
+        sourceIntent: sourceIntent,
+        targetIntent: targetIntent,
+      );
+      
+      expect(result['matchedSkills']['Dart'], -50);
+      expect(result['intentBonus'], 30);
+      expect(result['netScore'], -20); // Penalty outweighs bonus
+    });
 
-    final request = Request(
-      'POST',
-      Uri.parse('http://localhost:8080/'),
-      body: jsonEncode({'userDoc': userDoc, 'jdDoc': jdDoc}),
-    );
+    test('Job Match: Upskilling JD should be boosted by Intent Match', () {
+      // Source: 3, Target: 4 (Diff +1) -> 110
+      // Intent Match: 2 tags -> +20 bonus
+      // Net: 130
+      
+      final userSkills = {'Dart': 3};
+      final jdSkills = {'Dart': 4};
+      final sourceIntent = ['remote', 'startup'];
+      final targetIntent = ['remote', 'startup'];
+      
+      final result = logic.calculateMatchResult(
+        userSkills, 
+        jdSkills, 
+        isJobMatching: true,
+        sourceIntent: sourceIntent,
+        targetIntent: targetIntent,
+      );
+      
+      expect(result['matchedSkills']['Dart'], 110);
+      expect(result['intentBonus'], 20);
+      expect(result['netScore'], 130);
+    });
 
-    final response = await calculateMatch(request);
-    expect(response.statusCode, equals(200));
+    test('User Match: Intent match should get bonus', () {
+      final userSkills = {'Dart': 3};
+      final targetSkills = {'Dart': 3};
+      final sourceIntent = ['freelance', 'remote'];
+      final targetIntent = ['freelance', 'startup']; // 'freelance' matches
+      
+      final result = logic.calculateMatchResult(
+        userSkills, 
+        targetSkills, 
+        isJobMatching: false,
+        sourceIntent: sourceIntent,
+        targetIntent: targetIntent,
+      );
+      
+      // Skill match: 100
+      // Intent bonus: 10 (1 match)
+      // Net: 110
+      expect(result['intentBonus'], 10);
+      expect(result['netScore'], 110);
+    });
 
-    final body = jsonDecode(await response.readAsString());
-    expect(body['penaltyPoints'], lessThan(0)); // Penalty should apply
-    expect(body['netScore'], lessThan(0));
-    expect(body['matchingScore'], equals(0));
+    test('User Match: Mentor matching should get huge bonus', () {
+      final userSkills = {'Dart': 5}; // Expert
+      final targetSkills = {'Dart': 1}; // Beginner
+      // Usually Over-spec (Diff -4) -> 100 (User-User base)
+      
+      final sourceIntent = ['wants_to_be_mentor'];
+      final targetIntent = ['looking_for_mentor'];
+      
+      final result = logic.calculateMatchResult(
+        userSkills, 
+        targetSkills, 
+        isJobMatching: false,
+        sourceIntent: sourceIntent,
+        targetIntent: targetIntent,
+      );
+      
+      // Skill match: 100 (User-User base for over-spec)
+      // Mentor bonus: 100
+      // Net: 200
+      expect(result['intentBonus'], 100);
+      expect(result['netScore'], 200);
+      expect(result['matchingScore'], 40); // 200 / 5
+    });
   });
 }

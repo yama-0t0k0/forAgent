@@ -11,6 +11,7 @@ import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
+import { useMatching } from '@shared/src/features/job/hooks/useMatching';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
 // Import screens directly for modal display (using relative paths for cross-app access in shared)
@@ -83,99 +84,13 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
         return null;
     }, [data, route?.params?.userDoc]);
 
-    const [rankedJds, setRankedJds] = useState([]);
-    const [rankedUsers, setRankedUsers] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { rankedJds, rankedUsers, loading, error, debugInfo, retry } = useMatching(currentUserDoc, data, activeMainTab, activeSubTab);
 
     // Modal States
     const [selectedJob, setSelectedJob] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
 
-    useEffect(() => {
-        /**
-         * Fetches and ranks candidates based on the active type.
-         */
-        const fetchRankedData = async () => {
-            if (!data || !currentUserDoc) return;
-            setLoading(true);
-            try {
-                // おすすめタブのロジック
-                if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
-                    if (activeSubTab === CONNECTION_TABS.SUB.POSITION && data.jd) {
-                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-                        
-                        // Merge matchingScore from API result into local full data
-                        // ranked items might be stripped, so we use data.jd as the source of truth
-                        const rankedMap = new Map(ranked.map(item => [item.id || item.JD_Number, item]));
-                        
-                        const rankedJds = data.jd
-                            .filter(jd => {
-                                const id = jd.id || jd.JD_Number;
-                                return rankedMap.has(id);
-                            })
-                            .map(jd => {
-                                const id = jd.id || jd.JD_Number;
-                                const rankedItem = rankedMap.get(id);
-                                // Create a new instance with merged data
-                                // Ensure matchingScore is passed in rawData so JobListItem can use it
-                                const mergedRawData = { 
-                                    ...(jd.rawData || {}), 
-                                    matchingScore: rankedItem.matchingScore 
-                                };
-                                return JobDescription.fromFirestore(id, mergedRawData, jd.companyId);
-                            })
-                            .sort((a, b) => {
-                                const scoreA = a.rawData.matchingScore || 0;
-                                const scoreB = b.rawData.matchingScore || 0;
-                                return scoreB - scoreA;
-                            });
-
-                        setRankedJds(rankedJds);
-                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
-                        // Match current user against other users
-                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
-                        
-                        // Merge matchingScore for Users as well
-                        const rankedMap = new Map(ranked.map(item => [item.id, item]));
-                        
-                        const rankedUsers = data.users
-                            .filter(user => rankedMap.has(user.id))
-                            .map(user => {
-                                const rankedItem = rankedMap.get(user.id);
-                                const mergedRawData = {
-                                    ...(user.rawData || {}),
-                                    matchingScore: rankedItem.matchingScore
-                                };
-                                return User.fromFirestore(user.id, { ...user, ...mergedRawData });
-                            })
-                            .sort((a, b) => {
-                                const scoreA = a.rawData.matchingScore || 0;
-                                const scoreB = b.rawData.matchingScore || 0;
-                                return scoreB - scoreA;
-                            });
-
-                        setRankedUsers(rankedUsers);
-                    }
-                }
-                // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
-                else if (activeMainTab === CONNECTION_TABS.MAIN.CONNECTED) {
-                    // TODO: Implement logic for fetching connected companies/users
-                    if (activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
-                        setRankedJds([]);
-                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON) {
-                        setRankedUsers([]);
-                    }
-                }
-            } catch (err) {
-                // ユーザー画面にエラー帯が表示されないよう console.error を console.log に変更
-                console.log('Failed to rank candidates:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRankedData();
-    }, [data, currentUserDoc, activeMainTab, activeSubTab]);
+    // Removed old useEffect logic, replaced by useMatching hook
 
     /**
      * Renders a candidate item (Job or Engineer).
@@ -230,6 +145,17 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             <HeaderWrapper style={styles.header}>
                 <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
             </HeaderWrapper>
+
+            {/* Debug Info Area (API URL & Error) */}
+            <View style={{ padding: 4, backgroundColor: error ? '#ffebee' : '#e3f2fd', borderBottomWidth: 1, borderColor: '#eee' }}>
+                <Text style={{ fontSize: 10, color: '#333' }}>
+                    API: {debugInfo?.apiUrl || 'Checking...'}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666' }}>
+                     Last Updated: {debugInfo?.lastUpdated || 'Never'}
+                </Text>
+                {error && <Text style={{ fontSize: 10, color: 'red', fontWeight: 'bold' }}>Error: {error}</Text>}
+            </View>
 
             {/* Main Tabs (Upper Level) */}
             <View style={styles.mainTabBar}>

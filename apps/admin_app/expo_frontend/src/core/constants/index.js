@@ -13,7 +13,31 @@ export const DASHBOARD_TABS = {
 
 // E2E / Testing Configuration
 export const E2E_CONFIG = {
-  DUMMY_USER_ID: 'C000000000000'
+  DUMMY_USER_ID: 'C000000000000',
+  USE_MOCK_DATA: true // Set to true for E2E testing to bypass Firestore
+};
+
+// Mock Data for E2E
+export const MOCK_ADMIN_DATA = {
+  users: [
+    {
+      id: 'C000000000000',
+      name: 'E2E Test User',
+      rawData: {
+        '基本情報': { '姓': 'E2E', '名': 'User', 'メールアドレス': 'e2e@example.com' },
+        createdAt: Date.now()
+      }
+    }
+  ],
+  corporate: [
+    {
+      id: 'B00000',
+      name: 'E2E Corp',
+      rawData: { companyName: 'E2E Corp', createdAt: Date.now() }
+    }
+  ],
+  jd: [],
+  fmjs: []
 };
 
 // Company Data Constants

@@ -57,7 +57,8 @@ Future<Response> calculateMatch(Request request) async {
       // targetType determines if targetDoc is a User ('user') or a JD ('jd')
       // If 'user', we are ranking JDs (candidates) for this User.
       // If 'jd', we are ranking Users (candidates) for this JD.
-      final targetType = data['targetType'] as String? ?? 'user'; 
+      final targetType = data['targetType'] as String? ?? 'user';
+      final candidateType = data['candidateType'] as String?;
 
       final results = <Map<String, dynamic>>[];
 
@@ -65,16 +66,32 @@ Future<Response> calculateMatch(Request request) async {
         Map<String, dynamic> userDoc;
         Map<String, dynamic> jdDoc;
 
+        // Determine if this is a Job Matching (User vs JD) or User Matching (User vs User)
+        // Default to true (strict penalty for over-spec) unless explicit User-User context found
+        bool isJobMatching = true;
+
         if (targetType == 'user') {
+          // Case 1: User looking for Candidates
           userDoc = targetDoc;
           jdDoc = candidate;
+          
+          // Check if candidate is actually another User (User-User matching)
+          if (candidateType == 'user' || candidate.containsKey('userId') || candidate.containsKey('displayName')) {
+             // If candidate looks like a User, treat as User Matching
+             // Note: JDs usually have 'jobId', 'title', 'companyId'
+             if (!candidate.containsKey('jobId') && !candidate.containsKey('title')) {
+                isJobMatching = false;
+             }
+          }
         } else {
+          // Case 2: JD looking for Candidates (Users)
+          // This is always Job Matching (from JD perspective)
           userDoc = candidate;
           jdDoc = targetDoc;
         }
 
         try {
-          final scoreData = _calculateScore(userDoc, jdDoc, commonService, matchingLogic);
+          final scoreData = _calculateScore(userDoc, jdDoc, commonService, matchingLogic, isJobMatching: isJobMatching);
           
           // Merge score data into candidate data
           final merged = Map<String, dynamic>.from(candidate)..addAll(scoreData);
@@ -134,7 +151,8 @@ Map<String, dynamic> _calculateScore(
     Map<String, dynamic> userDoc,
     Map<String, dynamic> jdDoc,
     CommonService commonService,
-    MatchingLogic matchingLogic) {
+    MatchingLogic matchingLogic,
+    {bool isJobMatching = true}) {
   
   // 1. Evaluate individual skills
   final userSkills = commonService.evaluateSkills(userDoc['スキル経験'] ?? {});
@@ -142,31 +160,16 @@ Map<String, dynamic> _calculateScore(
   // 2. Evaluate JD skills
   final jdSkills = commonService.evaluateSkills(jdDoc['スキル経験'] ?? {});
 
-  // 3. Perform matching (Positive matches)
-  final skillMatchResult = matchingLogic.evaluateSkillMatching(userSkills, jdSkills);
-  final matchPoints = matchingLogic.calculateTotalMatchingScore(skillMatchResult);
-  
-  // 4. Calculate missing items (Penalties)
-  final nonMatchItems = matchingLogic.calculateNonMatchingJobSkillItems(userSkills, jdSkills);
-  final penaltyPoints = nonMatchItems['job_skill_points'] as int? ?? 0;
+  // 3. Delegate calculation to shared MatchingLogic
+  // Extract intents/tags if available (assuming 'tags' list in doc)
+  final sourceIntent = (userDoc['tags'] as List?)?.map((e) => e.toString()).toList() ?? [];
+  final targetIntent = (jdDoc['tags'] as List?)?.map((e) => e.toString()).toList() ?? [];
 
-  // 5. Calculate net score
-  final netScore = matchPoints + penaltyPoints; // penaltyPoints is already negative
-  
-  return {
-    'matchPoints': matchPoints,
-    'penaltyPoints': penaltyPoints,
-    'netScore': netScore,
-    'matchedSkills': skillMatchResult,
-    'nonMatchItems': nonMatchItems,
-    'matchingScore': _normalizeScore(netScore), // 0-100 normalization
-  };
-}
-
-int _normalizeScore(int rawScore) {
-  // Rough normalization logic - adjust based on business requirements
-  // Points usually range from negative (penalties) to positive (matches)
-  if (rawScore <= 0) return 0;
-  // Let's say 500 points is 100% for now
-  return (rawScore / 5).clamp(0, 100).round();
+  return matchingLogic.calculateMatchResult(
+    userSkills, 
+    jdSkills, 
+    isJobMatching: isJobMatching,
+    sourceIntent: sourceIntent,
+    targetIntent: targetIntent,
+  );
 }
