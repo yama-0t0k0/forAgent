@@ -6,6 +6,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+import { User } from '@shared/src/core/models/User';
+import { Company } from '@shared/src/core/models/Company';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
@@ -17,6 +20,7 @@ import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
 import { AppShell } from '@shared/src/core/components/AppShell';
 import { ROUTES } from '@shared/src/core/constants/navigation';
+import { E2E_CONFIG, MOCK_ADMIN_DATA } from './src/core/constants';
 
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +39,26 @@ const AdminAppWrapper = () => {
      * Fetches all required data for the application using FirestoreDataService.
      */
     const fetchAllData = async () => {
+      // E2E Bypass
+      if (E2E_CONFIG.USE_MOCK_DATA) {
+        console.log('⚠️ Using MOCK DATA for E2E Testing');
+
+        // Convert raw mock data to Model instances to match FirestoreDataService behavior
+        const mockUsers = MOCK_ADMIN_DATA.users.map(u => User.fromFirestore(u.id, u.rawData));
+        const mockCorporate = MOCK_ADMIN_DATA.corporate.map(c => Company.fromFirestore(c.id, c.rawData));
+        const mockJd = MOCK_ADMIN_DATA.jd.map(j => JobDescription.fromFirestore(j.id, j.rawData));
+        // SelectionProgress might need mapping too if added later, currently unused/empty in mock
+
+        setInitialData({
+          users: mockUsers,
+          corporate: mockCorporate,
+          jd: mockJd,
+          fmjs: MOCK_ADMIN_DATA.fmjs
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await FirestoreDataService.fetchAdminData();
         setInitialData(data);

@@ -11,6 +11,7 @@ import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { JobListItem } from '@shared/src/features/job/components/JobListItem';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@shared/src/core/utils/dashboardUtils';
+import { useMatching } from '@shared/src/features/job/hooks/useMatching';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
 // Import screens directly for modal display (using relative paths for cross-app access in shared)
@@ -83,56 +84,13 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
         return null;
     }, [data, route?.params?.userDoc]);
 
-    const [rankedJds, setRankedJds] = useState([]);
-    const [rankedUsers, setRankedUsers] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { rankedJds, rankedUsers, loading, error, debugInfo, retry } = useMatching(currentUserDoc, data, activeMainTab, activeSubTab);
 
     // Modal States
     const [selectedJob, setSelectedJob] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
 
-    useEffect(() => {
-        /**
-         * Fetches and ranks candidates based on the active type.
-         */
-        const fetchRankedData = async () => {
-            if (!data || !currentUserDoc) return;
-            setLoading(true);
-            try {
-                // おすすめタブのロジック
-                if (activeMainTab === CONNECTION_TABS.MAIN.RECOMMENDATION) {
-                    if (activeSubTab === CONNECTION_TABS.SUB.POSITION && data.jd) {
-                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.jd, 'jd');
-                        // モデルインスタンスに変換して、ゲッター(positionName等)を利用可能にする
-                        const rankedJds = ranked.map(item => JobDescription.fromFirestore(item.id || item.JD_Number, item));
-                        setRankedJds(rankedJds);
-                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
-                        // Match current user against other users
-                        const ranked = await MatchingService.rankCandidates(currentUserDoc, data.users, 'user');
-                        // モデルインスタンスに変換して、ゲッター(fullNameKanji等)を利用可能にする
-                        const rankedUsers = ranked.map(item => User.fromFirestore(item.id, item));
-                        setRankedUsers(rankedUsers);
-                    }
-                }
-                // つながり済タブのロジック (現状はデータソースがないため、空配列または仮実装)
-                else if (activeMainTab === CONNECTION_TABS.MAIN.CONNECTED) {
-                    // TODO: Implement logic for fetching connected companies/users
-                    if (activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
-                        setRankedJds([]);
-                    } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON) {
-                        setRankedUsers([]);
-                    }
-                }
-            } catch (err) {
-                // ユーザー画面にエラー帯が表示されないよう console.error を console.log に変更
-                console.log('Failed to rank candidates:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRankedData();
-    }, [data, currentUserDoc, activeMainTab, activeSubTab]);
+    // Removed old useEffect logic, replaced by useMatching hook
 
     /**
      * Renders a candidate item (Job or Engineer).
@@ -143,9 +101,8 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     const renderCandidate = useCallback(({ item }) => {
         // ポジション(JD)または法人表示の場合
         if (activeSubTab === CONNECTION_TABS.SUB.POSITION || activeSubTab === CONNECTION_TABS.SUB.COMPANY) {
-            const jobDataForSkills = item['スキル要件'] ? { 'スキル経験': item['スキル要件'] } : item;
-            const skills = extractSkills(jobDataForSkills);
-            const heatmapInfo = getHighDensityHeatmapData(jobDataForSkills);
+            const skills = extractSkills(item);
+            const heatmapInfo = getHighDensityHeatmapData(item);
             const companyName = getCompanyName(item.company_ID, data?.corporate);
 
             return (
@@ -188,6 +145,17 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             <HeaderWrapper style={styles.header}>
                 <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
             </HeaderWrapper>
+
+            {/* Debug Info Area (API URL & Error) */}
+            <View style={{ padding: 4, backgroundColor: error ? '#ffebee' : '#e3f2fd', borderBottomWidth: 1, borderColor: '#eee' }}>
+                <Text style={{ fontSize: 10, color: '#333' }}>
+                    API: {debugInfo?.apiUrl || 'Checking...'}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666' }}>
+                     Last Updated: {debugInfo?.lastUpdated || 'Never'}
+                </Text>
+                {error && <Text style={{ fontSize: 10, color: 'red', fontWeight: 'bold' }}>Error: {error}</Text>}
+            </View>
 
             {/* Main Tabs (Upper Level) */}
             <View style={styles.mainTabBar}>
