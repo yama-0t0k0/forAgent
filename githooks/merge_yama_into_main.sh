@@ -129,7 +129,10 @@ merge_source_into_main() {
     return
   fi
 
-  if git merge --no-ff "$SOURCE_BRANCH"; then
+  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local commit_message="Merge branch '$SOURCE_BRANCH' into '$TARGET_MAIN_BRANCH': Sync latest updates ($timestamp)"
+
+  if git merge --no-ff --no-edit -m "$commit_message" "$SOURCE_BRANCH"; then
     echo "✅ $SOURCE_BRANCH の変更を $TARGET_MAIN_BRANCH にマージしました。"
   else
     echo "❌ Error: $SOURCE_BRANCH のマージに失敗しました。コンフリクトを解消してから再度実行してください。"
