@@ -14,7 +14,7 @@ export const DASHBOARD_TABS = {
 // E2E / Testing Configuration
 export const E2E_CONFIG = {
   DUMMY_USER_ID: 'C000000000000',
-  USE_MOCK_DATA: true // Set to true for E2E testing to bypass Firestore
+  USE_MOCK_DATA: false // Set to true for E2E testing to bypass Firestore
 };
 
 // Mock Data for E2E
