@@ -1,3 +1,24 @@
+// 役割:
+// - 企業の技術スタックと特徴（魅力）を表示するビューコンポーネント
+// - 言語/フレームワーク/クラウド/DB/ツールをバッジで表示、特徴はアコーディオンで展開
+//
+// 主要機能:
+// - techStackから安全に値を取り出すヘルパー（getLang/getOther）
+// - バッジ表示（メイン/サブの2段）とアイコン見出し
+// - 特徴（boolean項目）のチェック/クローズ表示、自由記述の追記欄（APPEAL_OTHER）
+// - AndroidでのLayoutAnimation有効化、アコーディオン開閉のアニメーション
+//
+// ディレクトリ構造:
+// - shared/common_frontend/src/features/analytics/components/TechStackView.js（本ファイル）
+// - 依存: THEME, Ionicons, Companyモデル, system定数（PLATFORM/DATA_TYPE）
+// - 関連: CompanyProfileView（企業詳細）、CompanyListItem（サマリ表示）
+//
+// デプロイ・実行方法:
+// - 開発起動（例）: bash scripts/start_expo.sh corporate_user_app
+// - 個人/管理アプリでもstart_expo.shの引数を変えて起動可能
+// - テスト（例）: npx jest shared/common_frontend/src/features/analytics/components/__tests__/SelectableTechStack.test.js
+// - 前提: Expoとjestのセットアップ済み
+//
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,6 +75,7 @@ export const TechStackView = ({ features, techStack }) => {
      * Toggles the visibility of the features section.
      */
     const toggleFeatures = () => {
+        // アコーディオン開閉時にスムーズなアニメーションを適用
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsFeaturesExpanded(!isFeaturesExpanded);
     };
@@ -73,6 +95,7 @@ export const TechStackView = ({ features, techStack }) => {
     const getOther = (type) => techStack?.others?.[type] || {};
 
     return (
+        // 技術スタックセクション＋特徴セクション（アコーディオン）を縦並びで表示
         <ScrollView contentContainerStyle={styles.tabScrollContent} bounces={false}>
             {/* 1. Tech Stack Section */}
             <View style={styles.sectionContainer}>
