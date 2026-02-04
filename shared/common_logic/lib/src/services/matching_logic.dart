@@ -22,17 +22,22 @@ class MatchingLogic {
           } else if (diff == 1) {
             result[key] = 110; // Targetが1高い（Good Challenge） -> 110%
           } else if (diff == 2) {
-            result[key] = 115; // Targetが2高い（Hard Challenge） -> 115% (<120%)
-          } else if (diff > 2) {
-            result[key] = 0;   // Targetが高すぎる（Too Hard） -> 0%
+            result[key] = 120; // Targetが2高い（Hard Challenge） -> 120%
+          } else if (diff == 3) {
+            result[key] = 130; // Targetが3高い（Very Hard Challenge） -> 130%
           } else {
-            // diff < 0 (Source > Target) -> オーバースペック
+            // diff > 3 (Too Hard) or diff < 0 (Over-spec)
+            // リファレンス実装準拠：その他は0
             if (isJobMatching) {
-              // 求人マッチングの場合、オーバースペックは「成長につながらない」ため減点（排除対象）
-              result[key] = -50; 
+              result[key] = 0; 
             } else {
               // 個人間マッチングの場合、自分が教えられる（メンター）可能性があるため高評価維持
-              result[key] = 100;
+              // diff < 0 の場合のみ
+              if (diff < 0) {
+                result[key] = 100;
+              } else {
+                result[key] = 0;
+              }
             }
           }
         } else {
