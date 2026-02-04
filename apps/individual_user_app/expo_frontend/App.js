@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, ActivityIndicator, View, Text } from 'react-native';
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -28,6 +29,15 @@ const EngineerRegistrationWrapper = () => {
      */
     const load = async () => {
       try {
+        // Sign in anonymously to allow access to secured APIs (Cloud Run)
+        try {
+          const auth = getAuth();
+          await signInAnonymously(auth);
+          console.log("Signed in anonymously");
+        } catch (authError) {
+          console.error("Anonymous auth failed:", authError);
+        }
+
         // Create a timeout promise to prevent indefinite loading
         /** @type {Promise<never>} */
         const timeoutPromise = new Promise((_, reject) =>

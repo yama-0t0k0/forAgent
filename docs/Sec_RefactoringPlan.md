@@ -29,9 +29,11 @@
 
 ### D. インフラ層 (Infrastructure / GCP)
 - **アクセス制御 (IAM)**:
-    - **最小権限の原則**: 開発者・運用者に対し、業務に必要な最小限のGCP/Firebase権限のみを付与する。
+    - **最小権限の原則 (Least Privilege)**: 開発者・運用者に対し、業務に必要な最小限のGCP/Firebase権限のみを付与する。
+        - *Checklist*: Service Accountには `Cloud Datastore User` 等の必要最小限のロールのみを付与し、`Project Owner/Editor` は避ける。
     - **Service Account管理**: CI/CDパイプライン等で使用するサービスアカウントのキーローテーションと権限管理を徹底する。
 - **APIキーの制限**: GCPコンソールにて、使用するAPIキーに対し、HTTPリファラー（Web）やバンドルID（App）による利用制限を設定する。
+    - *Checklist*: Web API Keyには `https://your-domain.web.app/*` 等のリファラー制限を設定済みか確認する。
 - **監査とモニタリング**: Cloud Loggingを活用し、セキュリティルール違反の試行や異常なアクセスパターンを監視する。
 
 ## 3. Firestoreデータ構造・権限設計詳細
@@ -92,21 +94,25 @@
 
 ## 4. 実装ステップ
 
-1.  **データ構造の移行 (Schema Migration)**
+1.  **IAM & API Key Security Check**
+    - Service Accountの権限棚卸し（最小権限の原則適用）。
+    - API Keyのリファラー制限/IP制限の設定確認。
+
+2.  **データ構造の移行 (Schema Migration)**
     - `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
     - `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
 
-2.  **Security Rules の実装**
+3.  **Security Rules の実装**
     - `firestore.rules` の書き換え。
     - 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
 
-3.  **クライアントアプリ (Frontend) の改修**
+4.  **クライアントアプリ (Frontend) の改修**
     - データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
     - ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
     - 管理画面 (Admin App) の表示ロジック修正。
 
-4.  **検証 (Verification)**
+5.  **検証 (Verification)**
     - Firestore Emulator を用いたユニットテスト。
     - 各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
 

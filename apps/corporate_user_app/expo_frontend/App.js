@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View, ActivityIndicator } from 'react-native';
+import { getAuth, signInAnonymously } from "firebase/auth";
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +37,15 @@ const CorporateRegistrationWrapper = () => {
          */
         const fetchData = async () => {
             try {
+                // Sign in anonymously to allow access to secured APIs (Cloud Run)
+                try {
+                    const auth = getAuth();
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously (Corporate App)");
+                } catch (authError) {
+                    console.error("Anonymous auth failed:", authError);
+                }
+
                 const data = await FirestoreDataService.fetchCorporateAppData('B00000', COMPANY_TEMPLATE);
                 setInitialData(data);
             } catch (error) {
