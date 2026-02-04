@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================
+    // 1. users Collection (Authentication & RBAC Base)
+    // =========================================================
+    // Role: 'admin' | 'corporate' | 'individual'
+    // companyId: Required for 'corporate' role
+    match /users/{userId} {
+      // Allow reading own user document to determine role
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow creation for new authenticated users (e.g. on first login)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow updates only for self (e.g. changing role or companyId - strictly controlled by app logic)
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Helper function to check role
+    function hasRole(role) {
+      return request.auth != null 
+             && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isCompanyMember(companyId) {
+      return hasRole('corporate') 
+             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    }
+
+    // =========================================================
+    // 2. Public Profiles (Read-only for Authenticated)
+    // =========================================================
+    match /public_profile/{userId} {
+      // Anyone authenticated can read public profiles (for matching/scouting)
+      allow read: if request.auth != null;
+      
+      // Only the owner can update their public profile
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // =========================================================
+    // 3. Private Info (Strictly Owner Only)
+    // =========================================================
+    match /private_info/{userId} {
+      // Only the owner can read/write their private info (PII)
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admins might need access for support (Optional, uncomment if needed)
+      // allow read: if hasRole('admin');
+    }
+
+    // =========================================================
+    // 4. Company Data
+    // =========================================================
+    match /company/{companyId} {
+      // Public read for job seekers
+      allow read: if request.auth != null;
+      
+      // Write allowed for company members or admins
+      allow write: if isCompanyMember(companyId) || hasRole('admin');
+    }
+    
+    // Alias for legacy collection name if exists
+    match /corporate/{companyId} {
+      allow read: if request.auth != null;
+      allow write: if isCompanyMember(companyId) || hasRole('admin');
+    }
+
+    // =========================================================
+    // 5. Job Descriptions (Subcollection structure)
+    // =========================================================
+    // Parent doc
+    match /job_description/{companyId} {
+      allow read: if request.auth != null;
+      allow write: if isCompanyMember(companyId) || hasRole('admin');
+    }
+    
+    // JD Number subcollection
+    match /job_description/{companyId}/JD_Number/{jdId} {
+      allow read: if request.auth != null;
+      allow write: if isCompanyMember(companyId) || hasRole('admin');
+    }
+
+    // =========================================================
+    // 6. Selection Process / Matching
+    // =========================================================
+    // Assuming a structure like /selection_progress/{docId}
+    // where doc has 'candidateId' and 'companyId'
+    match /selection_progress/{docId} {
+      allow read: if request.auth != null && (
+        resource.data.candidateId == request.auth.uid || 
+        isCompanyMember(resource.data.companyId) ||
+        hasRole('admin')
+      );
+      
+      allow create: if request.auth != null; // Refine this based on who initiates application
+      allow update: if request.auth != null && (
+        resource.data.candidateId == request.auth.uid || 
+        isCompanyMember(resource.data.companyId) ||
+        hasRole('admin')
+      );
+    }
+    
+    // =========================================================
+    // 7. Legacy Collections (Backward Compatibility)
+    // =========================================================
+    // 'individual' collection is now deprecated in favor of split public/private
+    // But keeping it accessible for now if migration isn't atomic for all apps
+    match /individual/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+  }
+}

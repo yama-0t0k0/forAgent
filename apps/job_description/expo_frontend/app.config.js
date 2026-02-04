@@ -17,8 +17,7 @@ module.exports = ({ config }) => {
     newArchEnabled: true,
     plugins: [
       "expo-asset",
-      "expo-router",
-      "expo-web-browser"
+      "expo-router"
     ],
     splash: {
       "image": "./assets/splash-icon.png",
