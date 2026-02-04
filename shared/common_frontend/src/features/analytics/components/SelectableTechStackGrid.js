@@ -54,7 +54,7 @@ export const SelectableTechStackGrid = ({
     // - multiSelect=true: 追加/削除で配列を更新
     // - multiSelect=false: 同一IDなら解除、異なるIDなら置き換え
     const handlePress = useCallback((id) => {
-        let newSelected;
+        let newSelected = [];
         if (multiSelect) {
             if (selectedItems.includes(id)) {
                 newSelected = selectedItems.filter(item => item !== id);
@@ -104,7 +104,7 @@ export const SelectableTechStackGrid = ({
                         </Text>
                         {isSelected && (
                             <Ionicons 
-                                name="checkmark-circle" 
+                                name='checkmark-circle' 
                                 size={14} 
                                 color={THEME.primary} 
                                 style={styles.checkIcon}

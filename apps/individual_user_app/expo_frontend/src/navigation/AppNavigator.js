@@ -23,10 +23,10 @@ export const AppNavigator = () => (
             {(props) => (
                 <GenericRegistrationScreen
                     {...props}
-                    title="エンジニア個人登録"
-                    collectionName="individual"
-                    idField="id_individual"
-                    idPrefixChar="C"
+                    title='エンジニア個人登録'
+                    collectionName='individual'
+                    idField='id_individual'
+                    idPrefixChar='C'
                     orderTemplate={ENGINEER_TEMPLATE}
                 />
             )}

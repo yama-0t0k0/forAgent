@@ -24,7 +24,7 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
       {/* Selection Process Flow */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>選考プロセス (FMJS)</Text>
-        <StatusBadge status="表示: 件数" variant="neutral" />
+        <StatusBadge status='表示: 件数' variant='neutral' />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flowContainer} contentContainerStyle={{ paddingRight: 20 }}>
         {selectionFlowData.map((step, index) => (
@@ -102,15 +102,15 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
           <Text style={styles.cardTitle}>繋がりの推移</Text>
           <View style={styles.segmentControl}>
             <PrimaryButton
-              label="個人×企業"
-              variant="primary"
+              label='個人×企業'
+              variant='primary'
               style={styles.segmentActive}
               textStyle={styles.segmentTextActive}
               onPress={() => { }}
             />
             <PrimaryButton
-              label="個人×個人"
-              variant="outline"
+              label='個人×個人'
+              variant='outline'
               style={styles.segmentInactive}
               textStyle={styles.segmentTextInactive}
               onPress={() => { }}
@@ -119,13 +119,13 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
         </View>
         <LineChart
           data={connectionTrendsData}
-          color="#FF9800"
+          color='#FF9800'
           thickness={3}
           yAxisThickness={0}
           xAxisThickness={0}
           height={150}
           hideDataPoints={false}
-          dataPointsColor="#FF9800"
+          dataPointsColor='#FF9800'
         />
       </View>
     </ScrollView>

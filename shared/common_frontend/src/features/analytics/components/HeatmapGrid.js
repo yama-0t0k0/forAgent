@@ -157,7 +157,7 @@ export const HeatmapGrid = ({
 
       {selectedTile && selectedTile.top !== undefined && (
         <View
-          testID={testID ? `${testID}_tooltip` : "heatmap_tooltip"}
+          testID={testID ? `${testID}_tooltip` : 'heatmap_tooltip'}
           style={[
             styles.tooltip,
             {
@@ -173,7 +173,7 @@ export const HeatmapGrid = ({
             selectedTile?.showAbove ? styles.arrowDown : styles.arrowUp,
             { left: selectedTile?.arrowLeft || 0 }
           ]} />
-          <Text style={styles.tooltipTitle} testID={testID ? `${testID}_tooltip_title` : "heatmap_tooltip_title"}>{selectedTile?.label}</Text>
+          <Text style={styles.tooltipTitle} testID={testID ? `${testID}_tooltip_title` : 'heatmap_tooltip_title'}>{selectedTile?.label}</Text>
           <View style={styles.separator} />
           <Text style={styles.tooltipText}>Level: {selectedTile.level}</Text>
           <Text style={styles.tooltipSubText}>

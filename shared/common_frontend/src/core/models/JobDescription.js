@@ -13,11 +13,11 @@ export class JobDescription {
      */
     constructor(id, companyId, positionName, basicItems = {}, skillsExperience = {}, rawData = {}) {
         /** @type {string} */
-        this.id = id || "";
+        this.id = id || '';
         /** @type {string} */
-        this.companyId = companyId || "";
+        this.companyId = companyId || '';
         /** @type {string} */
-        this.positionName = positionName || "";
+        this.positionName = positionName || '';
         /** @type {Object.<string, any>} */
         this.basicItems = basicItems || {};
         /** @type {Object.<string, any>} */
@@ -46,8 +46,8 @@ export class JobDescription {
      * @param {string} [companyId=""] - Optional Company ID context
      * @returns {JobDescription}
      */
-    static fromFirestore(id, data, companyId = "") {
-        if (!data) return new JobDescription(id, companyId, "", {}, {}, {});
+    static fromFirestore(id, data, companyId = '') {
+        if (!data) return new JobDescription(id, companyId, '', {}, {}, {});
 
         if (data instanceof JobDescription) {
             return data;
@@ -56,8 +56,8 @@ export class JobDescription {
         /** @type {Object.<string, any>} */
         const basicItems = data.basicItems ?? data[JobDescription.FIELDS.BASIC_ITEMS] ?? {};
         // Add fallback to top-level properties for flattened JSON (e.g. from API response)
-        const jdNumber = id || data.JD_Number || basicItems.JD_Number || "";
-        const positionName = basicItems[JobDescription.FIELDS.POSITION_NAME] || data.title || data.positionName || "";
+        const jdNumber = id || data.JD_Number || basicItems.JD_Number || '';
+        const positionName = basicItems[JobDescription.FIELDS.POSITION_NAME] || data.title || data.positionName || '';
         
         // Map 'スキル要件' to 'skillsExperience' to unify interface with User model
         // This allows HeatmapCalculator to work with both User and JobDescription seamlessly

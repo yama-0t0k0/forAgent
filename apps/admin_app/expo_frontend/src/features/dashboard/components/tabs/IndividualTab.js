@@ -17,7 +17,7 @@ export const IndividualTab = ({
     <GenericSearchBar
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
-      placeholder="名前、住所、学校名、IDなどで検索"
+      placeholder='名前、住所、学校名、IDなどで検索'
       quickFilters={[
         { label: '今月登録', value: 'this_month' },
         { label: 'エンジニア', value: 'engineer' }
@@ -39,7 +39,7 @@ export const IndividualTab = ({
             skills={skills}
             heatmapData={heatmapInfo}
             onPress={() => onUserPress(item)}
-            testID="engineer_item"
+            testID='engineer_item'
             showMatchScore={false}
           />
         );

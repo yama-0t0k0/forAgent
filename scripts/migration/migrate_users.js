@@ -6,11 +6,10 @@
  * 
  * 前提条件:
  * 1. npm install firebase-admin
- * 2. サービスアカウントキー(JSON)を用意し、以下のいずれかの方法で設定:
- *    - 環境変数 GOOGLE_APPLICATION_CREDENTIALS にパスを設定
- *    - または、このスクリプトと同じディレクトリに serviceAccountKey.json を配置
+ * 2. サービスアカウントキー(JSON)を用意し、環境変数 GOOGLE_APPLICATION_CREDENTIALS にパスを設定
  * 
  * 実行方法:
+ * export GOOGLE_APPLICATION_CREDENTIALS='/path/to/serviceAccountKey.json'
  * node scripts/migration/migrate_users.js
  */
 
@@ -25,24 +24,20 @@ try {
       credential: admin.credential.applicationDefault()
     });
   } else {
-    const keyPath = path.join(__dirname, 'serviceAccountKey.json');
-    if (fs.existsSync(keyPath)) {
-      const serviceAccount = require(keyPath);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
-    } else {
-      throw new Error('Credentials not found');
-    }
+    throw new Error('GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.');
   }
 } catch (e) {
   console.error('Error: Failed to initialize Firebase Admin.');
-  console.error('Please set GOOGLE_APPLICATION_CREDENTIALS or place serviceAccountKey.json in scripts/migration/');
+  console.error('Please set GOOGLE_APPLICATION_CREDENTIALS environment variable to the path of your service account key.');
+  console.error('Example: export GOOGLE_APPLICATION_CREDENTIALS=\'/path/to/serviceAccountKey.json\'');
   process.exit(1);
 }
 
 const db = admin.firestore();
 
+/**
+ * Migrate users data (add companyId and role)
+ */
 async function migrateUsers() {
   console.log('Starting migration: users extension (adding companyId, role)');
   
@@ -55,7 +50,9 @@ async function migrateUsers() {
     let count = 0;
     let totalProcessed = 0;
 
-    for (const docSnap of snapshot.docs) {
+    let i = 0;
+    while (i < snapshot.docs.length) {
+      const docSnap = snapshot.docs[i];
       const data = docSnap.data();
       const update = {};
       
@@ -83,6 +80,7 @@ async function migrateUsers() {
         batch = db.batch();
         count = 0;
       }
+      i++;
     }
     
     // Commit remaining

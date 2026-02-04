@@ -6,18 +6,18 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { SELECTION_LANE, SELECTION_STATUS } from '@shared/src/core/constants';
 
 const DEFAULT_PHASES = [
-    "応募_書類選考",
-    "カジュアル面談",
-    "1次面接",
-    "2次面接",
-    "最終面接",
-    "その他選考",
-    "オファー面談",
-    "内定",
-    "内定受諾",
-    "入社_請求",
-    "退職日確定",
-    "短期離職_返金"
+    '応募_書類選考',
+    'カジュアル面談',
+    '1次面接',
+    '2次面接',
+    '最終面接',
+    'その他選考',
+    'オファー面談',
+    '内定',
+    '内定受諾',
+    '入社_請求',
+    '退職日確定',
+    '短期離職_返金'
 ];
 
 /**
@@ -49,7 +49,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
             // Set current status
             const currentLabel = Object.entries(initialData.status_ステータス || {}).find(([_, v]) => v)?.[0];
             if (currentLabel) {
-                // Optionally mark a phase as "current"
+                // Optionally mark a phase as 'current'
             }
             setPhases(convertedPhases);
         } else if (initialData?.phases) {
@@ -74,7 +74,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
     const addPhase = (lane) => {
         const newPhase = {
             id: Date.now().toString(),
-            label: "新規ステップ",
+            label: '新規ステップ',
             status: SELECTION_STATUS.PENDING,
             lane: lane,
             date: new Date().toISOString().split('T')[0],
@@ -164,18 +164,18 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => updatePhase(phase.id, { lane: phase.lane === SELECTION_LANE.PRIMARY ? SELECTION_LANE.SECONDARY : SELECTION_LANE.PRIMARY })}>
-                                    <Ionicons name="swap-horizontal" size={16} color="#666" />
+                                    <Ionicons name='swap-horizontal' size={16} color='#666' />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => deletePhase(phase.id)}>
-                                    <Ionicons name="trash" size={16} color="red" />
+                                    <Ionicons name='trash' size={16} color='red' />
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.reorderRow}>
                                 <TouchableOpacity onPress={() => movePhase(index, -1)}>
-                                    <Ionicons name="arrow-up" size={18} color="#007bff" />
+                                    <Ionicons name='arrow-up' size={18} color='#007bff' />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => movePhase(index, 1)}>
-                                    <Ionicons name="arrow-down" size={18} color="#007bff" />
+                                    <Ionicons name='arrow-down' size={18} color='#007bff' />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -187,7 +187,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                             </Text>
                             {phase.status === SELECTION_STATUS.COMPLETED && (
                                 <View style={styles.checkMark}>
-                                    <Ionicons name="checkmark-circle" size={16} color="green" />
+                                    <Ionicons name='checkmark-circle' size={16} color='green' />
                                 </View>
                             )}
                         </>
@@ -196,8 +196,8 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                 {showDatePicker === phase.id && (
                     <DateTimePicker
                         value={phase.date ? new Date(phase.date) : new Date()}
-                        mode="date"
-                        display="default"
+                        mode='date'
+                        display='default'
                         onChange={(e, d) => onChangeDate(e, d, phase.id)}
                     />
                 )}
@@ -220,7 +220,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                     {phases.filter(p => true).map((p, i) => p.lane === SELECTION_LANE.PRIMARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
                         <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.PRIMARY)}>
-                            <Ionicons name="add-circle" size={32} color="#007bff" />
+                            <Ionicons name='add-circle' size={32} color='#007bff' />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -230,7 +230,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                     {phases.map((p, i) => p.lane === SELECTION_LANE.SECONDARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
                         <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.SECONDARY)}>
-                            <Ionicons name="add-circle" size={32} color="#ff9800" />
+                            <Ionicons name='add-circle' size={32} color='#ff9800' />
                         </TouchableOpacity>
                     )}
                 </View>

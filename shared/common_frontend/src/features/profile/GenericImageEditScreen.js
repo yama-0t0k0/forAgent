@@ -116,7 +116,7 @@ export const GenericImageEditScreen = ({
     return (
         <View style={styles.container}>
             <ScreenHeader
-                title="画像設定"
+                title='画像設定'
                 rightAction={
                     <TouchableOpacity
                         style={[styles.saveButton, status === SAVE_STATUS.SUCCESS && styles.saveButtonSuccess]}
@@ -130,7 +130,7 @@ export const GenericImageEditScreen = ({
                 }
             />
 
-            <GlobalLoadingOverlay visible={isSubmitting} message="保存中..." />
+            <GlobalLoadingOverlay visible={isSubmitting} message='保存中...' />
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Background Image Section */}
@@ -148,7 +148,7 @@ export const GenericImageEditScreen = ({
                             <Image source={{ uri: values.bgUrl }} style={styles.bgPreview} />
                         ) : (
                             <View style={[styles.bgPreview, styles.placeholder]}>
-                                <Ionicons name={bgImageConfig.icon || "image-outline"} size={40} color={THEME.subText} />
+                                <Ionicons name={bgImageConfig.icon || 'image-outline'} size={40} color={THEME.subText} />
                                 <Text style={[THEME.typography.caption, styles.placeholderText]}>{bgImageConfig.previewLabel}</Text>
                             </View>
                         )}
@@ -170,7 +170,7 @@ export const GenericImageEditScreen = ({
                             <Image source={{ uri: values.mainUrl }} style={styles.profilePreview} />
                         ) : (
                             <View style={[styles.profilePreview, styles.placeholder]}>
-                                <Ionicons name={mainImageConfig.icon || "person-outline"} size={40} color={THEME.subText} />
+                                <Ionicons name={mainImageConfig.icon || 'person-outline'} size={40} color={THEME.subText} />
                                 <Text style={[THEME.typography.caption, styles.placeholderText]}>{mainImageConfig.previewLabel}</Text>
                             </View>
                         )}

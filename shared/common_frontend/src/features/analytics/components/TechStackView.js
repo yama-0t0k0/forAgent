@@ -120,7 +120,7 @@ export const TechStackView = ({ features, techStack }) => {
             <View style={[styles.sectionContainer, { marginBottom: 80 }]}>
                 <TouchableOpacity style={styles.accordionHeader} onPress={toggleFeatures}>
                     <Text style={styles.sectionTitle}>魅力/特徴</Text>
-                    <Ionicons name={isFeaturesExpanded ? "chevron-up" : "chevron-down"} size={24} color={THEME.text} />
+                    <Ionicons name={isFeaturesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={THEME.text} />
                 </TouchableOpacity>
 
                 {isFeaturesExpanded && (
@@ -130,7 +130,7 @@ export const TechStackView = ({ features, techStack }) => {
                                 return (
                                     <View key={key} style={styles.featureItem}>
                                         <Ionicons
-                                            name={value ? "checkmark-circle" : "close-circle"}
+                                            name={value ? 'checkmark-circle' : 'close-circle'}
                                             size={18}
                                             color={value ? THEME.success : THEME.subText}
                                         />

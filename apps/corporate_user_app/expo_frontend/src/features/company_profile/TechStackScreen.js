@@ -39,7 +39,7 @@ export const TechStackScreen = () => {
             features={MOCK_FEATURES} 
           />
       </View>
-      <CorporateBottomNav navigation={navigation} activeTab="TechStack" />
+      <CorporateBottomNav navigation={navigation} activeTab='TechStack' />
     </View>
   );
 };

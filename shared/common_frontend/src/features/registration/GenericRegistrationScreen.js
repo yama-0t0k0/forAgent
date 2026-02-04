@@ -116,7 +116,7 @@ const getSortedKeys = (data, idField, orderTemplate) => {
 export const GenericRegistrationScreen = ({
   collectionName,
   idField,
-  title = "Registration",
+  title = 'Registration',
   idPrefixChar = 'C',
   homeRouteName = 'MyPage',
   orderTemplate,
@@ -141,8 +141,8 @@ export const GenericRegistrationScreen = ({
 
       const q = query(
         collection(db, collectionName),
-        where(documentId(), ">=", datePrefix + ID_CONSTANTS.SUFFIX_START),
-        where(documentId(), "<=", datePrefix + ID_CONSTANTS.SUFFIX_END)
+        where(documentId(), '>=', datePrefix + ID_CONSTANTS.SUFFIX_START),
+        where(documentId(), '<=', datePrefix + ID_CONSTANTS.SUFFIX_END)
       );
 
       const querySnapshot = await getDocs(q);
@@ -173,7 +173,7 @@ export const GenericRegistrationScreen = ({
         navigation.navigate(homeRouteName);
       }, 1500);
     } catch (error) {
-      console.error("Error saving document: ", error);
+      console.error('Error saving document: ', error);
       setSaveStatus(SAVE_STATUS.ERROR);
       setTimeout(() => setSaveStatus(SAVE_STATUS.IDLE), 3000);
     }
@@ -208,7 +208,7 @@ export const GenericRegistrationScreen = ({
           onPress={handleSave}
           disabled={saveStatus === SAVE_STATUS.SAVING}
         >
-          {saveStatus === SAVE_STATUS.SAVING ? <ActivityIndicator size="small" color="#FFF" /> : (
+          {saveStatus === SAVE_STATUS.SAVING ? <ActivityIndicator size='small' color='#FFF' /> : (
             <Text style={styles.saveButtonText}>{saveStatus === SAVE_STATUS.SUCCESS ? 'Saved' : saveStatus === SAVE_STATUS.ERROR ? 'Error' : 'Save'}</Text>
           )}
         </TouchableOpacity>
@@ -232,7 +232,7 @@ export const GenericRegistrationScreen = ({
         ))}
       </Tab.Navigator>
 
-      <BottomNavComponent navigation={navigation} activeTab="Registration" />
+      <BottomNavComponent navigation={navigation} activeTab='Registration' />
     </View>
   );
 };
@@ -255,6 +255,5 @@ const styles = StyleSheet.create({
   saveButton: { paddingVertical: 6, paddingHorizontal: 16, backgroundColor: THEME.accent, borderRadius: 20 },
   saveButtonSuccess: { backgroundColor: THEME.success },
   saveButtonError: { backgroundColor: '#EF4444' },
-  saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   saveButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });

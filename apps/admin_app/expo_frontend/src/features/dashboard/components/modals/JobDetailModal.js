@@ -15,9 +15,9 @@ export const JobDetailModal = ({ visible, onClose, jobDoc }) => (
   <DetailModal
     visible={visible}
     onClose={onClose}
-    title="求人詳細プレビュー"
-    width="95%"
-    height="90%"
+    title='求人詳細プレビュー'
+    width='95%'
+    height='90%'
   >
     {jobDoc && (
       <View style={{ flex: 1, overflow: 'hidden' }}>

@@ -29,13 +29,13 @@ export const CareerScreen = ({ navigation, hideSafeArea }) => {
                 </View>
                 <View style={styles.content}>
                     <View style={styles.iconContainer}>
-                        <Ionicons name="briefcase-outline" size={80} color={THEME.subText} />
+                        <Ionicons name='briefcase-outline' size={80} color={THEME.subText} />
                     </View>
                     <Text style={styles.messageTitle}>現在進行中のデータはありません</Text>
                     <Text style={styles.messageSub}>新しい求人への応募や企業とのコンタクトが開始されると、こちらに進捗が表示されます。</Text>
                 </View>
             </ContentWrapper>
-            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Career" />}
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab='Career' />}
         </View>
     );
 };

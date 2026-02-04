@@ -62,7 +62,7 @@ export const IndividualMenuScreen = ({ navigation, hideSafeArea }) => {
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
             />
-            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Menu" />}
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab='Menu' />}
         </View>
     );
 };

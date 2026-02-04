@@ -53,7 +53,7 @@ export const SelectableTechStackList = ({
 }) => {
     // 押下時の選択トグル処理（グリッド版と同じロジック）
     const handlePress = useCallback((id) => {
-        let newSelected;
+        let newSelected = [];
         if (multiSelect) {
             if (selectedItems.includes(id)) {
                 newSelected = selectedItems.filter(item => item !== id);
@@ -115,7 +115,7 @@ export const SelectableTechStackList = ({
                             isSelected ? styles.checkboxSelected : styles.checkboxUnselected
                         ]}>
                             {isSelected && (
-                                <Ionicons name="checkmark" size={14} color={THEME.white} />
+                                <Ionicons name='checkmark' size={14} color={THEME.white} />
                             )}
                         </View>
                     </TouchableOpacity>

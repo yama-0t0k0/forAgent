@@ -24,8 +24,8 @@ export const CorporateImageEditScreen = ({ navigation, route }) => {
         <View style={{ flex: 1 }}>
             <GenericImageEditScreen
                 dataSectionKey={Company.FIELDS.PROFILE}
-                collectionName="company"
-                idFieldKey="id"
+                collectionName='company'
+                idFieldKey='id'
                 mainImageConfig={{
                     key: Company.FIELDS.LOGO_URL,
                     label: 'ロゴ画像 URL',
@@ -41,7 +41,7 @@ export const CorporateImageEditScreen = ({ navigation, route }) => {
                     previewLabel: '背景プレビュー'
                 }}
             />
-            <CorporateBottomNav navigation={navigation} activeTab="Menu" />
+            <CorporateBottomNav navigation={navigation} activeTab='Menu' />
         </View>
     );
 };

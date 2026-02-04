@@ -40,27 +40,27 @@ export class Company {
         rawData = {}
     ) {
         /** @type {string} */
-        this.id = id || "";
+        this.id = id || '';
         /** @type {string} */
-        this.name = name || "";
+        this.name = name || '';
         /** @type {string} */
-        this.websiteUrl = websiteUrl || "";
+        this.websiteUrl = websiteUrl || '';
         /** @type {string} */
-        this.businessContent = businessContent || "";
+        this.businessContent = businessContent || '';
         /** @type {string} */
-        this.address = address || "";
+        this.address = address || '';
         /** @type {string} */
-        this.establishmentDate = establishmentDate || "";
+        this.establishmentDate = establishmentDate || '';
         /** @type {string} */
-        this.capital = capital || "";
+        this.capital = capital || '';
         /** @type {string} */
-        this.employeeCount = employeeCount || "";
+        this.employeeCount = employeeCount || '';
         /** @type {string} */
-        this.averageAnnualIncome = averageAnnualIncome || "";
+        this.averageAnnualIncome = averageAnnualIncome || '';
         /** @type {string} */
-        this.backgroundUrl = backgroundUrl || "";
+        this.backgroundUrl = backgroundUrl || '';
         /** @type {string} */
-        this.logoUrl = logoUrl || "";
+        this.logoUrl = logoUrl || '';
         /** @type {Object.<string, any>} */
         this.appeal = appeal || {};
         /** @type {Object.<string, any>} */
@@ -96,6 +96,7 @@ export class Company {
         LOGO_URL: 'ロゴ画像URL'
     };
 
+    /** @type {string} */
     static TEMPLATE_NAME = 'ヤヲー株式会社';
 
     /**
@@ -105,7 +106,7 @@ export class Company {
      * @returns {Company}
      */
     static fromFirestore(id, data) {
-        if (!data) return new Company(id, "", "", "", "", "", "", "", "", "", "", {}, {}, {}, {});
+        if (!data) return new Company(id, '', '', '', '', '', '', '', '', '', '', {}, {}, {}, {});
 
         // If data is already a Company instance, return it directly
         if (data instanceof Company) {
@@ -131,16 +132,16 @@ export class Company {
 
         return new Company(
             id,
-            String(name ?? flatName ?? ""),
-            String(profile[Company.FIELDS.WEBSITE_URL] ?? data.websiteUrl ?? ""),
-            String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? ""),
-            String(profile[Company.FIELDS.ADDRESS] ?? profile[Company.FIELDS.ADDRESS_ALT1] ?? profile[Company.FIELDS.ADDRESS_ALT2] ?? data.address ?? ""),
-            String(profile[Company.FIELDS.ESTABLISHMENT_DATE] ?? data.establishmentDate ?? ""),
-            String(profile[Company.FIELDS.CAPITAL] ?? data.capital ?? ""),
-            String(profile[Company.FIELDS.EMPLOYEE_COUNT] ?? data.employeeCount ?? ""),
-            String(profile[Company.FIELDS.AVERAGE_ANNUAL_INCOME] ?? data.averageAnnualIncome ?? ""),
-            String(profile[Company.FIELDS.BACKGROUND_URL] ?? data.backgroundUrl ?? ""),
-            String(profile[Company.FIELDS.LOGO_URL] ?? data.logoUrl ?? ""),
+            String(name ?? flatName ?? ''),
+            String(profile[Company.FIELDS.WEBSITE_URL] ?? data.websiteUrl ?? ''),
+            String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? ''),
+            String(profile[Company.FIELDS.ADDRESS] ?? profile[Company.FIELDS.ADDRESS_ALT1] ?? profile[Company.FIELDS.ADDRESS_ALT2] ?? data.address ?? ''),
+            String(profile[Company.FIELDS.ESTABLISHMENT_DATE] ?? data.establishmentDate ?? ''),
+            String(profile[Company.FIELDS.CAPITAL] ?? data.capital ?? ''),
+            String(profile[Company.FIELDS.EMPLOYEE_COUNT] ?? data.employeeCount ?? ''),
+            String(profile[Company.FIELDS.AVERAGE_ANNUAL_INCOME] ?? data.averageAnnualIncome ?? ''),
+            String(profile[Company.FIELDS.BACKGROUND_URL] ?? data.backgroundUrl ?? ''),
+            String(profile[Company.FIELDS.LOGO_URL] ?? data.logoUrl ?? ''),
             appeal,
             payment,
             connection,

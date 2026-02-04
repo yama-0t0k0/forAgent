@@ -143,7 +143,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
     return (
         <View style={styles.container}>
             <HeaderWrapper style={styles.header}>
-                <Text style={styles.headerTitle} testID="connection_screen_title">つながり候補</Text>
+                <Text style={styles.headerTitle} testID='connection_screen_title'>つながり候補</Text>
             </HeaderWrapper>
 
             {/* Debug Info Area (API URL & Error) */}
@@ -212,7 +212,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 
             {loading ? (
                 <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <ActivityIndicator size="large" color={THEME.accent} />
+                    <ActivityIndicator size='large' color={THEME.accent} />
                 </View>
             ) : (
                 <FlatList
@@ -224,13 +224,13 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
                 />
             )}
 
-            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Connection" />}
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab='Connection' />}
 
             {/* Job Detail Modal */}
             <DetailModal
                 visible={!!selectedJob}
                 onClose={() => setSelectedJob(null)}
-                title="求人詳細"
+                title='求人詳細'
             >
                 {selectedJob && (
                     <View style={{ flex: 1, overflow: 'hidden' }}>
@@ -246,7 +246,7 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             <DetailModal
                 visible={!!selectedUser}
                 onClose={() => setSelectedUser(null)}
-                title="個人詳細"
+                title='個人詳細'
             >
                 {selectedUser && (
                     <View style={{ flex: 1 }}>

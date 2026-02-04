@@ -111,16 +111,16 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
                                         <IconButton
-                                            name="notifications-outline"
+                                            name='notifications-outline'
                                             size={24}
-                                            color="#FFF"
+                                            color='#FFF'
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
-                                            name="create-outline"
+                                            name='create-outline'
                                             size={24}
-                                            color="#FFF"
+                                            color='#FFF'
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -128,7 +128,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
+                                        <TouchableOpacity style={styles.miniResumeButton} testID='create_resume_button'>
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -142,14 +142,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
+                                            <Text style={styles.nameText} testID='user_full_name'>{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
                                             <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
-                                                <Ionicons name="chatbubble-ellipses" size={30} color={THEME.accent} />
+                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.accent} />
                                                 <Text style={styles.labelYellow}>チャット</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -162,16 +162,16 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
                                         <IconButton
-                                            name="notifications-outline"
+                                            name='notifications-outline'
                                             size={24}
-                                            color="#FFF"
+                                            color='#FFF'
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
-                                            name="create-outline"
+                                            name='create-outline'
                                             size={24}
-                                            color="#FFF"
+                                            color='#FFF'
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -179,7 +179,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                     {/* 2. Top-right repositioned button */}
                                     <View style={styles.profileActionRow}>
-                                        <TouchableOpacity style={styles.miniResumeButton} testID="create_resume_button">
+                                        <TouchableOpacity style={styles.miniResumeButton} testID='create_resume_button'>
                                             <Text style={styles.miniResumeButtonText}>職歴書作成</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -193,14 +193,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                             />
                                         </View>
                                         <View style={styles.namePlate}>
-                                            <Text style={styles.nameText} testID="user_full_name">{user.fullNameKanji}</Text>
+                                            <Text style={styles.nameText} testID='user_full_name'>{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
                                             <Text style={styles.emailText}>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
-                                                <Ionicons name="chatbubble-ellipses" size={30} color={THEME.accent} />
+                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.accent} />
                                                 <Text style={styles.labelYellow}>チャット</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -212,7 +212,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                 </ImageBackground>
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
-                <View style={styles.badgeSection} testID="skill_badge_section">
+                <View style={styles.badgeSection} testID='skill_badge_section'>
                     <View style={styles.tradingCardRow}>
                         {['コアスキル', 'サブスキル1', 'サブスキル2'].map((label, index) => {
                             const skills = ['サーバサイド', 'iOS', 'AWS'];
@@ -221,7 +221,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                     key={index}
                                     label={label}
                                     skillName={skills[index]}
-                                    iconName={index === 0 ? "star" : index === 1 ? "medal" : "trophy"}
+                                    iconName={index === 0 ? 'star' : index === 1 ? 'medal' : 'trophy'}
                                     width={(containerWidth - 40) / 3.2} // Responsive width
                                     labelStyle={styles.cardLabel}
                                     badgeStyle={styles.glassBadge}
@@ -233,18 +233,18 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                 </View>
 
                 {/* 5. Heatmap Section (Visible Grid) */}
-                <View style={styles.heatmapSection} testID="skill_heatmap">
+                <View style={styles.heatmapSection} testID='skill_heatmap'>
                     <View style={styles.heatmapHeader}>
                         <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                         <View style={styles.chatBotIconSmall}>
-                            <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
+                            <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
                         </View>
                     </View>
 
-                    <HeatmapGrid containerWidth={containerWidth - 40} dataValues={heatmapValues} testID="skill_heatmap" />
+                    <HeatmapGrid containerWidth={containerWidth - 40} dataValues={heatmapValues} testID='skill_heatmap' />
 
-                    <View style={styles.chatBotCallout} testID="chatbot_button">
-                        <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                    <View style={styles.chatBotCallout} testID='chatbot_button'>
+                        <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
                         <Text style={styles.labelYellow}>チャットボット</Text>
                     </View>
                 </View>
@@ -255,20 +255,20 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
             {/* 6. Footer Navigation (Optional) */}
             {showBottomNav && (
-                <View style={styles.footerContainer} testID="profile_footer">
-                    <BottomNav navigation={navigation} activeTab="Home" userDoc={userDoc} />
+                <View style={styles.footerContainer} testID='profile_footer'>
+                    <BottomNav navigation={navigation} activeTab='Home' userDoc={userDoc} />
                 </View>
             )}
 
-            {/* 7. Center Overlay Button (e.g. "Career Detail" or "Chat") */}
+            {/* 7. Center Overlay Button (e.g. 'Career Detail' or 'Chat') */}
             {showBottomNav && (
-                <View style={styles.bottomNavCenterOverlay} pointerEvents="box-none">
+                <View style={styles.bottomNavCenterOverlay} pointerEvents='box-none'>
                     <TouchableOpacity
                         style={styles.centerButton}
                         onPress={() => navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc })}
                     >
                         <Text style={styles.centerButtonText}>経歴詳細</Text>
-                        <Ionicons name="create-outline" size={18} color="#FFF" style={{ marginTop: -2 }} />
+                        <Ionicons name='create-outline' size={18} color='#FFF' style={{ marginTop: -2 }} />
                     </TouchableOpacity>
                 </View>
             )}
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: THEME.cardBorder,
         minHeight: 100,
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.95)',
         padding: 5,
         borderRadius: 15,
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
@@ -460,45 +460,47 @@ const styles = StyleSheet.create({
     },
     labelYellow: {
         color: THEME.accent,
-        fontSize: 9,
-        fontWeight: '800',
-        marginTop: -2,
     },
     chatBotCallout: {
         position: 'absolute',
-        bottom: 10,
-        right: 10,
+        bottom: -10,
+        right: 0,
         alignItems: 'center',
+    },
+    footerContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
     },
     bottomNavCenterOverlay: {
         position: 'absolute',
-        bottom: 80,
-        alignSelf: 'center',
-        zIndex: 20,
+        bottom: 30, // Adjust to overlap BottomNav correctly
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        zIndex: 101,
     },
     centerButton: {
-        backgroundColor: THEME.success,
-        paddingVertical: 10,
-        paddingHorizontal: 22,
+        backgroundColor: THEME.accent,
+        width: 60,
+        height: 60,
         borderRadius: 30,
-        borderWidth: 2,
-        borderColor: THEME.cardBg,
+        justifyContent: 'center',
         alignItems: 'center',
-        flexDirection: 'column',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 6,
+        borderWidth: 3,
+        borderColor: '#FFF',
     },
     centerButtonText: {
         color: '#FFF',
-        fontWeight: '900',
-        fontSize: 15,
-    },
-    footerContainer: {
-        height: 75,
-        width: '100%',
-        backgroundColor: THEME.cardBg,
-        zIndex: 50,
-        flexShrink: 0,
-    },
-    mainScrollView: {
-        flex: 1,
-    },
+        fontSize: 8,
+        fontWeight: 'bold',
+        marginBottom: 2,
+    }
 });

@@ -27,7 +27,7 @@ describe('Company Model', () => {
         });
 
         // The Fix Verification
-        it('should prioritize flat name if nested name is the template placeholder "ヤヲー株式会社"', () => {
+        it('should prioritize flat name if nested name is the template placeholder \'ヤヲー株式会社\'', () => {
             const data = {
                 companyName: 'Real Company Name', // Correct name
                 '会社概要': { '社名': 'ヤヲー株式会社' } // Template artifact
