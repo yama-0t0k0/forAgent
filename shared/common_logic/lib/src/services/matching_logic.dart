@@ -131,23 +131,17 @@ class MatchingLogic {
     int intentBonus = 0;
     
     // 3-1. 志向の共通項ボーナス
-    // 対個人: スキル同等でも志向が近い人を優遇
-    // 対求人: 成長できる（Over-specでない）ことが前提で、その中で志向が合うものを優遇
     final commonIntents = sourceIntent.toSet().intersection(targetIntent.toSet());
     if (commonIntents.isNotEmpty) {
-      intentBonus += commonIntents.length * 10; // 1一致につき+10点
+      intentBonus += commonIntents.length * 10;
     }
 
     // 3-2. メンター需給マッチング（個人間のみ）
-    // Sourceが「教えたい」、Targetが「教わりたい」場合
-    // 対求人には適用されない
     if (!isJobMatching) {
       final sourceWantsMentor = sourceIntent.contains('wants_to_be_mentor');
       final targetSeeksMentor = targetIntent.contains('looking_for_mentor');
       
       if (sourceWantsMentor && targetSeeksMentor) {
-        // メンター需要が合致する場合、特大ボーナス
-        // これにより、スキル差によるペナルティや低いスコアを相殺し、マッチングを成立させる
         intentBonus += 100; 
       }
     }
@@ -155,8 +149,12 @@ class MatchingLogic {
     // 4. ネットスコア計算
     final netScore = matchPoints + penaltyPoints + intentBonus;
 
-    // 5. 正規化スコア計算
-    final matchingScore = normalizeScore(netScore);
+    // 5. 正規化スコア計算（リファレンス実装準拠）
+    // マッチした（スコアが0でない）スキル数で割ることで、スキル数に依存しないパーセンテージを算出する
+    final matchedSkillCount = skillMatchResult.values.where((v) => v != 0).length;
+    final matchingScore = matchedSkillCount > 0 
+        ? (netScore / matchedSkillCount).round() 
+        : 0;
 
     return {
       'matchPoints': matchPoints,
@@ -166,14 +164,15 @@ class MatchingLogic {
       'matchedSkills': skillMatchResult,
       'nonMatchItems': nonMatchItems,
       'matchingScore': matchingScore,
+      'matchedSkillCount': matchedSkillCount, // Debug info
     };
   }
 
-  /// スコアの正規化を行う
-  /// 以前は100点満点でclampしていたが、100%超え（120%など）を許容するように変更
+  /// スコアの正規化を行う（廃止予定だが互換性のために残すか、削除する）
+  /// 現在は calculateMatchResult 内で直接計算しているため使用しない
   int normalizeScore(int rawScore) {
+    // Legacy implementation
     if (rawScore <= 0) return 0;
-    // 概算の正規化ロジック（ビジネス要件に応じて調整）
     return (rawScore / 5).round();
   }
 }
