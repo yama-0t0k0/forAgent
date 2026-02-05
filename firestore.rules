@@ -3,116 +3,177 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // =========================================================
-    // 1. users Collection (Authentication & RBAC Base)
-    // =========================================================
-    // Role: 'admin' | 'corporate' | 'individual'
-    // companyId: Required for 'corporate' role
-    match /users/{userId} {
-      // Allow reading own user document to determine role
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Allow creation for new authenticated users (e.g. on first login)
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Allow updates only for self (e.g. changing role or companyId - strictly controlled by app logic)
-      allow update: if request.auth != null && request.auth.uid == userId;
+    // ============================================================================
+    // Helper Functions / ヘルパー関数
+    // ============================================================================
+
+    // Check if user is authenticated
+    // ユーザーが認証済みかどうかを確認
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Helper function to check role
+    // Check if the user is the owner of the document (based on userId)
+    // ユーザーがドキュメントの所有者本人であるか確認 (userIdベース)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the user has a specific role (stored in their user profile)
+    // ユーザーが特定のロールを持っているか確認 (ユーザープロファイルに基づく)
     function hasRole(role) {
-      return request.auth != null 
+      // Note: This requires a read. For high-traffic, Custom Claims are recommended.
+      // Current implementation relies on 'users' collection lookup.
+      // 注: これには読み取り操作が必要です。高トラフィックの場合はCustom Claimsの使用を推奨します。
+      // 現在の実装は 'users' コレクションの参照に依存しています。
+      return isAuthenticated() 
              && exists(/databases/$(database)/documents/users/$(request.auth.uid))
              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
+    // 管理者ロールかどうかを確認
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Check if the user is a member of the specific company
+    // ユーザーが特定の企業のメンバーであるか確認
     function isCompanyMember(companyId) {
-      return hasRole('corporate') 
-             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+      // Note: Safe navigation for optional fields isn't fully supported in rules, 
+      // but we assume schema consistency (role and companyId exist if role is corporate)
+      // 注: ルールではオプショナルフィールドの安全なナビゲーションは完全にはサポートされていませんが、
+      // スキーマの一貫性 (roleがcorporateならcompanyIdが存在する) を前提としています。
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isAuthenticated() 
+             && userDoc != null
+             && userDoc.data.role == 'corporate' 
+             && userDoc.data.companyId == companyId;
+    }
+    
+    // Check if the requesting company user is allowed to view the private info
+    // This relies on 'allowed_companies' array field in the target document
+    // リクエスト元の企業ユーザーが個人情報を閲覧する権限を持っているか確認
+    // これはターゲットドキュメント内の 'allowed_companies' 配列フィールドに依存します
+    function isMatched(allowedCompanies) {
+       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+       return isAuthenticated()
+              && userDoc != null
+              && userDoc.data.role == 'corporate'
+              && (userDoc.data.companyId in allowedCompanies);
     }
 
-    // =========================================================
-    // 2. Public Profiles (Read-only for Authenticated)
-    // =========================================================
+    // ============================================================================
+    // Collection Rules / コレクションルール
+    // ============================================================================
+
+    // ----------------------------------------------------------------------------
+    // 1. users Collection (Authentication & RBAC Base)
+    // users コレクション (認証とRBACの基盤)
+    // ----------------------------------------------------------------------------
+    match /users/{userId} {
+      // Users can read their own data. Admins can read all.
+      // ユーザーは自分のデータを閲覧可能。管理者は全て閲覧可能。
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Prevent users from making themselves admin or changing their role/companyId
+      // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ
+      allow create: if isOwner(userId) 
+                    && (!('role' in request.resource.data) || request.resource.data.role != 'admin');
+                    
+      allow update: if isAdmin() 
+                    || (isOwner(userId) 
+                        && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
+                        && (!('companyId' in request.resource.data) || request.resource.data.companyId == resource.data.companyId));
+    }
+
+    // ----------------------------------------------------------------------------
+    // 2. Public Profiles (public_profile)
+    // 公開プロフィール (public_profile)
+    // ----------------------------------------------------------------------------
     match /public_profile/{userId} {
-      // Anyone authenticated can read public profiles (for matching/scouting)
-      allow read: if request.auth != null;
+      // Readable by any authenticated user (Candidate, Company, Admin)
+      // 認証済みユーザー (求職者、企業、管理者) であれば誰でも閲覧可能
+      allow read: if isAuthenticated();
       
-      // Only the owner can update their public profile
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Writable only by the owner or Admin
+      // 所有者本人または管理者のみ書き込み可能
+      allow write: if isOwner(userId) || isAdmin();
     }
 
-    // =========================================================
-    // 3. Private Info (Strictly Owner Only)
-    // =========================================================
+    // ----------------------------------------------------------------------------
+    // 3. Private Info (private_info) - PII & Sensitive Data
+    // 非公開情報 (private_info) - 個人情報(PII)と機密データ
+    // ----------------------------------------------------------------------------
     match /private_info/{userId} {
-      // Only the owner can read/write their private info (PII)
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Writable only by the owner or Admin
+      // 所有者本人または管理者のみ書き込み可能
+      allow write: if isOwner(userId) || isAdmin();
       
-      // Admins might need access for support (Optional, uncomment if needed)
-      // allow read: if hasRole('admin');
+      // Readable by:
+      // 1. Owner (本人)
+      // 2. Admin (管理者)
+      // 3. Matched Company (via allowed_companies field) - マッチングした企業 ('allowed_companies' フィールド経由)
+      allow read: if isOwner(userId) 
+                  || isAdmin()
+                  || ('allowed_companies' in resource.data && isMatched(resource.data.allowed_companies));
     }
 
-    // =========================================================
-    // 4. Company Data
-    // =========================================================
+    // ----------------------------------------------------------------------------
+    // 4. Company Data (company / corporate)
+    // 企業データ (company / corporate)
+    // ----------------------------------------------------------------------------
     match /company/{companyId} {
-      // Public read for job seekers
-      allow read: if request.auth != null;
+      // Publicly readable for authenticated users (Job Seekers need to see company info)
+      // 認証済みユーザーは閲覧可能 (求職者は企業情報を見る必要があるため)
+      allow read: if isAuthenticated();
       
-      // Write allowed for company members or admins
-      allow write: if isCompanyMember(companyId) || hasRole('admin');
+      // Writable by company members or Admin
+      // その企業のメンバーまたは管理者のみ書き込み可能
+      allow write: if isCompanyMember(companyId) || isAdmin();
     }
     
-    // Alias for legacy collection name if exists
+    // Legacy support alias (if needed)
+    // レガシーサポート用のエイリアス (必要な場合)
     match /corporate/{companyId} {
-      allow read: if request.auth != null;
-      allow write: if isCompanyMember(companyId) || hasRole('admin');
+      allow read: if isAuthenticated();
+      allow write: if isCompanyMember(companyId) || isAdmin();
     }
 
-    // =========================================================
-    // 5. Job Descriptions (Subcollection structure)
-    // =========================================================
-    // Parent doc
+    // ----------------------------------------------------------------------------
+    // 5. Job Descriptions (job_description)
+    // 求人票 (job_description)
+    // ----------------------------------------------------------------------------
+    // Structure assumed: /job_description/{companyId}/JD_Number/{jdId}
+    // 想定構造: /job_description/{companyId}/JD_Number/{jdId}
     match /job_description/{companyId} {
-      allow read: if request.auth != null;
-      allow write: if isCompanyMember(companyId) || hasRole('admin');
-    }
-    
-    // JD Number subcollection
-    match /job_description/{companyId}/JD_Number/{jdId} {
-      allow read: if request.auth != null;
-      allow write: if isCompanyMember(companyId) || hasRole('admin');
+      allow read: if isAuthenticated();
+      allow write: if isCompanyMember(companyId) || isAdmin();
+      
+      match /JD_Number/{jdId} {
+        allow read: if isAuthenticated();
+        allow write: if isCompanyMember(companyId) || isAdmin();
+      }
     }
 
-    // =========================================================
-    // 6. Selection Process / Matching
-    // =========================================================
-    // Assuming a structure like /selection_progress/{docId}
-    // where doc has 'candidateId' and 'companyId'
+    // ----------------------------------------------------------------------------
+    // 6. Selection Progress (selection_progress)
+    // 選考プロセス (selection_progress)
+    // ----------------------------------------------------------------------------
     match /selection_progress/{docId} {
-      allow read: if request.auth != null && (
-        resource.data.candidateId == request.auth.uid || 
-        isCompanyMember(resource.data.companyId) ||
-        hasRole('admin')
+      // Readable by the Candidate, the Company, or Admin
+      // Fields: id_individual_個人ID, id_company_法人ID
+      // 求職者本人、該当企業、または管理者が閲覧可能
+      allow read: if isAuthenticated() && (
+        resource.data['id_individual_個人ID'] == request.auth.uid || 
+        isCompanyMember(resource.data['id_company_法人ID']) ||
+        isAdmin()
       );
       
-      allow create: if request.auth != null; // Refine this based on who initiates application
-      allow update: if request.auth != null && (
-        resource.data.candidateId == request.auth.uid || 
-        isCompanyMember(resource.data.companyId) ||
-        hasRole('admin')
-      );
+      // Creation/Update: Allowed for authenticated users
+      // TODO: Refine this to ensure only valid applications/scouts can be created
+      // 作成/更新: 認証済みユーザーに許可
+      // TODO: 有効な応募/スカウトのみ作成できるように制限を強化する
+      allow write: if isAuthenticated();
     }
-    
-    // =========================================================
-    // 7. Legacy Collections (Backward Compatibility)
-    // =========================================================
-    // 'individual' collection is now deprecated in favor of split public/private
-    // But keeping it accessible for now if migration isn't atomic for all apps
-    match /individual/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
   }
 }

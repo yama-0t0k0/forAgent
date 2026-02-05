@@ -95,26 +95,40 @@
 ## 4. 実装ステップ
 
 1.  **IAM & API Key Security Check**
-    - Service Accountの権限棚卸し（最小権限の原則適用）。
-    - API Keyのリファラー制限/IP制限の設定確認。
+    - [x] Service Accountの権限棚卸し（最小権限の原則適用）。
+    - [x] API Keyのリファラー制限/IP制限の設定確認。
+    - [x] クレデンシャル（`serviceAccountKey.json`）のGit履歴からの削除。
 
 2.  **データ構造の移行 (Schema Migration)**
-    - `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
-    - `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
+    - [x] `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
+    - [x] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
+
+    ### データマッピング定義 (Data Mapping Definition)
+    
+    | Category | Field (Actual Data Structure) | Source (`individual`) | Target Public (`public_profile`) | Target Private (`private_info`) | Note |
+    | :--- | :--- | :--- | :--- | :--- | :--- |
+    | **氏名** | `基本情報.姓`, `基本情報.名` | ✅ | ❌ Remove | ✅ Move | PII |
+    | **メール** | `基本情報.メール` | ✅ | ❌ Remove | ✅ Move | PII |
+    | **電話番号** | `基本情報.TEL` | ✅ | ❌ Remove | ✅ Move | PII |
+    | **住所** | `基本情報.住所` | ✅ | ❌ Remove | ✅ Move | PII |
+    | **生年月日** | `基本情報.生年月日` | ✅ | ❌ Remove | ✅ Move | PII |
+    | **経歴** | `職歴` | ✅ | ✅ Keep | - | Public |
+    | **スキル** | `スキル経験` | ✅ | ✅ Keep | - | Public |
 
 3.  **Security Rules の実装**
-    - `firestore.rules` の書き換え。
-    - 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
-    - カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - [x] `firestore.rules` の書き換え。
+    - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
+    - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 4.  **クライアントアプリ (Frontend) の改修**
-    - データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
-    - ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
-    - 管理画面 (Admin App) の表示ロジック修正。
+    - [ ] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
+    - [ ] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
+    - [ ] 管理画面 (Admin App) の表示ロジック修正。
 
 5.  **検証 (Verification)**
-    - Firestore Emulator を用いたユニットテスト。
-    - 各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
+    - [ ] Firestore Emulator を用いたユニットテスト。
+    - [ ] 各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
 
 ## 5. 備考
 - 本計画は `FMJS` (Fee Management Job System) と共通のポリシーとして適用する。
