@@ -131,7 +131,8 @@ export default function DashboardScreen() {
         if (selectedUserId === E2E_CONFIG.DUMMY_USER_ID) {
           try {
             const template = require('@assets/json/engineer-profile-template.json');
-            setSelectedUserDoc(template);
+            // Wrap in User model for consistency
+            setSelectedUserDoc(User.fromFirestore(selectedUserId, template));
             setSelectedUserLoading(false);
             return;
           } catch (e) {
@@ -140,7 +141,8 @@ export default function DashboardScreen() {
               id: E2E_CONFIG.DUMMY_USER_ID,
               '基本情報': { '姓': '開発者', '名': '【テスト】', 'メール': 'test@example.com' }
             };
-            setSelectedUserDoc(mock);
+            // Wrap in User model for consistency
+            setSelectedUserDoc(User.fromFirestore(selectedUserId, mock));
             setSelectedUserLoading(false);
             return;
           }
@@ -153,8 +155,10 @@ export default function DashboardScreen() {
           return;
         }
         const d = snap.data();
-        setSelectedUserDoc(d);
-        setSelectedUserCache(prev => ({ ...prev, [selectedUserId]: d }));
+        // Wrap in User model to ensure rawData is properly preserved for matching API
+        const userModel = User.fromFirestore(selectedUserId, d);
+        setSelectedUserDoc(userModel);
+        setSelectedUserCache(prev => ({ ...prev, [selectedUserId]: userModel }));
         setSelectedUserLoading(false);
       } catch (e) {
         setSelectedUserError('個人データの取得に失敗しました');
