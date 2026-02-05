@@ -17,6 +17,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 
 // --- Configuration ---
+// --- 設定 ---
 // 環境変数からパラメータを取得
 const env = process.env;
 
@@ -28,6 +29,7 @@ const CONFIG = {
     commitMessage: env.COMMIT_MESSAGE || '',
     
     // User Input Fields
+    // ユーザー入力フィールド
     userPrompt: env.USER_PROMPT || '（指示内容を記述してください）',
     workPurpose: env.WORK_PURPOSE || '（変更の目的を記述してください）',
     workOutcome: env.WORK_OUTCOME || '（実行結果を記述してください）',
@@ -35,6 +37,7 @@ const CONFIG = {
     nextTasks: env.NEXT_TASKS || '（推奨される次回のタスクを具体的に記述してください）',
     
     // Optional Fields
+    // オプションフィールド
     commandLogFile: env.COMMAND_LOG_FILE || '',
     investigationCommands: env.INVESTIGATION_COMMANDS || '',
     explicitTitle: env.EXPLICIT_TITLE || '',
@@ -42,11 +45,14 @@ const CONFIG = {
     labels: env.LABELS || '',
     
     // Flags
+    // フラグ
     dryRun: env.DRY_RUN === 'true',
     autoMode: env.AUTO_MODE === 'true'
 };
 
 // --- Helpers ---
+// --- ヘルパー関数 ---
+
 function runCommandOutput(command) {
     try {
         return execSync(command, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -76,33 +82,77 @@ function getCommitListSimple() {
     return log || '(No new commits)';
 }
 
+function detectLabels(commitMessage, userPrompt) {
+    let labels = [];
+    const content = (commitMessage + ' ' + userPrompt).toLowerCase();
+
+    // Bug/Fix
+    // バグ/修正
+    if (content.match(/fix|bug|resolve|error|fail|修正|バグ|エラー/)) {
+        labels.push('bug');
+    }
+
+    // Enhancement/Feature
+    // 機能追加/改善
+    if (content.match(/feat|add|new|create|implement|update|improve|追加|機能|作成|実装|更新|改善/)) {
+        labels.push('enhancement');
+    }
+
+    // Documentation
+    // ドキュメント
+    if (content.match(/doc|readme|postmortem|ドキュメント|資料/)) {
+        labels.push('documentation');
+    }
+
+    // Refactoring
+    // リファクタリング
+    if (content.match(/refactor|clean|optimize|simplify|restructure|リファクタ|整理|最適化/)) {
+        labels.push('refactoring');
+    }
+
+    // Testing
+    // テスト
+    if (content.match(/test|spec|coverage|テスト|検証/)) {
+        labels.push('testing');
+    }
+
+    return labels.join(',');
+}
+
 // --- Main Logic ---
+// --- メインロジック ---
 
 function main() {
     console.log('📋 Generating GitHub Issue content...');
 
     // 1. Determine Issue Title
+    // 1. Issueタイトルの決定
     let issueTitle = CONFIG.explicitTitle;
     if (!issueTitle) {
         // Summarize from WORK_PURPOSE (Max 50 chars)
         // Remove common prefixes
+        // WORK_PURPOSEから要約（最大50文字）、一般的なプレフィックスを削除
         const firstLine = CONFIG.workPurpose.split('\n')[0];
         issueTitle = firstLine.replace(/^[目的指示概要]*[:：]\s*/, '').substring(0, 50);
     }
     
     // Fallback to commit message
+    // コミットメッセージへのフォールバック
     if (!issueTitle || issueTitle === '（変更の目的を記述してください）') {
         issueTitle = CONFIG.commitMessage.replace(/^Push: /, '').substring(0, 50);
     }
     
     // Final fallback
+    // 最終フォールバック
     if (!issueTitle) {
         issueTitle = `Update: ${new Date().toISOString().split('T')[0]}`;
     }
 
     // 2. Build Content Sections
+    // 2. コンテンツセクションの構築
     
     // Command Log
+    // コマンドログ
     let commandLogSection = '';
     if (CONFIG.commandLogFile && fs.existsSync(CONFIG.commandLogFile)) {
         try {
@@ -114,9 +164,11 @@ function main() {
     }
 
     // Major Commands
+    // 主要コマンド
     const majorCommands = CONFIG.investigationCommands || '（調査に使用した主要なコマンドがあれば記述してください）';
 
     // Git Info
+    // Git情報
     const diffStat = getDiffStat();
     const diffLog = getDiffLog();
     const commitListSimple = getCommitListSimple();
@@ -124,12 +176,15 @@ function main() {
     const dateStr = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }); // 簡易的な日付
 
     // Recent Issues (Strictly Limit to 10)
+    // 直近のIssue（厳密に10件に制限）
     let recentContext = "(直近のIssueは見つかりませんでした)";
     try {
-        // --sort created-desc ensures latest first. --limit 10 ensures strict limit.
+        // --limit 10 ensures strict limit. Default sort is Newest first.
         // If repoUrl is provided, use it. Otherwise rely on gh context.
+        // --limit 10 で厳密に制限。デフォルトのソートは最新順。
+        // repoUrlが提供されている場合はそれを使用。それ以外はghのコンテキストに依存。
         const repoArg = CONFIG.repoUrl ? `--repo "${CONFIG.repoUrl}"` : '';
-        const recentJson = runCommandOutput(`gh issue list ${repoArg} --state all --limit 10 --sort created --json number,title,author,createdAt,url`);
+        const recentJson = runCommandOutput(`gh issue list ${repoArg} --state all --limit 10 --json number,title,author,createdAt,url`);
         
         if (recentJson) {
             const issues = JSON.parse(recentJson);
@@ -141,7 +196,18 @@ function main() {
         console.warn('⚠️ Failed to fetch recent issues:', e.message);
     }
 
+    // Detect Labels if not provided
+    // ラベルが提供されていない場合は検出
+    let finalLabels = CONFIG.labels;
+    if (!finalLabels) {
+        finalLabels = detectLabels(CONFIG.commitMessage, CONFIG.userPrompt);
+        if (finalLabels) {
+            console.log(`🏷️  Auto-detected labels: ${finalLabels}`);
+        }
+    }
+
     // 3. Construct Issue Body
+    // 3. Issue本文の構築
     const issueBody = `## 🤖 AI Development Cycle
 
 ### 📝 Implementation Details / 実装内容
@@ -189,6 +255,7 @@ ${recentContext}
 `;
 
     // 4. Validate Content (Placeholder Check)
+    // 4. コンテンツの検証（プレースホルダーチェック）
     const validationBody = `${CONFIG.userPrompt} ${CONFIG.workPurpose} ${CONFIG.workOutcome} ${CONFIG.contextNotes} ${CONFIG.nextTasks}`;
     const hasPlaceholders = validationBody.includes('記述してください') || 
                            validationBody.includes('特になし') ||
@@ -208,10 +275,11 @@ ${recentContext}
     }
 
     // 5. Create Issue
+    // 5. Issueの作成
     if (CONFIG.dryRun) {
         console.log('\n[DRY RUN] Issue would be created with:');
         console.log(`Title: ${issueTitle}`);
-        console.log(`Labels: ${CONFIG.labels}`);
+        console.log(`Labels: ${finalLabels}`);
         console.log(`Milestone: ${CONFIG.targetMilestone}`);
         console.log('--- Body ---');
         console.log(issueBody);
@@ -219,12 +287,13 @@ ${recentContext}
         console.log('🚀 Creating GitHub Issue...');
         
         // Write body to temp file to avoid shell escaping issues
+        // シェルエスケープの問題を回避するため、本文を一時ファイルに書き込む
         const tempBodyFile = `/tmp/issue_body_${Date.now()}.md`;
         fs.writeFileSync(tempBodyFile, issueBody);
         
         try {
             const repoArg = CONFIG.repoUrl ? `--repo "${CONFIG.repoUrl}"` : '';
-            const labelArg = CONFIG.labels ? `--label "${CONFIG.labels.split(',').join('","')}"` : '';
+            const labelArg = finalLabels ? `--label "${finalLabels.split(',').join('","')}"` : '';
             const milestoneArg = CONFIG.targetMilestone ? `--milestone "${CONFIG.targetMilestone}"` : '';
             
             // gh issue create
@@ -233,10 +302,13 @@ ${recentContext}
             // Execute
             // We use execSync with inherited stdio to let gh interact if needed (though we provide all args)
             // But here we want to capture the URL.
+            // ghが必要に応じて対話できるように、継承されたstdioでexecSyncを使用する（ただし、すべての引数を提供している）
+            // しかし、ここではURLをキャプチャしたい。
             const issueUrl = execSync(cmd, { encoding: 'utf-8' }).trim();
             console.log(`✅ Issue created successfully: ${issueUrl}`);
             
             // Cleanup
+            // クリーンアップ
             fs.unlinkSync(tempBodyFile);
             
         } catch (e) {
