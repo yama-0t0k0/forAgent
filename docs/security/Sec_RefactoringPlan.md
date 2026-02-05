@@ -142,8 +142,9 @@
     | **Risk** | **PII Exposure** | ⚠️ **High** (Private info exposed) | 🔒 **None** (PII isolated) | PII = Name, Email, Tel, etc. |
 
 5.  **検証 (Verification)**
-    - [ ] Firestore Emulator を用いたユニットテスト。
-    - [ ] 各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
+    - [x] Firestore Emulator を用いたユニットテスト。
+        - *Status*: `firestore.test.js` 作成済み。実行準備完了。
+    - [ ] アプリケーション結合テスト（E2E）。各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
 
 ## 5. 備考
 - 本計画は `FMJS` (Fee Management Job System) と共通のポリシーとして適用する。
