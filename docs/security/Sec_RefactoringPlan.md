@@ -116,9 +116,10 @@
     | **スキル** | `スキル経験` | ✅ | ✅ Keep | - | Public |
 
 3.  **Security Rules の実装**
-    - [ ] `firestore.rules` の書き換え。
-    - [ ] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
-    - [ ] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - [x] `firestore.rules` の書き換え。
+    - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
+    - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 4.  **クライアントアプリ (Frontend) の改修**
     - [ ] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
