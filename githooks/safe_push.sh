@@ -61,6 +61,10 @@ parse_arguments() {
                 COMMAND_LOG_FILE="$2"
                 shift 2
                 ;;
+            --main-commands)
+                INVESTIGATION_COMMANDS="$2"
+                shift 2
+                ;;
             --dry-run)
                 DRY_RUN=true
                 shift
@@ -440,204 +444,45 @@ push_changes() {
 # Function to capture diff info and create GitHub Issue
 create_push_issue() {
     echo ""
-    echo "📋 GitHub Issue を作成しています..."
+    echo "📋 GitHub Issue を作成しています (Delegating to node script)..."
 
-    # Check if gh command exists
-    if ! command -v gh &> /dev/null; then
-        echo "⚠️  'gh' コマンドが見つかりません。Issue作成をスキップします。"
-        return
+    # Check if node exists
+    if ! command -v node &> /dev/null; then
+        echo "❌ Error: 'node' command not found. Cannot run issue creation script."
+        return 1
     fi
 
-    # Check if logged in to gh
-    if ! gh auth status &> /dev/null; then
-        echo "⚠️  GitHub CLI にログインしていません。Issue作成をスキップします。"
-        return
-    fi
-
-    # Use captured PREV_PUSH_HASH
-    if [ -z "$PREV_PUSH_HASH" ]; then
-         # Fallback: try origin first, then HEAD~1
-         PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH" 2>/dev/null || git rev-parse HEAD~1)
-    fi
-
-    CURRENT_HASH=$(git rev-parse HEAD)
-
-    # Use defaults if not provided (should be provided by AI agent in practice)
-    USER_PROMPT=${PROMPT_SUMMARY:-"（指示内容を記述してください）"}
-    WORK_PURPOSE=${INTENT_DESCRIPTION:-"（変更の目的を記述してください）"}
-    WORK_OUTCOME=${OUTCOME_SUMMARY:-"（実行結果を記述してください）"}
-
-    # Refine Title: 
-    # 1. Use explicit --title if provided
-    # 2. Otherwise, summarize from WORK_PURPOSE (Max 50 chars)
-    if [ -n "$EXPLICIT_TITLE" ]; then
-        ISSUE_TITLE=$(echo "$EXPLICIT_TITLE" | cut -c 1-50)
-    else
-        # Remove common prefixes and get the first line, then trim to 50 chars
-        ISSUE_TITLE=$(echo "$WORK_PURPOSE" | head -n 1 | sed 's/^[目的指示概要]*：//' | cut -c 1-50)
-    fi
-    
-    # Fallback to commit message if title is still empty or default
-    if [ "$ISSUE_TITLE" = "（変更の目的を記述してください）" ] || [ -z "$ISSUE_TITLE" ]; then
-        ISSUE_TITLE=$(echo "$COMMIT_MESSAGE" | sed 's/^Push: // ' | cut -c 1-50)
-    fi
-
-    # Diff Stat
-    DIFF_STAT=$(git diff --stat ${PREV_PUSH_HASH}..${CURRENT_HASH})
-    # Diff Log
-    DIFF_LOG=$(git log --pretty=format:"- %h %s (%an)" ${PREV_PUSH_HASH}..${CURRENT_HASH})
-    # Simple Commit List for Description
-    COMMIT_LIST_SIMPLE=$(git log --pretty=format:"- %s" ${PREV_PUSH_HASH}..${CURRENT_HASH})
-    
-    if [ -z "$DIFF_LOG" ]; then
-         DIFF_LOG="(このPushに新しいコミットはありません)"
-         COMMIT_LIST_SIMPLE="(No new commits)"
-    fi
-
-    # Recent issues (latest 20) for context building
-    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 20 --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null | head -n 20)
-    if [ -z "$RECENT_CONTEXT" ]; then
-        RECENT_CONTEXT="(直近のIssueは見つかりませんでした)"
-    fi
-
-    # Read Command Log if provided
-    COMMAND_LOG_SECTION=""
-    if [ -n "$COMMAND_LOG_FILE" ]; then
-        if [ -f "$COMMAND_LOG_FILE" ]; then
-            COMMAND_LOG_CONTENT=$(cat "$COMMAND_LOG_FILE")
-            COMMAND_LOG_SECTION="
-### 💻 Command Execution Log / 実行コマンドログ
-\`\`\`bash
-$COMMAND_LOG_CONTENT
-\`\`\`
-"
-        else
-            echo "⚠️  Command log file specified but not found: $COMMAND_LOG_FILE"
-        fi
-    fi
-
-    ISSUE_BODY="## 🤖 AI Development Cycle
-
-### 📝 Implementation Details / 実装内容
-$USER_PROMPT
-$COMMAND_LOG_SECTION
-
-**Included Commits:**
-$COMMIT_LIST_SIMPLE
-
-### 🎯 Mission & Intent / 目的と期待される効果
-$WORK_PURPOSE
-
-### 🏆 Outcome & Result / 実際の結果
-$WORK_OUTCOME
-
----
-
-## 📝 Context / 文脈
-### 🧠 Background / 背景・コンテキスト
-${CONTEXT_NOTES:-"修正したモジュール、技術的な制約、依存関係などの背景情報。"}
-
-### 📋 Changes in this Push / 今回の配布内容
-- **Date / 日時**: $(date '+%Y-%m-%d %H:%M:%S')
-- **Branch / ブランチ**: $TARGET_BRANCH
-- **Author / 作成者**: $(git config user.name)
-- **Previous Hash / 前回ハッシュ**: \`$PREV_PUSH_HASH\`
-- **Current Hash / 今回ハッシュ**: \`$CURRENT_HASH\`
-
-#### Commits / コミットログ
-$DIFF_LOG
-
-#### Changed Files / 変更ファイル
-\`\`\`
-${DIFF_STAT:-"(差分なし)"}
-\`\`\`
-
-### 🚀 Recommended Next Tasks / 推奨される次回のタスク
-${NEXT_TASKS:-"CI/CDパイプラインの確認、デプロイ後の動作検証など。"}
-
-### 📚 Recent Issues (Latest 20) / 直近のIssue(20件)
-$RECENT_CONTEXT
-"
-
-    # --- Validation & Interactive Edit ---
-    # Construct a validation body that excludes auto-generated context (like Recent Issues)
-    # to prevent false positives where past issue titles trigger the placeholder check.
-    VALIDATION_BODY="${USER_PROMPT} ${WORK_PURPOSE} ${WORK_OUTCOME} ${CONTEXT_NOTES} ${NEXT_TASKS}"
-    
-    # Check for placeholders or default/lazy text
-    if [[ "$VALIDATION_BODY" == *"記述してください"* ]] || \
-       [[ "$VALIDATION_BODY" == *"特になし"* ]] || \
-       [[ "$VALIDATION_BODY" == *"No prompt summary provided"* ]] || \
-       [[ "$VALIDATION_BODY" == *"No context provided"* ]] || \
-       [[ "$VALIDATION_BODY" == *"Automated update via safe_push.sh"* ]]; then
-        
-        echo ""
-        echo "⚠️  Quality Control: Issue body contains placeholder text."
-        
-        if [ "$AUTO_MODE" = true ]; then
-             echo "🤖 Auto mode detected with placeholder text."
-             echo "⚠️  Warning: Description arguments are recommended for better documentation."
-             echo "   Proceeding with Issue creation despite placeholders (User Request Override)."
-        else
-            echo "   To ensure quality, please refine the issue description."
-            echo "   Opening default editor..."
-            sleep 2
-            
-            TEMP_BASE=$(mktemp /tmp/safe_push_issue.XXXXXX)
-            TEMP_FILE="${TEMP_BASE}.md"
-            mv "$TEMP_BASE" "$TEMP_FILE"
-            echo "$ISSUE_BODY" > "$TEMP_FILE"
-            
-            # Open editor (fallback to nano if EDITOR is not set)
-            ${EDITOR:-nano} "$TEMP_FILE"
-            
-            # Read back the edited content
-            ISSUE_BODY=$(cat "$TEMP_FILE")
-            rm "$TEMP_FILE"
-            
-            # Strict Re-validation - Warn only
-            if [[ "$ISSUE_BODY" == *"記述してください"* ]] || \
-               [[ "$ISSUE_BODY" == *"Automated update via safe_push.sh"* ]]; then
-                 echo ""
-                 echo "⚠️  Warning: Placeholder text still present after edit."
-                 echo "   Proceeding with Issue creation despite placeholders (User Request Override)."
-            else
-                echo "✅ Issue content refined."
-            fi
-        fi
-    fi
-    # -------------------------------------
-
-    echo "Issue を作成しています... ($REPO_URL)"
-    
     # Repository URL specified by user
-    REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
+    export REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
     
-    # Detect labels
+    # Detect labels (populates LABELS variable)
     detect_labels
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo ""
-        echo "🔎 Issue プレビュー (ドライラン)"
-        echo "Title: $ISSUE_TITLE"
-        echo "----------------------------------------"
-        echo "$ISSUE_BODY"
-        echo "----------------------------------------"
-        return
-    fi
+    export LABELS="$LABELS"
 
-    if [ -n "$LABELS" ]; then
-        if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "$LABELS"; then
-            echo "✅ Issue が正常に作成されました"
-        else
-            echo "❌ Issue の作成に失敗しました"
-        fi
+    # Export variables for node script
+    export TARGET_BRANCH
+    export PREV_PUSH_HASH
+    export CURRENT_HASH=$(git rev-parse HEAD)
+    export COMMIT_MESSAGE
+    export USER_PROMPT="$PROMPT_SUMMARY"
+    export WORK_PURPOSE="$INTENT_DESCRIPTION"
+    export WORK_OUTCOME="$OUTCOME_SUMMARY"
+    export CONTEXT_NOTES
+    export NEXT_TASKS
+    export COMMAND_LOG_FILE
+    export INVESTIGATION_COMMANDS
+    export EXPLICIT_TITLE
+    export TARGET_MILESTONE
+    export DRY_RUN
+    export AUTO_MODE
+
+    # Run the node script
+    echo "🔄 Running scripts/create_push_issue.js..."
+    if node scripts/create_push_issue.js; then
+        echo "✅ Issue creation process completed."
     else
-        if gh issue create --repo "$REPO_URL" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"; then
-            echo "✅ Issue が正常に作成されました"
-        else
-            echo "❌ Issue の作成に失敗しました"
-        fi
+        echo "❌ Issue creation failed."
+        # Non-critical failure, do not exit script
     fi
 }
 

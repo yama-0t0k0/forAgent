@@ -77,7 +77,8 @@ const parsedArgs = {
     context: '',
     next: '',
     milestone: '',
-    commandLogFile: ''
+    commandLogFile: '',
+    mainCommands: ''
 };
 
 let i = 0;
@@ -91,6 +92,7 @@ while (i < args.length) {
     else if (arg === '--next') parsedArgs.next = args[++i];
     else if (arg === '--milestone') parsedArgs.milestone = args[++i];
     else if (arg === '--command-log') parsedArgs.commandLogFile = args[++i];
+    else if (arg === '--main-commands') parsedArgs.mainCommands = args[++i];
     else if (!arg.startsWith('--')) commitMessage = arg;
     i++;
 }
@@ -256,6 +258,9 @@ async function main() {
 ### 📝 Implementation Details / 実装内容
 ${parsedArgs.prompt || '（記述なし）'}
 ${commandLogSection}
+
+### 🔍 Major Commands / 調査に使用した主要コマンド
+${parsedArgs.mainCommands || '（記述なし）'}
 
 ### 🎯 Mission & Intent / 目的と期待される効果
 ${parsedArgs.intent || '（記述なし）'}
