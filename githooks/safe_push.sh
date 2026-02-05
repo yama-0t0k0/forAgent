@@ -14,7 +14,6 @@ set -e  # Exit on any error / エラー発生時に終了
 # Global variables / グローバル変数
 AUTO_MODE=true
 TARGET_BRANCH="yama"
-DRY_RUN=false
 AUTHORIZATION_EVIDENCE=""
 TARGET_MILESTONE=""
 
@@ -70,10 +69,6 @@ parse_arguments() {
             --main-commands)
                 INVESTIGATION_COMMANDS="$2"
                 shift 2
-                ;;
-            --dry-run)
-                DRY_RUN=true
-                shift
                 ;;
             *)
                 if [ -z "$COMMIT_MESSAGE" ]; then
@@ -445,7 +440,6 @@ create_push_issue() {
     export INVESTIGATION_COMMANDS
     export EXPLICIT_TITLE
     export TARGET_MILESTONE
-    export DRY_RUN
     export AUTO_MODE
 
     # Run the node script
@@ -577,12 +571,8 @@ main() {
     # プッシュ前にリモートハッシュを取得
     PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")
     
-    if [ "$DRY_RUN" = true ]; then
-        create_push_issue
-    else
-        push_changes
-        create_push_issue
-    fi
+    push_changes
+    create_push_issue
     
     echo ""
     echo "🎉 Safe push completed successfully!"

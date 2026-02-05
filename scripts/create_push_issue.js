@@ -46,7 +46,6 @@ const CONFIG = {
     
     // Flags
     // フラグ
-    dryRun: env.DRY_RUN === 'true',
     autoMode: env.AUTO_MODE === 'true'
 };
 
@@ -276,17 +275,9 @@ ${recentContext}
 
     // 5. Create Issue
     // 5. Issueの作成
-    if (CONFIG.dryRun) {
-        console.log('\n[DRY RUN] Issue would be created with:');
-        console.log(`Title: ${issueTitle}`);
-        console.log(`Labels: ${finalLabels}`);
-        console.log(`Milestone: ${CONFIG.targetMilestone}`);
-        console.log('--- Body ---');
-        console.log(issueBody);
-    } else {
-        console.log('🚀 Creating GitHub Issue...');
-        
-        // Write body to temp file to avoid shell escaping issues
+    console.log('🚀 Creating GitHub Issue...');
+    
+    // Write body to temp file to avoid shell escaping issues
         // シェルエスケープの問題を回避するため、本文を一時ファイルに書き込む
         const tempBodyFile = `/tmp/issue_body_${Date.now()}.md`;
         fs.writeFileSync(tempBodyFile, issueBody);
@@ -308,14 +299,13 @@ ${recentContext}
             console.log(`✅ Issue created successfully: ${issueUrl}`);
             
             // Cleanup
-            // クリーンアップ
-            fs.unlinkSync(tempBodyFile);
-            
-        } catch (e) {
-            console.error('❌ Failed to create issue:', e.message);
-            if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
-            process.exit(1);
-        }
+        // クリーンアップ
+        fs.unlinkSync(tempBodyFile);
+        
+    } catch (e) {
+        console.error('❌ Failed to create issue:', e.message);
+        if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
+        process.exit(1);
     }
 }
 
