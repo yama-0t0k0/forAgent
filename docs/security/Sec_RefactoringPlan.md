@@ -122,9 +122,24 @@
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 4.  **クライアントアプリ (Frontend) の改修**
-    - [ ] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
-    - [ ] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
-    - [ ] 管理画面 (Admin App) の表示ロジック修正。
+    - [x] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
+      - `FirestoreDataService.js` にて実装済み。`fetchIndividualById` 等で `private_info` 取得失敗時（権限不足）は無視して `public_profile` のみ返す仕様。
+    - [x] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
+      - [x] テキスト情報更新 (`GenericRegistrationScreen`): `AppNavigator.js` にて `customSaveLogic` を適用し、`User.splitData` で分離保存するよう実装済み。
+      - [x] 画像情報更新 (`GenericImageEditScreen`): `IndividualImageEditScreen.js` に `customSaveLogic` を実装し、`User.splitData` を用いて `public_profile` と `private_info` に適切に分離保存するよう改修済み。
+    - [x] 管理画面 (Admin App) の表示ロジック修正。
+      - `UserDetailModal.js` および `AdminAppWrapper` にて `customSaveLogic` を適用済み。
+      - `IndividualProfileScreen` は `User` モデルを通じて統合されたデータを表示するため、Admin権限があれば自動的にPrivate情報も表示される（実装変更不要）。
+
+    #### 画像編集・保存処理のビフォーアフター比較 (Profile Image Update Flow)
+    
+    | Category | Item | Before Refactoring (Risk State) | After Refactoring (Secure State) | Note |
+    | :--- | :--- | :--- | :--- | :--- |
+    | **Component** | **Target Component** | `GenericImageEditScreen` (Direct Use) | `IndividualImageEditScreen` (Wrapper) | Wrapper injects logic |
+    | **Logic** | **Save Strategy** | Direct `setDoc` to collection | `customSaveLogic` callback | Logic injection pattern |
+    | **Data Flow** | **Data Handling** | `DataContext` (Public+Private) → `public_profile` | `User.splitData(data)` → Split Save | **Critical Security Fix** |
+    | **Storage** | **Destination** | ❌ `public_profile` (Mixed Data) | ✅ `public_profile` (Public) <br> ✅ `private_info` (Private) | Correct separation |
+    | **Risk** | **PII Exposure** | ⚠️ **High** (Private info exposed) | 🔒 **None** (PII isolated) | PII = Name, Email, Tel, etc. |
 
 5.  **検証 (Verification)**
     - [ ] Firestore Emulator を用いたユニットテスト。
