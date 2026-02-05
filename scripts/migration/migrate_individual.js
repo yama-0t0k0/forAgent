@@ -57,25 +57,58 @@ async function migrate() {
       const id = docSnap.id;
       
       // Define fields to move to private_info (PII)
-      const privateFields = [
-        'name', 'nameKana', 
-        'birthDate', 
-        'email', 
-        'phoneNumber', 'tel',
-        'address', 'detailAddress', 'postalCode',
-        'resumeUrl', 'resume',
-        'エージェント使用欄'
-      ];
-      
+      // Note: Data is nested under '基本情報' in most cases
+      const basicInfo = data['基本情報'] || {};
       const privateData = {};
+      
+      // Extract PII from '基本情報' if exists
+      if (data['基本情報']) {
+        // Move PII fields from basicInfo to privateData
+        // Mapping based on verification: 
+        // 姓, 名, メール, TEL, 住所, 生年月日, etc.
+        const piiKeys = [
+          '姓', '名', 'Family name(半角英)', 'First name(半角英)', 
+          'メール', 'TEL', '住所', '生年月日',
+          'Googleアカウント', 'GitHubアカウント', 'ハンドルネーム', // IDs might be semi-private/public, but safer in private initially? 
+          // Re-eval: GitHub/HandleName might be public. 
+          // But strict PII rule: Name, Email, Tel, Address, BirthDate are definitely Private.
+          'パスワード' // Should definitely be private if exists
+        ];
+
+        // Also check top-level fields just in case
+        const topLevelPii = [
+             'name', 'nameKana', 'birthDate', 'email', 'phoneNumber', 'tel', 'address', 'resumeUrl', 'resume'
+        ];
+
+        piiKeys.forEach(key => {
+            if (basicInfo[key] !== undefined) {
+                if (!privateData['基本情報']) privateData['基本情報'] = {};
+                privateData['基本情報'][key] = basicInfo[key];
+                delete basicInfo[key]; // Remove from source object reference (which is inside publicData)
+            }
+        });
+        
+        topLevelPii.forEach(key => {
+            if (data[key] !== undefined) {
+                privateData[key] = data[key];
+                delete data[key];
+            }
+        });
+      }
+
       const publicData = { ...data };
       
-      privateFields.forEach(field => {
-        if (data[field] !== undefined) {
-          privateData[field] = data[field];
-          delete publicData[field];
-        }
-      });
+      // Ensure '基本情報' in publicData only contains non-PII
+      if (publicData['基本情報']) {
+          // basicInfo reference was modified above (delete operations), so publicData['基本情報'] is already cleaned?
+          // No, spread operator { ...data } creates a shallow copy. 
+          // basicInfo = data['基本情報'] is a reference to the inner object.
+          // Mutating basicInfo mutates the object inside data['基本情報'].
+          // So publicData['基本情報'] will reflect the deletions IF publicData points to the same object.
+          // Yes, { ...data } shallow copies the properties. data['基本情報'] is an object reference.
+          // So modifying basicInfo modifies the object shared by data and publicData.
+          // Correct.
+      }
       
       // Ensure ID is present in both
       publicData.id = id;
