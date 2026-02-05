@@ -7,6 +7,10 @@ import { MATCHING_TARGET_TYPE } from '@shared/src/core/constants/system';
 import Constants from 'expo-constants';
 
 // Cloud Run URL or Localhost (for simulator/device)
+/**
+ * Determines the API Base URL based on environment.
+ * @returns {string} The base URL
+ */
 const getBaseUrl = () => {
     // 1. Environment variable (Cloud Run)
     if (process.env.EXPO_PUBLIC_MATCHING_API_URL) {

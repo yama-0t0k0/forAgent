@@ -33,14 +33,14 @@ export const FMJSService = {
                 JD_Number: jdId,
                 UpdateTimestamp: serverTimestamp(),
                 選考進捗: {
-                    fase_フェイズ: "応募_書類選考",
-                    status_ステータス: "未対応",
+                    fase_フェイズ: '応募_書類選考',
+                    status_ステータス: '未対応',
                     フェイズ履歴: [
                         {
-                            フェイズ: "応募_書類選考",
+                            フェイズ: '応募_書類選考',
                             日付: dateStr,
-                            ステータス: "未対応",
-                            コメント: "システムによる自動作成"
+                            ステータス: '未対応',
+                            コメント: 'システムによる自動作成'
                         }
                     ]
                 },
@@ -56,7 +56,7 @@ export const FMJSService = {
             await setDoc(fmjsRef, newDoc);
             return { success: true, jobStatId };
         } catch (error) {
-            console.error("Error creating matching:", error);
+            console.error('Error creating matching:', error);
             return { success: false, error };
         }
     }

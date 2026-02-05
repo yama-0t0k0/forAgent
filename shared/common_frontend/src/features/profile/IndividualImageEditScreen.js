@@ -22,9 +22,9 @@ export const IndividualImageEditScreen = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1 }}>
             <GenericImageEditScreen
-                dataSectionKey="基本情報"
-                collectionName="individual"
-                idFieldKey="id_individual"
+                dataSectionKey='基本情報'
+                collectionName='individual'
+                idFieldKey='id_individual'
                 mainImageConfig={{
                     key: 'プロフィール画像URL',
                     label: 'プロフィール画像 URL',
@@ -40,7 +40,7 @@ export const IndividualImageEditScreen = ({ navigation, route }) => {
                     previewLabel: '背景プレビュー'
                 }}
             />
-            <BottomNav navigation={navigation} activeTab="Menu" />
+            <BottomNav navigation={navigation} activeTab='Menu' />
         </View>
     );
 };

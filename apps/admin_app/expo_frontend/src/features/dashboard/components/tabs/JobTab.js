@@ -18,7 +18,7 @@ export const JobTab = ({
     <GenericSearchBar 
       searchQuery={searchQuery} 
       setSearchQuery={setSearchQuery}
-      placeholder="職種、JD番号で検索"
+      placeholder='職種、JD番号で検索'
       quickFilters={[
         { label: '募集中', value: 'open' },
         { label: '急募', value: 'urgent' }
@@ -44,7 +44,7 @@ export const JobTab = ({
             heatmapData={heatmapInfo}
             companyName={companyName}
             onPress={() => onJobPress(item)}
-            testID="job_item"
+            testID='job_item'
           />
         );
       }}

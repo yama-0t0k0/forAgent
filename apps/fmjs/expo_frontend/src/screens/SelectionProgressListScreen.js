@@ -182,7 +182,7 @@ const SelectionProgressListScreen = () => {
               <Text style={styles.sectionTitle}>選考ステータス</Text>
               <SelectionFlowEditor
                 initialData={selectedItem.progress}
-                onSave={(newPhases) => console.log("Saved phases:", newPhases)}
+                onSave={(newPhases) => console.log('Saved phases:', newPhases)}
               />
             </View>
           </ScrollView>
@@ -219,17 +219,17 @@ const SelectionProgressListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="選考進捗一覧 (FMJS)" showBack={false} />
+      <ScreenHeader title='選考進捗一覧 (FMJS)' showBack={false} />
 
       {error ? (
-        <ErrorState message="データの読み込みに失敗しました" onRetry={refetch} />
+        <ErrorState message='データの読み込みに失敗しました' onRetry={refetch} />
       ) : (
         <FlatList
           data={data}
           renderItem={renderItem}
           keyExtractor={(item) => item.JobStatID || item.id}
           ListHeaderComponent={renderHeader}
-          ListEmptyComponent={loading ? null : <EmptyState message="選考進捗データがありません" />}
+          ListEmptyComponent={loading ? null : <EmptyState message='選考進捗データがありません' />}
           contentContainerStyle={styles.listContent}
           stickyHeaderIndices={[0]}
           refreshing={loading}
@@ -241,8 +241,8 @@ const SelectionProgressListScreen = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         title={`詳細: ${selectedItem?.JobStatID || selectedItem?.id}`}
-        width="90%"
-        height="85%"
+        width='90%'
+        height='85%'
       >
         <View style={{ flex: 1 }}>
           <View style={styles.tabBar}>

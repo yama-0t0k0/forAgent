@@ -122,13 +122,13 @@ export const HeatmapMapper = {
      */
     getLabel(index) {
         // スキルから検索
-        for (const [key, val] of Object.entries(this.skillMapping)) {
-            if (val === index) return key;
-        }
+        const skillKey = Object.keys(this.skillMapping).find(key => this.skillMapping[key] === index);
+        if (skillKey) return skillKey;
+
         // 志向から検索
-        for (const [key, val] of Object.entries(this.aspirationMapping)) {
-            if (val === index) return key;
-        }
+        const aspirationKey = Object.keys(this.aspirationMapping).find(key => this.aspirationMapping[key] === index);
+        if (aspirationKey) return aspirationKey;
+
         return null;
     }
 };

@@ -18,21 +18,21 @@ export class User {
      */
     constructor(id, firstNameEn, familyNameEn, firstNameKanji, familyNameKanji, email, profileImageUrl, backgroundImageUrl, skillsExperience = {}, aspirations = {}, rawData = {}) {
         /** @type {string} */
-        this.id = id || "";
+        this.id = id || '';
         /** @type {string} */
-        this.firstNameEn = firstNameEn || "";
+        this.firstNameEn = firstNameEn || '';
         /** @type {string} */
-        this.familyNameEn = familyNameEn || "";
+        this.familyNameEn = familyNameEn || '';
         /** @type {string} */
-        this.firstNameKanji = firstNameKanji || "";
+        this.firstNameKanji = firstNameKanji || '';
         /** @type {string} */
-        this.familyNameKanji = familyNameKanji || "";
+        this.familyNameKanji = familyNameKanji || '';
         /** @type {string} */
-        this.email = email || "";
+        this.email = email || '';
         /** @type {string} */
-        this.profileImageUrl = profileImageUrl || "";
+        this.profileImageUrl = profileImageUrl || '';
         /** @type {string} */
-        this.backgroundImageUrl = backgroundImageUrl || "";
+        this.backgroundImageUrl = backgroundImageUrl || '';
         /** @type {Object.<string, any>} */
         this.skillsExperience = skillsExperience || {};
         /** @type {Object.<string, any>} */
@@ -66,7 +66,7 @@ export class User {
      * @returns {User}
      */
     static fromFirestore(id, data) {
-        if (!data) return new User(id, "", "", "", "", "", "", "", {}, {}, {});
+        if (!data) return new User(id, '', '', '', '', '', '', '', {}, {}, {});
 
         // If data is already a User instance, return it directly
         if (data instanceof User) {
@@ -76,13 +76,13 @@ export class User {
         /** @type {Object.<string, any>} */
         const basicInfo = data.basicInfo ?? data[User.FIELDS.BASIC_INFO] ?? {};
         // Add fallback to top-level properties for flattened JSON (e.g. from API response)
-        const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || data.firstNameEn || "";
-        const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || data.familyNameEn || "";
-        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || "";
-        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || "";
-        const email = basicInfo[User.FIELDS.EMAIL] || data.email || "";
-        const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || data.profileImageUrl || "";
-        const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || data.backgroundImageUrl || "";
+        const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || data.firstNameEn || '';
+        const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || data.familyNameEn || '';
+        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || '';
+        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
+        const email = basicInfo[User.FIELDS.EMAIL] || data.email || '';
+        const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || data.profileImageUrl || '';
+        const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || data.backgroundImageUrl || '';
         /** @type {Object.<string, any>} */
         const skillsExperience = data.skillsExperience ?? data[User.FIELDS.SKILLS_EXPERIENCE] ?? {};
         /** @type {Object.<string, any>} */

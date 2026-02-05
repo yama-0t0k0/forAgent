@@ -60,10 +60,7 @@ export const SingleSelectGroup = ({ value, path }) => {
 
         // 1. Identify the target job object within newRootData
         const relativePath = path.slice(rootKeyIndex + 1);
-        let targetJobObj = newRootData;
-        for (const p of relativePath) {
-          targetJobObj = targetJobObj[p];
-        }
+        const targetJobObj = relativePath.reduce((obj, p) => (obj && obj[p] ? obj[p] : null), newRootData);
 
         if (targetJobObj) {
           // 2. Local Reset: Turn off ALL booleans in this job object first

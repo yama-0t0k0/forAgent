@@ -11,17 +11,17 @@ const Stack = createNativeStackNavigator();
  * @returns {JSX.Element} The navigation stack.
  */
 export const AppNavigator = () => (
-    <Stack.Navigator initialRouteName="JobDescription" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="JobDescription" component={JobDescriptionScreen} />
-        <Stack.Screen name="JobEdit">
+    <Stack.Navigator initialRouteName='JobDescription' screenOptions={{ headerShown: false }}>
+        <Stack.Screen name='JobDescription' component={JobDescriptionScreen} />
+        <Stack.Screen name='JobEdit'>
             {(props) => (
                 <GenericRegistrationScreen
                     {...props}
-                    title="求人情報編集"
-                    collectionName="jobs"
-                    idField="JD_Number"
-                    idPrefixChar="J"
-                    homeRouteName="JobDescription"
+                    title='求人情報編集'
+                    collectionName='jobs'
+                    idField='JD_Number'
+                    idPrefixChar='J'
+                    homeRouteName='JobDescription'
                 />
             )}
         </Stack.Screen>

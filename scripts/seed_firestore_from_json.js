@@ -27,13 +27,13 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc } = require('firebase/firestore');
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs",
-  authDomain: "flutter-frontend-21d0a.firebaseapp.com",
-  projectId: "flutter-frontend-21d0a",
-  storageBucket: "flutter-frontend-21d0a.firebasestorage.app",
-  messagingSenderId: "511656353816",
-  appId: "1:511656353816:web:9d9e67fed63f081185236d",
-  measurementId: "G-6NGX7TWPNJ"
+  apiKey: 'AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs',
+  authDomain: 'flutter-frontend-21d0a.firebaseapp.com',
+  projectId: 'flutter-frontend-21d0a',
+  storageBucket: 'flutter-frontend-21d0a.firebasestorage.app',
+  messagingSenderId: '511656353816',
+  appId: '1:511656353816:web:9d9e67fed63f081185236d',
+  measurementId: 'G-6NGX7TWPNJ'
 };
 
 const app = initializeApp(firebaseConfig);
@@ -56,7 +56,7 @@ function loadJson(p) {
 async function seedIndividual(individualId, jsonPath) {
   const id = (individualId || '').trim();
   if (!id || !id.startsWith('C')) {
-    throw new Error('individualId は "C" 始まりのIDが必要です（例: C202501010001）');
+    throw new Error('individualId は \'C\' 始まりのIDが必要です（例: C202501010001）');
   }
   if (!jsonPath) {
     throw new Error('individual 用の jsonPath が必要です');
@@ -78,7 +78,7 @@ async function seedIndividual(individualId, jsonPath) {
 async function seedCompany(companyId, jsonPath) {
   const id = (companyId || '').trim();
   if (!id || !id.startsWith('B')) {
-    throw new Error('companyId は "B" 始まりのIDが必要です（例: B00003）');
+    throw new Error('companyId は \'B\' 始まりのIDが必要です（例: B00003）');
   }
   if (!jsonPath) {
     throw new Error('company 用の jsonPath が必要です');
@@ -102,7 +102,7 @@ async function seedJD(companyId, jdNumber, jsonPath) {
   const cid = (companyId || '').trim();
   const jdn = (jdNumber || '').trim();
   if (!cid || !cid.startsWith('B')) {
-    throw new Error('companyId は "B" 始まりのIDが必要です（例: B00003）');
+    throw new Error('companyId は \'B\' 始まりのIDが必要です（例: B00003）');
   }
   if (!jdn) {
     throw new Error('jdNumber が必要です（例: 01）');

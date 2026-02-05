@@ -63,7 +63,7 @@ export const CorporateMenuScreen = ({ navigation, hideSafeArea = false }) => {
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
             />
-            {!hideSafeArea && <CorporateBottomNav navigation={navigation} activeTab="Menu" />}
+            {!hideSafeArea && <CorporateBottomNav navigation={navigation} activeTab='Menu' />}
         </View>
     );
 };

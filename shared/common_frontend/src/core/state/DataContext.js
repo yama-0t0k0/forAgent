@@ -43,18 +43,17 @@ export const DataProvider = ({ children, initialData }) => {
         if (obj === null || typeof obj !== DATA_TYPE.OBJECT) return obj;
         if (Array.isArray(obj)) return [...obj];
         const clone = Object.create(Object.getPrototypeOf(obj));
-        return Object.assign(clone, obj);
+        return { ...clone, ...obj };
       };
 
       const newData = shallowClone(prevData);
       let current = newData;
       
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
+      path.slice(0, -1).forEach((key) => {
         // Clone the next level
         current[key] = shallowClone(current[key] || {});
         current = current[key];
-      }
+      });
       
       current[path[path.length - 1]] = newValue;
       return newData;

@@ -82,10 +82,10 @@ const UserDetailContent = ({ userId, userDoc }) => {
         return (
           <GenericRegistrationScreen
             {...props}
-            title="エンジニア個人登録"
-            collectionName="individual"
-            idField="id_individual"
-            idPrefixChar="C"
+            title='エンジニア個人登録'
+            collectionName='individual'
+            idField='id_individual'
+            idPrefixChar='C'
             orderTemplate={ENGINEER_TEMPLATE}
           />
         );
@@ -118,7 +118,7 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
   <DetailModal
     visible={visible}
     onClose={onClose}
-    title="個人詳細"
+    title='個人詳細'
     loading={loading}
     error={error}
   >

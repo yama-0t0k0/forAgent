@@ -384,10 +384,10 @@ export default function DashboardScreen() {
   // Render
   // ---------------------------
   return (
-    <View style={styles.container} testID="dashboard_screen">
+    <View style={styles.container} testID='dashboard_screen'>
       {/* Header */}
       <ScreenHeader
-        title="管理ダッシュボード"
+        title='管理ダッシュボード'
         showBack={false}
         rightAction={<NotificationIcon />}
       />

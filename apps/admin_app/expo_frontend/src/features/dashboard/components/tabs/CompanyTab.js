@@ -31,7 +31,7 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
       <GenericSearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        placeholder="会社名、IDで検索"
+        placeholder='会社名、IDで検索'
         quickFilters={[
           { label: '契約中', value: 'active' },
           { label: '今月契約', value: 'new' }
@@ -45,7 +45,7 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
           <CompanyListItem
             item={item}
             onPress={() => navigation.push('CompanyDetail', { companyId: item.id, initialData: item })}
-            testID="company_item"
+            testID='company_item'
           />
         )}
         contentContainerStyle={styles.listContainer}

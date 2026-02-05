@@ -73,7 +73,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         {onEdit && (
                             <View style={styles.headerActionContainer}>
                                 <IconButton
-                                    name="create-outline"
+                                    name='create-outline'
                                     size={24}
                                     color={THEME.text}
                                     style={styles.editButton}
@@ -111,7 +111,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         <View style={styles.heatmapHeader}>
                             <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                             <View style={styles.chatBotIconSmall}>
-                                <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
+                                <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
                             </View>
                         </View>
 
@@ -121,7 +121,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         />
 
                         <View style={styles.chatBotCallout}>
-                            <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                            <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
                             <Text style={styles.labelYellow}>AI分析</Text>
                         </View>
                     </View>
@@ -139,7 +139,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         onPress={() => { }}
                     >
                         <Text style={styles.centerButtonText}>求人詳細</Text>
-                        <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        <Ionicons name='chevron-down' size={20} color='#FFF' style={{ marginTop: -2 }} />
                     </PrimaryButton>
                 </View>
             </SafeAreaView>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         borderWidth: 1,
         borderColor: THEME.cardBorder,
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
