@@ -57,6 +57,10 @@ parse_arguments() {
                 CONTEXT_NOTES="$2"
                 shift 2
                 ;;
+            --command-log)
+                COMMAND_LOG_FILE="$2"
+                shift 2
+                ;;
             --dry-run)
                 DRY_RUN=true
                 shift
@@ -491,15 +495,32 @@ create_push_issue() {
     fi
 
     # Recent issues (latest 20) for context building
-    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 20 --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null)
+    RECENT_CONTEXT=$(gh issue list --repo "$REPO_URL" --state all --limit 20 --json number,title,author,createdAt,url --jq '.[] | "- #" + (.number|tostring) + " " + .title + " (" + .author.login + ") " + .createdAt + " " + .url' 2>/dev/null | head -n 20)
     if [ -z "$RECENT_CONTEXT" ]; then
         RECENT_CONTEXT="(直近のIssueは見つかりませんでした)"
+    fi
+
+    # Read Command Log if provided
+    COMMAND_LOG_SECTION=""
+    if [ -n "$COMMAND_LOG_FILE" ]; then
+        if [ -f "$COMMAND_LOG_FILE" ]; then
+            COMMAND_LOG_CONTENT=$(cat "$COMMAND_LOG_FILE")
+            COMMAND_LOG_SECTION="
+### 💻 Command Execution Log / 実行コマンドログ
+\`\`\`bash
+$COMMAND_LOG_CONTENT
+\`\`\`
+"
+        else
+            echo "⚠️  Command log file specified but not found: $COMMAND_LOG_FILE"
+        fi
     fi
 
     ISSUE_BODY="## 🤖 AI Development Cycle
 
 ### 📝 Implementation Details / 実装内容
 $USER_PROMPT
+$COMMAND_LOG_SECTION
 
 **Included Commits:**
 $COMMIT_LIST_SIMPLE

@@ -60,7 +60,12 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     const isCurrentUser = userId === SYSTEM_USER_ID;
 
     // Use useFirestoreSnapshot for real-time updates when it's not the current user in local data
-    const docRef = useMemo(() => (!isCurrentUser && userId ? doc(db, 'individual', userId) : null), [userId, isCurrentUser]);
+    // SKIP snapshot if propUserDoc is provided (e.g. from Admin Modal with full data) to prevent overwriting with partial public data
+    const docRef = useMemo(() => {
+        if (propUserDoc) return null;
+        return (!isCurrentUser && userId ? doc(db, 'public_profile', userId) : null);
+    }, [userId, isCurrentUser, propUserDoc]);
+    
     const { data: remoteUserDoc, loading: remoteLoading } = useFirestoreSnapshot(docRef, User);
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));

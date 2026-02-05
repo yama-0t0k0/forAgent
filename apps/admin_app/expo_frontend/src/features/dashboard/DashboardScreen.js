@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 // Models
 import { User } from '@shared/src/core/models/User';
@@ -148,19 +149,19 @@ export default function DashboardScreen() {
           }
         }
 
-        const snap = await getDoc(doc(db, 'individual', selectedUserId));
-        if (!snap.exists()) {
-          setSelectedUserError(`individual/${selectedUserId} が見つかりませんでした`);
+        const userModel = await FirestoreDataService.fetchIndividualById(selectedUserId);
+        
+        if (!userModel) {
+          setSelectedUserError(`ユーザー（ID: ${selectedUserId}）が見つかりませんでした`);
           setSelectedUserLoading(false);
           return;
         }
-        const d = snap.data();
-        // Wrap in User model to ensure rawData is properly preserved for matching API
-        const userModel = User.fromFirestore(selectedUserId, d);
+
         setSelectedUserDoc(userModel);
         setSelectedUserCache(prev => ({ ...prev, [selectedUserId]: userModel }));
         setSelectedUserLoading(false);
       } catch (e) {
+        console.error(e);
         setSelectedUserError('個人データの取得に失敗しました');
         setSelectedUserLoading(false);
       }

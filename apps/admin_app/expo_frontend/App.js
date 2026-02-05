@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@shared/src/core/firebaseConfig';
 import { User } from '@shared/src/core/models/User';
 import { Company } from '@shared/src/core/models/Company';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
@@ -33,6 +35,19 @@ const Stack = createNativeStackNavigator();
 const AdminAppWrapper = () => {
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  /**
+   * Custom save logic for Admin App to handle split data (public_profile + private_info).
+   */
+  const handleAdminUserSave = async (db, id, data) => {
+    // 1. Split data
+    const { publicData, privateData } = User.splitData(data);
+    // 2. Save public profile
+    await setDoc(doc(db, 'public_profile', id), publicData);
+    // 3. Save private info (Admin has permission)
+    // Use merge: true to preserve fields not present in form data (e.g. allowed_companies if missing)
+    await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
+  };
 
   useEffect(() => {
     /**
@@ -124,9 +139,10 @@ const AdminAppWrapper = () => {
                 <GenericRegistrationScreen
                   {...props}
                   title="エンジニア個人詳細編集"
-                  collectionName="individual"
+                  collectionName="public_profile"
                   idField="id_individual"
                   idPrefixChar="C"
+                  customSaveLogic={handleAdminUserSave}
                 />
               )}
             </Stack.Screen>

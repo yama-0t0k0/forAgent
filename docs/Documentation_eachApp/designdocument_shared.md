@@ -55,8 +55,8 @@ shared/
 #### 5. Services (`services/FirestoreDataService.js`)
 - **概要**: Firestoreデータ取得ロジックを一元化した共通サービス。生データではなく、**モデルインスタンス**（`User`, `JobDescription`, `Company` 等）を直接返却します。
 - **機能**:
-  - `fetchAllIndividuals()`: 全個人ユーザー取得（戻り値: `Promise<User[]>`）
-  - `fetchIndividualById(id)`: 単一ユーザー取得（戻り値: `Promise<User|null>`）
+  - `fetchAllIndividuals()`: 全個人ユーザー取得（戻り値: `Promise<User[]>`）。`public_profile` コレクションから取得し、権限があれば `private_info` も結合します。
+  - `fetchIndividualById(id)`: 単一ユーザー取得（戻り値: `Promise<User|null>`）。`public_profile` と `private_info` を取得し、`User.fromPublicPrivate` で結合して返します。
   - `fetchAllJobDescriptions()`: 全JD取得（ネスト構造対応, 戻り値: `Promise<JobDescription[]>`）
   - `fetchAllCorporates()`: 全企業取得（複数コレクション名対応, 戻り値: `Promise<Company[]>`）
   - `fetchAdminData()`: Admin App用一括取得（各プロパティもモデルインスタンス化済み）
@@ -66,19 +66,19 @@ shared/
   ```javascript
   import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
   const users = await FirestoreDataService.fetchAllIndividuals();
-  // users[0] is instanceof User
+  // users[0] is instanceof User (Merged public + private data)
   console.log(users[0].fullNameKanji); 
   ```
 
 #### 6. Models (`src/core/models`)
 - **概要**: アプリケーション全体で使用されるデータモデル定義。
 - **主要クラス**:
-  - `User`: 個人ユーザー（エンジニア）
+  - `User`: 個人ユーザー（エンジニア）。`public_profile`（公開情報）と `private_info`（PII）の分割管理に対応。
   - `Company`: 法人ユーザー
   - `JobDescription`: 求人票
   - `SelectionProgress`: 選考進捗・手数料
 - **設計方針**:
-  - `fromFirestore` ファクトリメソッドによるインスタンス化
+  - `fromFirestore` / `fromPublicPrivate` ファクトリメソッドによるインスタンス化
   - ゲッターによるデータアクセスのカプセル化
   - `rawData` プロパティによる後方互換性の維持
 

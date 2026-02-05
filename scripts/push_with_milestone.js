@@ -76,7 +76,8 @@ const parsedArgs = {
     outcome: '',
     context: '',
     next: '',
-    milestone: ''
+    milestone: '',
+    commandLogFile: ''
 };
 
 let i = 0;
@@ -89,6 +90,7 @@ while (i < args.length) {
     else if (arg === '--context') parsedArgs.context = args[++i];
     else if (arg === '--next') parsedArgs.next = args[++i];
     else if (arg === '--milestone') parsedArgs.milestone = args[++i];
+    else if (arg === '--command-log') parsedArgs.commandLogFile = args[++i];
     else if (!arg.startsWith('--')) commitMessage = arg;
     i++;
 }
@@ -232,11 +234,28 @@ async function main() {
     // 5. Create Issue
     console.log('\n📋 Creating Issue...');
     
+    // Read Command Log if provided
+    let commandLogSection = '';
+    if (parsedArgs.commandLogFile) {
+        try {
+            const fs = require('fs');
+            if (fs.existsSync(parsedArgs.commandLogFile)) {
+                const logContent = fs.readFileSync(parsedArgs.commandLogFile, 'utf8');
+                commandLogSection = `\n### 💻 Command Execution Log / 実行コマンドログ\n\`\`\`bash\n${logContent}\n\`\`\`\n`;
+            } else {
+                console.warn(`⚠️  Command log file not found: ${parsedArgs.commandLogFile}`);
+            }
+        } catch (e) {
+            console.error('⚠️  Failed to read command log file:', e.message);
+        }
+    }
+
     const issueBody = `
 ## 🤖 AI Development Cycle (Milestone: ${targetMilestone.title})
 
 ### 📝 Implementation Details / 実装内容
 ${parsedArgs.prompt || '（記述なし）'}
+${commandLogSection}
 
 ### 🎯 Mission & Intent / 目的と期待される効果
 ${parsedArgs.intent || '（記述なし）'}

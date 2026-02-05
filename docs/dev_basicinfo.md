@@ -82,6 +82,10 @@
 ### バックエンド & データベース
 - **Cloud Infrastructure**: Firebase
 - **Database**: Cloud Firestore
+  - **Security**: PII（個人特定情報）は `private_info` コレクションに分離し、厳格なアクセス制御（本人・Admin・マッチング企業のみ）を実施。公開情報は `public_profile` で管理。
+- **Backend Logic**:
+  - **Cloud Functions (Dart)**: ステートレスな計算（マッチングスコア等）を担当。フロントエンドから渡された結合済みデータ（`public` + `private`）を処理するため、DB構造の変更に影響を受けない設計。
+  - **Local Dart Backend**: `apps/*/dart_backend` は主にローカルテスト・検証用であり、本番環境のデータアクセスは行わない。
 - **AI Integration**: Google Gemini API (分析・職歴生成等)
 
 ---

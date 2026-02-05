@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { doc, setDoc } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
 // 共有プロファイルスクリーンを使用（クロスアプリ依存を避ける）
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
@@ -54,6 +56,24 @@ const UserDetailContent = ({ userId, userDoc }) => {
   if (!currentRoute) return null;
 
   /**
+   * Custom save logic for Admin App to handle split data (public_profile + private_info).
+   * @param {Object} db - Firestore instance
+   * @param {string} id - Document ID
+   * @param {Object} data - Full user data
+   */
+  const handleAdminUserSave = async (db, id, data) => {
+    // 1. Split data
+    const { publicData, privateData } = User.splitData(data);
+
+    // 2. Save public profile
+    await setDoc(doc(db, 'public_profile', id), publicData);
+
+    // 3. Save private info (Admin has permission to write to private_info)
+    // Use merge: true to preserve allowed_companies and other fields
+    await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
+  };
+
+  /**
    * Renders the current screen based on the stack state.
    * @returns {JSX.Element} The screen component.
    */
@@ -83,10 +103,11 @@ const UserDetailContent = ({ userId, userDoc }) => {
           <GenericRegistrationScreen
             {...props}
             title='エンジニア個人登録'
-            collectionName='individual'
+            collectionName='public_profile' // Use public_profile for ID generation check
             idField='id_individual'
             idPrefixChar='C'
             orderTemplate={ENGINEER_TEMPLATE}
+            customSaveLogic={handleAdminUserSave}
           />
         );
       default:

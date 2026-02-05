@@ -23,7 +23,7 @@ export const IndividualImageEditScreen = ({ navigation, route }) => {
         <View style={{ flex: 1 }}>
             <GenericImageEditScreen
                 dataSectionKey='基本情報'
-                collectionName='individual'
+                collectionName='public_profile'
                 idFieldKey='id_individual'
                 mainImageConfig={{
                     key: 'プロフィール画像URL',
