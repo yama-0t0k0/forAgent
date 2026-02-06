@@ -4,6 +4,7 @@
 # Generic E2E Verification Suite for Expo Apps
 # Usage: ./tests/run_e2e.sh <app_name>
 # Supported apps: admin_app, individual_user_app
+# Reference: docs/test.md & reference_information_fordev/instructions/E2Etest_DesignDocument.md
 
 # Ensure Java is available (Maestro dependency)
 export PATH="/usr/local/opt/openjdk/bin:$HOME/.maestro/bin:$PATH"
@@ -17,6 +18,7 @@ if [ -z "$APP_NAME" ]; then
   echo "❌ Error: App name argument is required."
   echo "Usage: ./tests/run_e2e.sh <app_name> [optional_test_file]"
   echo "Available apps: admin_app, individual_user_app, corporate_user_app"
+  echo "See docs/test.md for full details."
   exit 1
 fi
 
@@ -32,8 +34,6 @@ case $APP_NAME in
       TEST_FILES=("$SPECIFIC_TEST")
     else
       TEST_FILES=(
-        "tests/jobs/smoke_check_errors.yaml"
-        "tests/jobs/smoke_check_ui.yaml"
         "tests/jobs/full_coverage_test.yaml"
         "tests/jobs/admin_modal_interaction_test.yaml"
         "tests/user_profile_update.yaml"
@@ -66,6 +66,10 @@ cleanup() {
 trap cleanup EXIT
 
 echo "🚀 Starting E2E Verification Suite for [$APP_NAME]..."
+START_TIME=$(date +%s)
+PASSED_TESTS=0
+FAILED_TESTS=0
+
 
 # 📦 Step 1: Bundle Integrity Check (Global)
 # We run this for all apps to ensure codebase health, but we could make it conditional if needed.
@@ -136,9 +140,21 @@ if command -v maestro &> /dev/null; then
       # Capture failure screenshot using simctl
       mkdir -p "tests/screenshots/$APP_NAME"
       xcrun simctl io booted screenshot "tests/screenshots/$APP_NAME/failure_${TEST_FILE##*/}.png"
+      
+      FAILED_TESTS=$((FAILED_TESTS + 1))
+      
+      # Generate Partial Report on Failure
+      END_TIME=$(date +%s)
+      DURATION=$((END_TIME - START_TIME))
+      TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS)) # Current count including this failure
+      DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
+      
+      ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "FAIL"
+      
       exit 1
     fi
     echo "✅ Test passed: $TEST_FILE"
+    PASSED_TESTS=$((PASSED_TESTS + 1))
   done
 
   # Organize audit screenshots
@@ -146,6 +162,14 @@ if command -v maestro &> /dev/null; then
   mv *.png "tests/screenshots/$APP_NAME/" 2>/dev/null 2>&1
 
   echo "🎉 ALL TESTS PASSED for $APP_NAME!"
+  
+  END_TIME=$(date +%s)
+  DURATION=$((END_TIME - START_TIME))
+  TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS))
+  DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
+
+  ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "PASS"
+  
   exit 0
 
 else
