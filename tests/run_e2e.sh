@@ -6,15 +6,16 @@
 # Supported apps: admin_app, individual_user_app
 
 # Ensure Java is available (Maestro dependency)
-export PATH="/usr/local/opt/openjdk/bin:$PATH"
-export JAVA_HOME="/usr/local/opt/openjdk"
+export PATH="/usr/local/opt/openjdk/bin:$HOME/.maestro/bin:$PATH"
+export JAVA_HOME="/usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
 
 APP_NAME=$1
+SPECIFIC_TEST=$2
 
 # 0. Validate Arguments & Configuration
 if [ -z "$APP_NAME" ]; then
   echo "❌ Error: App name argument is required."
-  echo "Usage: ./tests/run_e2e.sh <app_name>"
+  echo "Usage: ./tests/run_e2e.sh <app_name> [optional_test_file]"
   echo "Available apps: admin_app, individual_user_app, corporate_user_app"
   exit 1
 fi
@@ -26,12 +27,18 @@ LOG_FILE="$LOG_DIR/${APP_NAME}_expo_output.log"
 case $APP_NAME in
   admin_app)
     echo "⚙️  Configuring for Admin App..."
-    TEST_FILES=(
-      "tests/jobs/smoke_check_errors.yaml"
-      "tests/jobs/smoke_check_ui.yaml"
-      "tests/jobs/full_coverage_test.yaml"
-      "tests/jobs/admin_modal_interaction_test.yaml"
-    )
+    if [ -n "$SPECIFIC_TEST" ]; then
+      echo "🎯 Target specific test: $SPECIFIC_TEST"
+      TEST_FILES=("$SPECIFIC_TEST")
+    else
+      TEST_FILES=(
+        "tests/jobs/smoke_check_errors.yaml"
+        "tests/jobs/smoke_check_ui.yaml"
+        "tests/jobs/full_coverage_test.yaml"
+        "tests/jobs/admin_modal_interaction_test.yaml"
+        "tests/user_profile_update.yaml"
+      )
+    fi
     ;;
   individual_user_app)
     echo "⚙️  Configuring for Individual User App..."
@@ -113,6 +120,13 @@ sleep 15
 if command -v maestro &> /dev/null; then
   
   for TEST_FILE in "${TEST_FILES[@]}"; do
+    
+    # 5.1 Pre-test Cleanup (Firestore Reset)
+    # Ref: E2Etest_DesignDocument.md Section 5.1
+    if [ -f "tests/utils/clear_firestore.sh" ]; then
+        ./tests/utils/clear_firestore.sh
+    fi
+
     echo "🛠 Running Test: $TEST_FILE"
     maestro test -e EXPO_URL="$EXPO_URL" "$TEST_FILE"
     TEST_EXIT=$?

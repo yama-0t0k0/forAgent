@@ -79,6 +79,7 @@ export const InputRow = ({ label, value, path }) => {
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        testID={label}
         style={styles.textInput}
         value={String(value)}
         onChangeText={handleTextChange}

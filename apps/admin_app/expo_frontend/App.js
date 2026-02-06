@@ -23,6 +23,8 @@ import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetai
 import { AppShell } from '@shared/src/core/components/AppShell';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { E2E_CONFIG, MOCK_ADMIN_DATA } from './src/core/constants';
+import { TestLogOverlay } from '@shared/src/core/components/TestLogOverlay';
+import { logFirestoreIO } from '@shared/src/core/utils/FirestoreLogger';
 
 
 const Stack = createNativeStackNavigator();
@@ -44,9 +46,12 @@ const AdminAppWrapper = () => {
     const { publicData, privateData } = User.splitData(data);
     // 2. Save public profile
     await setDoc(doc(db, 'public_profile', id), publicData);
+    logFirestoreIO('UPDATE', 'public_profile', publicData);
+
     // 3. Save private info (Admin has permission)
     // Use merge: true to preserve fields not present in form data (e.g. allowed_companies if missing)
     await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
+    logFirestoreIO('UPDATE', 'private_info', privateData);
   };
 
   useEffect(() => {
@@ -91,6 +96,7 @@ const AdminAppWrapper = () => {
 
   return (
     <AppShell isLoading={loading}>
+      <TestLogOverlay />
       <DataProvider initialData={initialData}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName={ROUTES.ADMIN_DASHBOARD}>

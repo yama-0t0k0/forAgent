@@ -40,28 +40,31 @@ export const useMatching = (currentUserDoc, data, activeMainTab, activeSubTab) =
                     }
 
                     // Merge matchingScore from API result into local full data
-                    const rankedMap = new Map(ranked.map(item => [item.id || item.JD_Number, item]));
+                    // If ranked is empty (API failure/empty return handled in Service), use original list
+                    const effectiveRanked = (ranked && ranked.length > 0) ? ranked : data.jd.map(jd => ({ ...jd, matchingScore: 0 }));
+                    
+                    // Issue #300 Implementation Style:
+                    // Use the API results (effectiveRanked) directly as the source of truth.
+                    // Do not filter against data.jd to avoid dropping items due to ID mismatch.
+                    const newRankedJds = effectiveRanked.map(item => {
+                        const id = item.id || item.JD_Number;
+                        // Use rawData if available, otherwise assume item is the data
+                        const rawData = item.rawData || item;
+                        
+                        // Ensure matchingScore is in rawData
+                        if (item.matchingScore !== undefined) {
+                            rawData.matchingScore = item.matchingScore;
+                        }
 
-                    const newRankedJds = data.jd
-                        .filter(jd => {
-                            const id = jd.id || jd.JD_Number;
-                            return rankedMap.has(id);
-                        })
-                        .map(jd => {
-                            const id = jd.id || jd.JD_Number;
-                            const rankedItem = rankedMap.get(id);
-                            // Create a new instance with merged data
-                            const mergedRawData = {
-                                ...(jd.rawData || {}),
-                                matchingScore: rankedItem.matchingScore
-                            };
-                            return JobDescription.fromFirestore(id, mergedRawData, jd.companyId);
-                        })
-                        .sort((a, b) => {
-                            const scoreA = a.rawData.matchingScore || 0;
-                            const scoreB = b.rawData.matchingScore || 0;
-                            return scoreB - scoreA;
-                        });
+                        return JobDescription.fromFirestore(id, rawData, item.companyId || '');
+                    });
+
+                    // Sort by score descending
+                    newRankedJds.sort((a, b) => {
+                        const scoreA = a.rawData.matchingScore || 0;
+                        const scoreB = b.rawData.matchingScore || 0;
+                        return scoreB - scoreA;
+                    });
 
                     setRankedJds(newRankedJds);
                 } else if (activeSubTab === CONNECTION_TABS.SUB.PERSON && data.users) {
@@ -71,25 +74,23 @@ export const useMatching = (currentUserDoc, data, activeMainTab, activeSubTab) =
                         throw new Error(ranked.error);
                     }
 
-                    // Merge matchingScore for Users as well
-                    const rankedMap = new Map(ranked.map(item => [item.id, item]));
+                    // Issue #300 Implementation Style for Users as well
+                    const newRankedUsers = ranked.map(item => {
+                        const id = item.id;
+                        const rawData = item.rawData || item;
+                        
+                        if (item.matchingScore !== undefined) {
+                            rawData.matchingScore = item.matchingScore;
+                        }
 
-                    const newRankedUsers = data.users
-                        .filter(user => rankedMap.has(user.id))
-                        .map(user => {
-                            const rankedItem = rankedMap.get(user.id);
-                            // Match Position tab: use rawData only, not the model instance
-                            const mergedRawData = {
-                                ...(user.rawData || {}),
-                                matchingScore: rankedItem.matchingScore
-                            };
-                            return User.fromFirestore(user.id, mergedRawData);
-                        })
-                        .sort((a, b) => {
-                            const scoreA = a.rawData.matchingScore || 0;
-                            const scoreB = b.rawData.matchingScore || 0;
-                            return scoreB - scoreA;
-                        });
+                        return User.fromFirestore(id, rawData);
+                    });
+
+                    newRankedUsers.sort((a, b) => {
+                        const scoreA = a.rawData.matchingScore || 0;
+                        const scoreB = b.rawData.matchingScore || 0;
+                        return scoreB - scoreA;
+                    });
 
                     setRankedUsers(newRankedUsers);
                 }

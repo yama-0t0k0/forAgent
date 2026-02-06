@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { PLATFORM, DATA_TYPE, SAVE_STATUS, FIELD_NAMES, ID_CONSTANTS } from '@shared/src/core/constants';
+import { logFirestoreIO } from '@shared/src/core/utils/FirestoreLogger';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -174,6 +175,7 @@ export const GenericRegistrationScreen = ({
         await customSaveLogic(db, newId, dataToSave);
       } else {
         await setDoc(doc(db, collectionName, newId), dataToSave);
+        logFirestoreIO('UPDATE', collectionName, dataToSave);
       }
 
       updateValue([idField], newId);
