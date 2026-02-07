@@ -8,6 +8,7 @@
 ## データ管理原則
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `User` モデルを使用します（`shared/common_frontend/src/core/models/User.js`）。
+  - `User.fromPublicPrivate()` メソッドにより、Firestore上で分割管理されている `public_profile` と `private_info` を透過的に結合して扱います。
   - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`user.fullNameKanji` 等）を使用します。
 
 ## Firestore 接続
@@ -22,7 +23,7 @@
   - EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 - Firestore プロジェクトはブラウザからの管理画面で確認できます（例: flutter-frontend-21d0a）。認証が必要です
 - 参照ドキュメント例:
-  - コレクション: individual
+  - コレクション: `public_profile` (公開情報), `private_info` (非公開・PII)
   - ドキュメントID: C000000000000
 
 ## データフロー
@@ -34,14 +35,17 @@
 
 ```mermaid
 graph LR
-    A["Firestore (individual/C000000000000)"]
+    A1["Firestore (public_profile/ID)"]
+    A2["Firestore (private_info/ID)"]
     B["MyPageScreen (個人トップ)"]
     C["HeatmapCalculator (共有ロジック)"]
     D["HeatmapGrid (共有UI)"]
     E["DataContext (テンプレートフォールバック)"]
 
-    A -->|getDoc| B
+    A1 -->|getDoc| B
+    A2 -->|getDoc (Owner auth)| B
     E -->|initialData| B
+    B -->|User.fromPublicPrivate| B
     B -->|calculate data| C
     C -->|values 0..89| D
 ```

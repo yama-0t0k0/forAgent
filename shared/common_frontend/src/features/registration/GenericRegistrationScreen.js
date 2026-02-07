@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { PLATFORM, DATA_TYPE, SAVE_STATUS, FIELD_NAMES, ID_CONSTANTS } from '@shared/src/core/constants';
+import { logFirestoreIO } from '@shared/src/core/utils/FirestoreLogger';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -55,6 +56,7 @@ const CategoryScreen = ({ route }) => {
  * @property {string} [homeRouteName='MyPage'] - Route to navigate after save
  * @property {Object} [orderTemplate] - Template for field ordering
  * @property {React.ComponentType} [BottomNavComponent] - Component to render for bottom navigation
+ * @property {Function} [customSaveLogic] - Custom function to handle saving (db, id, data)
  */
 
 /**
@@ -120,7 +122,8 @@ export const GenericRegistrationScreen = ({
   idPrefixChar = 'C',
   homeRouteName = 'MyPage',
   orderTemplate,
-  BottomNavComponent = BottomNav
+  BottomNavComponent = BottomNav,
+  customSaveLogic
 }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
@@ -133,36 +136,47 @@ export const GenericRegistrationScreen = ({
   const handleSave = async () => {
     setSaveStatus(SAVE_STATUS.SAVING);
     try {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const datePrefix = `${idPrefixChar}${year}${month}${day}`;
+      // Determine ID: Use existing or generate new
+      const existingId = data[idField];
+      let newId = existingId;
+      
+      if (!newId) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const datePrefix = `${idPrefixChar}${year}${month}${day}`;
 
-      const q = query(
-        collection(db, collectionName),
-        where(documentId(), '>=', datePrefix + ID_CONSTANTS.SUFFIX_START),
-        where(documentId(), '<=', datePrefix + ID_CONSTANTS.SUFFIX_END)
-      );
+        const q = query(
+          collection(db, collectionName),
+          where(documentId(), '>=', datePrefix + ID_CONSTANTS.SUFFIX_START),
+          where(documentId(), '<=', datePrefix + ID_CONSTANTS.SUFFIX_END)
+        );
 
-      const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(q);
 
-      let maxNum = 0;
-      querySnapshot.forEach((doc) => {
-        const id = doc.id;
-        const numPart = parseInt(id.slice(-4), 10);
-        if (!isNaN(numPart) && numPart > maxNum) {
-          maxNum = numPart;
-        }
-      });
+        let maxNum = 0;
+        querySnapshot.forEach((doc) => {
+          const id = doc.id;
+          const numPart = parseInt(id.slice(-4), 10);
+          if (!isNaN(numPart) && numPart > maxNum) {
+            maxNum = numPart;
+          }
+        });
 
-      const nextNum = maxNum + 1;
-      const newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+        const nextNum = maxNum + 1;
+        newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+      }
 
       const cleanedData = cleanData(data);
       const dataToSave = { ...cleanedData, [idField]: newId };
 
-      await setDoc(doc(db, collectionName, newId), dataToSave);
+      if (customSaveLogic) {
+        await customSaveLogic(db, newId, dataToSave);
+      } else {
+        await setDoc(doc(db, collectionName, newId), dataToSave);
+        logFirestoreIO('UPDATE', collectionName, dataToSave);
+      }
 
       updateValue([idField], newId);
       setSaveStatus(SAVE_STATUS.SUCCESS);

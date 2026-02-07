@@ -5,6 +5,9 @@
 ユーザーの属性（管理者、個人、法人）および関係性（マッチング成立有無、企業所属）に基づいた厳密なアクセス権限を実装する。
 また、アプリケーション層からインフラ層までの各レイヤーにおける包括的なセキュリティ対策についても定義する。
 
+**GitHub Milestone:** [Security Refactoring & Access Control (Milestone 12)](https://github.com/yama-0t0k0/engineer-registration-app/milestone/12)
+
+
 ## 2. レイヤー別セキュリティ対策方針
 
 ### A. アプリケーション層 (Frontend / Client)
@@ -94,14 +97,15 @@
 
 ## 4. 実装ステップ
 
-1.  **IAM & API Key Security Check**
+1.  **IAM & API Key Security Check** [Issue #287](https://github.com/yama-0t0k0/engineer-registration-app/issues/287)
     - [x] Service Accountの権限棚卸し（最小権限の原則適用）。
     - [x] API Keyのリファラー制限/IP制限の設定確認。
-    - [x] クレデンシャル（`serviceAccountKey.json`）のGit履歴からの削除。
+    - [x] クレデンシャル（`serviceAccountKey.json`）のGit履歴からの削除 [Issue #294](https://github.com/yama-0t0k0/engineer-registration-app/issues/294)。
 
-2.  **データ構造の移行 (Schema Migration)**
+2.  **データ構造の移行 (Schema Migration)** [Issue #288](https://github.com/yama-0t0k0/engineer-registration-app/issues/288)
     - [x] `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
     - [x] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
+
 
     ### データマッピング定義 (Data Mapping Definition)
     
@@ -115,20 +119,38 @@
     | **経歴** | `職歴` | ✅ | ✅ Keep | - | Public |
     | **スキル** | `スキル経験` | ✅ | ✅ Keep | - | Public |
 
-3.  **Security Rules の実装**
+3.  **Security Rules の実装** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
     - [x] `firestore.rules` の書き換え。
     - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
-4.  **クライアントアプリ (Frontend) の改修**
-    - [ ] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
-    - [ ] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
-    - [ ] 管理画面 (Admin App) の表示ロジック修正。
+4.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
+    - [x] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
+      - `FirestoreDataService.js` にて実装済み。`fetchIndividualById` 等で `private_info` 取得失敗時（権限不足）は無視して `public_profile` のみ返す仕様。
+    - [x] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
+      - [x] テキスト情報更新 (`GenericRegistrationScreen`): `AppNavigator.js` にて `customSaveLogic` を適用し、`User.splitData` で分離保存するよう実装済み。
+      - [x] 画像情報更新 (`GenericImageEditScreen`): `IndividualImageEditScreen.js` に `customSaveLogic` を実装し、`User.splitData` を用いて `public_profile` と `private_info` に適切に分離保存するよう改修済み。
+    - [x] 管理画面 (Admin App) の表示ロジック修正。
+      - `UserDetailModal.js` および `AdminAppWrapper` にて `customSaveLogic` を適用済み。
+      - `IndividualProfileScreen` は `User` モデルを通じて統合されたデータを表示するため、Admin権限があれば自動的にPrivate情報も表示される（実装変更不要）。
 
-5.  **検証 (Verification)**
-    - [ ] Firestore Emulator を用いたユニットテスト。
-    - [ ] 各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
+    #### 画像編集・保存処理のビフォーアフター比較 (Profile Image Update Flow)
+    
+    | Category | Item | Before Refactoring (Risk State) | After Refactoring (Secure State) | Note |
+    | :--- | :--- | :--- | :--- | :--- |
+    | **Component** | **Target Component** | `GenericImageEditScreen` (Direct Use) | `IndividualImageEditScreen` (Wrapper) | Wrapper injects logic |
+    | **Logic** | **Save Strategy** | Direct `setDoc` to collection | `customSaveLogic` callback | Logic injection pattern |
+    | **Data Flow** | **Data Handling** | `DataContext` (Public+Private) → `public_profile` | `User.splitData(data)` → Split Save | **Critical Security Fix** |
+    | **Storage** | **Destination** | ❌ `public_profile` (Mixed Data) | ✅ `public_profile` (Public) <br> ✅ `private_info` (Private) | Correct separation |
+    | **Risk** | **PII Exposure** | ⚠️ **High** (Private info exposed) | 🔒 **None** (PII isolated) | PII = Name, Email, Tel, etc. |
+
+5.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
+    - [x] Firestore Emulator を用いたユニットテスト。
+        - *Status*: `firestore.test.js` 作成済み。
+    - [ ] アプリケーション結合テスト（E2E）。各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
+        - *Status*: E2E実行・レポート基盤（`tests/run_e2e.sh`, `docs/E2E_TestResultReport.md`）構築完了。今後、セキュリティ検証用シナリオを追加予定。
+
 
 ## 5. 備考
 - 本計画は `FMJS` (Fee Management Job System) と共通のポリシーとして適用する。

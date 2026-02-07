@@ -1,5 +1,5 @@
 import { db } from '../firebaseConfig';
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDocs, query, orderBy, limit, arrayUnion } from 'firebase/firestore';
 
 /**
  * FMJS (Fee Management and Job Status) サービス
@@ -8,6 +8,8 @@ import { collection, doc, setDoc, updateDoc, serverTimestamp, getDocs, query, or
 export const FMJSService = {
     /**
      * マッチング（FMJSレコード）を新規作成します。
+     * また、Step 4要件に従い、エンジニアのprivate_infoのallowed_companiesを更新します。
+     * 
      * @param {string} userId - エンジニアID (例: C000000000000)
      * @param {string} companyId - 会社ID (例: B00000)
      * @param {string} jdId - JD番号 (例: 02)
@@ -54,6 +56,21 @@ export const FMJSService = {
             };
 
             await setDoc(fmjsRef, newDoc);
+
+            // Step 4: private_infoのallowed_companiesを更新
+            // これにより、企業側がエンジニアの個人情報(PII)にアクセスできるようになる
+            try {
+                const privateInfoRef = doc(db, 'private_info', userId);
+                // Use setDoc with merge: true to ensure it works even if private_info doc doesn't exist yet
+                await setDoc(privateInfoRef, {
+                    allowed_companies: arrayUnion(companyId)
+                }, { merge: true });
+            } catch (piiError) {
+                console.warn('[FMJSService] Failed to update allowed_companies in private_info:', piiError);
+                // private_infoが存在しない場合(古いデータなど)は無視するか、エラーとして扱うか検討
+                // 現状はログ出力にとどめ、マッチング自体は成功とする
+            }
+
             return { success: true, jobStatId };
         } catch (error) {
             console.error('Error creating matching:', error);

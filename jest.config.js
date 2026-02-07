@@ -1,20 +1,9 @@
 module.exports = {
-  preset: 'react-native',
-  roots: ['<rootDir>'],
+  testEnvironment: 'node',
   transform: {
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.[t|j]sx?$': ['babel-jest', { presets: ['babel-preset-expo'] }]
   },
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
-  moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
+    'node_modules/(?!(firebase|@firebase)/)',
   ],
-  modulePathIgnorePatterns: [
-    '<rootDir>/.atom/', 
-    '<rootDir>/.home/',
-    '<rootDir>/apps/*/dart_backend'
-  ],
-  moduleNameMapper: {
-    '^@shared/(.*)$': '<rootDir>/shared/common_frontend/$1',
-  },
 };

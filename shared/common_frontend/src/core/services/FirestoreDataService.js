@@ -60,22 +60,63 @@ const fetchDocument = async (collectionName, docId) => {
 
 export const FirestoreDataService = {
     /**
-     * Fetches all individuals from the 'individual' collection.
+     * Fetches all individuals from the 'public_profile' collection.
+     * Also attempts to fetch 'private_info' if the user has permission (e.g. Admin).
      * @returns {Promise<Array<User>>}
      */
     async fetchAllIndividuals() {
-        const docs = await fetchCollection('individual');
-        return docs.map(d => User.fromFirestore(d.id, d));
+        // 1. Fetch Public Profiles (Base Data)
+        const publicDocs = await fetchCollection('public_profile');
+        
+        // 2. Try to fetch Private Info (Admin only)
+        // Note: Non-admin users will likely fail here due to security rules, which is expected.
+        let privateDocsMap = new Map();
+        try {
+             const snap = await getDocs(collection(db, 'private_info'));
+             snap.docs.forEach(d => {
+                 privateDocsMap.set(d.id, { id: d.id, ...d.data() });
+             });
+        } catch (e) {
+            // Permission denied or fetch error -> proceed with public data only
+            // Suppress error log for permission denied to avoid noise
+            if (e.code !== 'permission-denied') {
+                console.warn('[FirestoreDataService] fetchAllIndividuals: Private info fetch failed:', e);
+            }
+        }
+
+        return publicDocs.map(d => {
+            const privateData = privateDocsMap.get(d.id) || null;
+            return User.fromPublicPrivate(d.id, d, privateData);
+        });
     },
 
     /**
      * Fetches a single individual by ID.
+     * Combines public_profile and private_info.
      * @param {string} id - The individual ID.
      * @returns {Promise<User|null>}
      */
     async fetchIndividualById(id) {
-        const data = await fetchDocument('individual', id);
-        return data ? User.fromFirestore(id, data) : null;
+        // Fetch Public Profile first
+        const publicData = await fetchDocument('public_profile', id);
+        
+        if (!publicData) return null;
+
+        // Fetch Private Info (handle permission denied gracefully)
+        let privateData = null;
+        try {
+             const snap = await getDoc(doc(db, 'private_info', id));
+             if (snap.exists()) {
+                 privateData = { id: snap.id, ...snap.data() };
+             }
+        } catch (e) {
+            // Permission denied or fetch error -> proceed with public data only
+            if (e.code !== 'permission-denied') {
+                console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
+            }
+        }
+        
+        return User.fromPublicPrivate(id, publicData, privateData);
     },
 
     /**

@@ -8,6 +8,8 @@ import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/J
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 import { ROUTES } from '@shared/src/core/constants/navigation';
+import { doc, setDoc } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -24,10 +26,15 @@ export const AppNavigator = () => (
                 <GenericRegistrationScreen
                     {...props}
                     title='エンジニア個人登録'
-                    collectionName='individual'
+                    collectionName='public_profile'
                     idField='id_individual'
                     idPrefixChar='C'
                     orderTemplate={ENGINEER_TEMPLATE}
+                    customSaveLogic={async (db, id, data) => {
+                        const { publicData, privateData } = User.splitData(data);
+                        await setDoc(doc(db, 'public_profile', id), publicData);
+                        await setDoc(doc(db, 'private_info', id), privateData);
+                    }}
                 />
             )}
         </Stack.Screen>

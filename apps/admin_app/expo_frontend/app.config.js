@@ -4,6 +4,7 @@ module.exports = ({ config }) => {
     name: "管理画面",
     slug: "admin-app",
     version: "1.0.0",
+    scheme: "admin-app",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",

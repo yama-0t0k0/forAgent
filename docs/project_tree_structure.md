@@ -48,11 +48,19 @@
 │   ├── common_frontend/                    # Expo 共通コンポーネント & Logic Utils (UI Kit)
 │   │   ├── src/
 │   │   │   ├── core/                       # 基本機能 (UI, State, Theme, Firebase)
-│   │   │   └── features/                   # 機能別モジュール (Profile, Company, Registration etc.)
+│   │   │   │   ├── components/             # Generic Components (Button, Input, Modal, Nav, etc.)
+│   │   │   │   ├── services/               # Data Services (FirestoreDataService)
+│   │   │   │   └── utils/                  # Logic Adapters (CompanyAdapter, MatchingService)
+│   │   │   └── features/                   # 機能別モジュール
+│   │   │       ├── analytics/              # ヒートマップ, TechStack
+│   │   │       ├── company/                # 企業プロフィール表示 (CompanyProfileView)
+│   │   │       ├── job_profile/            # 求人票表示 (JobDescriptionContent)
+│   │   │       ├── profile/                # 画像編集, メニュー (Shared Screens)
+│   │   │       └── selection/              # 選考フロー管理 (SelectionFlowEditor)
 │   ├── common_backend/                     # Firebase共通設定、Dart共通Utils
+│   ├── common_logic/                       # ★共通ロジック (Pure Dart) - Matching, Validation
 │   ├── domain_models/                      # JSON定義 (Individual, Company, JD, FMJS)
-│   └── domain_logic/                       # ★核心ロジック (Shared Logic)
-│       └── heatmap_engine/                 # キャリア分析、ヒートマップ、マッチング計算
+│   └── domain_logic/                       # ドメイン固有ロジック (Heatmap Engine)
 │
 ├── infrastructure/                         # プロジェクト基盤・管理設定
 │   ├── firebase/                           # Firebase 横断設定
@@ -70,8 +78,12 @@
 │   └── safe_push.sh                        # 安全なプッシュのためのラッパースクリプト
 │
 ├── scripts/                                # 開発支援・運用スクリプト
-│   ├── start_expo.sh                       # Expoアプリ起動支援
-│   └── local_ci.sh                         # ローカルCI実行スクリプト
+│   ├── migration/                          # データ移行・シードスクリプト
+│   ├── check_coding_conventions.js         # コーディング規約チェック
+│   ├── create_push_issue.js                # Push時のIssue自動作成
+│   ├── push_with_milestone.js              # マイルストーン連携Push
+│   ├── local_ci.sh                         # ローカルCI実行スクリプト
+│   └── start_expo.sh                       # Expoアプリ起動支援
 │
 ├── docs/                                   # プロジェクトドキュメント
 │   ├── Documentation_eachApp/              # 各アプリ詳細設計書

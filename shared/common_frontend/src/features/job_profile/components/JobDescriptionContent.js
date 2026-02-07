@@ -29,9 +29,10 @@ const BADGE_ITEMS = [
  * @param {string} props.companyId - Company ID
  * @param {string} props.jdNumber - Job Description Number
  * @param {Function} [props.onEdit] - Callback for edit action
+ * @param {Function} [props.onApply] - Callback for apply action
  * @returns {JSX.Element} The rendered content.
  */
-export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
+export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) => {
     const { data: localData } = useContext(DataContext);
     const [heatmapValues, setHeatmapValues] = useState(null);
     const [containerWidth, setContainerWidth] = useState(width);
@@ -131,15 +132,15 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
                 </ScrollView>
 
-                {/* 4. Bottom Button (Renamed to Job Detail) - No Footer Navigation */}
+                {/* 4. Bottom Button (Apply) */}
                 <View style={styles.bottomButtonContainer}>
                     <PrimaryButton
                         style={styles.centerButton}
                         activeOpacity={0.8}
-                        onPress={() => { }}
+                        onPress={onApply || (() => {})}
                     >
-                        <Text style={styles.centerButtonText}>求人詳細</Text>
-                        <Ionicons name='chevron-down' size={20} color='#FFF' style={{ marginTop: -2 }} />
+                        <Text style={styles.centerButtonText}>応募する</Text>
+                        <Ionicons name='paper-plane-outline' size={20} color='#FFF' style={{ marginTop: -2 }} />
                     </PrimaryButton>
                 </View>
             </SafeAreaView>

@@ -26,7 +26,13 @@ const getBaseUrl = () => {
     }
     
     // 3. Fallback for Simulator/Web
-    return 'http://localhost:8080';
+    // Use localhost for simulator
+    if (Constants.platform?.ios?.model || Constants.platform?.android) {
+       // Ideally we want to use the production URL if env var is missing to avoid localhost issues
+       return 'https://matching-functions-511656353816.asia-northeast1.run.app';
+    }
+    // For web or other cases
+    return 'https://matching-functions-511656353816.asia-northeast1.run.app';
 };
 
 const API_BASE_URL = getBaseUrl();
@@ -109,24 +115,49 @@ export const MatchingService = {
             // type='jd' (default) -> targetDoc=User, candidates=JDs -> targetType='user'
             // type='user' -> targetDoc=JD, candidates=Users -> targetType='jd'
             const apiTargetType = type === MATCHING_TARGET_TYPE.JD ? 'user' : 'jd';
-
-            const response = await fetch(`${API_BASE_URL}/`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    targetDoc: this._prepareDataForApi(targetDoc),
-                    candidates: this._prepareDataForApi(candidates),
-                    targetType: apiTargetType
-                }),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Matching API error: ${response.status} - ${errorText}`);
+            
+            // Check if candidates exist
+            if (!candidates || candidates.length === 0) {
+                 return [];
             }
 
-            const results = await response.json();
-            return results; // API returns sorted list
+            // If API URL is localhost and we are on a physical device, this fetch will likely fail.
+            // We should add a timeout to fail fast if the server is unreachable.
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        targetDoc: this._prepareDataForApi(targetDoc),
+                        candidates: this._prepareDataForApi(candidates),
+                        targetType: apiTargetType
+                    }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Matching API error: ${response.status} - ${errorText}`);
+                }
+
+                const results = await response.json();
+                
+                // If API returns empty list but we sent candidates, it's likely a logic mismatch or failure.
+                // Fallback to returning original candidates with 0 score to ensure UI doesn't show empty.
+                if (Array.isArray(results) && results.length === 0 && candidates.length > 0) {
+                     console.log('[MatchingService] API returned empty list. Falling back to original candidates.');
+                     return candidates.map(c => ({ ...c, matchingScore: 0 }));
+                }
+
+                return results; // API returns sorted list
+            } catch (fetchError) {
+                 clearTimeout(timeoutId);
+                 throw fetchError;
+            }
 
         } catch (error) {
             console.log('[MatchingService] Failed to rank candidates:', error);
