@@ -148,8 +148,12 @@
 5.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
     - [x] Firestore Emulator を用いたユニットテスト。
         - *Status*: `firestore.test.js` 作成済み。
-    - [ ] アプリケーション結合テスト（E2E）。各ロール（管理者、個人、法人各ロール）でのアクセス権限確認テスト。
-        - *Status*: E2E実行・レポート基盤（`tests/run_e2e.sh`, `docs/E2E_TestResultReport.md`）構築完了。今後、セキュリティ検証用シナリオを追加予定。
+    - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人）でのアクセス権限確認テスト。
+        - *Status*: E2E実行・レポート基盤（`tests/run_e2e.sh`）構築完了。
+        - *Scenarios*:
+            - Admin: `tests/jobs/security_verification_admin.yaml` (Public/Private情報へのアクセス確認)
+            - Individual: `tests/jobs/security_verification_individual.yaml` (自身のPublic/Private情報へのアクセス確認)
+        - *Pending*: 法人ロールの検証シナリオ。
 
 
 ## 5. 備考

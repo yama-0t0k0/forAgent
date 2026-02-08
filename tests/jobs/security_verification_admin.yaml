@@ -1,0 +1,75 @@
+appId: host.exp.Exponent
+---
+# Security Verification: Admin Access
+# Verifies that Admin can access both Public and Private information of a user.
+# Related to Issue #291 (Security Verification)
+
+- openLink: ${EXPO_URL}
+# Standard startup handling (copied from other tests)
+- tapOn:
+    text: "開く"
+    optional: true
+- tapOn:
+    point: "75%, 54%"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    point: "50%, 90%"
+    optional: true
+- tapOn:
+    text: "Dismiss"
+    optional: true
+
+# 1. Verify App Loaded
+- extendedWaitUntil:
+    visible:
+        id: "header_title"
+    timeout: 120000
+
+# 2. Go to Individual Tab
+- tapOn: "個人"
+
+# 3. Open first user
+- extendedWaitUntil:
+    visible:
+        id: "engineer_item"
+    timeout: 10000
+- tapOn:
+    id: "engineer_item"
+    index: 0
+
+# 4. Verify Public Profile Access (Heatmap)
+- extendedWaitUntil:
+    visible:
+        id: "skill_heatmap"
+    timeout: 10000
+- assertVisible:
+    id: "skill_heatmap"
+
+# 5. Verify Private Info Access (Name, Email)
+# Name and Email are stored in 'private_info' collection.
+# Visibility confirms that Admin has read access to 'private_info'.
+- extendedWaitUntil:
+    visible:
+        id: "user_full_name"
+    timeout: 5000
+- assertVisible:
+    id: "user_full_name"
+
+- extendedWaitUntil:
+    visible:
+        id: "user_email"
+    timeout: 5000
+- assertVisible:
+    id: "user_email"
+
+# 6. Close Modal
+- tapOn:
+    id: "modal_close_button"
+    optional: true
+# If no ID, try text "閉じる"
+- tapOn:
+    text: "閉じる"
+    optional: true
