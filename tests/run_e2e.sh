@@ -51,7 +51,9 @@ case $APP_NAME in
     ;;
   corporate_user_app)
     echo "⚙️  Configuring for Corporate User App..."
-    TEST_FILES=() # No specific E2E tests yet
+    TEST_FILES=(
+      "tests/jobs/security_verification_corporate.yaml"
+    )
     ;;
   job_description)
     echo "⚙️  Configuring for Job Description App..."
