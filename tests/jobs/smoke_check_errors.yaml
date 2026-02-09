@@ -6,29 +6,29 @@ appId: host.exp.Exponent
 
 - openLink: ${EXPO_URL}
 - tapOn:
-    text: "開く"
-    optional: true
+        text: "開く"
+        optional: true
 - tapOn:
-    point: "75%, 54%" # Coordinate fallback for iPhone 13 "Open" (開く) button
-    optional: true
+        point: "75%, 54%" # Coordinate fallback for iPhone 13 "Open" (開く) button
+        optional: true
 - tapOn:
-    text: "Continue"
-    optional: true
+        text: "Continue"
+        optional: true
 - tapOn:
-    point: "50%, 90%" # Coordinate fallback for "Continue" button at the bottom
-    optional: true
+        point: "50%, 90%" # Coordinate fallback for "Continue" button at the bottom
+        optional: true
 - tapOn:
-    text: "開く"
-    optional: true
+        text: "開く"
+        optional: true
 - tapOn:
-    point: "75%, 54%"
-    optional: true
+        point: "75%, 54%"
+        optional: true
 - tapOn:
-    text: "Dismiss" # Handle React Native RedBox
-    optional: true
+        text: "Dismiss" # Handle React Native RedBox
+        optional: true
 - tapOn:
-    text: "Minimize"
-    optional: true
+        text: "Minimize"
+        optional: true
 
 # 1. Check for Runtime Module Resolution Failure
 - assertNotVisible: "Unable to resolve module"
@@ -39,12 +39,22 @@ appId: host.exp.Exponent
 # 3. Check for Render Error screens
 - assertNotVisible: "Render Error"
 
-# 4. Check for Network/Tunnel Errors (as requested by user)
-- assertNotVisible: "HTTP response error"
-- assertNotVisible: "offline"
+# 4. Check for Network/Tunnel Errors (Immediate Failure)
+- assertNotVisible:
+        text: "HTTP response error"
+- assertNotVisible:
+        text: "offline"
+
+# 4.5 Wait for Bundle Loading to Complete
+# This waits indefinitely while "Downloading" is visible.
+# We use a regex to match the dynamic progress text.
+- extendedWaitUntil:
+        notVisible:
+              text: "Downloading.*"
+        timeout: 300000 # 5 minute cap for the loading process itself
 
 # 5. Success Condition: Dashboard Header should eventually be visible
 - extendedWaitUntil:
-    visible:
-      id: "header_title"
-    timeout: 120000
+        visible:
+              id: "header_title"
+        timeout: 300000 # Increased to 5 minutes to allow for slow bundle/data fetch

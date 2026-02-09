@@ -143,7 +143,7 @@ echo "⏳ Waiting for tunnel to establish..."
 
 # 4. Extract URL
 # Loop to check for URL via ngrok API or Log File
-MAX_RETRIES=30
+MAX_RETRIES=90
 COUNT=0
 URL=""
 LOG_FILE="/tmp/expo_${APP_NAME}.log"

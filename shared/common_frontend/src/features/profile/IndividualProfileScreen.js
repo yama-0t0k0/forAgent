@@ -149,7 +149,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <View style={styles.namePlate}>
                                             <Text style={styles.nameText} testID='user_full_name'>{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{user.email}</Text>
+                                            <Text style={styles.emailText} testID='user_email'>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}
@@ -200,7 +200,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <View style={styles.namePlate}>
                                             <Text style={styles.nameText} testID='user_full_name'>{user.fullNameKanji}</Text>
                                             <Text style={styles.jobTitle}>フロントエンドエンジニア</Text>
-                                            <Text style={styles.emailText}>{user.email}</Text>
+                                            <Text style={styles.emailText} testID='user_email'>{user.email}</Text>
                                             <Text style={styles.dataSourceText}>{String(userDoc ? 'データ元: Firestore' : 'データ元: テンプレート')}</Text>
 
                                             {/* Relocated Chatbot button */}

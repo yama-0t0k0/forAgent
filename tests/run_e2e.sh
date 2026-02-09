@@ -17,7 +17,7 @@ SPECIFIC_TEST=$2
 if [ -z "$APP_NAME" ]; then
   echo "❌ Error: App name argument is required."
   echo "Usage: ./tests/run_e2e.sh <app_name> [optional_test_file]"
-  echo "Available apps: admin_app, individual_user_app, corporate_user_app"
+  echo "Available apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs"
   echo "See docs/test.md for full details."
   exit 1
 fi
@@ -34,9 +34,12 @@ case $APP_NAME in
       TEST_FILES=("$SPECIFIC_TEST")
     else
       TEST_FILES=(
+        "tests/jobs/smoke_check_errors.yaml"
+        "tests/jobs/smoke_check_ui.yaml"
         "tests/jobs/full_coverage_test.yaml"
         "tests/jobs/admin_modal_interaction_test.yaml"
         "tests/user_profile_update.yaml"
+        "tests/jobs/security_verification_admin.yaml"
       )
     fi
     ;;
@@ -44,15 +47,24 @@ case $APP_NAME in
     echo "⚙️  Configuring for Individual User App..."
     TEST_FILES=(
       "tests/jobs/individual_smoke_test.yaml"
+      "tests/jobs/security_verification_individual.yaml"
     )
     ;;
   corporate_user_app)
     echo "⚙️  Configuring for Corporate User App..."
     TEST_FILES=() # No specific E2E tests yet
     ;;
+  job_description)
+    echo "⚙️  Configuring for Job Description App..."
+    TEST_FILES=() # No specific E2E tests yet
+    ;;
+  fmjs)
+    echo "⚙️  Configuring for FMJS App..."
+    TEST_FILES=() # No specific E2E tests yet
+    ;;
   *)
     echo "❌ Unknown app: $APP_NAME"
-    echo "Supported apps: admin_app, individual_user_app, corporate_user_app"
+    echo "Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs"
     exit 1
     ;;
 esac
@@ -82,15 +94,30 @@ fi
 
 # 🌐 Step 2: Start Expo Server
 echo "🌐 Step 2: Starting Expo Server for $APP_NAME..."
-touch "$LOG_FILE"
+# TRUNCATE log file to ensure we don't pick up old URLs
+> "$LOG_FILE" 
 ./scripts/start_expo.sh "$APP_NAME" >> "$LOG_FILE" 2>&1 &
 EXPO_PID=$!
 
-# Wait for URL to appear (up to 80s for tunnel stability)
+# Wait for URL to appear (up to 180s for tunnel stability)
 echo "⏳ Waiting for Expo Go Tunnel URL..."
 COUNT=0
-MAX_WAIT=80
+MAX_WAIT=180
 while [ $COUNT -lt $MAX_WAIT ] && ! grep -q "exp://" "$LOG_FILE"; do
+  # Check if Expo process is still running
+  if ! kill -0 $EXPO_PID 2>/dev/null; then
+    echo "❌ Expo process died unexpectedly. Logs:"
+    tail -n 20 "$LOG_FILE"
+    exit 1
+  fi
+
+  # Check for common fatal errors in logs
+  if grep -qE "ERR_NGROK|Failed to retrieve|Error:" "$LOG_FILE"; then
+    echo "❌ Fatal error detected during Expo startup. Logs:"
+    tail -n 20 "$LOG_FILE"
+    exit 1
+  fi
+
   sleep 5
   COUNT=$((COUNT + 5))
   echo "... still waiting ($COUNT/$MAX_WAIT)"
@@ -102,7 +129,7 @@ if ! grep -q "exp://" "$LOG_FILE"; then
   exit 1
 fi
 
-EXPO_URL=$(grep -o "exp://[a-zA-Z0-9._:-]*" "$LOG_FILE" | head -n 1)
+EXPO_URL=$(grep -o "exp://[a-zA-Z0-9._:-]*" "$LOG_FILE" | tail -n 1)
 echo "✅ Expo Go URL detected: $EXPO_URL"
 
 # 📱 Step 3: Device Readiness
@@ -146,7 +173,7 @@ if command -v maestro &> /dev/null; then
       # Generate Partial Report on Failure
       END_TIME=$(date +%s)
       DURATION=$((END_TIME - START_TIME))
-      TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS)) # Current count including this failure
+      TOTAL_TESTS=${#TEST_FILES[@]}
       DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
       
       ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "FAIL"
@@ -165,7 +192,7 @@ if command -v maestro &> /dev/null; then
   
   END_TIME=$(date +%s)
   DURATION=$((END_TIME - START_TIME))
-  TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS))
+  TOTAL_TESTS=${#TEST_FILES[@]}
   DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
 
   ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "PASS"
