@@ -1,6 +1,8 @@
 #!/bin/bash
 
+# シナリオテスト専用（smokeテスト排除、Sandbox不可）
 # tests/run_e2e.sh
+export E2E_MODE="REAL"
 # Generic E2E Verification Suite for Expo Apps
 # Usage: ./tests/run_e2e.sh <app_name>
 # Supported apps: admin_app, individual_user_app
@@ -34,8 +36,6 @@ case $APP_NAME in
       TEST_FILES=("$SPECIFIC_TEST")
     else
       TEST_FILES=(
-        "tests/jobs/smoke_check_errors.yaml"
-        "tests/jobs/smoke_check_ui.yaml"
         "tests/jobs/full_coverage_test.yaml"
         "tests/jobs/admin_modal_interaction_test.yaml"
         "tests/user_profile_update.yaml"
@@ -46,7 +46,6 @@ case $APP_NAME in
   individual_user_app)
     echo "⚙️  Configuring for Individual User App..."
     TEST_FILES=(
-      "tests/jobs/individual_smoke_test.yaml"
       "tests/jobs/security_verification_individual.yaml"
     )
     ;;

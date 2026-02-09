@@ -1,10 +1,7 @@
-appId: host.exp.Exponent # Expo Go Bundle ID
+appId: com.engineer_registration_app_yama.admin
 ---
 # Smoke Test for Admin App
-# Assumes app is already launched via Expo Go URL
-
-- openLink: ${APP_URL}
-
+- openLink: ${EXPO_URL}
 
 - runFlow:
     when:
@@ -18,14 +15,16 @@ appId: host.exp.Exponent # Expo Go Bundle ID
       - assertVisible: "募集中" # Tab specific filter label
       - tapOn: "選考"
       - assertVisible: "選考中" # Tab specific filter label
-      - tapOn: "ホーム"
+      - tapOn:
+          id: "tab_dashboard"
       - assertVisible: "管理ダッシュボード"
 
 # Individual Detail Drill-down
 - tapOn: "個人"
 - tapOn:
+    id: "engineer_item"
     index: 0 # Tap first user in list
-- assertVisible: "個人詳細"
+- assertVisible: "個人情報"
 - scrollUntilVisible:
     element: "つながり"
     direction: DOWN

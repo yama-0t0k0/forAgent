@@ -65,7 +65,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
         if (propUserDoc) return null;
         return (!isCurrentUser && userId ? doc(db, 'public_profile', userId) : null);
     }, [userId, isCurrentUser, propUserDoc]);
-    
+
     const { data: remoteUserDoc, loading: remoteLoading } = useFirestoreSnapshot(docRef, User);
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
@@ -271,6 +271,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     <TouchableOpacity
                         style={styles.centerButton}
                         onPress={() => navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc })}
+                        testID='career_detail_button'
                     >
                         <Text style={styles.centerButtonText}>経歴詳細</Text>
                         <Ionicons name='create-outline' size={18} color='#FFF' style={{ marginTop: -2 }} />
