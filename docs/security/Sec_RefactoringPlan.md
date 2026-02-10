@@ -140,8 +140,9 @@
         - `job_description` (求人票) -> 権限チェック (Owner/Admin)
         - `FeeMgmtAndJobStatDB` (FMJS) -> 権限チェック (Owner/Admin)
     - **タスク**:
-        - [ ] `company` コレクションの全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_corporate_users.js`) を実装・実行。
+        - [x] `company` コレクションの全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_corporate_users.js`) を実装・実行。
             - 初期データ: `{ role: 'corporate', companyId: docId, ... }`
+            - *Result*: 2026-02-10 ユーザー実行により完了 (115件作成)。
         - [ ] `job_description` の `companyId` と `users` の整合性確認。
         - [ ] FMJSデータのアクセス制御ルールの詳細化と実装。
 
