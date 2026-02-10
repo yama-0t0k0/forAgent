@@ -14,6 +14,7 @@
 
 - **モジュール完結型開発**: `individual_user_app/` 等の中にフロントとバックを同居させることで、機能追加時のコンテキストスイッチを最小化します。
 - **ドメインの資産化**: `job_description` や `fmjs` を独立したアプリ（サービス）として扱うことで、マルチデバイス・マルチロール（個人・法人・管理）間での再利用性を最大化します。
+- **Full-stack Dart Backendの配置**: `apps/backend` は、既存のフロントエンドアプリと同列の「独立してデプロイ・稼働する第6のアプリケーション」として配置しました。これは `shared` (ライブラリ) とは異なり、HTTPリクエストを受け付けて24時間稼働するサーバープロセスであるためです。
 - **スムーズな移行パス**: Phase 2 で Flutter へ移行する際も、各モジュールの `expo_frontend` を `flutter_frontend` へ順番に置き換えていくだけでよく、全体のアーキテクチャ設計を維持したまま言語統一（Pure Dart）を完了できます。
 
 ---
@@ -24,6 +25,11 @@
 .
 ├── README.md
 ├── apps/                                   # 独立した機能アプリ群
+│   ├── backend/                            # ★Full-stack Dart APIサーバー (Cloud Run)
+│   │   ├── bin/                            # エントリーポイント (server.dart)
+│   │   ├── lib/                            # サーバーロジック
+│   │   └── Dockerfile                      # AOTコンパイル・デプロイ設定 (Distroless)
+│   │
 │   ├── admin_app/                          # 管理者用アプリ
 │   │   ├── expo_frontend/                  # 管理者UI
 │   │   └── dart_backend/                   # 管理者用ロジック、Functions

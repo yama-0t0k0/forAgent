@@ -519,7 +519,31 @@ npm run start:individual -- --clear
 ## 備考
 
 ### Full-stack Dart アーキテクチャ
-Flutter と Cloud Run で実現する一貫性のある開発基盤
+
 ※最終的にはExpo（React Native）からFull-stack Dart アーキテクチャへ移行する。
 
+#### 🌐 移行マイルストーン (Transition Milestones)
+
+**Phase 1: Backend Integration (Current)**
+*   **目標**: 全アプリ共通のAPIサーバー (`apps/backend`) を構築し、ビジネスロジックを集約する。
+*   **状態**: Expo (Frontend) + Dart Server (Backend)
+*   **アクション**:
+    1.  `apps/backend` の構築 (Pure Dart / Shelf / Cloud Run)。
+    2.  `shared/common_logic` や `shared/domain_models` をバックエンドから参照・活用する。
+    3.  各Expoアプリのローカルロジック（`dart_backend`）を順次APIサーバーへ移行する。
+
+**Phase 2: Frontend Migration (Future)**
+*   **目標**: フロントエンドをFlutterに置き換え、完全なDart単一言語環境を実現する。
+*   **状態**: Flutter (Frontend) + Dart Server (Backend)
+*   **アクション**:
+    1.  `expo_frontend` を `flutter_frontend` にリプレース。
+    2.  `shared/domain_models` をフロントエンドでも直接 import して型安全性を最大化。
+    3.  通信層（HTTP Client）を型付きのRPCライブラリ（例: serverpod_client 等）に置き換え、API定義書を不要にする。
+
+Cloud Run における Flutter: フルスタックの Dart アーキテクチャ
+https://cloud.google.com/blog/ja/topics/developers-practitioners/flutter-on-cloud-run-full-stack-dart-architecture
+※Dockerコンテナを使用せず、速度とシンプルさを考慮して「OS のみ」のランタイムを採用する。
+
+【社内ドキュメント】Full-stack Dart アーキテクチャ
+Flutter と Cloud Run で実現する一貫性のある開発基盤
 https://lat-app-doc.s3.us-east-1.amazonaws.com/dev/architecture/cloud-run/full-stack-dart/index.html

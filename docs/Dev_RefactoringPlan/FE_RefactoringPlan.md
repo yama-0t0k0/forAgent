@@ -1,4 +1,4 @@
-# Refactoring & Shared Component Plan
+# Refactoring & Shared Component Plan for Frontend
 
 このドキュメントでは、`engineer-registration-app-yama` 内の各アプリ（Admin, Corporate, Individual, FMJS, JD App）における共通機能の集約（Shared化）と、コードベースのリファクタリング計画を管理します。
 
@@ -88,3 +88,36 @@
 ### 2. JSDocによる型定義の厳格化
 - **目的**: TSを使わずに、IDEの補完と静的解析を強化する。
 - **内容**: 全ファイルで `@param {import('./models/User').User} user` のような正確なJSDoc記述を徹底し、`check_coding_conventions.js` で監視します。
+
+---
+
+## 🚀 Full-stack Dart Migration (Frontend Perspective)
+
+**Full-stack Dart アーキテクチャ** への移行に伴い、フロントエンド（現在のExpo/React Native）も段階的に Flutter へとリプレースしていきます。
+
+### 🎯 目標 (Objective)
+1.  **Dart言語統一**: フロントエンドからバックエンドまで単一言語 (Dart) で統一し、型安全性と開発効率を最大化する。
+2.  **API連携の最適化**: `apps/backend` (Dart Server) との連携を強化し、最終的には型付きRPC通信へ移行する。
+
+### 📅 詳細マイルストーン
+
+#### 4.1 Phase 1: Backend Consumption (Current)
+Expoアプリはそのまま維持し、バックエンドロジックのみを Dart Server にオフロードする期間。
+
+- [ ] **API Client の整備**:
+    - `apps/backend` の REST API を呼び出すための共通クライアント (`ApiClient.js`) を `shared/core/services` に作成。
+    - Firebase ID Token を自動付与する仕組みを実装。
+- [ ] **Heavy Logic の委譲**:
+    - クライアントサイドで行っている複雑な計算（例: マッチングスコア算出）をバックエンドAPI呼び出しに置き換える。
+- [ ] **型定義の同期**:
+    - バックエンドの Dart モデル (`shared/domain_models`) とフロントエンドの JSDoc 型定義を手動で同期させ、将来の移行コストを下げる。
+
+#### 4.2 Phase 2: Flutter Migration (Future)
+Expo アプリを順次 Flutter アプリにリプレースする期間。
+
+- [ ] **UI Components の移植**:
+    - `shared/common_frontend` の React Native コンポーネントを Flutter Widget に書き換え。
+- [ ] **Shared Models の直接利用**:
+    - `shared/domain_models` (Dart) を直接 import して利用。JSDoc や手動の型定義が不要になる。
+- [ ] **Type-safe RPC への切り替え**:
+    - REST API 呼び出しを Serverpod Client や gRPC Client に置き換え、完全な型安全通信を実現する。
