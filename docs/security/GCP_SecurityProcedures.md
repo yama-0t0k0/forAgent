@@ -75,19 +75,57 @@ npm install firebase-admin
 node scripts/migration/migrate_individual.js
 ```
 
-#### ② ユーザー情報の拡張 (RBAC対応)
-`users` コレクションに `companyId` (null) と `role` ('individual') フィールドを追加する。
+#### ② ユーザー情報の初期作成・拡張 (RBAC対応)
+`public_profile` を元に `users` コレクションを作成し、RBAC用のフィールド (`role`, `companyId`) を設定する。
 
 ```bash
+# Individualユーザーの作成（public_profileが存在する場合）
+node scripts/migration/create_users_collection.js
+
+# 既存usersドキュメントへのフィールド追加（必要な場合のみ）
 node scripts/migration/migrate_users.js
+```
+
+#### ③ 法人ユーザー情報の移行 (Corporate Users Migration)
+`companies` コレクションの情報を元に、法人管理者用の `users` ドキュメントを作成する。
+
+```bash
+node scripts/migration/create_corporate_users.js
 ```
 
 ---
 
-## 5. 次のステップ (Next Actions)
+## 5. データの整合性チェック (Data Integrity Check)
 
-1. **Firestore Security Rules の適用**:
-   - 作成済みの `firestore.rules` をFirebaseにデプロイする。
-   - デプロイコマンド: `firebase deploy --only firestore:rules`
-2. **フロントエンドの実装修正**:
-   - アプリ側が `public_profile` / `private_info` を参照するようにコードを修正する。
+**目的**: 移行後のデータ（特にJob DescriptionとCompanyの関連）に不整合がないかを確認する。
+
+### 実行スクリプト
+
+```bash
+node scripts/migration/check_job_description_integrity.js
+```
+
+---
+
+## 6. セキュリティルールの適用と検証 (Deployment & Verification)
+
+### 1. Firestore Security Rules の適用
+作成済みの `firestore.rules` をFirebaseにデプロイする（**2026年2月 実施完了**）。
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+### 2. 検証手順 (Verification Procedures)
+E2Eテストを用いて、本番環境（REALモード）でのアクセス権限が正しく機能しているか検証する。
+
+**実行コマンド**:
+```bash
+# 全ロール（Admin, Individual, Corporate）のセキュリティ検証を実行
+E2E_MODE=REAL ./tests/run_e2e.sh
+```
+
+**検証項目**:
+- **Admin**: 全てのユーザー情報（Public/Private）および企業情報にアクセスできること。
+- **Individual**: 自身の情報のみ編集可能で、他者のPrivate情報にはアクセスできないこと。
+- **Corporate**: 自社の情報およびマッチングした個人の情報にのみアクセスできること。
