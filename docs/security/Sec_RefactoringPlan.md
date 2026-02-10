@@ -105,9 +105,23 @@
 2.  **データ構造の移行 (Schema Migration)** [Issue #288](https://github.com/yama-0t0k0/engineer-registration-app/issues/288)
     - [x] `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
     - [x] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
+    - **現状の課題**: `users` コレクション自体が未作成のため、`migrate_users.js` が機能しない。
+    - **対応方針**: `public_profile` (または `individual`) の全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_users_collection.js`) を実装・実行する。
+    - **初期データ構造**:
+      ```json
+      {
+        "role": "individual",
+        "companyId": null,
+        "createdAt": serverTimestamp(),
+        "updatedAt": serverTimestamp()
+      }
+      ```
+    - **実行手順**:
+      1. [x] `create_users_collection.js` を実装
+      2. [x] ローカル環境/テスト環境で検証
+      3. [x] 本番環境に対し実行 (2026-02-10 ユーザー実行により完了)
 
-
-    ### データマッピング定義 (Data Mapping Definition)
+    #### データマッピング定義 (Data Mapping Definition)
     
     | Category | Field (Actual Data Structure) | Source (`individual`) | Target Public (`public_profile`) | Target Private (`private_info`) | Note |
     | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -119,13 +133,31 @@
     | **経歴** | `職歴` | ✅ | ✅ Keep | - | Public |
     | **スキル** | `スキル経験` | ✅ | ✅ Keep | - | Public |
 
-3.  **Security Rules の実装** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
+3.  **法人 (Corporate)・求人 (JD)・FMJS の `users` 移行と権限設定** [Issue #317](https://github.com/yama-0t0k0/engineer-registration-app/issues/317)
+    - **目的**: Individual同様、法人アカウントや管理者アカウントも `users` コレクションで一元管理し、RBACを適用する。
+    - **対象コレクション**:
+        - `company` (法人情報) -> `users` への移行
+        - `job_description` (求人票) -> 権限チェック (Owner/Admin)
+        - `FeeMgmtAndJobStatDB` (FMJS) -> 権限チェック (Owner/Admin)
+    - **タスク**:
+        - [x] `company` コレクションの全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_corporate_users.js`) を実装・実行。
+            - 初期データ: `{ role: 'corporate', companyId: docId, ... }`
+            - *Result*: 2026-02-10 ユーザー実行により完了 (115件作成)。
+        - [x] `job_description` の `companyId` と `users` の整合性確認。
+            - *Result*: 2026-02-10 整合性チェック完了。`fix_missing_corporate_users.js` にて3件の欠損ユーザーを補完済み。
+        - [x] FMJSデータのアクセス制御ルールの詳細化と実装。
+            - *Result*: 2026-02-10 実装およびテスト検証（Firestore Emulator）完了。
+
+
+4.  **Security Rules の実装と適用** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
     - [x] `firestore.rules` の書き換え。
     - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - [x] ローカルEmulatorでのユニットテスト検証 (18/18 passed)。
+    - [ ] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行。
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
-4.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
+5.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
     - [x] データ取得ロジックの修正（`private_info` はマッチング成立時のみ取得するように分岐）。
       - `FirestoreDataService.js` にて実装済み。`fetchIndividualById` 等で `private_info` 取得失敗時（権限不足）は無視して `public_profile` のみ返す仕様。
     - [x] ユーザー情報の更新画面（Profile Edit）の修正（分離されたコレクションへの書き込み）。
@@ -145,7 +177,7 @@
     | **Storage** | **Destination** | ❌ `public_profile` (Mixed Data) | ✅ `public_profile` (Public) <br> ✅ `private_info` (Private) | Correct separation |
     | **Risk** | **PII Exposure** | ⚠️ **High** (Private info exposed) | 🔒 **None** (PII isolated) | PII = Name, Email, Tel, etc. |
 
-5.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
+6.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
     - [x] Firestore Emulator を用いたユニットテスト。
         - *Status*: `firestore.test.js` 作成済み。
     - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人）でのアクセス権限確認テスト。

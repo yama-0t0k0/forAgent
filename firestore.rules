@@ -175,5 +175,38 @@ service cloud.firestore {
       // TODO: 有効な応募/スカウトのみ作成できるように制限を強化する
       allow write: if isAuthenticated();
     }
+    // ----------------------------------------------------------------------------
+    // 7. Fee Management & Job Stats (FeeMgmtAndJobStatDB)
+    // 手数料管理と求人ステータス (FeeMgmtAndJobStatDB)
+    // ----------------------------------------------------------------------------
+    match /FeeMgmtAndJobStatDB/{docId} {
+      // Readable by:
+      // 1. Admin
+      // 2. The Individual (individual_ID == auth.uid)
+      // 3. The Company Member (company_ID == user.companyId)
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.individual_ID == request.auth.uid ||
+        isCompanyMember(resource.data.company_ID)
+      );
+
+      // Writable by:
+      // 1. Admin
+      // 2. The Individual (creating application)
+      // 3. The Company Member (updating status)
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        request.resource.data.individual_ID == request.auth.uid ||
+        isCompanyMember(request.resource.data.company_ID)
+      );
+
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.individual_ID == request.auth.uid ||
+        isCompanyMember(resource.data.company_ID)
+      );
+      
+      allow delete: if isAdmin();
+    }
   }
 }
