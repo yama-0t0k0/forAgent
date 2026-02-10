@@ -3,8 +3,9 @@
 ## firestore.rulesの場所
 engineer-registration-app-yama/firestore.rules
 
-## 現在のセキュリティルール
+## 現在のセキュリティルール (2026-02-10 更新版)
 
+```javascript
 rules_version = '2';
 
 service cloud.firestore {
@@ -27,15 +28,16 @@ service cloud.firestore {
     }
 
     // Check if the user has a specific role (stored in their user profile)
-    // ユーザーが特定のロールを持っているか確認 (ユーザープロファイルに基づく)
+    // ユーザーが特定のロールを持っているか確認 (Custom Claims 優先、未設定時は users コレクション参照)
     function hasRole(role) {
-      // Note: This requires a read. For high-traffic, Custom Claims are recommended.
-      // Current implementation relies on 'users' collection lookup.
-      // 注: これには読み取り操作が必要です。高トラフィックの場合はCustom Claimsの使用を推奨します。
-      // 現在の実装は 'users' コレクションの参照に依存しています。
-      return isAuthenticated() 
-             && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+      // Option A: Hybrid Approach
+      // 1. Check Custom Claims first (High Performance)
+      // 2. Fallback to Firestore 'users' collection (Compatibility)
+      return (request.auth.token.keys().hasAll(['role']) && request.auth.token.role == role)
+             || (
+               exists(/databases/$(database)/documents/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role
+             );
     }
 
     // 管理者ロールかどうかを確認
@@ -44,17 +46,18 @@ service cloud.firestore {
     }
 
     // Check if the user is a member of the specific company
-    // ユーザーが特定の企業のメンバーであるか確認
+    // ユーザーが特定の企業のメンバーであるか確認 (Custom Claims 優先)
     function isCompanyMember(companyId) {
-      // Note: Safe navigation for optional fields isn't fully supported in rules, 
-      // but we assume schema consistency (role and companyId exist if role is corporate)
-      // 注: ルールではオプショナルフィールドの安全なナビゲーションは完全にはサポートされていませんが、
-      // スキーマの一貫性 (roleがcorporateならcompanyIdが存在する) を前提としています。
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isAuthenticated() 
-             && userDoc != null
-             && userDoc.data.role == 'corporate' 
-             && userDoc.data.companyId == companyId;
+      return (request.auth.token.keys().hasAll(['role', 'companyId']) 
+              && request.auth.token.role == 'corporate' 
+              && request.auth.token.companyId == companyId)
+             || (
+               // Fallback: Check Firestore
+               isAuthenticated() 
+               && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'corporate' 
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId
+             );
     }
     
     // Check if the requesting company user is allowed to view the private info
@@ -84,8 +87,11 @@ service cloud.firestore {
       
       // Prevent users from making themselves admin or changing their role/companyId
       // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ
+      // + Data Validation: role must be valid, companyId required for corporate
       allow create: if isOwner(userId) 
-                    && (!('role' in request.resource.data) || request.resource.data.role != 'admin');
+                    && (!('role' in request.resource.data) || request.resource.data.role != 'admin')
+                    && ('role' in request.resource.data && request.resource.data.role in ['individual', 'corporate'])
+                    && (request.resource.data.role != 'corporate' || ('companyId' in request.resource.data && request.resource.data.companyId is string));
                     
       allow update: if isAdmin() 
                     || (isOwner(userId) 
@@ -177,10 +183,21 @@ service cloud.firestore {
       );
       
       // Creation/Update: Allowed for authenticated users
-      // TODO: Refine this to ensure only valid applications/scouts can be created
-      // 作成/更新: 認証済みユーザーに許可
-      // TODO: 有効な応募/スカウトのみ作成できるように制限を強化する
-      allow write: if isAuthenticated();
+      // Create: Must be the candidate applying OR the company scouting OR Admin
+      // 作成: 応募する求職者本人、スカウトする企業、または管理者
+      allow create: if isAuthenticated() && (
+        request.resource.data['id_individual_個人ID'] == request.auth.uid ||
+        isCompanyMember(request.resource.data['id_company_法人ID']) ||
+        isAdmin()
+      );
+
+      // Update: Must be the candidate OR the company involved OR Admin
+      // 更新: 関係する求職者、企業、または管理者
+      allow update: if isAuthenticated() && (
+        resource.data['id_individual_個人ID'] == request.auth.uid || 
+        isCompanyMember(resource.data['id_company_法人ID']) ||
+        isAdmin()
+      );
     }
     // ----------------------------------------------------------------------------
     // 7. Fee Management & Job Stats (FeeMgmtAndJobStatDB)
@@ -217,56 +234,34 @@ service cloud.firestore {
     }
   }
 }
+```
 
+## 実装されたセキュリティ強化と設計判断 (2026-02-10)
 
-## セキュリティルールの課題
+以前のバージョンで課題とされていた点は、以下の実装により解消されました。
 
-現在のFirestoreルールは、明確な構造と意図を持ち、一部は堅牢なアクセス制御を実現していますが、 プロダクションレベルの要件を満たすにはいくつかの重要な改善点があります。
-以下に主な評価ポイントをまとめます。
+### 1. ハイブリッドCustom Claimsアーキテクチャの採用
+**課題:** ルール内での `get()` 呼び出しによるパフォーマンス低下と課金コスト。
+**解決策:** `hasRole()` および `isCompanyMember()` 関数において、以下のハイブリッドロジックを実装しました。
+1.  **Custom Claims優先:** `request.auth.token.role` を最初にチェックします。トークンに情報が含まれていれば、データベース読み取り (`get()`) は発生しません（コスト0、高速）。
+2.  **DBフォールバック:** トークンに情報がない場合のみ、従来の `users` コレクションを参照します。
+**効果:** 移行期間中の後方互換性を維持しつつ、Custom Claimsが付与されたユーザーから順次パフォーマンス改善の恩恵を受けられます。
 
-### 良い点 (Strengths):
+### 2. Usersコレクションのデータ整合性バリデーション
+**課題:** `users` コレクションへの不正なデータ書き込み（不適切なロールや必須フィールド欠落）のリスク。
+**解決策:** `create` ルールに厳格なバリデーションを追加しました。
+-   `role` は `individual` または `corporate` のみ許可（`admin` は不可）。
+-   `role` が `corporate` の場合、`companyId` 文字列フィールドが必須。
+**効果:** アプリケーションロジックの前提条件がDBレベルで保証されます。
 
-Helper関数の活用: isAuthenticated() , isOwner() , hasRole() , isAdmin() , isCompanyMember() , isMatched() といったヘルパー関数を定義しており、ルールの可読性と再利用性が非常に高いです。これは複雑なロジックを管理する上で非常に効果的です。
+### 3. Selection Progressの最小権限原則 (Least Privilege)
+**課題:** `selection_progress` コレクションへの書き込み権限が広すぎる（全認証ユーザー）。
+**解決策:** `create` および `update` ルールを制限しました。
+-   求職者本人が自分の応募を作成/更新する場合。
+-   企業のメンバーが自社への応募/スカウトを作成/更新する場合。
+-   管理者が操作する場合。
+これら以外の第三者による書き込みは拒否されます。
 
-ロールベースのアクセス制御 (RBAC) の試み: hasRole や isAdmin といった関数を通じて、ユーザーの役割に基づいたアクセス制御を実装しようとしています。
-
-所有者ベースのアクセス制御: 多くのコレクションで isOwner(userId) を利用し、データ所有者のみが特定の操作を行えるように設計されています。
-
-権限昇格の防止: users コレクションの create および update ルールでは、ユーザー自身が admin ロールを設定したり、既存の role や companyId を変更したりするのを防ぐロジックが含まれており、これはセキュリティ上非常に重要です。
-
-機密データ ( private_info ) への詳細なアクセス制御: オーナー、管理者、そして allowed_companies に基づくマッチング企業のみが読み取れるように設計されており、P.I.I. (個人識別情報) などの機密データの保護に配慮しています。
-
-### 改善が必要な点 (Areas for Improvement for Production):
-
-ルール内での get() 呼び出しのパフォーマンスとコスト:
-hasRole() , isAdmin() , isCompanyMember() , isMatched() の各ヘルパー関数が、ユーザーのロールや企業情報を取得するために get(/databases/$(database)/documents/users/$(request.auth.uid)) を使用しています。
-
-問題点: 
-Firestoreルール内で get() を呼び出すと、ルールの評価ごとにデータベースへの読み取り操作が発生します。
-これは、特に高トラフィックなアプリケーションでは、パフォーマンスの低下や不必要な読み取りコストの増加につながる可能性があります。
-
-プロダクションでの推奨: 
-ユーザーの役割や所属企業などの認証に頻繁に利用する情報は、Firebase Authenticationの カスタムクレーム (Custom Claims) として保存し、 request.auth.token.role のようにルール内で直接参照することが推奨されます。これにより、ルールの評価が高速化され、コストも最適化されます。
-
-selection_progress コレクションの書き込み権限が広すぎる:
-
-allow write: if isAuthenticated(); の行があり、コメントに「TODO: 有効な応募/スカウトのみ作成できるように制限を強化する」と明記されています。
-
-問題点: 現在のルールでは、認証されたユーザーであれば誰でも selection_progress に書き込むことができてしまいます。これはプロダクション環境では重大なセキュリティホールとなり得ます。悪意のあるユーザーが大量の無効なデータを書き込んだり、既存のデータを改ざんしたりする可能性があります。
-
-プロダクションでの推奨: TODO にある通り、特定の条件（例: 応募者本人か、関連する企業メンバーか、管理者かなど）を満たす場合にのみ書き込みを許可するよう、ルールを詳細化する必要があります。
-データ検証ルールの不足:
-現在のルールは主に「誰が何をできるか」というアクセス制御に焦点を当てています。
-
-問題点: ドキュメントの作成 ( create ) や更新 ( update ) 時に、書き込まれるデータの形式、必須フィールドの存在、データ型、値の範囲などを検証するルール（例: request.resource.data.fieldName == 'expectedValue' や request.resource.data.keys().hasAll(['field1', 'field2']) など）がほとんど見られません。
-
-プロダクションでの推奨: データの一貫性と整合性を保つため、各コレクションの create および update 操作に対して、スキーマ検証やビジネスロジックに基づくデータ検証ルールを追加することが不可欠です。
-
-### 結論:
-現在のFirestoreルールは、その構造と意図において素晴らしい基盤を持っています。しかし、特に ルール内での get() 呼び出しの最適化（カスタムクレームへの移行） と、 selection_progress コレクションの書き込み権限の厳格化 は、プロダクションレベルのセキュリティとパフォーマンス要件を満たすために最優先で取り組むべき課題です。
-また、各書き込み操作に対するデータ検証を追加することで、アプリケーション全体の堅牢性が大幅に向上します。
-
-### 詳細を深掘りするために、以下の質問をご検討ください。
-hasRole や isCompanyMember の関数で使用している get() 呼び出しを、Firebase Authenticationのカスタムクレームに移行するにはどうすればよいですか？
-selection_progress コレクションの TODO となっている書き込み権限を、よりセキュアなプロダクションレベルにするための具体的なルール例を教えてください。
-users コレクションのドキュメントが作成または更新される際に、特定のフィールド（例： email や displayName ）が必須であることや、特定の形式を満たしていることを検証するデータ検証ルールはどのように書けばよいですか？
+## 検証
+これらのルール変更は、`engineer-registration-app-yama/firestore.test.js` に追加されたテストケースによって検証されています。
+`npm run test:rules` コマンドにより、Custom Claims認証、DBフォールバック認証、バリデーションエラー、権限エラーの各シナリオが正常に動作することを確認済みです。
