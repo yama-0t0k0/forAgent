@@ -63,6 +63,79 @@ describe('Firestore Security Rules', () => {
       const db = testEnv.authenticatedContext(adminId).firestore();
       await assertSucceeds(db.collection('users').doc(otherUserId).get());
     });
+    
+    // --- Data Validation Tests ---
+    it('should allow creating individual user with valid role', async () => {
+        const db = testEnv.authenticatedContext('new_individual').firestore();
+        await assertSucceeds(db.collection('users').doc('new_individual').set({ role: 'individual' }));
+    });
+
+    it('should allow creating corporate user with valid role and companyId', async () => {
+        const db = testEnv.authenticatedContext('new_corporate').firestore();
+        await assertSucceeds(db.collection('users').doc('new_corporate').set({ role: 'corporate', companyId: 'some_company' }));
+    });
+
+    it('should fail creating user with invalid role', async () => {
+        const db = testEnv.authenticatedContext('hacker').firestore();
+        await assertFails(db.collection('users').doc('hacker').set({ role: 'superadmin' }));
+    });
+
+    it('should fail creating corporate user without companyId', async () => {
+        const db = testEnv.authenticatedContext('bad_corp').firestore();
+        await assertFails(db.collection('users').doc('bad_corp').set({ role: 'corporate' }));
+    });
+    
+    it('should fail creating user with admin role (self-promotion)', async () => {
+        const db = testEnv.authenticatedContext('wannabe_admin').firestore();
+        await assertFails(db.collection('users').doc('wannabe_admin').set({ role: 'admin' }));
+    });
+  });
+
+  // ============================================================================
+  // 1.5 Hybrid Custom Claims Tests
+  // ============================================================================
+  describe('Hybrid Custom Claims', () => {
+    const otherUserId = 'other_user_claim';
+    
+    it('should allow Admin via Custom Claim (Token) even if user doc missing', async () => {
+        const adminId = 'admin_user_claim';
+        // Authenticated context with 'admin' role in token
+        const db = testEnv.authenticatedContext(adminId, { role: 'admin' }).firestore();
+        // Should be able to read any user doc (isAdmin check)
+        await assertSucceeds(db.collection('users').doc(otherUserId).get());
+    });
+
+    it('should allow Admin via User Doc (Fallback) if token has no claim', async () => {
+        const adminDocId = 'admin_user_doc';
+        await testEnv.withSecurityRulesDisabled(async (context) => {
+             await context.firestore().collection('users').doc(adminDocId).set({ role: 'admin' });
+        });
+        
+        // Authenticated context WITHOUT specific claims (default token)
+        const db = testEnv.authenticatedContext(adminDocId).firestore();
+        await assertSucceeds(db.collection('users').doc(otherUserId).get());
+    });
+
+    it('should allow Corporate via Custom Claim (Token)', async () => {
+        const companyId = 'corp_A';
+        const corpUserId = 'corp_user_claim';
+        const db = testEnv.authenticatedContext(corpUserId, { role: 'corporate', companyId: companyId }).firestore();
+        
+        // Should be able to write to company doc
+        await assertSucceeds(db.collection('company').doc(companyId).set({ name: 'Corp A' }));
+    });
+    
+     it('should allow Corporate via User Doc (Fallback)', async () => {
+        const companyId = 'corp_B';
+        const corpUserId = 'corp_user_doc';
+        
+        await testEnv.withSecurityRulesDisabled(async (context) => {
+             await context.firestore().collection('users').doc(corpUserId).set({ role: 'corporate', companyId: companyId });
+        });
+
+        const db = testEnv.authenticatedContext(corpUserId).firestore();
+        await assertSucceeds(db.collection('company').doc(companyId).set({ name: 'Corp B' }));
+    });
   });
 
   // ============================================================================
@@ -140,6 +213,40 @@ describe('Firestore Security Rules', () => {
     it('should deny UNMATCHED company user to read private info', async () => {
       const db = testEnv.authenticatedContext(otherCompanyUserId).firestore();
       await assertFails(db.collection('private_info').doc(userId).get());
+    });
+  });
+
+  // ============================================================================
+  // 6. Selection Progress (selection_progress) Tests
+  // ============================================================================
+  describe('selection_progress collection', () => {
+    const individualId = 'indiv_SP';
+    const companyId = 'comp_SP';
+    const otherId = 'other_SP';
+
+    it('should allow individual to create their own selection progress', async () => {
+        const db = testEnv.authenticatedContext(individualId).firestore();
+        await assertSucceeds(db.collection('selection_progress').add({
+            'id_individual_個人ID': individualId,
+            'id_company_法人ID': companyId
+        }));
+    });
+
+    it('should allow company member to create selection progress (Scout)', async () => {
+        // Using Token Claim for convenience
+        const db = testEnv.authenticatedContext('corp_user_SP', { role: 'corporate', companyId: companyId }).firestore();
+        await assertSucceeds(db.collection('selection_progress').add({
+            'id_individual_個人ID': individualId,
+            'id_company_法人ID': companyId
+        }));
+    });
+
+    it('should fail if unrelated user tries to create selection progress', async () => {
+        const db = testEnv.authenticatedContext(otherId).firestore();
+        await assertFails(db.collection('selection_progress').add({
+            'id_individual_個人ID': individualId,
+            'id_company_法人ID': companyId
+        }));
     });
   });
 
