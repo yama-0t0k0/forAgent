@@ -65,9 +65,57 @@ async function seedIndividual(individualId, jsonPath) {
   data.id_individual = id;
   data.updated_at = new Date();
 
-  const docRef = doc(db, 'individual', id);
-  await setDoc(docRef, data, { merge: true });
-  console.log(`Seeded individual/${id} successfully!`);
+  // Split data into public_profile and private_info
+  // Logic mirrors scripts/migration/migrate_individual.js
+
+  const basicInfo = data['基本情報'] || {};
+  const privateData = {};
+  
+  // Extract PII from '基本情報' if exists
+  if (data['基本情報']) {
+    const piiKeys = [
+      '姓', '名', 'Family name(半角英)', 'First name(半角英)', 
+      'メール', 'TEL', '住所', '生年月日',
+      'Googleアカウント', 'GitHubアカウント', 'ハンドルネーム',
+      'パスワード'
+    ];
+
+    const topLevelPii = [
+      'name', 'nameKana', 'birthDate', 'email', 'phoneNumber', 'tel', 'address', 'resumeUrl', 'resume'
+    ];
+
+    piiKeys.forEach(key => {
+      if (basicInfo[key] !== undefined) {
+        if (!privateData['基本情報']) privateData['基本情報'] = {};
+        privateData['基本情報'][key] = basicInfo[key];
+        delete basicInfo[key];
+      }
+    });
+    
+    topLevelPii.forEach(key => {
+      if (data[key] !== undefined) {
+        privateData[key] = data[key];
+        delete data[key];
+      }
+    });
+  }
+
+  const publicData = { ...data };
+  // Ensure ID and timestamp are in both
+  privateData.id_individual = id;
+  privateData.updated_at = new Date();
+  publicData.id_individual = id;
+  publicData.updated_at = new Date();
+
+  // Write to public_profile
+  const publicRef = doc(db, 'public_profile', id);
+  await setDoc(publicRef, publicData, { merge: true });
+  console.log(`Seeded public_profile/${id} successfully!`);
+
+  // Write to private_info
+  const privateRef = doc(db, 'private_info', id);
+  await setDoc(privateRef, privateData, { merge: true });
+  console.log(`Seeded private_info/${id} successfully!`);
 }
 
 /**
