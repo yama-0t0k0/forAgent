@@ -19,23 +19,23 @@
 - [x] **ディレクトリ作成**: `apps/backend`
 - [x] **サーバー実装**: `shelf` + `shelf_router` による軽量HTTPサーバー。
 - [x] **デプロイ構成**: `Dockerfile` (Dart AOT -> Scratch image) の整備。
-- [ ] **CI/CD設定**: GitHub Actions による Cloud Run への自動デプロイパイプライン構築。
+- [x] **CI/CD設定**: GitHub Actions による Cloud Run への自動デプロイパイプライン構築。 (Issue #333)
 
 #### 1.2 Shared Integration (共通資産の結合)
-- [ ] **依存関係の解決**: `apps/backend/pubspec.yaml` に以下のローカルパッケージを追加。
+- [ ] **依存関係の解決**: `apps/backend/pubspec.yaml` に以下のローカルパッケージを追加。 (Issue #334)
     - `shared/domain_models`: データベースの型定義 (User, JobDescription 等)。
     - `shared/common_logic`: 汎用計算ロジック (マッチングアルゴリズム等)。
     - `shared/common_backend`: Firebase Admin SDK ラッパーやログ出力ユーティリティ。
 
 #### 1.3 Authentication Middleware (認証基盤)
-- [ ] **Firebase Auth 検証**:
+- [ ] **Firebase Auth 検証**: (Issue #335)
     - Expo から送られる `Authorization: Bearer <ID_TOKEN>` を検証する Middleware を実装。
     - 検証成功時に `UserContext` (uid, email, claims) をリクエストスコープに注入。
-- [ ] **Role-Based Access Control (RBAC)**:
+- [ ] **Role-Based Access Control (RBAC)**: (Issue #336)
     - エンドポイントごとに `admin`, `corporate`, `individual` の権限チェックを行うガード処理の実装。
 
 #### 1.4 API Design for Expo (REST API)
-**戦略**: Expo (JS) からの利用容易性を最優先し、Phase 1 では標準的な REST API (JSON) を採用する。
+**戦略**: Expo (JS) からの利用容易性を最優先し、Phase 1 では標準的な REST API (JSON) を採用する。 (Issue #337)
 gRPC や Serverpod 等の Dart に最適化された RPC は、フロントエンドが Flutter 化される **Phase 2** で導入する。
 
 - **理由**:
