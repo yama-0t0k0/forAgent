@@ -1,19 +1,22 @@
 name: Deploy Backend App to Cloud Run
 
 on:
+  # トリガー条件: main または yama ブランチへの Push
   push:
     branches: [ main, yama ]
     paths:
+      # 以下のディレクトリ配下の変更のみ検知
       - 'apps/backend/**'
       - 'shared/**'
       - '.github/workflows/deploy-backend-app.yml'
+  # GitHub Actions 画面からの手動実行も許可
   workflow_dispatch:
 
 env:
   PROJECT_ID: flutter-frontend-21d0a
   SERVICE_NAME: backend-app
   REGION: asia-northeast1
-  REPOSITORY: backend-repo # Make sure to create this in Google Artifact Registry
+  REPOSITORY: backend-repo # Google Artifact Registry のリポジトリ名 (要事前作成)
 
 jobs:
   deploy:
@@ -21,34 +24,42 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
-      id-token: 'write'
+      id-token: 'write' # Google Auth のために必要
 
     steps:
+      # 1. リポジトリのチェックアウト
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Google Cloud への認証 (Workload Identity Federation)
       - name: Google Auth
         id: auth
         uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
+      # 3. Cloud SDK (gcloud コマンド) のセットアップ
       - name: Set up Cloud SDK
         uses: "google-github-actions/setup-gcloud@v2"
 
+      # 4. Docker クライアントの認証 (Artifact Registry へ Push するため)
       - name: Authorize Docker
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
+      # 5. Docker イメージのビルド
+      # Monorepo 構成のため、ルートコンテキスト (.) からビルドし、shared ライブラリを参照可能にする
       - name: Build Docker Image
-        # Build from root context to allow access to shared libraries in the future
         run: |
           docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
           -f apps/backend/Dockerfile .
 
+      # 6. Docker イメージを Artifact Registry へ Push
       - name: Push Docker Image
         run: |
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
+      # 7. Cloud Run へデプロイ
+      # --allow-unauthenticated: 公開 API としてデプロイ (認証不要)
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
