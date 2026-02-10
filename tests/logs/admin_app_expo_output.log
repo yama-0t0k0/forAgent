@@ -3,12 +3,11 @@
 🔍 Checking environment configuration...
 ✅ Environment configuration verified.
 🧹 Cleaning up existing processes...
-⚠️  Killing process 27483
-27657
-27793 on port 8081
+⚠️  Killing process 89185
+89525 on port 8081
 ⚡ Starting Expo Server (Tunnel Mode)...
 ⏳ Waiting for tunnel to establish...
-..
+.
 ==================================================
 ✅ Start up successful.
 Here is the URL for Expo Go:

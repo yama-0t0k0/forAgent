@@ -154,7 +154,7 @@
     - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
     - [x] ローカルEmulatorでのユニットテスト検証 (18/18 passed)。
-    - [ ] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行。
+    - [x] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行 (2026-02-10 完了)。
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 5.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
@@ -180,12 +180,14 @@
 6.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
     - [x] Firestore Emulator を用いたユニットテスト。
         - *Status*: `firestore.test.js` 作成済み。
-    - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人）でのアクセス権限確認テスト。
+    - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人、法人）でのアクセス権限確認テスト。
         - *Status*: E2E実行・レポート基盤（`tests/run_e2e.sh`）構築完了。
         - *Scenarios*:
             - Admin: `tests/jobs/security_verification_admin.yaml` (Public/Private情報へのアクセス確認)
             - Individual: `tests/jobs/security_verification_individual.yaml` (自身のPublic/Private情報へのアクセス確認)
-        - *Pending*: 法人ロールの検証シナリオ。
+            - Corporate: `tests/jobs/security_verification_corporate.yaml` (自社情報へのアクセス確認)
+        - *Result*: 2026-02-10 全テストシナリオ（Admin, Individual, Corporate）の本番環境（REALモード）検証完了。
+
 
 
 ## 5. 備考

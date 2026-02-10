@@ -2,6 +2,12 @@ appId: com.engineer_registration_app_yama.admin
 ---
 - openLink: "${EXPO_URL}"
 - tapOn:
+          text: "Open"
+          optional: true
+- tapOn:
+          text: "Open"
+          optional: true
+- tapOn:
           text: "開く"
           optional: true
 - tapOn:
