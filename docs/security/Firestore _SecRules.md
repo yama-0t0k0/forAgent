@@ -110,7 +110,15 @@ service cloud.firestore {
       
       // Writable only by the owner or Admin
       // 所有者本人または管理者のみ書き込み可能
-      allow write: if isOwner(userId) || isAdmin();
+      // Validation: 'name' must be a non-empty string
+      allow create: if (isOwner(userId) || isAdmin())
+                    && 'name' in request.resource.data
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+
+      allow update: if (isOwner(userId) || isAdmin())
+                    && (!('name' in request.resource.data) 
+                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
     }
 
     // ----------------------------------------------------------------------------
@@ -218,16 +226,21 @@ service cloud.firestore {
       // 1. Admin
       // 2. The Individual (creating application)
       // 3. The Company Member (updating status)
+      // Validation: 'amount' must be a positive number (if present)
       allow create: if isAuthenticated() && (
         isAdmin() ||
         request.resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(request.resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
 
       allow update: if isAuthenticated() && (
         isAdmin() ||
         resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
       
       allow delete: if isAdmin();
@@ -262,6 +275,22 @@ service cloud.firestore {
 -   管理者が操作する場合。
 これら以外の第三者による書き込みは拒否されます。
 
+### 4. 各コレクションのデータバリデーション強化 (新規追加)
+**課題:** `users` 以外のコレクションにおいて、不正なデータ型や無効な値が書き込まれるリスク。
+**解決策:** 主要なコレクションに対して以下のバリデーションを追加しました。
+-   **public_profile:** `create`/`update` 時に `name` フィールドが必須かつ空文字でないことを検証。
+-   **FeeMgmtAndJobStatDB:** `amount` フィールドが存在する場合、正の数値であることを検証。
+**効果:** データの整合性が向上し、クライアントアプリのバグや不正操作によるデータ汚染を防ぎます。
+
 ## 検証
 これらのルール変更は、`engineer-registration-app-yama/firestore.test.js` に追加されたテストケースによって検証されています。
 `npm run test:rules` コマンドにより、Custom Claims認証、DBフォールバック認証、バリデーションエラー、権限エラーの各シナリオが正常に動作することを確認済みです。
+
+## 改善点/残る検討点 (Remaining Considerations):
+
+### hasRole および isCompanyMember 関数の get() フォールバックについて
+現在は移行期間中のため、Custom Claimsを持たないユーザーのために `get()` によるDB参照フォールバックを残しています。
+**将来的には:** 全ユーザーへのCustom Claims付与が完了し、運用フローが確立された段階で、このフォールバックを削除することを検討します。これにより、ルール評価コストを完全にゼロ（ローカル評価のみ）に近づけることができます。
+
+### さらなるデータ検証ルールの拡充
+`public_profile` や `FeeMgmtAndJobStatDB` へのバリデーション導入は完了しましたが、`job_description` や `company` コレクションなど、他のコレクションについても同様に厳格なスキーマ検証（必須フィールド、型チェック、値の範囲チェック）を順次追加していくことが推奨されます。

@@ -158,6 +158,16 @@ describe('Firestore Security Rules', () => {
       const db = testEnv.authenticatedContext('other_user').firestore();
       await assertFails(db.collection('public_profile').doc(userId).set({ name: 'Hacked' }));
     });
+
+    it('should fail creating public profile with empty name', async () => {
+      const db = testEnv.authenticatedContext(userId).firestore();
+      await assertFails(db.collection('public_profile').doc(userId).set({ name: '' }));
+    });
+
+    it('should fail creating public profile without name', async () => {
+      const db = testEnv.authenticatedContext(userId).firestore();
+      await assertFails(db.collection('public_profile').doc(userId).set({ bio: 'Hello' }));
+    });
   });
 
   // ============================================================================
@@ -329,6 +339,36 @@ describe('Firestore Security Rules', () => {
         const db = testEnv.authenticatedContext(companyUserId).firestore();
         await assertSucceeds(db.collection('FeeMgmtAndJobStatDB').doc(docId).update({
             status: 'interview'
+        }));
+    });
+
+    it('should allow creating record with valid positive amount', async () => {
+        const db = testEnv.authenticatedContext(individualId).firestore();
+        const newDocId = 'new_doc_valid_amount';
+        await assertSucceeds(db.collection('FeeMgmtAndJobStatDB').doc(newDocId).set({
+            individual_ID: individualId,
+            company_ID: companyId,
+            amount: 1000
+        }));
+    });
+
+    it('should fail creating record with negative amount', async () => {
+        const db = testEnv.authenticatedContext(individualId).firestore();
+        const newDocId = 'new_doc_negative_amount';
+        await assertFails(db.collection('FeeMgmtAndJobStatDB').doc(newDocId).set({
+            individual_ID: individualId,
+            company_ID: companyId,
+            amount: -500
+        }));
+    });
+
+    it('should fail creating record with non-number amount', async () => {
+        const db = testEnv.authenticatedContext(individualId).firestore();
+        const newDocId = 'new_doc_string_amount';
+        await assertFails(db.collection('FeeMgmtAndJobStatDB').doc(newDocId).set({
+            individual_ID: individualId,
+            company_ID: companyId,
+            amount: "1000"
         }));
     });
   });

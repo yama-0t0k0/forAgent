@@ -102,7 +102,15 @@ service cloud.firestore {
       
       // Writable only by the owner or Admin
       // 所有者本人または管理者のみ書き込み可能
-      allow write: if isOwner(userId) || isAdmin();
+      // Validation: 'name' must be a non-empty string
+      allow create: if (isOwner(userId) || isAdmin())
+                    && 'name' in request.resource.data
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+
+      allow update: if (isOwner(userId) || isAdmin())
+                    && (!('name' in request.resource.data) 
+                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
     }
 
     // ----------------------------------------------------------------------------
@@ -210,16 +218,21 @@ service cloud.firestore {
       // 1. Admin
       // 2. The Individual (creating application)
       // 3. The Company Member (updating status)
+      // Validation: 'amount' must be a positive number (if present)
       allow create: if isAuthenticated() && (
         isAdmin() ||
         request.resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(request.resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
 
       allow update: if isAuthenticated() && (
         isAdmin() ||
         resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
       
       allow delete: if isAdmin();
