@@ -104,7 +104,7 @@
 
 2.  **データ構造の移行 (Schema Migration)** [Issue #288](https://github.com/yama-0t0k0/engineer-registration-app/issues/288)
     - [x] `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
-    - [ ] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
+    - [x] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
     - **現状の課題**: `users` コレクション自体が未作成のため、`migrate_users.js` が機能しない。
     - **対応方針**: `public_profile` (または `individual`) の全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_users_collection.js`) を実装・実行する。
     - **初期データ構造**:
@@ -117,9 +117,9 @@
       }
       ```
     - **実行手順**:
-      1. `create_users_collection.js` を実装
-      2. ローカル環境/テスト環境で検証
-      3. 本番環境に対し実行
+      1. [x] `create_users_collection.js` を実装
+      2. [x] ローカル環境/テスト環境で検証
+      3. [x] 本番環境に対し実行 (2026-02-10 ユーザー実行により完了)
 
 
 
