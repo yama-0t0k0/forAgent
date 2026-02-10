@@ -149,16 +149,12 @@
             - *Result*: 2026-02-10 実装およびテスト検証（Firestore Emulator）完了。
 
 
-4.  **Security Rules の実装** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
+4.  **Security Rules の実装と適用** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
     - [x] `firestore.rules` の書き換え。
     - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
-    - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
-
-4.  **Security Rules の実装** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
-    - [x] `firestore.rules` の書き換え。
-    - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
-    - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
+    - [x] ローカルEmulatorでのユニットテスト検証 (18/18 passed)。
+    - [ ] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行。
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 5.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
