@@ -372,4 +372,60 @@ describe('Firestore Security Rules', () => {
         }));
     });
   });
+
+  describe('Company Collection Validation', () => {
+    const companyId = 'comp_valid_01';
+    
+    it('should allow creating company with valid name', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertSucceeds(db.collection('company').doc(companyId).set({
+        name: 'Valid Company Name'
+      }));
+    });
+
+    it('should deny creating company without name', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertFails(db.collection('company').doc(companyId).set({
+        address: 'Tokyo' // Missing name
+      }));
+    });
+
+    it('should deny creating company with empty name', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertFails(db.collection('company').doc(companyId).set({
+        name: ''
+      }));
+    });
+  });
+
+  describe('Job Description Validation (JD_Number)', () => {
+    const companyId = 'comp_valid_01';
+    const jdId = 'jd_01';
+    
+    it('should allow creating JD with all required fields', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertSucceeds(db.collection('job_description').doc(companyId).collection('JD_Number').doc(jdId).set({
+        title: 'Frontend Engineer',
+        description: 'React Native dev',
+        salaryRange: '5M-8M JPY'
+      }));
+    });
+
+    it('should deny creating JD missing title', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertFails(db.collection('job_description').doc(companyId).collection('JD_Number').doc(jdId).set({
+        description: 'React Native dev',
+        salaryRange: '5M-8M JPY'
+      }));
+    });
+
+    it('should deny creating JD with invalid type (salaryRange as number)', async () => {
+      const db = testEnv.authenticatedContext('user_corp_valid', { role: 'corporate', companyId: companyId }).firestore();
+      await assertFails(db.collection('job_description').doc(companyId).collection('JD_Number').doc(jdId).set({
+        title: 'Frontend Engineer',
+        description: 'React Native dev',
+        salaryRange: 6000000 // Number not allowed
+      }));
+    });
+  });
 });

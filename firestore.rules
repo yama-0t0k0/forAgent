@@ -142,7 +142,17 @@ service cloud.firestore {
       
       // Writable by company members or Admin
       // その企業のメンバーまたは管理者のみ書き込み可能
-      allow write: if isCompanyMember(companyId) || isAdmin();
+      // Validation: 'name' is required and must be a non-empty string
+      allow create: if (isCompanyMember(companyId) || isAdmin())
+                    && request.resource.data.name is string 
+                    && request.resource.data.name.size() > 0;
+                    
+      allow update: if (isCompanyMember(companyId) || isAdmin())
+                    && (!('name' in request.resource.data) 
+                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
+      
+      // Fallback for delete (if needed)
+      allow delete: if isAdmin();
     }
     
     // Legacy support alias (if needed)
@@ -164,7 +174,17 @@ service cloud.firestore {
       
       match /JD_Number/{jdId} {
         allow read: if isAuthenticated();
-        allow write: if isCompanyMember(companyId) || isAdmin();
+        
+        // Validation: title, description, salaryRange are required string fields
+        allow create: if (isCompanyMember(companyId) || isAdmin())
+                      && request.resource.data.title is string && request.resource.data.title.size() > 0
+                      && request.resource.data.description is string && request.resource.data.description.size() > 0
+                      && request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0;
+
+        allow update: if (isCompanyMember(companyId) || isAdmin())
+                      && (!('title' in request.resource.data) || (request.resource.data.title is string && request.resource.data.title.size() > 0))
+                      && (!('description' in request.resource.data) || (request.resource.data.description is string && request.resource.data.description.size() > 0))
+                      && (!('salaryRange' in request.resource.data) || (request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0));
       }
     }
 
