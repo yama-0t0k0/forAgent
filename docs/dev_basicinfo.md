@@ -515,3 +515,11 @@ npm run start:individual -- --clear
 - **ユーザー体験の再現**: テストシナリオは「内部状態の確認」ではなく「ユーザーの実際の操作」を模倣するものであるべきです。
 - **環境の忠実性**: 可能な限り、実際のデバイスやシミュレーター（iOS Simulator / Android Emulator）を使用し、本番に近い構成で検証を行ってください。
 
+
+## 備考
+
+### Full-stack Dart アーキテクチャ
+Flutter と Cloud Run で実現する一貫性のある開発基盤
+※最終的にはExpo（React Native）からFull-stack Dart アーキテクチャへ移行する。
+
+https://lat-app-doc.s3.us-east-1.amazonaws.com/dev/architecture/cloud-run/full-stack-dart/index.html

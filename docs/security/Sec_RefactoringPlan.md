@@ -145,7 +145,9 @@
             - *Result*: 2026-02-10 ユーザー実行により完了 (115件作成)。
         - [x] `job_description` の `companyId` と `users` の整合性確認。
             - *Result*: 2026-02-10 整合性チェック完了。`fix_missing_corporate_users.js` にて3件の欠損ユーザーを補完済み。
-        - [ ] FMJSデータのアクセス制御ルールの詳細化と実装。
+        - [x] FMJSデータのアクセス制御ルールの詳細化と実装。
+            - *Result*: 2026-02-10 実装およびテスト検証（Firestore Emulator）完了。
+
 
 4.  **Security Rules の実装** [Issue #289](https://github.com/yama-0t0k0/engineer-registration-app/issues/289), [#297](https://github.com/yama-0t0k0/engineer-registration-app/issues/297)
     - [x] `firestore.rules` の書き換え。
