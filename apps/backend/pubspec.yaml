@@ -11,6 +11,10 @@ dependencies:
   shelf_router: ^1.1.4
   logging: ^1.2.0
   # internal dependencies
+  domain_models:
+    path: ../../shared/domain_models
+  common_logic:
+    path: ../../shared/common_logic
   # common_backend:
   #   path: ../../shared/common_backend
 

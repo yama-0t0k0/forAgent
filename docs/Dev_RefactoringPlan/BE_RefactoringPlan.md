@@ -2,6 +2,16 @@
 
 本ドキュメントでは、現在の Expo (React Native) + Firebase Functions 構成から、**Full-stack Dart アーキテクチャ (Expo/Flutter + Cloud Run Dart Server)** への移行およびリファクタリングの詳細計画を定義します。
 
+## 参考資料
+
+Cloud Run における Flutter: フルスタックの Dart アーキテクチャ
+https://cloud.google.com/blog/ja/topics/developers-practitioners/flutter-on-cloud-run-full-stack-dart-architecture
+※Dockerコンテナを使用せず、速度とシンプルさを考慮して「OS のみ」のランタイムを採用する。
+
+【社内ドキュメント】Full-stack Dart アーキテクチャ
+Flutter と Cloud Run で実現する一貫性のある開発基盤
+https://lat-app-doc.s3.us-east-1.amazonaws.com/dev/architecture/cloud-run/full-stack-dart/index.html
+
 ## 🎯 目標 (Objective)
 
 1.  **ロジックの集約**: 各アプリに分散しているビジネスロジックを単一の Dart サーバー (`apps/backend`) に集約する。
@@ -22,10 +32,10 @@
 - [x] **CI/CD設定**: GitHub Actions による Cloud Run への自動デプロイパイプライン構築。 (Issue #333)
 
 #### 1.2 Shared Integration (共通資産の結合)
-- [ ] **依存関係の解決**: `apps/backend/pubspec.yaml` に以下のローカルパッケージを追加。 (Issue #334)
+- [x] **依存関係の解決**: `apps/backend/pubspec.yaml` に以下のローカルパッケージを追加。 (Issue #334)
     - `shared/domain_models`: データベースの型定義 (User, JobDescription 等)。
     - `shared/common_logic`: 汎用計算ロジック (マッチングアルゴリズム等)。
-    - `shared/common_backend`: Firebase Admin SDK ラッパーやログ出力ユーティリティ。
+    - ※ `shared/common_backend` は `flutter` パッケージに依存しているため、Pure Dart サーバー (`apps/backend`) には統合不可。別途サーバー用ユーティリティを検討する。
 
 #### 1.3 Authentication Middleware (認証基盤)
 - [ ] **Firebase Auth 検証**: (Issue #335)
