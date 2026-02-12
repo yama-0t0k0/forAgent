@@ -2,7 +2,7 @@
 
 - フレームワーク: Expo（React Native）
 - 共有モジュール: shared/common_frontend（UI, テーマ, Firebase設定）
-- データソース: Firestore（FeeMgmtAndJobStatDB）
+- データソース: Firestore（FeeMgmtAndJobStatDB および selection_progress）
 - 目的: エージェント/管理者による選考進捗状況および手数料の管理（Field Management Job System）
 
 ## Firestore 接続
@@ -18,7 +18,9 @@
 - Firestore プロジェクト（管理画面、要ログイン）:
   - https://console.firebase.google.com/u/0/project/flutter-frontend-21d0a/firestore/data
 - 参照コレクション/ID仕様
-  - コレクション: FeeMgmtAndJobStatDB
+  - コレクション: 
+    - **FeeMgmtAndJobStatDB** (Primary/新): 手数料管理および最新の選考ステータス
+    - **selection_progress** (Legacy/旧): 過去の選考進捗データ（互換性のため併用）
   - IDフィールド: JobStatID (またはドキュメントID)
   - ID接頭辞: S（例: S202412310001）
   - 参照ドキュメント例:

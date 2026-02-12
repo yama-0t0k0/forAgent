@@ -59,6 +59,7 @@ shared/
   - `fetchIndividualById(id)`: 単一ユーザー取得（戻り値: `Promise<User|null>`）。`public_profile` と `private_info` を取得し、`User.fromPublicPrivate` で結合して返します。
   - `fetchAllJobDescriptions()`: 全JD取得（ネスト構造対応, 戻り値: `Promise<JobDescription[]>`）
   - `fetchAllCorporates()`: 全企業取得（複数コレクション名対応, 戻り値: `Promise<Company[]>`）
+  - `fetchAllFMJS()`: 全選考データ取得（戻り値: `Promise<SelectionProgress[]>`）。`FeeMgmtAndJobStatDB` (Primary) と `selection_progress` (Legacy) の両方から取得し、同一IDのデータをマージして完全な状態を復元します。
   - `fetchAdminData()`: Admin App用一括取得（各プロパティもモデルインスタンス化済み）
   - `fetchIndividualAppData(userId, template)`: Individual App用データ取得
   - `fetchCorporateAppData(id, template)`: Corporate App用データ取得
@@ -73,7 +74,7 @@ shared/
 #### 6. Models (`src/core/models`)
 - **概要**: アプリケーション全体で使用されるデータモデル定義。
 - **主要クラス**:
-  - `User`: 個人ユーザー（エンジニア）。`public_profile`（公開情報）と `private_info`（PII）の分割管理に対応。
+  - `User`: 個人ユーザー（エンジニア）。`public_profile`（公開情報）と `private_info`（PII）の分割管理に対応。`fromPublicPrivate` メソッドでは、ルートレベルの `name` が欠落している場合に `basicInfo.name` や `basicInfo.fullName` を参照するフォールバックロジックを実装しています。
   - `Company`: 法人ユーザー
   - `JobDescription`: 求人票
   - `SelectionProgress`: 選考進捗・手数料
