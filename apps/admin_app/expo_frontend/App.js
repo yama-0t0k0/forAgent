@@ -80,6 +80,8 @@ const AdminAppWrapper = () => {
             const userDocRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userDocRef);
             
+            let isUserAdmin = false;
+
             if (userSnap.exists()) {
               const userData = userSnap.data();
               if (userData.role !== 'admin') {
@@ -94,8 +96,27 @@ const AdminAppWrapper = () => {
                 // Force token refresh to pick up new claims immediately
                 await user.getIdToken(true);
               }
+              isUserAdmin = true;
+            } else {
+              // Create new user doc for Anon/New user with Admin privileges
+              console.log('🆕 [Dev Mode] Creating new user doc with Admin privileges...');
+              try {
+                await setDoc(userDocRef, {
+                    role: 'admin',
+                    dev_admin_grant: 'allow_local_dev',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                console.log('✅ [Dev Mode] New Admin user created.');
+                await user.getIdToken(true);
+                isUserAdmin = true;
+              } catch (createErr) {
+                 console.error('❌ [Dev Mode] Failed to create Admin user:', createErr);
+              }
+            }
 
-              // Auto-Migration: FeeMgmtAndJobStatDB -> selection_progress
+            // Auto-Migration: FeeMgmtAndJobStatDB -> selection_progress
+            if (isUserAdmin) {
               try {
                 const selColRef = collection(db, 'selection_progress');
                 const selSnap = await getDocs(selColRef);

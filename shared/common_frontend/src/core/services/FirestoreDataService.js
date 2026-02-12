@@ -88,6 +88,15 @@ export const FirestoreDataService = {
         // 1. Fetch Public Profiles (Base Data)
         const publicDocs = await fetchCollection('public_profile');
         
+        if (__DEV__ && publicDocs.length > 0) {
+            console.log('[Debug] First public_profile doc keys:', Object.keys(publicDocs[0]));
+            console.log('[Debug] First public_profile doc name:', publicDocs[0].name);
+            console.log('[Debug] First public_profile doc basicInfo:', publicDocs[0].basicInfo);
+            const { DeviceEventEmitter } = require('react-native');
+            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|KEYS|${Object.keys(publicDocs[0]).join(',')}`);
+            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|NAME|${publicDocs[0].name}`);
+        }
+        
         // 2. Try to fetch Private Info (Admin only)
         // Note: Non-admin users will likely fail here due to security rules, which is expected.
         let privateDocsMap = new Map();
