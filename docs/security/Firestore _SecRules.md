@@ -3,7 +3,21 @@
 ## firestore.rulesの場所
 engineer-registration-app-yama/firestore.rules
 
-## 現在のセキュリティルール (2026-02-10 更新版)
+## ⚠️ 開発環境における一時的な全許可設定 (2026-02-12)
+
+現在、開発効率とトラブルシューティング（特に新規コレクションの参照エラー解消）を優先するため、`firestore.rules` に以下の「全許可ルール」を一時的に適用しています。
+
+```javascript
+match /{document=**} {
+  allow read, write: if true;
+}
+```
+
+**注意**:
+- 本ドキュメントに記載されている以下の詳細なセキュリティルールは、**本番環境（Production）またはセキュリティテスト環境** において適用すべき「あるべき姿（Target State）」です。
+- 開発フェーズが完了し次第、この一時的な全許可設定を削除し、以下のルールセットを復元・適用する必要があります。
+
+## 現在のセキュリティルール (2026-02-10 更新版 - Target State)
 
 ```javascript
 rules_version = '2';

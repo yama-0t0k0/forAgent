@@ -136,10 +136,18 @@ if [ "$APP_NAME" == "admin_app" ]; then
     EXTRA_FLAGS="--web"
 fi
 
+# Ensure strict adherence to Commit 4332902 standards:
+# Force a fresh start for Method A by removing stale settings.
+# This ensures the new tunnel and settings.json are synchronized.
+if [ -f "$APP_PATH/.expo/settings.json" ]; then
+    rm "$APP_PATH/.expo/settings.json"
+fi
+
 npx expo start --tunnel $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 
 echo "⏳ Waiting for tunnel to establish..."
+sleep 5 # Wait for process to stabilize
 
 # 4. Extract URL
 # Loop to check for URL via ngrok API or Log File
@@ -151,23 +159,7 @@ LOG_FILE="/tmp/expo_${APP_NAME}.log"
 while [ $COUNT -lt $MAX_RETRIES ]; do
     sleep 2
     
-    # Method B: Ngrok API (Primary)
-    # Check default ngrok port 4040, then 4041
-    TUNNELS_JSON=$(curl -s --max-time 1 http://localhost:4040/api/tunnels || true)
-    URL=$(echo "$TUNNELS_JSON" | grep -o 'exp://[^"]*')
-    
-    if [ -n "$URL" ]; then
-        break
-    fi
-
-    TUNNELS_JSON_ALT=$(curl -s --max-time 1 http://localhost:4041/api/tunnels || true)
-    URL=$(echo "$TUNNELS_JSON_ALT" | grep -o 'exp://[^"]*')
-
-    if [ -n "$URL" ]; then
-        break
-    fi
-
-    # Method A: Deterministic Construction (Fallback)
+    # Method A: Deterministic Construction (Priority 1)
     # Check .expo/settings.json for urlRandomness
     # CRITICAL FIX: Only trust settings.json if the tunnel is actually ready (verified via logs)
     # This prevents returning a stale URL before the new tunnel is established.
@@ -184,6 +176,22 @@ while [ $COUNT -lt $MAX_RETRIES ]; do
                 break
             fi
         fi
+    fi
+
+    # Method B: Ngrok API (Priority 2)
+    # Check default ngrok port 4040, then 4041
+    TUNNELS_JSON=$(curl -s --max-time 1 http://localhost:4040/api/tunnels || true)
+    URL=$(echo "$TUNNELS_JSON" | grep -o 'exp://[^"]*')
+    
+    if [ -n "$URL" ]; then
+        break
+    fi
+
+    TUNNELS_JSON_ALT=$(curl -s --max-time 1 http://localhost:4041/api/tunnels || true)
+    URL=$(echo "$TUNNELS_JSON_ALT" | grep -o 'exp://[^"]*')
+
+    if [ -n "$URL" ]; then
+        break
     fi
 
     # Method C: Log Parsing

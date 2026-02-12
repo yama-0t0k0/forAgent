@@ -88,13 +88,13 @@ export const FirestoreDataService = {
         // 1. Fetch Public Profiles (Base Data)
         const publicDocs = await fetchCollection('public_profile');
         
-        if (__DEV__ && publicDocs.length > 0) {
-            console.log('[Debug] First public_profile doc keys:', Object.keys(publicDocs[0]));
-            console.log('[Debug] First public_profile doc name:', publicDocs[0].name);
-            console.log('[Debug] First public_profile doc basicInfo:', publicDocs[0].basicInfo);
-            const { DeviceEventEmitter } = require('react-native');
-            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|KEYS|${Object.keys(publicDocs[0]).join(',')}`);
-            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|NAME|${publicDocs[0].name}`);
+        if (__DEV__) {
+            console.log(`[Debug] fetchAllIndividuals: Fetched ${publicDocs.length} public profiles`);
+            publicDocs.forEach((doc, index) => {
+                if (index < 3) { // Show first 3 only
+                    console.log(`[Debug] User[${index}]: id=${doc.id}, name=${doc.name}, basicInfo=${JSON.stringify(doc.basicInfo || {})}`);
+                }
+            });
         }
         
         // 2. Try to fetch Private Info (Admin only)
@@ -216,13 +216,27 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all Fee Management & Job Stats data.
-     * Uses 'selection_progress' collection.
+     * Uses 'FeeMgmtAndJobStatDB' collection (primary) and 'selection_progress' (legacy/fallback).
      * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
         try {
-            const docs = await fetchCollection('selection_progress');
-            return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
+            console.log('[FirestoreDataService] fetchAllFMJS started');
+            
+            // Fetch from both possible collections to be safe, similar to fetchAllCorporates
+            const [fmjsPrimary, fmjsSecondary] = await Promise.all([
+                fetchCollection('FeeMgmtAndJobStatDB'),
+                fetchCollection('selection_progress')
+            ]);
+            
+            const mergedDocs = mergeById([fmjsPrimary, fmjsSecondary]);
+            console.log(`[FirestoreDataService] Fetched ${mergedDocs.length} unique docs from FeeMgmtAndJobStatDB/selection_progress`);
+            
+            if (__DEV__ && mergedDocs.length > 0) {
+                 console.log(`[Debug] First FMJS doc: id=${mergedDocs[0].id}, data=${JSON.stringify(mergedDocs[0])}`);
+            }
+
+            return mergedDocs.map(d => SelectionProgress.fromFirestore(d.id, d));
         } catch (e) {
             console.error('[FirestoreDataService] fetchAllFMJS failed:', e);
             // Return empty array on error to prevent app crash

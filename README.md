@@ -76,7 +76,8 @@
 ## 🚀 開発の始め方
 
 ### アプリの起動
-全てのアプリは `scripts/start_expo.sh` を介して、ポート競合の自動解決を行いながら起動します。
+全てのアプリは `scripts/start_expo.sh` を介して起動します。
+**重要**: ポート競合を防ぐため、一度に起動できるアプリは**1つのみ**です（同時起動非推奨）。詳細は [開発基本情報](docs/dev_basicinfo.md) の「起動設定の厳格化基準」を参照してください。
 
 ```bash
 # 例: 個人用アプリを起動
@@ -92,8 +93,22 @@
 
 ---
 
-## � ドキュメント一覧
+## 📚 ドキュメント一覧
 詳細な情報は `docs/` ディレクトリを参照してください。
-- [開発基本情報 (dev_basicinfo.md)](docs/dev_basicinfo.md)
+
+### 開発・運用
+- [開発基本情報 (dev_basicinfo.md)](docs/dev_basicinfo.md) - 起動方法、環境設定、ルール
 - [プロジェクト構造詳細 (project_tree_structure.md)](docs/project_tree_structure.md)
-- [リファクタリング計画 (RefactoringPlan.md)](docs/RefactoringPlan.md)
+- [コーディング規約 (CodingConventions/)](docs/CodingConventions/)
+
+### アプリケーション詳細設計
+- [各アプリ設計書 (Documentation_eachApp/)](docs/Documentation_eachApp/)
+  - [Admin App](docs/Documentation_eachApp/designdocument_admin_app.md)
+  - [FMJS (管理アプリ)](docs/Documentation_eachApp/designdocument_fmjs.md)
+  - [Backend App](docs/Documentation_eachApp/designdocument_backend_app.md)
+  - [Shared Module](docs/Documentation_eachApp/designdocument_shared.md)
+
+### 計画・セキュリティ
+- [リファクタリング計画 (Dev_RefactoringPlan/)](docs/Dev_RefactoringPlan/)
+- [認証・認可設計 (Authentication_Authorization.md)](docs/security/Authentication_Authorization.md)
+- [セキュリティルール (Firestore _SecRules.md)](docs/security/Firestore%20_SecRules.md)

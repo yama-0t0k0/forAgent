@@ -74,8 +74,10 @@ RESTful APIを採用し、リソースベースのURL設計を行います。
 
 ## 6. セキュリティ方針
 
+詳細な認証・認可設計については、**[認証・認可設計 (Authentication_Authorization.md)](../security/Authentication_Authorization.md)** を参照してください。
+
 - **認証**: Authorization Header に含まれる Firebase ID Token を検証し、`uid` を特定します。
-- **認可**: 特定された `uid` とFirestore上のロール情報（`admin_users` 等）に基づき、APIレベルでアクセス制御を行います。
+- **認可**: 特定された `uid` と Custom Claims (`role`) に基づき、APIレベルでアクセス制御を行います。
 - **バリデーション**: `domain_models` のバリデーションロジックを再利用し、不正なデータの混入を防ぎます。
 
 ## 7. 開発・実行方法
