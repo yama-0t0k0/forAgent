@@ -3,8 +3,9 @@
  * Initializes Firebase app and exports Firestore instance.
  */
 
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { initializeFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -19,6 +20,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const auth = getAuth(app);
+const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true, // Needed for Expo Go on Android/iOS
+});
 
-export { db };
+export { db, auth };

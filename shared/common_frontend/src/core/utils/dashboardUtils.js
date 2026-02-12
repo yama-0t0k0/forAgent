@@ -1,4 +1,5 @@
-import { HeatmapCalculator } from './HeatmapCalculator';
+import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * FMJSのタイムスタンプ (YYYYMMDDtttttt) をDateオブジェクトに変換します。
@@ -46,7 +47,7 @@ export const extractSkills = (user) => {
      */
     const traverse = (obj) => {
         Object.entries(obj).forEach(([key, value]) => {
-            if (typeof value === 'object' && value !== null) {
+            if (typeof value === DATA_TYPE.OBJECT && value !== null) {
                 if (value.core_skill) skills.core.push(key);
                 if (value.sub1) skills.sub1.push(key);
                 if (value.sub2) skills.sub2.push(key);
@@ -78,34 +79,33 @@ export const getHighDensityHeatmapData = (userData) => {
     let bestStartCol = 0;
 
     // Sliding window to find highest density
-    for (let r = 0; r <= ROWS - WINDOW_ROWS; r++) {
-        for (let c = 0; c <= COLS - WINDOW_COLS; c++) {
-            let currentScore = 0;
-            for (let wr = 0; wr < WINDOW_ROWS; wr++) {
-                for (let wc = 0; wc < WINDOW_COLS; wc++) {
+    Array.from({ length: ROWS - WINDOW_ROWS + 1 }).forEach((_, r) => {
+        Array.from({ length: COLS - WINDOW_COLS + 1 }).forEach((_, c) => {
+            const currentScore = Array.from({ length: WINDOW_ROWS }).reduce((accRow, _, wr) => {
+                return accRow + Array.from({ length: WINDOW_COLS }).reduce((accCol, _, wc) => {
                     const index = (r + wr) * COLS + (c + wc);
-                    currentScore += fullGrid[index] || 0;
-                }
-            }
+                    return accCol + (fullGrid[index] || 0);
+                }, 0);
+            }, 0);
+
             if (currentScore > maxScore) {
                 maxScore = currentScore;
                 bestStartRow = r;
                 bestStartCol = c;
             }
-        }
-    }
+        });
+    });
 
     // Extract data for the best window
-    const windowData = [];
-    for (let wr = 0; wr < WINDOW_ROWS; wr++) {
-        for (let wc = 0; wc < WINDOW_COLS; wc++) {
+    const windowData = Array.from({ length: WINDOW_ROWS }).flatMap((_, wr) =>
+        Array.from({ length: WINDOW_COLS }).map((_, wc) => {
             const index = (bestStartRow + wr) * COLS + (bestStartCol + wc);
-            windowData.push({
+            return {
                 value: fullGrid[index] || 0,
                 id: index // Keep original index for label lookup
-            });
-        }
-    }
+            };
+        })
+    );
 
     return { data: windowData, rows: WINDOW_ROWS, cols: WINDOW_COLS };
 };

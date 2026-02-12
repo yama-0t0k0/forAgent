@@ -14,8 +14,9 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
-import { HeatmapMapper } from '../utils/HeatmapMapper';
-import { HeatmapGeometry } from '../utils/HeatmapGeometry';
+import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMapper';
+import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
+import { HEATMAP_THRESHOLDS, HEATMAP_COLORS, HEATMAP_MOCK_VALUES, HEATMAP_LEVELS } from '../constants/heatmap';
 
 const { width } = Dimensions.get('window');
 
@@ -51,11 +52,11 @@ export const HeatmapGrid = ({
    * @returns {string} Hex color code.
    */
   const getColor = (value) => {
-    if (value === 0) return '#E2E8F0'; // light gray
-    if (value <= 0.2) return '#BAE6FD'; // sky-200
-    if (value <= 0.5) return '#7DD3FC'; // sky-300
-    if (value <= 0.8) return THEME.accent; // sky-500
-    return '#0369A1'; // sky-700
+    if (value === HEATMAP_THRESHOLDS.LEVEL_1) return HEATMAP_COLORS.LEVEL_0; // light gray
+    if (value <= HEATMAP_THRESHOLDS.LEVEL_2) return HEATMAP_COLORS.LEVEL_1; // sky-200
+    if (value <= HEATMAP_THRESHOLDS.LEVEL_3) return HEATMAP_COLORS.LEVEL_2; // sky-300
+    if (value <= HEATMAP_THRESHOLDS.LEVEL_4) return HEATMAP_COLORS.LEVEL_3; // sky-500
+    return HEATMAP_COLORS.LEVEL_4; // sky-700
   };
 
   /**
@@ -63,7 +64,10 @@ export const HeatmapGrid = ({
    */
   const gridData = useMemo(() => {
     return Array(itemCount).fill(0).map((_, i) => {
-      const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : (i % 4 === 0 ? 0.8 : i % 4 === 1 ? 0.3 : i % 4 === 2 ? 0.5 : 1.0);
+      // Use logic similar to mock data generation, but avoid direct magic numbers if possible
+      // For now, suppress the magic number warning or just leave it as is if it's too complex to constantize
+      // Actually, let's just make it constant-ish or just ignore it as it's a visualization fallback
+      const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : HEATMAP_MOCK_VALUES[i % HEATMAP_MOCK_VALUES.length];
       return {
         id: i,
         value,
@@ -89,12 +93,12 @@ export const HeatmapGrid = ({
     const label = HeatmapMapper.getLabel(item.id) || `Tile ${item.id}`;
 
     // Calculate level (0-4)
-    let level = 0;
+    let level = HEATMAP_LEVELS.NONE;
     const v = item.value;
-    if (v > 0.8) level = 4;
-    else if (v > 0.5) level = 3;
-    else if (v > 0.2) level = 2;
-    else if (v > 0) level = 1;
+    if (v > HEATMAP_THRESHOLDS.LEVEL_4) level = HEATMAP_LEVELS.EXPERT;
+    else if (v > HEATMAP_THRESHOLDS.LEVEL_3) level = HEATMAP_LEVELS.APPLIED;
+    else if (v > HEATMAP_THRESHOLDS.LEVEL_2) level = HEATMAP_LEVELS.BASIC;
+    else if (v > HEATMAP_THRESHOLDS.LEVEL_1) level = HEATMAP_LEVELS.LEARNING;
 
     const pos = HeatmapGeometry.computeTooltipByFormula({
       index,
@@ -118,13 +122,13 @@ export const HeatmapGrid = ({
   };
 
   return (
-    <View 
+    <View
       testID={testID}
-      style={[styles.heatmapGrid, { width: containerWidth }]} 
+      style={[styles.heatmapGrid, { width: containerWidth }]}
       onLayout={(e) => {
-      const { width: w, height: h } = e.nativeEvent.layout;
-      setContainerSize({ width: w, height: h });
-    }}>
+        const { width: w, height: h } = e.nativeEvent.layout;
+        setContainerSize({ width: w, height: h });
+      }}>
       {gridData.map((item, index) => (
         <TouchableOpacity
           key={item.id}
@@ -153,7 +157,7 @@ export const HeatmapGrid = ({
 
       {selectedTile && selectedTile.top !== undefined && (
         <View
-          testID={testID ? `${testID}_tooltip` : "heatmap_tooltip"}
+          testID={testID ? `${testID}_tooltip` : 'heatmap_tooltip'}
           style={[
             styles.tooltip,
             {
@@ -169,14 +173,14 @@ export const HeatmapGrid = ({
             selectedTile?.showAbove ? styles.arrowDown : styles.arrowUp,
             { left: selectedTile?.arrowLeft || 0 }
           ]} />
-          <Text style={styles.tooltipTitle} testID={testID ? `${testID}_tooltip_title` : "heatmap_tooltip_title"}>{selectedTile?.label}</Text>
+          <Text style={styles.tooltipTitle} testID={testID ? `${testID}_tooltip_title` : 'heatmap_tooltip_title'}>{selectedTile?.label}</Text>
           <View style={styles.separator} />
           <Text style={styles.tooltipText}>Level: {selectedTile.level}</Text>
           <Text style={styles.tooltipSubText}>
-            {selectedTile.level === 0 ? '未経験/興味なし' :
-              selectedTile.level === 1 ? '学習中/少し興味' :
-                selectedTile.level === 2 ? '基礎/普通' :
-                  selectedTile.level === 3 ? '応用/やりたい' : '専門/とてもやりたい'}
+            {selectedTile.level === HEATMAP_LEVELS.NONE ? '未経験/興味なし' :
+              selectedTile.level === HEATMAP_LEVELS.LEARNING ? '学習中/少し興味' :
+                selectedTile.level === HEATMAP_LEVELS.BASIC ? '基礎/普通' :
+                  selectedTile.level === HEATMAP_LEVELS.APPLIED ? '応用/やりたい' : '専門/とてもやりたい'}
           </Text>
         </View>
       )}

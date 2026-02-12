@@ -14,6 +14,8 @@ import { View } from 'react-native';
  * Defines the menu structure for individual users.
  * 
  * @param {IndividualMenuScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {boolean} [props.hideSafeArea] - Whether to hide the safe area
  */
 export const IndividualMenuScreen = ({ navigation, hideSafeArea }) => {
     const menuGroups = [
@@ -60,7 +62,7 @@ export const IndividualMenuScreen = ({ navigation, hideSafeArea }) => {
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
             />
-            {!hideSafeArea && <BottomNav navigation={navigation} activeTab="Menu" />}
+            {!hideSafeArea && <BottomNav navigation={navigation} activeTab='Menu' />}
         </View>
     );
 };

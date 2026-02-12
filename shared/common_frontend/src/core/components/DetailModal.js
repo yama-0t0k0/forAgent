@@ -20,12 +20,12 @@ import { THEME } from '@shared/src/core/theme/theme';
  * 
  * @param {DetailModalProps} props 
  */
-export const DetailModal = ({ 
-    visible, 
-    onClose, 
-    title, 
-    loading = false, 
-    error = null, 
+export const DetailModal = ({
+    visible,
+    onClose,
+    title,
+    loading = false,
+    error = null,
     children,
     width = '90%',
     height = '85%'

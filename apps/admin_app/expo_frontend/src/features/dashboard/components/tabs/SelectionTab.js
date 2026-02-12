@@ -18,7 +18,7 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
     <GenericSearchBar
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
-      placeholder="JobStatID、個人IDで検索"
+      placeholder='JobStatID、個人IDで検索'
       quickFilters={[
         { label: '選考中', value: 'active' },
         { label: '内定', value: 'offer' }
@@ -38,7 +38,7 @@ export const SelectionTab = ({ searchQuery, setSearchQuery, filteredSelections }
           .filter(k => rawItem['選考進捗']['status_ステータス'][k]).join(', ');
 
         return (
-          <View style={styles.listItem} testID="selection_item">
+          <View style={styles.listItem} testID='selection_item'>
             <Text style={styles.itemTitle}>JobStatID: {jobId}</Text>
             <Text style={styles.itemSubtitle}>個人: {individualId}</Text>
             <Text style={styles.itemDetail}>求人: {jdNumber}</Text>

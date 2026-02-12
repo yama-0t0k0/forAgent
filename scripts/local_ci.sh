@@ -53,8 +53,8 @@ if [ -d "shared/common_frontend" ]; then
          if node "$PROJECT_ROOT/scripts/check_coding_conventions.js" "shared/common_frontend"; then
              echo "   ✅ Shared Frontend Conventions Passed"
          else
-             echo "   ⚠️  Shared Frontend Conventions Failed (Optional)"
-             # You can change to 'exit 1' if you want to enforce this strictly
+             echo "   ❌ Shared Frontend Conventions Failed"
+             exit 1
          fi
     fi
 else

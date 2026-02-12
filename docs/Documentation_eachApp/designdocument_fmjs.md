@@ -2,7 +2,7 @@
 
 - フレームワーク: Expo（React Native）
 - 共有モジュール: shared/common_frontend（UI, テーマ, Firebase設定）
-- データソース: Firestore（FeeMgmtAndJobStatDB）
+- データソース: Firestore（FeeMgmtAndJobStatDB および selection_progress）
 - 目的: エージェント/管理者による選考進捗状況および手数料の管理（Field Management Job System）
 
 ## Firestore 接続
@@ -18,7 +18,9 @@
 - Firestore プロジェクト（管理画面、要ログイン）:
   - https://console.firebase.google.com/u/0/project/flutter-frontend-21d0a/firestore/data
 - 参照コレクション/ID仕様
-  - コレクション: FeeMgmtAndJobStatDB
+  - コレクション: 
+    - **FeeMgmtAndJobStatDB** (Primary/新): 手数料管理および最新の選考ステータス
+    - **selection_progress** (Legacy/旧): 過去の選考進捗データ（互換性のため併用）
   - IDフィールド: JobStatID (またはドキュメントID)
   - ID接頭辞: S（例: S202412310001）
   - 参照ドキュメント例:
@@ -74,6 +76,7 @@ graph TD
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `SelectionProgress` モデルを使用します（`shared/common_frontend/src/core/models/SelectionProgress.js`）。
   - 生のFirestoreデータ（`data['field']`）への直接アクセスは原則禁止とし、モデルのゲッター（`model.jobStatId` 等）を使用します。
+  - **個人情報の参照**: 個人ユーザー情報を参照する場合は、`User` モデルを使用してください。`public_profile`（公開）と `private_info`（非公開）の分割はモデル内で隠蔽されますが、アクセス権限（Admin権限等）が必要です。
   - 既存コンポーネントとの互換性のために生データが必要な場合に限り、`model.rawData` プロパティの使用を許可します。
 - **ダミーデータの使用禁止**: 
   - 本アプリでは、ハードコードされたダミーデータ（`DUMMY_DATA` 等）の使用を固く禁じています。

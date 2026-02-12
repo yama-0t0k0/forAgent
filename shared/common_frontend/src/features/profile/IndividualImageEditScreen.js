@@ -2,6 +2,8 @@ import React from 'react';
 import { GenericImageEditScreen } from './GenericImageEditScreen';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { View } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
 
 /**
  * @typedef {Object} IndividualImageEditScreenProps
@@ -15,14 +17,16 @@ import { View } from 'react-native';
  * Configured with individual-specific data keys and collection names.
  * 
  * @param {IndividualImageEditScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {Object} props.route - Route object
  */
 export const IndividualImageEditScreen = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1 }}>
             <GenericImageEditScreen
-                dataSectionKey="基本情報"
-                collectionName="individual"
-                idFieldKey="id_individual"
+                dataSectionKey='基本情報'
+                collectionName='public_profile'
+                idFieldKey='id_individual'
                 mainImageConfig={{
                     key: 'プロフィール画像URL',
                     label: 'プロフィール画像 URL',
@@ -37,8 +41,18 @@ export const IndividualImageEditScreen = ({ navigation, route }) => {
                     icon: 'image-outline',
                     previewLabel: '背景プレビュー'
                 }}
+                customSaveLogic={async (db, id, data) => {
+                    const { publicData, privateData } = User.splitData(data);
+                    await setDoc(doc(db, 'public_profile', id), publicData);
+                    // Image edit might only update public fields, but if 'data' contains private fields (from context),
+                    // we must ensure they are saved to private_info or at least not exposed to public.
+                    // splitData handles this. We save privateData to ensure consistency if it exists.
+                    if (privateData && Object.keys(privateData).length > 0) {
+                        await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
+                    }
+                }}
             />
-            <BottomNav navigation={navigation} activeTab="Menu" />
+            <BottomNav navigation={navigation} activeTab='Menu' />
         </View>
     );
 };

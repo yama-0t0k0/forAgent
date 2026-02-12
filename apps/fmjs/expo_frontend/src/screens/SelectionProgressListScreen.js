@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView, Button } from 'react-native';
-import { StatusBadge } from '@shared/src/core/components/StatusBadge';
-import { DetailModal } from '@shared/src/core/components/DetailModal';
-import { db } from '@shared/src/core/firebaseConfig';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 import SelectionFlowEditor from '@shared/src/features/selection/SelectionFlowEditor';
+import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
+import { useFirestore } from '@shared/src/core/utils/useFirestore';
+import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
+import { EmptyState, ErrorState } from '@shared/src/core/components/StateComponents';
+import { FMJS_TABS, SELECTION_STATUS, STATUS_VARIANTS, UI_TEXT } from '@core/constants';
 
 /**
  * Formats a number as currency.
@@ -22,50 +21,14 @@ const formatCurrency = (amount) => {
  * @returns {JSX.Element} The rendered screen component
  */
 const SelectionProgressListScreen = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, refetch } = useFirestore(
+    () => FirestoreDataService.fetchAllFMJS(),
+    []
+  );
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
-
-  useEffect(() => {
-    /**
-     * Fetches data from Firestore.
-     */
-    const fetchData = async () => {
-      try {
-        console.log("Starting fetch data...");
-        console.log("Connected to Project ID:", db.app.options.projectId);
-        
-        const querySnapshot = await getDocs(collection(db, 'FeeMgmtAndJobStatDB'));
-        console.log("Firestore snapshot size:", querySnapshot.size);
-        
-        const list = [];
-        querySnapshot.forEach((doc) => {
-          // Create model instance immediately
-          list.push(SelectionProgress.fromFirestore(doc.id, doc.data()));
-        });
-        // Log sample for debugging (using rawData if needed)
-        if (list.length > 0) {
-            console.log("First item loaded:", JSON.stringify(list[0].rawData, null, 2));
-        }
-
-        // Remove duplicates if any (based on JobStatID)
-        const uniqueData = Array.from(new Map(list.map(item => [item.id, item])).values());
-        console.log("Unique data length:", uniqueData.length);
-
-        setData(uniqueData);
-      } catch (error) {
-        console.error("Error fetching data details: ", error);
-        Alert.alert("Error", "Failed to fetch data from Firestore.");
-        setData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const [activeTab, setActiveTab] = useState(FMJS_TABS.BASIC);
 
   /**
    * Handles item press to open details modal.
@@ -73,7 +36,7 @@ const SelectionProgressListScreen = () => {
    */
   const handlePress = (item) => {
     setSelectedItem(item);
-    setActiveTab('basic');
+    setActiveTab(FMJS_TABS.BASIC);
     setModalVisible(true);
   };
 
@@ -88,12 +51,12 @@ const SelectionProgressListScreen = () => {
       <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>JD: {item.jdNumber}</Text>
-          <StatusBadge 
-            status={item.activeStatus} 
-            variant={item.activeStatus === 'Open' ? 'success' : 'neutral'} 
+          <StatusBadge
+            status={item.activeStatus}
+            variant={item.activeStatus === SELECTION_STATUS.OPEN ? STATUS_VARIANTS.SUCCESS : STATUS_VARIANTS.NEUTRAL}
           />
         </View>
-        
+
         <View style={styles.cardBody}>
           <View style={styles.infoRow}>
             <Text style={styles.label}>フェーズ:</Text>
@@ -181,14 +144,14 @@ const SelectionProgressListScreen = () => {
     return (
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>選考フィードバック</Text>
-        
+
         <Text style={styles.subTitle}>書類選考</Text>
         {renderFeedbackDetail(item.documentScreening)}
 
         <Text style={styles.subTitle}>1次面接</Text>
         {renderFeedbackDetail(item.firstInterview)}
 
-        <Text style={styles.subTitle}>2次面接</Text>
+        <Text style={styles.subTitle}>{UI_TEXT.SECOND_INTERVIEW}</Text>
         {renderFeedbackDetail(item.secondInterview)}
 
         <Text style={styles.subTitle}>最終面接</Text>
@@ -205,7 +168,7 @@ const SelectionProgressListScreen = () => {
     if (!selectedItem) return null;
 
     switch (activeTab) {
-      case 'basic':
+      case FMJS_TABS.BASIC:
         return (
           <ScrollView>
             <View style={styles.sectionContainer}>
@@ -217,26 +180,26 @@ const SelectionProgressListScreen = () => {
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>選考ステータス</Text>
-              <SelectionFlowEditor 
-                initialData={selectedItem.progress} 
-                onSave={(newPhases) => console.log("Saved phases:", newPhases)}
+              <SelectionFlowEditor
+                initialData={selectedItem.progress}
+                onSave={(newPhases) => console.log('Saved phases:', newPhases)}
               />
             </View>
           </ScrollView>
         );
-      case 'feedback':
+      case FMJS_TABS.FEEDBACK:
         return (
           <ScrollView>
             {renderFeedbackSection(selectedItem)}
           </ScrollView>
         );
-      case 'survey':
+      case FMJS_TABS.SURVEY:
         return (
           <ScrollView>
             {renderSurveySection(selectedItem.survey)}
           </ScrollView>
         );
-      case 'fee':
+      case FMJS_TABS.FEE:
         return (
           <ScrollView>
             <View style={styles.sectionContainer}>
@@ -256,49 +219,56 @@ const SelectionProgressListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>選考進捗一覧 (FMJS)</Text>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.JobStatID || item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<Text style={styles.emptyText}>No data found.</Text>}
-        contentContainerStyle={styles.listContent}
-        stickyHeaderIndices={[0]}
-      />
+      <ScreenHeader title='選考進捗一覧 (FMJS)' showBack={false} />
+
+      {error ? (
+        <ErrorState message='データの読み込みに失敗しました' onRetry={refetch} />
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.JobStatID || item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={loading ? null : <EmptyState message='選考進捗データがありません' />}
+          contentContainerStyle={styles.listContent}
+          stickyHeaderIndices={[0]}
+          refreshing={loading}
+          onRefresh={refetch}
+        />
+      )}
 
       <DetailModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         title={`詳細: ${selectedItem?.JobStatID || selectedItem?.id}`}
-        width="90%"
-        height="85%"
+        width='90%'
+        height='85%'
       >
         <View style={{ flex: 1 }}>
           <View style={styles.tabBar}>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'basic' && styles.activeTabItem]}
-              onPress={() => setActiveTab('basic')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.BASIC && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.BASIC)}
             >
-              <Text style={[styles.tabText, activeTab === 'basic' && styles.activeTabText]}>基本情報</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.BASIC && styles.activeTabText]}>{UI_TEXT.BASIC_INFO}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'progress' && styles.activeTabItem]}
-              onPress={() => setActiveTab('progress')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.PROGRESS && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.PROGRESS)}
             >
-              <Text style={[styles.tabText, activeTab === 'progress' && styles.activeTabText]}>選考進捗</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.PROGRESS && styles.activeTabText]}>{UI_TEXT.SELECTION_PROGRESS}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'fee' && styles.activeTabItem]}
-              onPress={() => setActiveTab('fee')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.FEE && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.FEE)}
             >
-              <Text style={[styles.tabText, activeTab === 'fee' && styles.activeTabText]}>手数料</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.FEE && styles.activeTabText]}>{UI_TEXT.FEE}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === 'survey' && styles.activeTabItem]}
-              onPress={() => setActiveTab('survey')}
+              style={[styles.tabItem, activeTab === FMJS_TABS.SURVEY && styles.activeTabItem]}
+              onPress={() => setActiveTab(FMJS_TABS.SURVEY)}
             >
-              <Text style={[styles.tabText, activeTab === 'survey' && styles.activeTabText]}>サーベイ</Text>
+              <Text style={[styles.tabText, activeTab === FMJS_TABS.SURVEY && styles.activeTabText]}>{UI_TEXT.SURVEY}</Text>
             </TouchableOpacity>
           </View>
 

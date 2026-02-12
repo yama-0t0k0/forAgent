@@ -35,6 +35,9 @@ yarn-error.*
 .env*.local
 .env
 
+scripts/migration/serviceAccountKey.json
+scripts/migration/serviceAccountKey*.json
+
 
 # typescript
 *.tsbuildinfo

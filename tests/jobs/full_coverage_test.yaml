@@ -11,50 +11,50 @@ appId: host.exp.Exponent
 # 1. Dashboard Load
 # ==============================
 - extendedWaitUntil:
-      visible:
-          id: "dashboard_screen"
-      timeout: 120000
+        visible:
+              id: "dashboard_screen"
+        timeout: 120000
 
 # ==============================
 # 2. Company Tab (Sync Verification)
 # ==============================
 - extendedWaitUntil:
-      visible:
-          id: "tab_company"
-      timeout: 10000
+        visible:
+              id: "tab_company"
+        timeout: 10000
 - tapOn:
-      id: "tab_company"
+        id: "tab_company"
 # Robustness: Also try tapping text if ID didn't trigger switch correctly
 - runFlow:
-      when:
-          notVisible:
-              id: "company_item"
-      commands:
-          - tapOn: "法人"
+        when:
+              notVisible:
+                    id: "company_item"
+        commands:
+              - tapOn: "法人"
 
 - extendedWaitUntil:
-      visible:
-          id: "company_item"
-      timeout: 15000
+        visible:
+              id: "company_item"
+        timeout: 15000
 
 # Step 2a: Tap "別の会社" (index 0)
 - tapOn:
-      id: "company_item"
-      index: 0
+        id: "company_item"
+        index: 0
 - extendedWaitUntil:
-      visible: "【テスト】別の会社 (E2E用)"
-      timeout: 10000
+        visible: "【テスト】別の会社 (E2E用)"
+        timeout: 10000
 - assertVisible:
-      id: "company_detail_name"
+        id: "company_detail_name"
 - tapOn: "戻る"
 
 # Step 2b: Tap "サンプル株式会社" (index 1)
 - tapOn:
-      id: "company_item"
-      index: 1
+        id: "company_item"
+        index: 1
 - extendedWaitUntil:
-      visible: "【テスト】サンプル株式会社 (E2E用)"
-      timeout: 10000
+        visible: "【テスト】サンプル株式会社 (E2E用)"
+        timeout: 10000
 # Ensure it doesn't show "別の会社" still
 - assertNotVisible: "【テスト】別の会社 (E2E用)"
 - tapOn: "戻る"
@@ -63,89 +63,89 @@ appId: host.exp.Exponent
 # 3. Individual Tab (Interactivity Verification)
 # ==============================
 - tapOn:
-      id: "tab_individual"
+        id: "tab_individual"
 - extendedWaitUntil:
-      visible:
-          id: "engineer_item"
-      timeout: 5000
+        visible:
+              id: "engineer_item"
+        timeout: 5000
 
 - tapOn:
-      id: "engineer_item"
-      index: 0
+        id: "engineer_item"
+        index: 0
 - extendedWaitUntil:
-      visible: "個人詳細"
-      timeout: 10000
+        visible: "個人詳細"
+        timeout: 10000
 
 # Verify Skill Badges (Not cut off)
 - assertVisible:
-      id: "skill_badge_section"
+        id: "skill_badge_section"
 
 # Verify Heatmap Tooltip (Interactivity)
 - scrollUntilVisible:
-      element:
-          id: "skill_heatmap"
-      direction: DOWN
-      timeout: 10000
+        element:
+              id: "skill_heatmap"
+        direction: DOWN
+        timeout: 10000
 - tapOn:
-      id: "skill_heatmap_tile_20"
+        id: "skill_heatmap_tile_20"
 - extendedWaitUntil:
-      visible:
-          id: "skill_heatmap_tooltip"
-      timeout: 10000
+        visible:
+              id: "skill_heatmap_tooltip"
+        timeout: 10000
 - assertVisible:
-      id: "skill_heatmap_tooltip_title"
+        id: "skill_heatmap_tooltip_title"
 
 # Verify Career Detail Button (Interactivity)
 - assertVisible:
-      id: "career_detail_button"
+        id: "career_detail_button"
 - tapOn:
-      id: "career_detail_button"
+        id: "career_detail_button"
 # Should stay on MyPage or do something? In ProfileScreen it doesn't navigate yet but it should be tappable.
 # Let's check Bottom Nav instead which is more critical.
 - tapOn:
-      id: "nav_tab_Connection"
+        id: "nav_tab_Connection"
 - extendedWaitUntil:
-      visible: "つながり"
-      timeout: 5000
+        visible: "つながり"
+        timeout: 5000
 - runFlow:
-      when:
-          visible: "閉じる"
-      commands:
-          - tapOn: "閉じる"
+        when:
+              visible: "閉じる"
+        commands:
+              - tapOn: "閉じる"
 
 # Close Modal
 - tapOn:
-      id: "user_detail_close"
+        id: "modal_close_button"
 
 # ==============================
 # 4. Job & Selection (Structural Check)
 # ==============================
 - tapOn:
-      id: "tab_job"
+        id: "tab_job"
 - extendedWaitUntil:
-      visible:
-          id: "job_item"
-      timeout: 5000
+        visible:
+              id: "job_item"
+        timeout: 5000
 
 - tapOn:
-      id: "tab_selection"
+        id: "tab_selection"
 - extendedWaitUntil:
-      visible:
-          id: "selection_item"
-      timeout: 5000
+        visible:
+              id: "selection_item"
+        timeout: 5000
 
 # Drill-down into Selection Flow
 - tapOn:
-      id: "entry"
+        id: "entry"
 - extendedWaitUntil:
-      visible:
-          id: "drill_down_title"
-      timeout: 10000
+        visible:
+              id: "drill_down_title"
+        timeout: 10000
 
 # ==============================
 # 5. Return to Dashboard
 # ==============================
 - tapOn:
-      id: "tab_dashboard"
+        id: "tab_dashboard"
 - assertVisible:
-      id: "header_title"
+        id: "header_title"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { THEME } from '../theme/theme';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} FilterOption
@@ -26,11 +26,11 @@ import { THEME } from '../theme/theme';
  * 
  * @param {GenericSearchBarProps} props
  */
-export const GenericSearchBar = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  placeholder, 
-  quickFilters = [], 
+export const GenericSearchBar = ({
+  searchQuery,
+  setSearchQuery,
+  placeholder,
+  quickFilters = [],
   activeFilter,
   onApplyFilter,
   style,
@@ -46,19 +46,19 @@ export const GenericSearchBar = ({
       placeholderTextColor="#94A3B8"
     />
     {quickFilters.length > 0 && (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
         style={[styles.filterContainer, filterContainerStyle]}
         contentContainerStyle={styles.filterContentContainer}
       >
         {quickFilters.map((filter, index) => {
           const isActive = activeFilter === filter.value;
           return (
-            <TouchableOpacity 
-              key={index} 
+            <TouchableOpacity
+              key={index}
               style={[
-                styles.filterChip, 
+                styles.filterChip,
                 isActive && styles.activeFilterChip
               ]}
               onPress={() => onApplyFilter(filter.value)}

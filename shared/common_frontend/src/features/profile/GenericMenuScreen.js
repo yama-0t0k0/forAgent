@@ -102,7 +102,7 @@ export const GenericMenuScreen = ({
                                             {String(item.label)}
                                         </Text>
                                     </View>
-                                    <Ionicons name={item.rightIcon || "chevron-forward"} size={18} color={THEME.subText} />
+                                    <Ionicons name={item.rightIcon || 'chevron-forward'} size={18} color={THEME.subText} />
                                 </IconButton>
                             ))}
                         </View>

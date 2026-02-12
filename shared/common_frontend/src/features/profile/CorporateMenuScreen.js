@@ -15,6 +15,8 @@ import { View } from 'react-native';
  * Defines the menu structure for corporate users.
  * 
  * @param {CorporateMenuScreenProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {boolean} [props.hideSafeArea=false] - Whether to hide the bottom navigation
  */
 export const CorporateMenuScreen = ({ navigation, hideSafeArea = false }) => {
     const menuGroups = [
@@ -61,7 +63,7 @@ export const CorporateMenuScreen = ({ navigation, hideSafeArea = false }) => {
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
             />
-            {!hideSafeArea && <CorporateBottomNav navigation={navigation} activeTab="Menu" />}
+            {!hideSafeArea && <CorporateBottomNav navigation={navigation} activeTab='Menu' />}
         </View>
     );
 };

@@ -3,20 +3,21 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert 
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { THEME } from '@shared/src/core/theme/theme';
+import { SELECTION_LANE, SELECTION_STATUS } from '@shared/src/core/constants';
 
 const DEFAULT_PHASES = [
-    "応募_書類選考",
-    "カジュアル面談",
-    "1次面接",
-    "2次面接",
-    "最終面接",
-    "その他選考",
-    "オファー面談",
-    "内定",
-    "内定受諾",
-    "入社_請求",
-    "退職日確定",
-    "短期離職_返金"
+    '応募_書類選考',
+    'カジュアル面談',
+    '1次面接',
+    '2次面接',
+    '最終面接',
+    'その他選考',
+    'オファー面談',
+    '内定',
+    '内定受諾',
+    '入社_請求',
+    '退職日確定',
+    '短期離職_返金'
 ];
 
 /**
@@ -40,15 +41,15 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                 return {
                     id: `initial-${index}`,
                     label,
-                    status: isActive ? 'completed' : 'pending',
-                    lane: 1,
+                    status: isActive ? SELECTION_STATUS.COMPLETED : SELECTION_STATUS.PENDING,
+                    lane: SELECTION_LANE.PRIMARY,
                     date: isActive ? '2025-01-01' : null, // Placeholder for existing data
                 };
             });
             // Set current status
             const currentLabel = Object.entries(initialData.status_ステータス || {}).find(([_, v]) => v)?.[0];
             if (currentLabel) {
-                // Optionally mark a phase as "current"
+                // Optionally mark a phase as 'current'
             }
             setPhases(convertedPhases);
         } else if (initialData?.phases) {
@@ -73,8 +74,8 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
     const addPhase = (lane) => {
         const newPhase = {
             id: Date.now().toString(),
-            label: "新規ステップ",
-            status: 'pending',
+            label: '新規ステップ',
+            status: SELECTION_STATUS.PENDING,
             lane: lane,
             date: new Date().toISOString().split('T')[0],
         };
@@ -136,12 +137,19 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
         const isToday = phase.date === new Date().toISOString().split('T')[0];
 
         return (
-            <View key={phase.id} style={[styles.boxWrapper, phase.lane === 2 && styles.lane2Wrapper]}>
-                <View style={[
-                    styles.box,
-                    phase.status === 'completed' ? styles.boxCompleted : styles.boxPending,
-                    phase.lane === 2 && styles.boxIrregular
-                ]}>
+            <View key={phase.id} style={[styles.boxWrapper, phase.lane === SELECTION_LANE.SECONDARY && styles.lane2Wrapper]}>
+                <TouchableOpacity
+                    style={[
+                        styles.box,
+                        phase.status === SELECTION_STATUS.COMPLETED ? styles.boxCompleted : styles.boxPending,
+                        phase.lane === SELECTION_LANE.SECONDARY && styles.boxIrregular
+                    ]}
+                    onPress={() => {
+                        // Toggle status logic
+                        const nextStatus = phase.status === SELECTION_STATUS.PENDING ? SELECTION_STATUS.COMPLETED : SELECTION_STATUS.PENDING;
+                        updatePhase(phase.id, { status: nextStatus });
+                    }}
+                >
                     {isEditing ? (
                         <View style={styles.editControls}>
                             <TextInput
@@ -155,19 +163,19 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                                         {phase.date || '日付設定'}
                                     </Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => updatePhase(phase.id, { lane: phase.lane === 1 ? 2 : 1 })}>
-                                    <Ionicons name="swap-horizontal" size={16} color="#666" />
+                                <TouchableOpacity onPress={() => updatePhase(phase.id, { lane: phase.lane === SELECTION_LANE.PRIMARY ? SELECTION_LANE.SECONDARY : SELECTION_LANE.PRIMARY })}>
+                                    <Ionicons name='swap-horizontal' size={16} color='#666' />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => deletePhase(phase.id)}>
-                                    <Ionicons name="trash" size={16} color="red" />
+                                    <Ionicons name='trash' size={16} color='red' />
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.reorderRow}>
                                 <TouchableOpacity onPress={() => movePhase(index, -1)}>
-                                    <Ionicons name="arrow-up" size={18} color="#007bff" />
+                                    <Ionicons name='arrow-up' size={18} color='#007bff' />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => movePhase(index, 1)}>
-                                    <Ionicons name="arrow-down" size={18} color="#007bff" />
+                                    <Ionicons name='arrow-down' size={18} color='#007bff' />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -177,19 +185,19 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                             <Text style={[styles.dateTextLabel, isToday && styles.todayText]}>
                                 {phase.date}
                             </Text>
-                            {phase.status === 'completed' && (
+                            {phase.status === SELECTION_STATUS.COMPLETED && (
                                 <View style={styles.checkMark}>
-                                    <Ionicons name="checkmark-circle" size={16} color="green" />
+                                    <Ionicons name='checkmark-circle' size={16} color='green' />
                                 </View>
                             )}
                         </>
                     )}
-                </View>
+                </TouchableOpacity>
                 {showDatePicker === phase.id && (
                     <DateTimePicker
                         value={phase.date ? new Date(phase.date) : new Date()}
-                        mode="date"
-                        display="default"
+                        mode='date'
+                        display='default'
                         onChange={(e, d) => onChangeDate(e, d, phase.id)}
                     />
                 )}
@@ -209,20 +217,20 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
             <View style={styles.lanesContainer}>
                 <View style={styles.lane}>
                     <Text style={styles.laneTitle}>標準フロー</Text>
-                    {phases.filter(p => true).map((p, i) => p.lane === 1 ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
+                    {phases.filter(p => true).map((p, i) => p.lane === SELECTION_LANE.PRIMARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
-                        <TouchableOpacity style={styles.addButton} onPress={() => addPhase(1)}>
-                            <Ionicons name="add-circle" size={32} color="#007bff" />
+                        <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.PRIMARY)}>
+                            <Ionicons name='add-circle' size={32} color='#007bff' />
                         </TouchableOpacity>
                     )}
                 </View>
 
                 <View style={styles.lane}>
                     <Text style={styles.laneTitle}>イレギュラー</Text>
-                    {phases.map((p, i) => p.lane === 2 ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
+                    {phases.map((p, i) => p.lane === SELECTION_LANE.SECONDARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
-                        <TouchableOpacity style={styles.addButton} onPress={() => addPhase(2)}>
-                            <Ionicons name="add-circle" size={32} color="#ff9800" />
+                        <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.SECONDARY)}>
+                            <Ionicons name='add-circle' size={32} color='#ff9800' />
                         </TouchableOpacity>
                     )}
                 </View>

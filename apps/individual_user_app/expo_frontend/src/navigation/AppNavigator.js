@@ -7,6 +7,9 @@ import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+import { ROUTES } from '@shared/src/core/constants/navigation';
+import { doc, setDoc } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -17,24 +20,29 @@ const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json')
  * @returns {JSX.Element} The navigation stack.
  */
 export const AppNavigator = () => (
-    <Stack.Navigator initialRouteName="MyPage" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Registration">
+    <Stack.Navigator initialRouteName={ROUTES.INDIVIDUAL_MY_PAGE} screenOptions={{ headerShown: false }}>
+        <Stack.Screen name={ROUTES.REGISTRATION}>
             {(props) => (
                 <GenericRegistrationScreen
                     {...props}
-                    title="エンジニア個人登録"
-                    collectionName="individual"
-                    idField="id_individual"
-                    idPrefixChar="C"
+                    title='エンジニア個人登録'
+                    collectionName='public_profile'
+                    idField='id_individual'
+                    idPrefixChar='C'
                     orderTemplate={ENGINEER_TEMPLATE}
+                    customSaveLogic={async (db, id, data) => {
+                        const { publicData, privateData } = User.splitData(data);
+                        await setDoc(doc(db, 'public_profile', id), publicData);
+                        await setDoc(doc(db, 'private_info', id), privateData);
+                    }}
                 />
             )}
         </Stack.Screen>
-        <Stack.Screen name="MyPage" component={IndividualProfileScreen} />
-        <Stack.Screen name="ImageEdit" component={IndividualImageEditScreen} />
-        <Stack.Screen name="Menu" component={IndividualMenuScreen} />
-        <Stack.Screen name="Connection" component={ConnectionScreen} />
-        <Stack.Screen name="Career" component={CareerScreen} />
-        <Stack.Screen name="JobDescription" component={JobDescriptionScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_MY_PAGE} component={IndividualProfileScreen} />
+        <Stack.Screen name={ROUTES.IMAGE_EDIT} component={IndividualImageEditScreen} />
+        <Stack.Screen name={ROUTES.MENU} component={IndividualMenuScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_CONNECTION} component={ConnectionScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_CAREER} component={CareerScreen} />
+        <Stack.Screen name={ROUTES.JOB_DESCRIPTION} component={JobDescriptionScreen} />
     </Stack.Navigator>
 );

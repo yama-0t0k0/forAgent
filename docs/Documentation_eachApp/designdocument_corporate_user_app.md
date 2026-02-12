@@ -9,6 +9,7 @@
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `Company` モデルを使用します（`shared/common_frontend/src/core/models/Company.js`）。
   - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`company.companyName` 等）を使用します。
+  - **エンジニア情報の参照**: エンジニア検索等で `User` モデルを参照する場合、通常は `public_profile`（匿名情報）のみが取得されます。マッチング成立後のエンジニアに対してのみ、`private_info`（氏名・連絡先等）へのアクセス権が付与され、結合された完全な `User` モデルが取得可能になります。
 
 ## Firestore 接続
 - Firestoreへの接続は共有設定 [firebaseConfig.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/firebaseConfig.js) を介して行います

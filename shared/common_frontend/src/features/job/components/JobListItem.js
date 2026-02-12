@@ -36,10 +36,9 @@ export const JobListItem = ({
   style,
   testID
 }) => {
-  // Use JobDescription model
-  const jd = job instanceof JobDescription 
-    ? job 
-    : JobDescription.fromFirestore(job.JD_Number || job.id, job);
+  // Job prop is expected to be a JobDescription model instance
+  /** @type {JobDescription} */
+  const jd = job;
 
   const title = jd.positionName || 'タイトル未設定';
   const jdNumber = jd.id || '-';
@@ -81,7 +80,7 @@ export const JobListItem = ({
               {skills.core.slice(0, 1).map((skill, i) => (
                 <GlassCard
                   key={`core-${i}`}
-                  label="必須スキル"
+                  label='必須スキル'
                   skillName={skill}
                   width={60}
                   style={{ marginRight: 6 }}
@@ -104,7 +103,7 @@ export const JobListItem = ({
               {skills.sub1.slice(0, 1).map((skill, i) => (
                 <GlassCard
                   key={`sub1-${i}`}
-                  label="歓迎1"
+                  label='歓迎1'
                   skillName={skill}
                   width={42}
                   style={{ marginRight: 6 }}
@@ -128,7 +127,7 @@ export const JobListItem = ({
         </View>
 
         {heatmapData && (
-          <View pointerEvents="box-none">
+          <View pointerEvents='box-none'>
             <MiniHeatmap
               data={heatmapData.data}
               rows={heatmapData.rows || 3}
@@ -149,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#fff',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,

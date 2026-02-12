@@ -1,8 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DataContext } from '../state/DataContext';
-import { THEME } from '../theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
+import { PICKER_EVENT_TYPE, DATE_CONSTRAINTS } from '@shared/src/core/constants/field';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 /**
  * @typedef {Object} DatePickerInputProps
@@ -17,6 +19,9 @@ import { THEME } from '../theme/theme';
  * Uses DataContext to update values.
  * 
  * @param {DatePickerInputProps} props
+ * @param {string} props.label - Input label
+ * @param {Object} props.valueObj - Value object containing YYYYMMDD number
+ * @param {string} props.path - Data path for context update
  */
 export const DatePickerInput = ({ label, valueObj, path }) => {
   const context = useContext(DataContext);
@@ -26,16 +31,16 @@ export const DatePickerInput = ({ label, valueObj, path }) => {
   const [show, setShow] = useState(false);
 
   // Parse YYYYMMDD (number)
-  const yyyymmdd = valueObj?.value || 19900101;
-  const safeYyyymmdd = typeof yyyymmdd === 'number' ? yyyymmdd : 19900101;
+  const yyyymmdd = valueObj?.value || DATE_CONSTRAINTS.DEFAULT_YYYYMMDD;
+  const safeYyyymmdd = typeof yyyymmdd === DATA_TYPE.NUMBER ? yyyymmdd : DATE_CONSTRAINTS.DEFAULT_YYYYMMDD;
 
   const year = Math.floor(safeYyyymmdd / 10000);
   const month = Math.floor((safeYyyymmdd % 10000) / 100) - 1; // 0-indexed
   const day = safeYyyymmdd % 100;
 
-  const safeYear = year > 1900 && year < 2100 ? year : 1990;
-  const safeMonth = month >= 0 && month < 12 ? month : 0;
-  const safeDay = day >= 1 && day <= 31 ? day : 1;
+  const safeYear = year > DATE_CONSTRAINTS.MIN_YEAR && year < DATE_CONSTRAINTS.MAX_YEAR ? year : DATE_CONSTRAINTS.DEFAULT_YEAR;
+  const safeMonth = month >= 0 && month < DATE_CONSTRAINTS.MONTHS_IN_YEAR ? month : 0;
+  const safeDay = day >= DATE_CONSTRAINTS.MIN_DAY && day <= DATE_CONSTRAINTS.MAX_DAY ? day : 1;
 
   const dateValue = new Date(safeYear, safeMonth, safeDay);
 
@@ -46,7 +51,7 @@ export const DatePickerInput = ({ label, valueObj, path }) => {
    */
   const onChange = (event, selectedDate) => {
     setShow(false);
-    if (selectedDate && event.type !== 'dismissed') {
+    if (selectedDate && event.type !== PICKER_EVENT_TYPE.DISMISSED) {
       const y = selectedDate.getFullYear();
       const m = selectedDate.getMonth() + 1;
       const d = selectedDate.getDate();

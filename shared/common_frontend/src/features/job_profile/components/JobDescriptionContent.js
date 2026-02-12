@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { DataContext } from '@shared/src/core/state/DataContext';
@@ -8,10 +8,11 @@ import { IconButton } from '@shared/src/core/components/IconButton';
 import { HeatmapGrid } from '@shared/src/features/analytics/components/HeatmapGrid';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { db } from '@shared/src/core/firebaseConfig';
 import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
+import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 
 const { width } = Dimensions.get('window');
 
@@ -28,38 +29,37 @@ const BADGE_ITEMS = [
  * @param {string} props.companyId - Company ID
  * @param {string} props.jdNumber - Job Description Number
  * @param {Function} [props.onEdit] - Callback for edit action
+ * @param {Function} [props.onApply] - Callback for apply action
  * @returns {JSX.Element} The rendered content.
  */
-export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
+export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) => {
     const { data: localData } = useContext(DataContext);
-    const [firestoreData, setFirestoreData] = useState(null);
     const [heatmapValues, setHeatmapValues] = useState(null);
     const [containerWidth, setContainerWidth] = useState(width);
 
-    // Fetch actual data from Firestore
-    useEffect(() => {
-        if (!companyId || !jdNumber) return;
-
-        const docRef = doc(db, 'job_description', companyId, 'JD_Number', jdNumber);
-        const unsubscribe = onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const jdData = docSnap.data();
-                setFirestoreData(jdData);
-
-                // Calculate heatmap values
-                const values = HeatmapCalculator.calculate(jdData);
-                setHeatmapValues(values);
-            }
-        }, (error) => {
-            console.error("Firestore error:", error);
-        });
-
-        return () => unsubscribe();
-    }, [companyId, jdNumber]);
+    // Use useFirestoreSnapshot for real-time updates
+    const docRef = useMemo(() => 
+        (companyId && jdNumber) ? doc(db, 'job_description', companyId, 'JD_Number', jdNumber) : null,
+        [companyId, jdNumber]
+    );
+    const { data: firestoreData } = useFirestoreSnapshot(docRef, JobDescription);
 
     // Use firestore data if available, otherwise fallback to local data (context)
     const activeData = firestoreData || localData;
-    const jd = JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
+    
+    // Ensure we have a JobDescription instance (hydrate if needed)
+    const jd = activeData instanceof JobDescription 
+        ? activeData 
+        : JobDescription.fromFirestore(jdNumber || '', activeData, companyId || '');
+
+    // Calculate heatmap values when data changes
+    useEffect(() => {
+        if (jd && jd.rawData) {
+            const values = HeatmapCalculator.calculate(jd.rawData);
+            setHeatmapValues(values);
+        }
+    }, [jd]);
+
     const positionName = jd.positionName || 'ポジション名未設定';
 
     return (
@@ -74,7 +74,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         {onEdit && (
                             <View style={styles.headerActionContainer}>
                                 <IconButton
-                                    name="create-outline"
+                                    name='create-outline'
                                     size={24}
                                     color={THEME.text}
                                     style={styles.editButton}
@@ -112,17 +112,17 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
                         <View style={styles.heatmapHeader}>
                             <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                             <View style={styles.chatBotIconSmall}>
-                                <Ionicons name="chatbubble-outline" size={14} color={THEME.text} />
+                                <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
                             </View>
                         </View>
 
                         <HeatmapGrid
-                            containerWidth={width - 40}
+                            containerWidth={containerWidth - 40}
                             dataValues={heatmapValues}
                         />
 
                         <View style={styles.chatBotCallout}>
-                            <Ionicons name="chatbubble-ellipses" size={40} color={THEME.accent} />
+                            <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
                             <Text style={styles.labelYellow}>AI分析</Text>
                         </View>
                     </View>
@@ -132,15 +132,15 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit }) => {
 
                 </ScrollView>
 
-                {/* 4. Bottom Button (Renamed to Job Detail) - No Footer Navigation */}
+                {/* 4. Bottom Button (Apply) */}
                 <View style={styles.bottomButtonContainer}>
                     <PrimaryButton
                         style={styles.centerButton}
                         activeOpacity={0.8}
-                        onPress={() => { }}
+                        onPress={onApply || (() => {})}
                     >
-                        <Text style={styles.centerButtonText}>求人詳細</Text>
-                        <Ionicons name="chevron-down" size={20} color="#FFF" style={{ marginTop: -2 }} />
+                        <Text style={styles.centerButtonText}>応募する</Text>
+                        <Ionicons name='paper-plane-outline' size={20} color='#FFF' style={{ marginTop: -2 }} />
                     </PrimaryButton>
                 </View>
             </SafeAreaView>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         borderWidth: 1,
         borderColor: THEME.cardBorder,
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,

@@ -19,7 +19,7 @@ export const DrillDownModal = ({ visible, title, data, onClose }) => (
     title={title}
     onClose={onClose}
   >
-    <View style={{ flex: 1 }} testID="drill_down_modal_view">
+    <View style={{ flex: 1 }} testID='drill_down_modal_view'>
       <GenericDataList
         data={data}
         renderItem={({ item }) => {

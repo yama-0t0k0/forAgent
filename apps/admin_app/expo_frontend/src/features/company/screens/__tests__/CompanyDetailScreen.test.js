@@ -44,7 +44,7 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
     mockUseRoute.mockReturnValue({ params: { companyId } });
   });
 
-  it('should fetch from "Company" collection first', async () => {
+  it('should fetch from \'Company\' collection first', async () => {
     // Setup mocks
     /** @type {Object} */
     const mockSnapCompany = { exists: () => true, id: companyId, data: () => ({ ...companyData, source: 'Company' }) };
@@ -65,7 +65,7 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
     });
   });
 
-  it('should fallback to "company" collection if "Company" fails', async () => {
+  it('should fallback to \'company\' collection if \'Company\' fails', async () => {
     // Setup mocks
     /** @type {Object} */
     const mockSnapCompanyFail = { exists: () => false };
@@ -85,7 +85,7 @@ describe('CompanyDetailScreen Firestore Priority Tests', () => {
     });
   });
 
-  it('should fallback to "corporate" collection if "Company" and "company" fail', async () => {
+  it('should fallback to \'corporate\' collection if \'Company\' and \'company\' fail', async () => {
     // Setup mocks
     /** @type {Object} */
     const mockSnapCompanyFail = { exists: () => false };

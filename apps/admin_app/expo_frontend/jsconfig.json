@@ -6,7 +6,8 @@
       "@corporate_app/*": ["../../../apps/corporate_user_app/expo_frontend/*"],
       "@individual_app/*": ["../../../apps/individual_user_app/expo_frontend/*"],
       "@assets/*": ["./assets/*"],
-      "@features/*": ["./src/features/*"]
+      "@features/*": ["./src/features/*"],
+      "@core/*": ["./src/core/*"]
     },
     "jsx": "react-native"
   },

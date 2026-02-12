@@ -27,13 +27,13 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc } = require('firebase/firestore');
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs",
-  authDomain: "flutter-frontend-21d0a.firebaseapp.com",
-  projectId: "flutter-frontend-21d0a",
-  storageBucket: "flutter-frontend-21d0a.firebasestorage.app",
-  messagingSenderId: "511656353816",
-  appId: "1:511656353816:web:9d9e67fed63f081185236d",
-  measurementId: "G-6NGX7TWPNJ"
+  apiKey: 'AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs',
+  authDomain: 'flutter-frontend-21d0a.firebaseapp.com',
+  projectId: 'flutter-frontend-21d0a',
+  storageBucket: 'flutter-frontend-21d0a.firebasestorage.app',
+  messagingSenderId: '511656353816',
+  appId: '1:511656353816:web:9d9e67fed63f081185236d',
+  measurementId: 'G-6NGX7TWPNJ'
 };
 
 const app = initializeApp(firebaseConfig);
@@ -56,7 +56,7 @@ function loadJson(p) {
 async function seedIndividual(individualId, jsonPath) {
   const id = (individualId || '').trim();
   if (!id || !id.startsWith('C')) {
-    throw new Error('individualId は "C" 始まりのIDが必要です（例: C202501010001）');
+    throw new Error('individualId は \'C\' 始まりのIDが必要です（例: C202501010001）');
   }
   if (!jsonPath) {
     throw new Error('individual 用の jsonPath が必要です');
@@ -65,9 +65,57 @@ async function seedIndividual(individualId, jsonPath) {
   data.id_individual = id;
   data.updated_at = new Date();
 
-  const docRef = doc(db, 'individual', id);
-  await setDoc(docRef, data, { merge: true });
-  console.log(`Seeded individual/${id} successfully!`);
+  // Split data into public_profile and private_info
+  // Logic mirrors scripts/migration/migrate_individual.js
+
+  const basicInfo = data['基本情報'] || {};
+  const privateData = {};
+  
+  // Extract PII from '基本情報' if exists
+  if (data['基本情報']) {
+    const piiKeys = [
+      '姓', '名', 'Family name(半角英)', 'First name(半角英)', 
+      'メール', 'TEL', '住所', '生年月日',
+      'Googleアカウント', 'GitHubアカウント', 'ハンドルネーム',
+      'パスワード'
+    ];
+
+    const topLevelPii = [
+      'name', 'nameKana', 'birthDate', 'email', 'phoneNumber', 'tel', 'address', 'resumeUrl', 'resume'
+    ];
+
+    piiKeys.forEach(key => {
+      if (basicInfo[key] !== undefined) {
+        if (!privateData['基本情報']) privateData['基本情報'] = {};
+        privateData['基本情報'][key] = basicInfo[key];
+        delete basicInfo[key];
+      }
+    });
+    
+    topLevelPii.forEach(key => {
+      if (data[key] !== undefined) {
+        privateData[key] = data[key];
+        delete data[key];
+      }
+    });
+  }
+
+  const publicData = { ...data };
+  // Ensure ID and timestamp are in both
+  privateData.id_individual = id;
+  privateData.updated_at = new Date();
+  publicData.id_individual = id;
+  publicData.updated_at = new Date();
+
+  // Write to public_profile
+  const publicRef = doc(db, 'public_profile', id);
+  await setDoc(publicRef, publicData, { merge: true });
+  console.log(`Seeded public_profile/${id} successfully!`);
+
+  // Write to private_info
+  const privateRef = doc(db, 'private_info', id);
+  await setDoc(privateRef, privateData, { merge: true });
+  console.log(`Seeded private_info/${id} successfully!`);
 }
 
 /**
@@ -78,7 +126,7 @@ async function seedIndividual(individualId, jsonPath) {
 async function seedCompany(companyId, jsonPath) {
   const id = (companyId || '').trim();
   if (!id || !id.startsWith('B')) {
-    throw new Error('companyId は "B" 始まりのIDが必要です（例: B00003）');
+    throw new Error('companyId は \'B\' 始まりのIDが必要です（例: B00003）');
   }
   if (!jsonPath) {
     throw new Error('company 用の jsonPath が必要です');
@@ -102,7 +150,7 @@ async function seedJD(companyId, jdNumber, jsonPath) {
   const cid = (companyId || '').trim();
   const jdn = (jdNumber || '').trim();
   if (!cid || !cid.startsWith('B')) {
-    throw new Error('companyId は "B" 始まりのIDが必要です（例: B00003）');
+    throw new Error('companyId は \'B\' 始まりのIDが必要です（例: B00003）');
   }
   if (!jdn) {
     throw new Error('jdNumber が必要です（例: 01）');

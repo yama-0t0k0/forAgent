@@ -38,10 +38,9 @@ export const EngineerListItem = ({
   testID,
   showMatchScore = true
 }) => {
-  // Ensure we have a User model instance
-  const user = engineer instanceof User 
-    ? engineer 
-    : User.fromFirestore(engineer.id || engineer['基本情報']?.id, engineer);
+  // Engineer prop is expected to be a User model instance from FirestoreDataService
+  /** @type {User} */
+  const user = engineer;
 
   const fullName = user.fullNameKanji || (user.rawData.name) || '名称未設定';
   
@@ -67,7 +66,7 @@ export const EngineerListItem = ({
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, marginRight: 8 }}>
-          <View style={styles.listItemHeader}>
+        <View style={styles.listItemHeader}>
             <View>
               <Text style={styles.itemTitleModern}>{fullName}</Text>
               <Text style={styles.itemSubtitleModern}>ID: {displayId}</Text>
@@ -89,7 +88,7 @@ export const EngineerListItem = ({
               {skills.core.map((skill, i) => (
                 <GlassCard
                   key={`core-${i}`}
-                  label={i === 0 ? "CORE" : ""}
+                  label={i === 0 ? 'CORE' : ''}
                   skillName={skill}
                   width={60}
                   style={{ marginRight: 6 }}
@@ -110,7 +109,7 @@ export const EngineerListItem = ({
               {skills.sub1.map((skill, i) => (
                 <GlassCard
                   key={`sub1-${i}`}
-                  label={i === 0 ? "Sub 1" : ""}
+                  label={i === 0 ? 'Sub 1' : ''}
                   skillName={skill}
                   width={42}
                   style={{ marginRight: 6 }}
@@ -134,7 +133,7 @@ export const EngineerListItem = ({
         </View>
 
         {heatmapData && (
-          <View pointerEvents="box-none">
+          <View pointerEvents='box-none'>
             <MiniHeatmap
               data={heatmapData.data}
               rows={heatmapData.rows || 3}
@@ -155,7 +154,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#fff',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,

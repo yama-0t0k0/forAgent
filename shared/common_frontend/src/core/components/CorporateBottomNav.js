@@ -12,6 +12,8 @@ import { GenericBottomNav } from './GenericBottomNav';
  * Provides navigation between corporate screens (Jobs, TechStack, Connections, etc.).
  * 
  * @param {CorporateBottomNavProps} props
+ * @param {Object} props.navigation - Navigation object
+ * @param {string} [props.activeTab='CompanyPage'] - Currently active tab ID
  */
 export const CorporateBottomNav = ({ navigation, activeTab = 'CompanyPage' }) => {
     const tabs = [

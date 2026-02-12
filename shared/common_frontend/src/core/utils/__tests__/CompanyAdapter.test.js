@@ -10,7 +10,7 @@ describe('CompanyAdapter', () => {
         expect(result.raw.techStack).toEqual({});
     });
 
-    test('should extract data from nested "会社概要" structure', () => {
+    test('should extract data from nested \'会社概要\' structure', () => {
         const input = {
             '会社概要': {
                 '社名': 'Test Company',
@@ -46,7 +46,7 @@ describe('CompanyAdapter', () => {
         expect(result.logoUrl).toBe('http://flat.com/logo.png');
     });
 
-    test('should prioritize nested "会社概要" over flat fields', () => {
+    test('should prioritize nested \'会社概要\' over flat fields', () => {
         const input = {
             '会社概要': {
                 '社名': 'Priority Nested'

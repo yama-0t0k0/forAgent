@@ -1,3 +1,5 @@
+import { COMPANY_DATA } from '@core/constants';
+
 /**
  * Formats company data for the CompanyPageScreen.
  * Handles normalization of flat admin data and fixes known data issues (e.g. template fallback).
@@ -14,28 +16,28 @@ export const formatCompanyData = (companyData) => {
   // FIX: Handle case where data has both flat fields (correct) and nested template data (incorrect)
   // This specifically addresses the issue where 'ヤヲー株式会社' (template) is shown instead of the correct company name
   const flatName = data.companyName || data.name;
-  if (flatName && data['会社概要']?.['社名'] === 'ヤヲー株式会社') {
-    const currentProfile = data['会社概要'] ?? {};
+  if (flatName && data[COMPANY_DATA.SECTION_PROFILE]?.[COMPANY_DATA.FIELD_NAME] === COMPANY_DATA.TEMPLATE_NAME_YAWO) {
+    const currentProfile = data[COMPANY_DATA.SECTION_PROFILE] ?? {};
     /** @type {Object.<string, any>} */
-    data['会社概要'] = {
+    data[COMPANY_DATA.SECTION_PROFILE] = {
       ...currentProfile,
-      '社名': flatName
+      [COMPANY_DATA.FIELD_NAME]: flatName
     };
   }
 
   // Check if data is already nested (has '会社概要')
-  if (data['会社概要'] ?? null) {
+  if (data[COMPANY_DATA.SECTION_PROFILE] ?? null) {
     return data;
   }
 
   // Determine company name using same logic as list view
-  const companyName = data.companyName || data.name || '名称未設定';
+  const companyName = data.companyName || data.name || COMPANY_DATA.NO_NAME;
 
   // Map flat data to nested structure
   return {
-    '会社概要': {
-      '社名': companyName,
-      '事業内容': data.businessContent || data.description || '事業内容が設定されていません。',
+    [COMPANY_DATA.SECTION_PROFILE]: {
+      [COMPANY_DATA.FIELD_NAME]: companyName,
+      '事業内容': data.businessContent || data.description || COMPANY_DATA.NO_DESCRIPTION,
       '住所': data.address || '',
       '背景画像URL': data.backgroundUrl || data.backgroundImage,
       'ロゴ画像URL': data.logoUrl || data.logo,

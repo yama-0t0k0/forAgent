@@ -5,12 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { THEME } from '@shared/src/core/theme/theme';
+import { PLATFORM } from '@shared/src/core/constants/system';
 import { TechStackView } from '@shared/src/features/analytics/components/TechStackView';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 
 // Enable LayoutAnimation on Android
-if (Platform.OS === 'android') {
+if (Platform.OS === PLATFORM.ANDROID) {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
         UIManager.setLayoutAnimationEnabledExperimental(true);
     }
@@ -20,6 +21,9 @@ const { width, height } = Dimensions.get('window');
 
 /**
  * Component for displaying the menu.
+ * @param {Object} props
+ * @param {Array} props.menuGroups - Menu configuration
+ * @param {Function} props.onMenuPress - Callback for menu item press
  */
 const MenuView = ({ menuGroups, onMenuPress }) => {
     return (
@@ -44,7 +48,7 @@ const MenuView = ({ menuGroups, onMenuPress }) => {
                                         {item.label}
                                     </Text>
                                 </View>
-                                <Ionicons name="chevron-forward" size={18} color={THEME.subText} />
+                                <Ionicons name='chevron-forward' size={18} color={THEME.subText} />
                             </IconButton>
                         ))}
                     </View>
@@ -57,6 +61,8 @@ const MenuView = ({ menuGroups, onMenuPress }) => {
 
 /**
  * Placeholder component for screens under construction.
+ * @param {Object} props
+ * @param {string} props.title - Screen title
  */
 const UnderConstructionView = ({ title }) => (
     <View style={styles.centerContent}>
@@ -123,15 +129,15 @@ export const CompanyProfileView = ({
     const renderScene = ({ route }) => {
         switch (route.key) {
             case 'jobs':
-                return <UnderConstructionView title="求人" />;
+                return <UnderConstructionView title='求人' />;
             case 'connections':
-                return <UnderConstructionView title="つながり" />;
+                return <UnderConstructionView title='つながり' />;
             case 'tech_stack':
                 return <TechStackView features={features} techStack={techStack} />;
             case 'blog':
-                return <UnderConstructionView title="ブログ" />;
+                return <UnderConstructionView title='ブログ' />;
             case 'events':
-                return <UnderConstructionView title="イベント" />;
+                return <UnderConstructionView title='イベント' />;
             case 'menu':
                 return <MenuView menuGroups={menuGroups} onMenuPress={onMenuPress} />;
             default:
@@ -153,7 +159,7 @@ export const CompanyProfileView = ({
                     <Image
                         source={backgroundUrl ? { uri: backgroundUrl } : defaultBackgroundImage}
                         style={styles.headerBackgroundImage}
-                        resizeMode="cover"
+                        resizeMode='cover'
                     />
                     <View style={styles.headerOverlay} />
                 </View>
@@ -164,16 +170,16 @@ export const CompanyProfileView = ({
                         {isEditable && (
                             <View style={styles.headerActionContainer}>
                                 <IconButton
-                                    name="notifications-outline"
+                                    name='notifications-outline'
                                     size={24}
-                                    color="#FFF"
+                                    color='#FFF'
                                     style={styles.headerIconButton}
                                     onPress={onNotificationPress}
                                 />
                                 <IconButton
-                                    name="create-outline"
+                                    name='create-outline'
                                     size={24}
-                                    color="#FFF"
+                                    color='#FFF'
                                     style={styles.headerIconButton}
                                     onPress={onEditPress}
                                 />
@@ -189,25 +195,24 @@ export const CompanyProfileView = ({
                                 />
                             </View>
                             <View style={styles.namePlate}>
-                                <Text style={styles.nameText} testID="company_detail_name">{String(companyName || '')}</Text>
+                                <Text style={styles.nameText} testID='company_detail_name'>{String(companyName || '')}</Text>
                                 <Text style={styles.industryText} numberOfLines={2}>{String(businessContent || '')}</Text>
-
                                 {/* External Links */}
                                 <View style={styles.linkIconsRow}>
                                     <IconButton
-                                        name="globe-outline"
+                                        name='globe-outline'
                                         size={16}
                                         color={THEME.accent}
                                         style={styles.linkIcon}
                                     />
                                     <IconButton
-                                        name="logo-github"
+                                        name='logo-github'
                                         size={16}
                                         color={THEME.text}
                                         style={styles.linkIcon}
                                     />
                                     <IconButton
-                                        name="document-text-outline"
+                                        name='document-text-outline'
                                         size={16}
                                         color={THEME.subText}
                                         style={styles.linkIcon}
@@ -220,7 +225,7 @@ export const CompanyProfileView = ({
 
                 {/* Announcement Bar */}
                 <View style={styles.announcementBar}>
-                    <Ionicons name="information-circle-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                    <Ionicons name='information-circle-outline' size={20} color='#FFF' style={{ marginRight: 8 }} />
                     <Text style={styles.announcementText} numberOfLines={1}>
                         会社HPを参考に自動生成した簡易版です。
                     </Text>
@@ -333,7 +338,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 15,
         padding: 8,
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,

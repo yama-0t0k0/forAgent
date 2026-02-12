@@ -26,7 +26,7 @@ describe('formatCompanyData', () => {
     expect(result['使用技術']).toEqual({ languages: 'JS' });
   });
 
-  it('should prioritize flat "companyName" over template "ヤヲー株式会社" in nested data', () => {
+  it('should prioritize flat \'companyName\' over template \'ヤヲー株式会社\' in nested data', () => {
     // This reproduces the bug seen with B00003
     const mixedData = {
       companyName: 'セーフィー株式会社',

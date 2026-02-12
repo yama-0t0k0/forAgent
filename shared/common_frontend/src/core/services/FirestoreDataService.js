@@ -3,8 +3,12 @@
  * 共通データ取得ロジックを提供するサービス
  */
 
-import { db } from '../firebaseConfig';
+import { db, auth } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { User } from '@shared/src/core/models/User';
+import { JobDescription } from '@shared/src/core/models/JobDescription';
+import { Company } from '@shared/src/core/models/Company';
+import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 
 /**
  * Merges arrays of objects by ID, removing duplicates.
@@ -27,10 +31,29 @@ const mergeById = (arrays) => {
  */
 const fetchCollection = async (collectionName) => {
     try {
+        const currentUser = auth.currentUser;
+        const logMsg = `[FirestoreDataService] Fetching ${collectionName}. Auth: ${currentUser ? currentUser.uid : 'NULL'}`;
+        console.log(logMsg);
+        
+        if (__DEV__) {
+            const { DeviceEventEmitter } = require('react-native');
+            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', logMsg);
+        }
+
         const snap = await getDocs(collection(db, collectionName));
+        console.log(`[FirestoreDataService] Fetched ${snap.size} docs from ${collectionName}`);
         return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (e) {
-        console.error(`[FirestoreDataService] Error fetching ${collectionName}:`, e);
+        const errorMsg = `[FirestoreDataService] Error fetching ${collectionName}: ${e.code} ${e.message}`;
+        console.error(errorMsg);
+        if (__DEV__) {
+             const { DeviceEventEmitter } = require('react-native');
+             DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', errorMsg);
+        }
+
+        if (e.code === 'permission-denied') {
+             console.error(`[FirestoreDataService] PERMISSION DENIED for ${collectionName}. Check firestore.rules and current user role.`);
+        }
         return [];
     }
 };
@@ -49,32 +72,87 @@ const fetchDocument = async (collectionName, docId) => {
         }
         return null;
     } catch (e) {
-        console.error(`[FirestoreDataService] Error fetching ${collectionName}/${docId}:`, e);
+        console.error(`[FirestoreDataService] Error fetching ${collectionName}/${docId}:`, e.code, e.message);
         return null;
     }
 };
 
 export const FirestoreDataService = {
     /**
-     * Fetches all individuals from the 'individual' collection.
-     * @returns {Promise<Array<Object>>}
+     * Fetches all individuals from the 'public_profile' collection.
+     * Also attempts to fetch 'private_info' if the user has permission (e.g. Admin).
+     * @returns {Promise<Array<User>>}
      */
     async fetchAllIndividuals() {
-        return fetchCollection('individual');
+        console.log('[FirestoreDataService] fetchAllIndividuals started');
+        // 1. Fetch Public Profiles (Base Data)
+        const publicDocs = await fetchCollection('public_profile');
+        
+        if (__DEV__) {
+            console.log(`[Debug] fetchAllIndividuals: Fetched ${publicDocs.length} public profiles`);
+            publicDocs.forEach((doc, index) => {
+                if (index < 3) { // Show first 3 only
+                    console.log(`[Debug] User[${index}]: id=${doc.id}, name=${doc.name}, basicInfo=${JSON.stringify(doc.basicInfo || {})}`);
+                }
+            });
+        }
+        
+        // 2. Try to fetch Private Info (Admin only)
+        // Note: Non-admin users will likely fail here due to security rules, which is expected.
+        let privateDocsMap = new Map();
+        try {
+             const snap = await getDocs(collection(db, 'private_info'));
+             snap.docs.forEach(d => {
+                 privateDocsMap.set(d.id, { id: d.id, ...d.data() });
+             });
+        } catch (e) {
+            // Permission denied or fetch error -> proceed with public data only
+            // Suppress error log for permission denied to avoid noise
+            if (e.code !== 'permission-denied') {
+                console.warn('[FirestoreDataService] fetchAllIndividuals: Private info fetch failed:', e);
+            } else {
+                console.log('[FirestoreDataService] Private info fetch skipped (permission-denied).');
+            }
+        }
+
+        return publicDocs.map(d => {
+            const privateData = privateDocsMap.get(d.id) || null;
+            return User.fromPublicPrivate(d.id, d, privateData);
+        });
     },
 
     /**
      * Fetches a single individual by ID.
+     * Combines public_profile and private_info.
      * @param {string} id - The individual ID.
-     * @returns {Promise<Object|null>}
+     * @returns {Promise<User|null>}
      */
     async fetchIndividualById(id) {
-        return fetchDocument('individual', id);
+        // Fetch Public Profile first
+        const publicData = await fetchDocument('public_profile', id);
+        
+        if (!publicData) return null;
+
+        // Fetch Private Info (handle permission denied gracefully)
+        let privateData = null;
+        try {
+             const snap = await getDoc(doc(db, 'private_info', id));
+             if (snap.exists()) {
+                 privateData = { id: snap.id, ...snap.data() };
+             }
+        } catch (e) {
+            // Permission denied or fetch error -> proceed with public data only
+            if (e.code !== 'permission-denied') {
+                console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
+            }
+        }
+        
+        return User.fromPublicPrivate(id, publicData, privateData);
     },
 
     /**
      * Fetches all job descriptions with nested JD_Number subcollections.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<JobDescription>>}
      */
     async fetchAllJobDescriptions() {
         try {
@@ -87,12 +165,16 @@ export const FirestoreDataService = {
                     const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
                     jdSnap.forEach(d => {
                         const data = d.data();
-                        allJobs.push({
-                            id: `${companyId}_${d.id}`,
-                            company_ID: companyId,
-                            JD_Number: data.JD_Number || d.id,
-                            ...data
-                        });
+                        allJobs.push(JobDescription.fromFirestore(
+                            `${companyId}_${d.id}`,
+                            {
+                                id: `${companyId}_${d.id}`,
+                                company_ID: companyId,
+                                JD_Number: data.JD_Number || d.id,
+                                ...data
+                            },
+                            companyId
+                        ));
                     });
                 } catch (err) {
                     console.error(`[FirestoreDataService] Error fetching JDs for ${companyId}:`, err);
@@ -109,7 +191,7 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all corporates from multiple possible collection names.
-     * @returns {Promise<Array<Object>>}
+     * @returns {Promise<Array<Company>>}
      */
     async fetchAllCorporates() {
         const [companiesPrimary, companiesFallback1, companiesFallback2] = await Promise.all([
@@ -117,25 +199,49 @@ export const FirestoreDataService = {
             fetchCollection('company'),
             fetchCollection('corporate')
         ]);
-        return mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
+        const merged = mergeById([companiesPrimary, companiesFallback1, companiesFallback2]);
+        return merged.map(d => Company.fromFirestore(d.id, d));
     },
 
     /**
      * Fetches a single corporate by ID.
      * @param {string} id - The corporate ID.
      * @param {string} [collectionName='company'] - The collection name.
-     * @returns {Promise<Object|null>}
+     * @returns {Promise<Company|null>}
      */
     async fetchCorporateById(id, collectionName = 'company') {
-        return fetchDocument(collectionName, id);
+        const data = await fetchDocument(collectionName, id);
+        return data ? Company.fromFirestore(id, data) : null;
     },
 
     /**
      * Fetches all Fee Management & Job Stats data.
-     * @returns {Promise<Array<Object>>}
+     * Uses 'FeeMgmtAndJobStatDB' collection (primary) and 'selection_progress' (legacy/fallback).
+     * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
-        return fetchCollection('FeeMgmtAndJobStatDB');
+        try {
+            console.log('[FirestoreDataService] fetchAllFMJS started');
+            
+            // Fetch from both possible collections to be safe, similar to fetchAllCorporates
+            const [fmjsPrimary, fmjsSecondary] = await Promise.all([
+                fetchCollection('FeeMgmtAndJobStatDB'),
+                fetchCollection('selection_progress')
+            ]);
+            
+            const mergedDocs = mergeById([fmjsPrimary, fmjsSecondary]);
+            console.log(`[FirestoreDataService] Fetched ${mergedDocs.length} unique docs from FeeMgmtAndJobStatDB/selection_progress`);
+            
+            if (__DEV__ && mergedDocs.length > 0) {
+                 console.log(`[Debug] First FMJS doc: id=${mergedDocs[0].id}, data=${JSON.stringify(mergedDocs[0])}`);
+            }
+
+            return mergedDocs.map(d => SelectionProgress.fromFirestore(d.id, d));
+        } catch (e) {
+            console.error('[FirestoreDataService] fetchAllFMJS failed:', e);
+            // Return empty array on error to prevent app crash
+            return [];
+        }
     },
 
     /**

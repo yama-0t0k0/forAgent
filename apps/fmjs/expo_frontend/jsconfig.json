@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "@shared/*": ["../../../shared/common_frontend/*"]
+      "@shared/*": ["../../../shared/common_frontend/*"],
+      "@core/*": ["./src/core/*"]
     },
     "jsx": "react-native"
   },

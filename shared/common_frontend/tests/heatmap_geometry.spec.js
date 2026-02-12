@@ -27,8 +27,9 @@ async function testTileSize(mod) {
 /**
  * Tests tooltip position calculation.
  * @param {Object} mod - The HeatmapGeometry module.
+ * @param {Object} DATA_TYPE - Data type constants.
  */
-async function testTooltipPositions(mod) {
+async function testTooltipPositions(mod, DATA_TYPE) {
   const { computeStandardContainerWidth, computeStandardTileSize, computeTooltipByFormula } = mod;
   const itemCount = 90;
   const columns = 9;
@@ -50,8 +51,8 @@ async function testTooltipPositions(mod) {
     });
     assert(pos.left >= 0, `left should be >= 0 (index ${index})`);
     assert(pos.left <= containerWidth - tooltipWidth, `left should be within container (index ${index})`);
-    assert(typeof pos.top === 'number', `top should be number (index ${index})`);
-    assert(typeof pos.arrowLeft === 'number', `arrowLeft should be number (index ${index})`);
+    assert(typeof pos.top === DATA_TYPE.NUMBER, `top should be number (index ${index})`);
+    assert(typeof pos.arrowLeft === DATA_TYPE.NUMBER, `arrowLeft should be number (index ${index})`);
   });
 }
 
@@ -60,8 +61,9 @@ async function testTooltipPositions(mod) {
  */
 async function run() {
   const mod = await import('../src/features/analytics/utils/HeatmapGeometry.js');
+  const { DATA_TYPE } = await import('../src/core/constants/system.js');
   await testTileSize(mod);
-  await testTooltipPositions(mod);
+  await testTooltipPositions(mod, DATA_TYPE);
   console.log('OK: HeatmapGeometry tests passed.');
 }
 

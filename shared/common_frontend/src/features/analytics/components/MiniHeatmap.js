@@ -1,8 +1,29 @@
+// 役割:
+// - 小型ヒートマップコンポーネント（タイル数少なめの簡易版）
+// - 活動量/スキルレベルを色の濃淡で可視化、タップでツールチップ表示
+//
+// 主要機能:
+// - data（値0-1）をグリッドにレンダリング、値に応じた色を算出
+// - タイル押下で選択トグル、HeatmapGeometryを用いてツールチップ位置を算出
+// - THEME準拠のスタイリング、HeatmapGridとデザイン整合
+//
+// ディレクトリ構造:
+// - shared/common_frontend/src/features/analytics/components/MiniHeatmap.js（本ファイル）
+// - 依存: HeatmapMapper, HeatmapGeometry, THEME, firebaseConfig（db参照）
+// - 関連: HeatmapGrid（標準版）, analytics/utils（計算ユーティリティ）
+//
+// デプロイ・実行方法:
+// - 開発起動（例）: bash scripts/start_expo.sh individual_user_app
+// - 他アプリ起動: scripts/start_expo.sh corporate_user_app など
+// - テスト（例）: npx jest shared/common_frontend/tests/heatmap_geometry.spec.js 等
+// - 前提: Expo環境、jestのセットアップ済み
+//
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { HeatmapMapper } from '../utils/HeatmapMapper';
-import { THEME } from '../theme/theme';
-import { HeatmapGeometry } from '../utils/HeatmapGeometry';
+import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMapper';
+import { THEME } from '@shared/src/core/theme/theme';
+import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
+import { db } from '@shared/src/core/firebaseConfig';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -23,19 +44,23 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
  * Mini Heatmap Component for displaying activity/skills in a grid.
  * 
  * @param {MiniHeatmapProps} props
+ * @param {HeatmapData[]} props.data - Array of heatmap data
+ * @param {number} props.rows - Number of rows
+ * @param {number} props.cols - Number of columns
  */
 export const MiniHeatmap = ({ data, rows, cols }) => {
   const [selectedTile, setSelectedTile] = useState(null);
 
   const baseTileSize = HeatmapGeometry.computeStandardTileSize();
   const standardTileSize = baseTileSize * 0.7;
-  
+
   /**
    * Gets the color for a heatmap value.
    * @param {number} value - Normalized value (0-1).
    * @returns {string} Hex color code.
    */
   const getColor = (value) => {
+    // 値に応じて段階的に色を変化させる（灰→淡→濃）
     if (value === 0) return '#E2E8F0';
     if (value <= 0.2) return '#BAE6FD';
     if (value <= 0.5) return '#7DD3FC';
@@ -49,13 +74,14 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
    * @param {number} index - Index in the data array.
    */
   const handlePress = (item, index) => {
+    // 同一タイル押下で選択解除、それ以外は選択詳細（ラベル/レベル）をセット
     if (selectedTile && selectedTile.id === item.id) {
       setSelectedTile(null);
       return;
     }
 
     const label = HeatmapMapper.getLabel(item.id) || `Tile ${item.id}`;
-    
+
     // Calculate level (0-4)
     let level = 0;
     const v = item.value;
@@ -66,7 +92,7 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 
     const row = Math.floor(index / cols);
     const col = index % cols;
-    
+
     const totalTileSize = standardTileSize + 2;
     const tooltipWidth = 90;
     const containerWidth = cols * totalTileSize;
@@ -92,6 +118,7 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
   };
 
   return (
+    // コンテナをrelativeにしてツールチップを絶対配置できるようにする
     <View style={{ position: 'relative', width: cols * (standardTileSize + 2) }} onStartShouldSetResponder={() => true}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {data.map((item, i) => (
@@ -118,8 +145,8 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 
       {selectedTile && (
         <View style={[
-          styles.tooltip, 
-          { 
+          styles.tooltip,
+          {
             top: selectedTile.top,
             left: selectedTile.left,
             width: 90,
@@ -151,7 +178,7 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 const styles = StyleSheet.create({
   tooltip: {
     backgroundColor: '#1E293B',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,

@@ -33,6 +33,13 @@ const TARGET_BRANCH = 'yama';
 const CI_SCRIPT = './scripts/local_ci.sh'; // パス調整
 
 // --- Helpers ---
+/**
+ * Run a shell command synchronously
+ * @param {string} command - Command to run
+ * @param {string[]} args - Arguments
+ * @param {object} options - Spawn options
+ * @returns {object} Spawn result
+ */
 function runCommand(command, args, options = {}) {
     const result = spawnSync(command, args, { stdio: 'inherit', encoding: 'utf-8', ...options });
     if (result.error) {
@@ -46,6 +53,11 @@ function runCommand(command, args, options = {}) {
     return result;
 }
 
+/**
+ * Run a shell command and return trimmed output
+ * @param {string} command - Command string
+ * @returns {string|null} Output or null on error
+ */
 function runCommandOutput(command) {
     try {
         return execSync(command, { encoding: 'utf-8' }).trim();
@@ -64,10 +76,13 @@ const parsedArgs = {
     outcome: '',
     context: '',
     next: '',
-    milestone: ''
+    milestone: '',
+    commandLogFile: '',
+    mainCommands: ''
 };
 
-for (let i = 0; i < args.length; i++) {
+let i = 0;
+while (i < args.length) {
     const arg = args[i];
     if (arg === '--authorized-by') parsedArgs.authorizedBy = args[++i];
     else if (arg === '--prompt') parsedArgs.prompt = args[++i];
@@ -76,7 +91,10 @@ for (let i = 0; i < args.length; i++) {
     else if (arg === '--context') parsedArgs.context = args[++i];
     else if (arg === '--next') parsedArgs.next = args[++i];
     else if (arg === '--milestone') parsedArgs.milestone = args[++i];
+    else if (arg === '--command-log') parsedArgs.commandLogFile = args[++i];
+    else if (arg === '--main-commands') parsedArgs.mainCommands = args[++i];
     else if (!arg.startsWith('--')) commitMessage = arg;
+    i++;
 }
 
 if (!commitMessage) {
@@ -90,6 +108,9 @@ if (!parsedArgs.authorizedBy) {
 }
 
 // --- Main Flow ---
+/**
+ * Main function
+ */
 async function main() {
     console.log('🚀 Push with Milestone Script');
     console.log('=============================');
@@ -139,15 +160,15 @@ async function main() {
 
     // If milestone is provided via argument, try to find it
     if (parsedArgs.milestone) {
-        console.log(`\n🔍 Searching for milestone: "${parsedArgs.milestone}"...`);
+        console.log(`\n🔍 Searching for milestone: '${parsedArgs.milestone}'...`);
         try {
             // Fetch specific milestone or filter list
             const json = runCommandOutput(`gh api repos/${REPO_OWNER}/${REPO_NAME}/milestones --method GET -f state=open`);
             const allMilestones = JSON.parse(json);
-            targetMilestone = allMilestones.find(m => m.title === parsedArgs.milestone);
+            targetMilestone = allMilestones.find(m => m.title === parsedArgs.milestone || String(m.number) === String(parsedArgs.milestone));
             
             if (!targetMilestone) {
-                console.error(`❌ Milestone "${parsedArgs.milestone}" not found.`);
+                console.error(`❌ Milestone '${parsedArgs.milestone}' not found.`);
                 process.exit(1);
             }
         } catch (e) {
@@ -215,11 +236,31 @@ async function main() {
     // 5. Create Issue
     console.log('\n📋 Creating Issue...');
     
+    // Read Command Log if provided
+    let commandLogSection = '';
+    if (parsedArgs.commandLogFile) {
+        try {
+            const fs = require('fs');
+            if (fs.existsSync(parsedArgs.commandLogFile)) {
+                const logContent = fs.readFileSync(parsedArgs.commandLogFile, 'utf8');
+                commandLogSection = `\n### 💻 Command Execution Log / 実行コマンドログ\n\`\`\`bash\n${logContent}\n\`\`\`\n`;
+            } else {
+                console.warn(`⚠️  Command log file not found: ${parsedArgs.commandLogFile}`);
+            }
+        } catch (e) {
+            console.error('⚠️  Failed to read command log file:', e.message);
+        }
+    }
+
     const issueBody = `
 ## 🤖 AI Development Cycle (Milestone: ${targetMilestone.title})
 
 ### 📝 Implementation Details / 実装内容
 ${parsedArgs.prompt || '（記述なし）'}
+${commandLogSection}
+
+### 🔍 Major Commands / 調査に使用した主要コマンド
+${parsedArgs.mainCommands || '（記述なし）'}
 
 ### 🎯 Mission & Intent / 目的と期待される効果
 ${parsedArgs.intent || '（記述なし）'}

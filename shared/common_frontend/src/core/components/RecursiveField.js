@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, LayoutAnimation, StyleSheet } from 'react-native';
-import { THEME } from '../theme/theme';
-import { SKILL_LEVEL_TEXTS } from '../constants/index';
+import { THEME } from '@shared/src/core/theme/theme';
+import { SKILL_LEVEL_TEXTS, FIELD_META, FIELD_DISPLAY_TYPE } from '@shared/src/core/constants/index';
+import { DATA_TYPE } from '@shared/src/core/constants/system';
 
 import { InputRow } from './InputRow';
 import { SwitchRow } from './SwitchRow';
@@ -25,6 +26,11 @@ import { StatusRow } from './StatusRow';
  * Collapsible Accordion Item for RecursiveField.
  * 
  * @param {AccordionItemProps} props
+ * @param {string} props.label - Section label
+ * @param {Object} props.data - Nested data object
+ * @param {number} props.depth - Nesting depth
+ * @param {string[]} props.path - Data path
+ * @param {Object} [props.orderTemplate] - Template for key ordering
  */
 const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const [expanded, setExpanded] = useState(depth === 0);
@@ -71,16 +77,20 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
  * Supports various field types like SkillSelector, SwitchRow, etc.
  * 
  * @param {RecursiveFieldProps} props
+ * @param {Object} props.data - Data object to render recursively
+ * @param {number} [props.depth=0] - Current depth
+ * @param {string[]} [props.path=[]] - Data path
+ * @param {Object} [props.orderTemplate=null] - Template for ordering
  */
 export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = null }) => {
-  if (!data || typeof data !== 'object') return null;
+  if (!data || typeof data !== DATA_TYPE.OBJECT) return null;
 
   /** @type {string[]} */
-  const rawKeys = Object.keys(data).filter(k => k !== '_displayType');
+  const rawKeys = Object.keys(data).filter(k => k !== FIELD_META.DISPLAY_TYPE);
   let orderedKeys = rawKeys;
-  if (orderTemplate && typeof orderTemplate === 'object') {
+  if (orderTemplate && typeof orderTemplate === DATA_TYPE.OBJECT) {
     /** @type {string[]} */
-    const templateKeys = Object.keys(orderTemplate).filter(k => k !== '_displayType');
+    const templateKeys = Object.keys(orderTemplate).filter(k => k !== FIELD_META.DISPLAY_TYPE);
     /** @type {string[]} */
     const inTemplate = rawKeys.filter(k => templateKeys.includes(k)).sort((a, b) => templateKeys.indexOf(a) - templateKeys.indexOf(b));
     /** @type {string[]} */
@@ -94,8 +104,8 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         const value = data[key];
         const currentPath = [...path, key];
-        const isObject = value !== null && typeof value === 'object';
-        const isBool = typeof value === 'boolean';
+        const isObject = value !== null && typeof value === DATA_TYPE.OBJECT;
+        const isBool = typeof value === DATA_TYPE.BOOLEAN;
 
         let isSkillLevelObj = false;
         let isSingleSelectGroup = false;
@@ -105,21 +115,22 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
         let isReadOnlyStatus = false;
 
         if (isObject) {
-          if (value._displayType === 'skillLevelSelect') {
+          const displayType = value[FIELD_META.DISPLAY_TYPE];
+          if (displayType === FIELD_DISPLAY_TYPE.SKILL_LEVEL_SELECT) {
             isSkillLevelObj = true;
-          } else if (value._displayType === 'singleSelectGroup') {
+          } else if (displayType === FIELD_DISPLAY_TYPE.SINGLE_SELECT_GROUP) {
             isSingleSelectGroup = true;
-          } else if (value._displayType === 'connectionLevelSelect') {
+          } else if (displayType === FIELD_DISPLAY_TYPE.CONNECTION_LEVEL_SELECT) {
             isConnectionLevelObj = true;
-          } else if (value._displayType === 'monthYearPicker') {
+          } else if (displayType === FIELD_DISPLAY_TYPE.MONTH_YEAR_PICKER) {
             isMonthYearPicker = true;
-          } else if (value._displayType === 'datePicker') {
+          } else if (displayType === FIELD_DISPLAY_TYPE.DATE_PICKER) {
             isDatePicker = true;
-          } else if (value._displayType === 'readOnlyStatus') {
+          } else if (displayType === FIELD_DISPLAY_TYPE.READ_ONLY_STATUS) {
             isReadOnlyStatus = true;
           } else {
             /** @type {string[]} */
-            const valKeys = Object.keys(value).filter(k => k !== '_displayType');
+            const valKeys = Object.keys(value).filter(k => k !== FIELD_META.DISPLAY_TYPE);
             if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
               isSkillLevelObj = true;
             }

@@ -1,0 +1,107 @@
+appId: host.exp.Exponent
+---
+# User Profile Update Test
+# Verifies that updating a profile triggers the correct Firestore writes via LogView overlay.
+
+- openLink: ${EXPO_URL}
+# Handle Expo Go "Open" prompts (copied from smoke_check_errors.yaml)
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    text: "開く"
+    optional: true
+- tapOn:
+    point: "75%, 54%"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    point: "50%, 90%"
+    optional: true
+- tapOn:
+    text: "開く"
+    optional: true
+- tapOn:
+    point: "75%, 54%"
+    optional: true
+- tapOn:
+    text: "Dismiss"
+    optional: true
+- tapOn:
+    text: "Minimize"
+    optional: true
+
+# Verify App Loaded (Dashboard Header)
+- assertNotVisible: "Unable to resolve module"
+- assertNotVisible: "Invariant Violation"
+- assertNotVisible: "Render Error"
+- extendedWaitUntil:
+    visible:
+      id: "header_title"
+    timeout: 120000
+
+# 1. Tap on "個人" (Individual) tab
+- tapOn: "個人"
+
+# 2. Tap on the first user in the list to open details
+# Using testID 'engineer_item' which is set in IndividualTab.js
+- extendedWaitUntil:
+    visible:
+      id: "engineer_item"
+    timeout: 10000
+- tapOn:
+    id: "engineer_item"
+    index: 0
+
+# 3. Wait for UserDetailModal to open
+- extendedWaitUntil:
+    visible:
+      id: "user_full_name"
+    timeout: 10000
+
+# 4. Tap on "メニュー" (Menu) tab in BottomNav (inside Modal)
+- tapOn: "メニュー"
+
+# 5. Tap on "プロフィール編集" (Profile Edit)
+- extendedWaitUntil:
+    visible:
+      text: "プロフィール編集"
+    timeout: 10000
+- tapOn: "プロフィール編集"
+
+# 6. Wait for Registration Screen
+- extendedWaitUntil:
+    visible:
+      text: "エンジニア個人登録"
+    timeout: 10000
+
+# 7. Edit a field (Handle Name)
+# We added testID={label} to InputRow.js
+- scrollUntilVisible:
+    element:
+      id: "ハンドルネーム"
+    direction: DOWN
+- tapOn:
+    id: "ハンドルネーム"
+- inputText: "TestUserUpdate"
+- hideKeyboard
+
+# 8. Tap "Save" button
+# GenericRegistrationScreen uses "Save" text for the button
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+- tapOn: "Save"
+
+# 9. Assert Log Overlay shows UPDATE operation
+# Matches format: [UPDATE] public_profile ...
+- extendedWaitUntil:
+    visible:
+      text: ".*UPDATE.*public_profile.*"
+    timeout: 20000

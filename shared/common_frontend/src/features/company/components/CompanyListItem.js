@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Company } from '@shared/src/core/models/Company';
 
@@ -20,13 +20,15 @@ const MOCK_TECH_STACK_FALLBACK = {
 /**
  * @typedef {Object} CompanyListItemProps
  * @property {Company|Object} item - Company data
+ * @property {Function} [onPress] - Press handler
+ * @property {string} [testID] - Test ID
  */
 
 /**
  * Company List Item Component
  * @param {CompanyListItemProps} props
  */
-export const CompanyListItem = ({ item }) => {
+export const CompanyListItem = ({ item, onPress, testID }) => {
   /**
    * Main technologies extracted from tech stack
    * @type {string[]}
@@ -34,7 +36,7 @@ export const CompanyListItem = ({ item }) => {
   const mainTechs = useMemo(() => {
     // Use item.tech_stack if available, otherwise use fallback for visualization as requested
     // In a real scenario, we might show nothing if data is missing, but requirement is to show "corporate app's tech"
-    const techStack = item.tech_stack || MOCK_TECH_STACK_FALLBACK; 
+    const techStack = item.tech_stack || MOCK_TECH_STACK_FALLBACK;
     const techs = [];
 
     if (techStack) {
@@ -53,20 +55,23 @@ export const CompanyListItem = ({ item }) => {
     return techs;
   }, [item]);
 
-  // Use Company model to handle data normalization
-  const company = item instanceof Company ? item : Company.fromFirestore(item.id, item);
+  // Item prop is expected to be a Company model instance
+  /** @type {Company} */
+  const company = item;
 
   const companyName = company.name || '名称未設定';
   const address = company.formattedAddress;
 
+  const RootContainer = onPress ? TouchableOpacity : View;
+
   return (
-    <View style={styles.container}>
+    <RootContainer style={styles.container} onPress={onPress} testID={testID} activeOpacity={0.7}>
       <View style={styles.leftContent}>
         <Text style={styles.itemTitle}>{companyName}</Text>
         <Text style={styles.itemSubtitle}>ID: {String(company.id || '')}</Text>
         <Text style={styles.itemDetail}>{address}</Text>
       </View>
-      
+
       <View style={styles.rightContent}>
         <View style={styles.techBadgeContainer}>
           {mainTechs.map((tech, index) => (
@@ -76,7 +81,7 @@ export const CompanyListItem = ({ item }) => {
           ))}
         </View>
       </View>
-    </View>
+    </RootContainer>
   );
 };
 
@@ -86,7 +91,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
