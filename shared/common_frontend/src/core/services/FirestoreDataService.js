@@ -216,20 +216,27 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all Fee Management & Job Stats data.
-     * Uses 'selection_progress' collection.
+     * Uses 'FeeMgmtAndJobStatDB' collection (primary) and 'selection_progress' (legacy/fallback).
      * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
         try {
             console.log('[FirestoreDataService] fetchAllFMJS started');
-            const docs = await fetchCollection('selection_progress');
-            console.log(`[FirestoreDataService] Fetched ${docs.length} docs from selection_progress`);
             
-            if (__DEV__ && docs.length > 0) {
-                 console.log(`[Debug] First FMJS doc: id=${docs[0].id}, data=${JSON.stringify(docs[0])}`);
+            // Fetch from both possible collections to be safe, similar to fetchAllCorporates
+            const [fmjsPrimary, fmjsSecondary] = await Promise.all([
+                fetchCollection('FeeMgmtAndJobStatDB'),
+                fetchCollection('selection_progress')
+            ]);
+            
+            const mergedDocs = mergeById([fmjsPrimary, fmjsSecondary]);
+            console.log(`[FirestoreDataService] Fetched ${mergedDocs.length} unique docs from FeeMgmtAndJobStatDB/selection_progress`);
+            
+            if (__DEV__ && mergedDocs.length > 0) {
+                 console.log(`[Debug] First FMJS doc: id=${mergedDocs[0].id}, data=${JSON.stringify(mergedDocs[0])}`);
             }
 
-            return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
+            return mergedDocs.map(d => SelectionProgress.fromFirestore(d.id, d));
         } catch (e) {
             console.error('[FirestoreDataService] fetchAllFMJS failed:', e);
             // Return empty array on error to prevent app crash
