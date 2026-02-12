@@ -53,15 +53,15 @@ Monorepo内の共有ライブラリを活用しますが、Pure Dart環境であ
 
 ```mermaid
 graph LR
-    Client[Expo/Flutter Clients]
-    Backend[Cloud Run (Dart Server)]
-    Firestore[(Firestore)]
-    Auth[(Firebase Auth)]
+    Client["Expo/Flutter Clients"]
+    Backend["Cloud Run (Dart Server)"]
+    Firestore[("Firestore")]
+    Auth[("Firebase Auth")]
 
-    Client -->|HTTPS (Bearer Token)| Backend
-    Backend -->|Verify Token| Auth
-    Backend -->|Read/Write| Firestore
-    Backend -->|Response (JSON)| Client
+    Client -->|"HTTPS (Bearer Token)"| Backend
+    Backend -->|"Verify Token"| Auth
+    Backend -->|"Read/Write"| Firestore
+    Backend -->|"Response (JSON)"| Client
 ```
 
 ## 5. API エンドポイント設計方針
