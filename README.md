@@ -110,4 +110,5 @@
 
 ### 計画・セキュリティ
 - [リファクタリング計画 (Dev_RefactoringPlan/)](docs/Dev_RefactoringPlan/)
+- [認証・認可設計 (Authentication_Authorization.md)](docs/security/Authentication_Authorization.md)
 - [セキュリティルール (Firestore _SecRules.md)](docs/security/Firestore%20_SecRules.md)
