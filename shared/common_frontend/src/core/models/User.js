@@ -78,8 +78,14 @@ export class User {
         // Add fallback to top-level properties for flattened JSON (e.g. from API response)
         const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || data.firstNameEn || '';
         const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || data.familyNameEn || '';
-        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || '';
-        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
+        let firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || '';
+        let familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
+        
+        // Fallback: If kanji names are empty but 'name' exists (e.g. from public_profile), use it
+        if (!firstNameKanji && !familyNameKanji && data.name) {
+            firstNameKanji = data.name;
+        }
+
         const email = basicInfo[User.FIELDS.EMAIL] || data.email || '';
         const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || data.profileImageUrl || '';
         const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || data.backgroundImageUrl || '';
