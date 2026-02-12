@@ -214,6 +214,18 @@
         - [x] **ユニットテストの追加**:
             - バリデーションエラー（必須フィールド欠落、型不一致）が正しく機能することを検証するテストケースを `firestore.test.js` に追加。
 
+8.  **管理者 (Admin) アカウントと認証基盤の整備**
+    - **目的**: 開発者個人のGoogleアカウントに依存せず、専用のAdminアカウントを用いてセキュアに運用管理を行う。
+    - **タスク**:
+        - [x] **Adminアカウント作成スクリプトの実装** (`scripts/migration/create_admin_accounts.js`)
+            - Firebase Authへのユーザー作成、Custom Claims (`role: admin`) の付与、Firestore `users` コレクションへの登録を自動化。
+            - *Result*: 2026-02-13 実行完了。
+        - [x] **認証・認可設計の策定** (`Authentication_Authorization.md`)
+            - Adminアカウントの定義、ログインアーキテクチャ（匿名認証からの移行フロー）、画面設計をドキュメント化。
+        - [ ] **Admin App ログイン画面の実装** (Phase 1)
+            - `LoginScreen.js` の作成、`AppNavigator.js` への組み込み。
+            - 匿名認証 (`signInAnonymously`) とメール/パスワード認証のハイブリッド実装。
+
 ## 5. 備考
 - 本計画は `FMJS` (Fee Management Job System) と共通のポリシーとして適用する。
 - 今後の機能追加時も、この「ドキュメント分離」と「Roleベース制御」の原則を遵守する。
