@@ -16,7 +16,7 @@ import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-nati
 import { THEME } from '@shared/src/core/theme/theme';
 import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMapper';
 import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
-import { HEATMAP_THRESHOLDS, HEATMAP_COLORS, HEATMAP_MOCK_VALUES } from '@shared/src/features/analytics/constants/heatmap';
+import { HEATMAP_THRESHOLDS, HEATMAP_COLORS, HEATMAP_MOCK_VALUES, HEATMAP_LEVELS } from '../constants/heatmap';
 
 const { width } = Dimensions.get('window');
 
@@ -65,11 +65,11 @@ export const HeatmapGrid = ({
   const gridData = useMemo(() => {
     return Array(itemCount).fill(0).map((_, i) => {
       // Use logic similar to mock data generation, but avoid direct magic numbers if possible
-    // For now, suppress the magic number warning or just leave it as is if it's too complex to constantize
-    // Actually, let's just make it constant-ish or just ignore it as it's a visualization fallback
-    const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : HEATMAP_MOCK_VALUES[i % HEATMAP_MOCK_VALUES.length];
-    return {
-      id: i,
+      // For now, suppress the magic number warning or just leave it as is if it's too complex to constantize
+      // Actually, let's just make it constant-ish or just ignore it as it's a visualization fallback
+      const value = dataValues && dataValues[i] !== undefined ? dataValues[i] : HEATMAP_MOCK_VALUES[i % HEATMAP_MOCK_VALUES.length];
+      return {
+        id: i,
         value,
         color: getColor(value)
       };

@@ -14,6 +14,7 @@
 
 - **モジュール完結型開発**: `individual_user_app/` 等の中にフロントとバックを同居させることで、機能追加時のコンテキストスイッチを最小化します。
 - **ドメインの資産化**: `job_description` や `fmjs` を独立したアプリ（サービス）として扱うことで、マルチデバイス・マルチロール（個人・法人・管理）間での再利用性を最大化します。
+- **Full-stack Dart Backendの配置**: `apps/backend` は、既存のフロントエンドアプリと同列の「独立してデプロイ・稼働する第6のアプリケーション」として配置しました。これは `shared` (ライブラリ) とは異なり、HTTPリクエストを受け付けて24時間稼働するサーバープロセスであるためです。
 - **スムーズな移行パス**: Phase 2 で Flutter へ移行する際も、各モジュールの `expo_frontend` を `flutter_frontend` へ順番に置き換えていくだけでよく、全体のアーキテクチャ設計を維持したまま言語統一（Pure Dart）を完了できます。
 
 ---
@@ -24,6 +25,11 @@
 .
 ├── README.md
 ├── apps/                                   # 独立した機能アプリ群
+│   ├── backend/                            # ★Full-stack Dart APIサーバー (Cloud Run)
+│   │   ├── bin/                            # エントリーポイント (server.dart)
+│   │   ├── lib/                            # サーバーロジック
+│   │   └── Dockerfile                      # AOTコンパイル・デプロイ設定 (Distroless)
+│   │
 │   ├── admin_app/                          # 管理者用アプリ
 │   │   ├── expo_frontend/                  # 管理者UI
 │   │   └── dart_backend/                   # 管理者用ロジック、Functions
@@ -48,11 +54,19 @@
 │   ├── common_frontend/                    # Expo 共通コンポーネント & Logic Utils (UI Kit)
 │   │   ├── src/
 │   │   │   ├── core/                       # 基本機能 (UI, State, Theme, Firebase)
-│   │   │   └── features/                   # 機能別モジュール (Profile, Company, Registration etc.)
+│   │   │   │   ├── components/             # Generic Components (Button, Input, Modal, Nav, etc.)
+│   │   │   │   ├── services/               # Data Services (FirestoreDataService)
+│   │   │   │   └── utils/                  # Logic Adapters (CompanyAdapter, MatchingService)
+│   │   │   └── features/                   # 機能別モジュール
+│   │   │       ├── analytics/              # ヒートマップ, TechStack
+│   │   │       ├── company/                # 企業プロフィール表示 (CompanyProfileView)
+│   │   │       ├── job_profile/            # 求人票表示 (JobDescriptionContent)
+│   │   │       ├── profile/                # 画像編集, メニュー (Shared Screens)
+│   │   │       └── selection/              # 選考フロー管理 (SelectionFlowEditor)
 │   ├── common_backend/                     # Firebase共通設定、Dart共通Utils
+│   ├── common_logic/                       # ★共通ロジック (Pure Dart) - Matching, Validation
 │   ├── domain_models/                      # JSON定義 (Individual, Company, JD, FMJS)
-│   └── domain_logic/                       # ★核心ロジック (Shared Logic)
-│       └── heatmap_engine/                 # キャリア分析、ヒートマップ、マッチング計算
+│   └── domain_logic/                       # ドメイン固有ロジック (Heatmap Engine)
 │
 ├── infrastructure/                         # プロジェクト基盤・管理設定
 │   ├── firebase/                           # Firebase 横断設定
@@ -70,8 +84,12 @@
 │   └── safe_push.sh                        # 安全なプッシュのためのラッパースクリプト
 │
 ├── scripts/                                # 開発支援・運用スクリプト
-│   ├── start_expo.sh                       # Expoアプリ起動支援
-│   └── local_ci.sh                         # ローカルCI実行スクリプト
+│   ├── migration/                          # データ移行・シードスクリプト
+│   ├── check_coding_conventions.js         # コーディング規約チェック
+│   ├── create_push_issue.js                # Push時のIssue自動作成
+│   ├── push_with_milestone.js              # マイルストーン連携Push
+│   ├── local_ci.sh                         # ローカルCI実行スクリプト
+│   └── start_expo.sh                       # Expoアプリ起動支援
 │
 ├── docs/                                   # プロジェクトドキュメント
 │   ├── Documentation_eachApp/              # 各アプリ詳細設計書

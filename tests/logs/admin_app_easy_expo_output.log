@@ -1,0 +1,20 @@
+🚀 Starting admin_app on port 8081...
+📂 Directory: apps/admin_app/expo_frontend
+🔍 Checking environment configuration...
+✅ Environment configuration verified.
+🧹 Cleaning up existing processes...
+⚠️  Killing process 76676
+76849
+76919 on port 8081
+⚡ Starting Expo Server (Tunnel Mode)...
+⏳ Waiting for tunnel to establish...
+.
+==================================================
+✅ Start up successful.
+Here is the URL for Expo Go:
+
+   exp://1gfuiji-anonymous-8081.exp.direct
+
+You can enter this URL manually in the Expo Go app.
+==================================================
+Press [CTRL+C] to stop the server.

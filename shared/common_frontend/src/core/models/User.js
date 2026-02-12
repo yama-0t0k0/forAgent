@@ -78,8 +78,14 @@ export class User {
         // Add fallback to top-level properties for flattened JSON (e.g. from API response)
         const firstNameEn = basicInfo[User.FIELDS.FIRST_NAME_EN] || data.firstNameEn || '';
         const familyNameEn = basicInfo[User.FIELDS.FAMILY_NAME_EN] || data.familyNameEn || '';
-        const firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || '';
-        const familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
+        let firstNameKanji = basicInfo[User.FIELDS.FIRST_NAME_KANJI] || data.firstNameKanji || '';
+        let familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
+        
+        // Fallback: If kanji names are empty but 'name' exists (e.g. from public_profile), use it
+        if (!firstNameKanji && !familyNameKanji && data.name) {
+            firstNameKanji = data.name;
+        }
+
         const email = basicInfo[User.FIELDS.EMAIL] || data.email || '';
         const profileImageUrl = basicInfo[User.FIELDS.PROFILE_IMAGE_URL] || data.profileImageUrl || '';
         const backgroundImageUrl = basicInfo[User.FIELDS.BACKGROUND_IMAGE_URL] || data.backgroundImageUrl || '';
@@ -101,6 +107,92 @@ export class User {
             aspirations,
             data
         );
+    }
+
+    /**
+     * Creates a User instance from separated public/private data.
+     * @param {string} id - Document ID
+     * @param {Object.<string, any>} publicData - Data from public_profile
+     * @param {Object.<string, any>} privateData - Data from private_info (can be null)
+     * @returns {User}
+     */
+    static fromPublicPrivate(id, publicData, privateData) {
+        const mergedData = { ...(publicData || {}) };
+
+        // Merge private data if available
+        if (privateData) {
+            // Merge '基本情報' (Basic Info) which contains PII
+            if (privateData[User.FIELDS.BASIC_INFO]) {
+                mergedData[User.FIELDS.BASIC_INFO] = {
+                    ...(mergedData[User.FIELDS.BASIC_INFO] || {}),
+                    ...privateData[User.FIELDS.BASIC_INFO]
+                };
+            }
+
+            // Merge other top-level fields
+            Object.keys(privateData).forEach(key => {
+                if (key !== User.FIELDS.BASIC_INFO) {
+                    mergedData[key] = privateData[key];
+                }
+            });
+        }
+
+        return User.fromFirestore(id, mergedData);
+    }
+
+    /**
+     * Splits user data into public and private parts.
+     * @param {Object} data - The full user data object.
+     * @returns {{publicData: Object, privateData: Object}}
+     */
+    static splitData(data) {
+        // Deep clone to avoid mutating original data
+        const publicData = JSON.parse(JSON.stringify(data));
+        const privateData = {};
+        
+        // PII Keys to move to private_info
+        // Based on migration logic
+        const piiKeys = [
+            '姓', '名', 'Family name(半角英)', 'First name(半角英)', 
+            'メール', 'TEL', '住所', '生年月日',
+            'Googleアカウント', 'GitHubアカウント', 'ハンドルネーム', 'パスワード'
+        ];
+
+        const basicInfo = publicData[User.FIELDS.BASIC_INFO];
+
+        if (basicInfo && typeof basicInfo === 'object') {
+            privateData[User.FIELDS.BASIC_INFO] = {};
+            
+            piiKeys.forEach(key => {
+                if (basicInfo[key] !== undefined) {
+                    privateData[User.FIELDS.BASIC_INFO][key] = basicInfo[key];
+                    // Remove from publicData
+                    delete basicInfo[key];
+                }
+            });
+
+            // Clean up empty object if needed, but keeping '基本情報' key is fine
+        }
+
+        // Also handle top-level PII fields if they exist (User.js fields)
+        const topLevelPii = [
+            'email', 'firstNameEn', 'familyNameEn', 'firstNameKanji', 'familyNameKanji'
+        ];
+        
+        topLevelPii.forEach(key => {
+            if (publicData[key] !== undefined) {
+                privateData[key] = publicData[key];
+                delete publicData[key];
+            }
+        });
+
+        // Handle allowed_companies (Must be in private_info for Security Rules)
+        if (publicData['allowed_companies'] !== undefined) {
+            privateData['allowed_companies'] = publicData['allowed_companies'];
+            delete publicData['allowed_companies'];
+        }
+
+        return { publicData, privateData };
     }
 
     /**

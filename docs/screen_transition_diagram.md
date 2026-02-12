@@ -91,16 +91,16 @@ graph TD
 ## 3. 企業ユーザー向けアプリ (corporate_user_app)
 
 **概要**: 企業が自社の情報を発信し、求職者へのアピールを行うためのアプリケーション。
-**特徴**: タブビュー（TabView）を使用し、コンテンツの切り替えをスムーズに行います。メニューもタブの一部として統合されています。
+**特徴**: Sharedコンポーネント (`CompanyProfileView`) を採用し、**カスタムボトムナビゲーション** でタブを切り替えます。メニューもボトムナビゲーションの一部として統合されています。
 
 ```mermaid
 graph TD
     %% Nodes
     CompanyPage["企業トップ<br/>(CompanyPageScreen)"]
-    ImageEdit["画像編集画面<br/>(ImageEditScreen)"]
+    ImageEdit["画像編集画面<br/>(CorporateImageEditScreen)"]
     Registration["企業情報編集<br/>(GenericRegistrationScreen)"]
 
-    subgraph "タブコンテンツ (Internal State)"
+    subgraph "カスタムボトムナビゲーション (Internal Tabs)"
         TechStack["使用技術<br/>(TechStackView)"]
         Jobs["求人<br/>(UnderConstruction)"]
         Connections["つながり<br/>(UnderConstruction)"]
@@ -111,11 +111,11 @@ graph TD
 
     %% Transitions
     CompanyPage -->|初期表示| TechStack
-    CompanyPage -- "タブ選択: 求人" --> Jobs
-    CompanyPage -- "タブ選択: つながり" --> Connections
-    CompanyPage -- "タブ選択: ブログ" --> Blog
-    CompanyPage -- "タブ選択: イベント" --> Events
-    CompanyPage -- "タブ選択: メニュー" --> MenuTab
+    CompanyPage -- "Nav選択: 求人" --> Jobs
+    CompanyPage -- "Nav選択: つながり" --> Connections
+    CompanyPage -- "Nav選択: ブログ" --> Blog
+    CompanyPage -- "Nav選択: イベント" --> Events
+    CompanyPage -- "Nav選択: メニュー" --> MenuTab
 
     CompanyPage -- "ヘッダー画像編集ボタンタップ" --> ImageEdit
     

@@ -1,21 +1,26 @@
 #!/bin/bash
 
+# シナリオテスト専用（smokeテスト排除、Sandbox不可）
 # tests/run_e2e.sh
+export E2E_MODE="REAL"
 # Generic E2E Verification Suite for Expo Apps
 # Usage: ./tests/run_e2e.sh <app_name>
 # Supported apps: admin_app, individual_user_app
+# Reference: docs/test.md & reference_information_fordev/instructions/E2Etest_DesignDocument.md
 
 # Ensure Java is available (Maestro dependency)
-export PATH="/usr/local/opt/openjdk/bin:$PATH"
-export JAVA_HOME="/usr/local/opt/openjdk"
+export PATH="/usr/local/opt/openjdk/bin:$HOME/.maestro/bin:$PATH"
+export JAVA_HOME="/usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
 
 APP_NAME=$1
+SPECIFIC_TEST=$2
 
 # 0. Validate Arguments & Configuration
 if [ -z "$APP_NAME" ]; then
   echo "❌ Error: App name argument is required."
-  echo "Usage: ./tests/run_e2e.sh <app_name>"
-  echo "Available apps: admin_app, individual_user_app, corporate_user_app"
+  echo "Usage: ./tests/run_e2e.sh <app_name> [optional_test_file]"
+  echo "Available apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs"
+  echo "See docs/test.md for full details."
   exit 1
 fi
 
@@ -26,26 +31,41 @@ LOG_FILE="$LOG_DIR/${APP_NAME}_expo_output.log"
 case $APP_NAME in
   admin_app)
     echo "⚙️  Configuring for Admin App..."
-    TEST_FILES=(
-      "tests/jobs/smoke_check_errors.yaml"
-      "tests/jobs/smoke_check_ui.yaml"
-      "tests/jobs/full_coverage_test.yaml"
-      "tests/jobs/admin_modal_interaction_test.yaml"
-    )
+    if [ -n "$SPECIFIC_TEST" ]; then
+      echo "🎯 Target specific test: $SPECIFIC_TEST"
+      TEST_FILES=("$SPECIFIC_TEST")
+    else
+      TEST_FILES=(
+        "tests/jobs/full_coverage_test.yaml"
+        "tests/jobs/admin_modal_interaction_test.yaml"
+        "tests/user_profile_update.yaml"
+        "tests/jobs/security_verification_admin.yaml"
+      )
+    fi
     ;;
   individual_user_app)
     echo "⚙️  Configuring for Individual User App..."
     TEST_FILES=(
-      "tests/jobs/individual_smoke_test.yaml"
+      "tests/jobs/security_verification_individual.yaml"
     )
     ;;
   corporate_user_app)
     echo "⚙️  Configuring for Corporate User App..."
+    TEST_FILES=(
+      "tests/jobs/security_verification_corporate.yaml"
+    )
+    ;;
+  job_description)
+    echo "⚙️  Configuring for Job Description App..."
+    TEST_FILES=() # No specific E2E tests yet
+    ;;
+  fmjs)
+    echo "⚙️  Configuring for FMJS App..."
     TEST_FILES=() # No specific E2E tests yet
     ;;
   *)
     echo "❌ Unknown app: $APP_NAME"
-    echo "Supported apps: admin_app, individual_user_app, corporate_user_app"
+    echo "Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs"
     exit 1
     ;;
 esac
@@ -59,6 +79,10 @@ cleanup() {
 trap cleanup EXIT
 
 echo "🚀 Starting E2E Verification Suite for [$APP_NAME]..."
+START_TIME=$(date +%s)
+PASSED_TESTS=0
+FAILED_TESTS=0
+
 
 # 📦 Step 1: Bundle Integrity Check (Global)
 # We run this for all apps to ensure codebase health, but we could make it conditional if needed.
@@ -71,15 +95,30 @@ fi
 
 # 🌐 Step 2: Start Expo Server
 echo "🌐 Step 2: Starting Expo Server for $APP_NAME..."
-touch "$LOG_FILE"
+# TRUNCATE log file to ensure we don't pick up old URLs
+> "$LOG_FILE" 
 ./scripts/start_expo.sh "$APP_NAME" >> "$LOG_FILE" 2>&1 &
 EXPO_PID=$!
 
-# Wait for URL to appear (up to 80s for tunnel stability)
+# Wait for URL to appear (up to 180s for tunnel stability)
 echo "⏳ Waiting for Expo Go Tunnel URL..."
 COUNT=0
-MAX_WAIT=80
+MAX_WAIT=180
 while [ $COUNT -lt $MAX_WAIT ] && ! grep -q "exp://" "$LOG_FILE"; do
+  # Check if Expo process is still running
+  if ! kill -0 $EXPO_PID 2>/dev/null; then
+    echo "❌ Expo process died unexpectedly. Logs:"
+    tail -n 20 "$LOG_FILE"
+    exit 1
+  fi
+
+  # Check for common fatal errors in logs
+  if grep -qE "ERR_NGROK|Failed to retrieve|Error:" "$LOG_FILE"; then
+    echo "❌ Fatal error detected during Expo startup. Logs:"
+    tail -n 20 "$LOG_FILE"
+    exit 1
+  fi
+
   sleep 5
   COUNT=$((COUNT + 5))
   echo "... still waiting ($COUNT/$MAX_WAIT)"
@@ -91,7 +130,7 @@ if ! grep -q "exp://" "$LOG_FILE"; then
   exit 1
 fi
 
-EXPO_URL=$(grep -o "exp://[a-zA-Z0-9._:-]*" "$LOG_FILE" | head -n 1)
+EXPO_URL=$(grep -o "exp://[a-zA-Z0-9._:-]*" "$LOG_FILE" | tail -n 1)
 echo "✅ Expo Go URL detected: $EXPO_URL"
 
 # 📱 Step 3: Device Readiness
@@ -113,6 +152,13 @@ sleep 15
 if command -v maestro &> /dev/null; then
   
   for TEST_FILE in "${TEST_FILES[@]}"; do
+    
+    # 5.1 Pre-test Cleanup (Firestore Reset)
+    # Ref: E2Etest_DesignDocument.md Section 5.1
+    if [ -f "tests/utils/clear_firestore.sh" ]; then
+        ./tests/utils/clear_firestore.sh
+    fi
+
     echo "🛠 Running Test: $TEST_FILE"
     maestro test -e EXPO_URL="$EXPO_URL" "$TEST_FILE"
     TEST_EXIT=$?
@@ -122,9 +168,21 @@ if command -v maestro &> /dev/null; then
       # Capture failure screenshot using simctl
       mkdir -p "tests/screenshots/$APP_NAME"
       xcrun simctl io booted screenshot "tests/screenshots/$APP_NAME/failure_${TEST_FILE##*/}.png"
+      
+      FAILED_TESTS=$((FAILED_TESTS + 1))
+      
+      # Generate Partial Report on Failure
+      END_TIME=$(date +%s)
+      DURATION=$((END_TIME - START_TIME))
+      TOTAL_TESTS=${#TEST_FILES[@]}
+      DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
+      
+      ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "FAIL"
+      
       exit 1
     fi
     echo "✅ Test passed: $TEST_FILE"
+    PASSED_TESTS=$((PASSED_TESTS + 1))
   done
 
   # Organize audit screenshots
@@ -132,6 +190,14 @@ if command -v maestro &> /dev/null; then
   mv *.png "tests/screenshots/$APP_NAME/" 2>/dev/null 2>&1
 
   echo "🎉 ALL TESTS PASSED for $APP_NAME!"
+  
+  END_TIME=$(date +%s)
+  DURATION=$((END_TIME - START_TIME))
+  TOTAL_TESTS=${#TEST_FILES[@]}
+  DURATION_FORMATTED="$(($DURATION / 60))m $(($DURATION % 60))s"
+
+  ./tests/utils/generate_report.sh "$APP_NAME" "$TOTAL_TESTS" "$PASSED_TESTS" "$FAILED_TESTS" "$DURATION_FORMATTED" "PASS"
+  
   exit 0
 
 else

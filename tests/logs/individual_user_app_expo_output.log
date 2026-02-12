@@ -3,15 +3,15 @@
 🔍 Checking environment configuration...
 ✅ Environment configuration verified.
 🧹 Cleaning up existing processes...
-⚠️  Killing process 67419 on port 8082
+⚠️  Killing process 6524 on port 8082
 ⚡ Starting Expo Server (Tunnel Mode)...
-⏳ Waiting for Expo server...
+⏳ Waiting for tunnel to establish...
 .
 ==================================================
 ✅ Start up successful.
 Here is the URL for Expo Go:
 
-   exp://localhost:8082
+   exp://rlstrky-anonymous-8082.exp.direct
 
 You can enter this URL manually in the Expo Go app.
 ==================================================

@@ -1,21 +1,21 @@
 # テスト設計書
 
 ## 概要
-このドキュメントでは、プロジェクトのテスト構成と、新しいアプリ/画面を追加する際の手順を説明します。
+このドキュメントでは、プロジェクトのテスト方針とE2Eテスト構成について説明します。
 
 ---
 
-## 🧪 テスト方針
+## 🧪 テスト方針：実世界テスト（Real World Testing）
 
-### 1. 実環境での検証を最優先（Real World Testing）
-- **サンドボックス依存の禁止**: AIサンドボックス（制限された環境）やExpo Goだけで動作するテストには価値がありません。必ず**ユーザーの実環境（ローカルマシン）**や**ネイティブビルド**で動作することを保証してください。
-  - 特に、AIアシスタントが提供する「サンドボックス上のシェル実行」や「リモートCI環境上だけで完結する検証結果」をもって、品質保証が完了したとみなしてはいけません。
-  - AIアシスタントは、テスト・ビルド・Expo起動・Maestro実行などのコマンドを**サンドボックス内で直接実行せず**、「ローカルマシンで人間が実行すべき具体的なコマンド提案」に徹するものとします。
-- **「テストを通すための改変」の禁止**: テスト識別子（testID）を付与するために、本番コードにデバッグ用の表示要素（例: `APP ROOT RENDERED` などの不可視ビュー）を追加することは厳禁です。ユーザーが実際に見るUI構造そのものをテスト対象としてください。
+我々は、**「テストのためのテスト（Smoke Test）」を排除し、「ユーザーの実際の利用シナリオ」のみを検証します。**
 
-### 2. E2Eテストの原則
-- **ユーザー体験の再現**: テストシナリオは「内部状態の確認」ではなく「ユーザーの実際の操作」を模倣するものであるべきです。
-- **環境の忠実性**: 可能な限り、実際のデバイスやシミュレーター（iOS Simulator / Android Emulator）を使用し、本番に近い構成で検証を行ってください。AI環境上の制限で実行できない場合は、無理にハックせず、ユーザーに実行を依頼するフローを選択してください。
+### 1. ユーザー中心の検証シナリオ
+- **スモークテストの撤廃**: 「画面が表示されるか」「ボタンが存在するか」といった浅い確認は、開発者がExpo Previewで一瞬で判断できるため、自動テストの価値は低いです。
+- **実用フローの検証**: 「管理者としてログインし、ユーザー詳細を開き、つながり候補を確認して保存する」といった、実際の業務フローそのものをテストシナリオとします。これにより、「テストは通ったが、現場で使えない」という事態を防ぎます。
+
+### 2. 環境の忠実性
+- **シミュレーター/エミュレーター必須**: `run_e2e.sh` は必ずiOS Simulator / Android Emulator上で実行されます。
+- **データI/Oの保証**: UIの変化だけでなく、「Firestoreに正しいデータが書き込まれたか」までを検証範囲とします（参照: `E2Etest_DesignDocument.md`）。
 
 ---
 
@@ -25,147 +25,56 @@
 tests/
 ├── run_e2e.sh           # E2Eテスト実行スクリプト（メインエントリポイント）
 ├── verify_bundle.sh     # バンドル整合性チェック
-├── integration/         # インテグレーションテスト（予約）
-└── jobs/                # Maestro E2Eテストフロー
-    ├── full_coverage_test.yaml  # 全カバレッジテスト（推奨）
-    └── smoke_test.yaml          # シンプルスモークテスト
+├── jobs/                # Maestro E2Eテストフロー
+│   ├── full_coverage_test.yaml           # 全カバレッジ網羅テスト
+│   ├── admin_modal_interaction_test.yaml # モーダル操作・詳細確認
+│   └── (user_profile_update.yaml)        # データ更新・I/O検証
+└── utils/
+    └── clear_firestore.sh                # テスト毎のデータクリーンアップ
 ```
 
 ---
 
-## 各ファイルの説明
+## 主なテストシナリオ
 
-### `run_e2e.sh`
-**メインの実行スクリプト**。以下のステップを順に実行します:
-1. `verify_bundle.sh` でモジュール解決エラーをチェック
-2. Expoサーバーを起動
-3. Simulatorを確認・起動
-4. Expo GoでアプリをロードしMaestroテストを実行
+### `run_e2e.sh admin_app` で実行されるシナリオ
 
-```bash
-# 実行方法 (アプリ名を指定)
-./tests/run_e2e.sh <app_name>
-# 例:
-# ./tests/run_e2e.sh admin_app
-# ./tests/run_e2e.sh individual_user_app
-```
+1.  **`jobs/full_coverage_test.yaml`**
+    -   **目的**: アプリ全体の回遊性確認。
+    -   **内容**: ダッシュボードの全タブ（個人・法人・求人・選考）を巡回し、リスト表示、フィルタリング、初期ロードが正常に行われることを検証します。
 
-### `verify_bundle.sh`
-**静的バンドル検証**。`npx expo export` を実行し、以下を検出します:
-- `Unable to resolve module` エラー
-- その他のバンドリングエラー
+2.  **`jobs/admin_modal_interaction_test.yaml`**
+    -   **目的**: 詳細機能の深掘り検証。
+    -   **内容**: 特定のユーザー・求人を選択し、詳細モーダルを展開。内部のタブ切り替えや情報表示が崩れていないかを確認します。
 
-Simulatorを起動せずに高速チェックが可能。
-
-### `jobs/full_coverage_test.yaml`
-**testIDベースの全カバレッジテスト**（推奨）。
-
-特徴:
-- `testID` セレクタで要素を識別（安定性高）
-- `runFlow` + `when` で未実装画面を自動スキップ
-- `optional: true` で空データ状態を警告のみにするレジリエント設計
-
-テスト対象:
-- ダッシュボードの読み込み
-- 5つのタブ間のナビゲーション
-- 各タブのリストアイテム表示確認
-- 詳細モーダルの表示・閉じる
-
-### `jobs/smoke_test.yaml`
-**テキストベースのシンプルスモークテスト**。
-
-特徴:
-- UI文言でセレクタを指定（開発初期向け）
-- 変更に弱いため、`full_coverage_test.yaml` の使用を推奨
+3.  **`user_profile_update.yaml`**
+    -   **目的**: データ整合性の保証。
+    -   **内容**: 実際にフォームに入力し、保存アクションを実行。画面上のフィードバックだけでなく、バックエンド（Firestore）への書き込みが完了したことを検証します。
 
 ---
 
-## 新しいアプリ/画面を追加する際
+## テストの実行方法
 
-### 1. testID命名規約に従う
-
-| コンポーネント種別 | パターン | 例 |
-|------------------|---------|---|
-| タブ | `tab_<name>` | `tab_individual`, `tab_company` |
-| リストアイテム | `<type>_item` | `engineer_item`, `job_item` |
-| モーダルタイトル | `<type>_title` | `user_detail_title` |
-| モーダル閉じる | `<type>_close` | `drill_down_close` |
-| モーダルコンテナ | `<type>_modal_view` | `drill_down_modal_view` |
-
-### 2. UIコンポーネントにtestIDを追加
-
-```jsx
-// タブの例
-<TouchableOpacity testID="tab_new_feature">
-
-// リストアイテムの例
-<EngineerListItem testID="new_feature_item" />
-
-// モーダルの例
-<View testID="new_modal_view">
-  <Text testID="new_modal_title">{title}</Text>
-  <TouchableOpacity testID="new_modal_close" />
-</View>
-```
-
-### 3. テストファイルに条件付きフローを追加
-
-```yaml
-# 新しいタブへのナビゲーション
-- tapOn:
-    id: "tab_new_feature"
-
-# 要素が存在する場合のみテスト実行（レジリエント）
-- runFlow:
-    when:
-      visible:
-        id: "new_feature_item"
-    commands:
-      - tapOn:
-          id: "new_feature_item"
-          index: 0
-      # 詳細画面が実装されている場合のみ
-      - runFlow:
-          when:
-            visible:
-              id: "new_modal_title"
-          commands:
-            - tapOn:
-                id: "new_modal_close"
-```
-
-### 4. テストを実行して確認
+基本的にはルートディレクトリから以下を実行するだけです。
 
 ```bash
-./tests/run_e2e.sh
+./tests/run_e2e.sh admin_app
+```
+
+### オプション
+特定のYAMLファイルのみをデバッグ実行したい場合:
+
+```bash
+./tests/run_e2e.sh admin_app tests/jobs/your_specific_test.yaml
 ```
 
 ---
 
-## テスト結果の読み方
+## 新しいテストを追加する際
 
-| アイコン | 意味 |
-|---------|-----|
-| ✅ | テスト成功 |
-| ⚪️ | スキップ（条件を満たさなかった） |
-| ⚠️ | 警告（optional: trueで失敗） |
-| ❌ | 失敗（必須テストが通らなかった） |
+「それが**実際のユーザーの操作**か？」を常に問いかけてください。
 
----
+- **NG**: `assertVisible: "ボタンA"` （ただの存在確認）
+- **OK**: `tapOn: "ボタンA"` -> `assertVisible: "完了しました"` （操作と結果のセット）
 
-## トラブルシューティング
-
-### Maestroが見つからない
-```bash
-curl -Ls "https://get.maestro.mobile.dev" | bash
-```
-
-### Javaが見つからない
-```bash
-brew install openjdk
-```
-
-### testIDが認識されない
-- React Native の `testID` は Expo Go 経由で Maestro に伝播します
-- Modalコンポーネント内部の要素はモーダルが開いてから検出可能になります
-- `extendedWaitUntil` でタイムアウトを設定してください
+実装時は `reference_information_fordev/instructions/E2Etest_DesignDocument.md` に記載されている `testID` の規約や、Firestoreデータ検証の仕組みに従ってください。

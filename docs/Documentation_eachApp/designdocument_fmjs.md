@@ -74,6 +74,7 @@ graph TD
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `SelectionProgress` モデルを使用します（`shared/common_frontend/src/core/models/SelectionProgress.js`）。
   - 生のFirestoreデータ（`data['field']`）への直接アクセスは原則禁止とし、モデルのゲッター（`model.jobStatId` 等）を使用します。
+  - **個人情報の参照**: 個人ユーザー情報を参照する場合は、`User` モデルを使用してください。`public_profile`（公開）と `private_info`（非公開）の分割はモデル内で隠蔽されますが、アクセス権限（Admin権限等）が必要です。
   - 既存コンポーネントとの互換性のために生データが必要な場合に限り、`model.rawData` プロパティの使用を許可します。
 - **ダミーデータの使用禁止**: 
   - 本アプリでは、ハードコードされたダミーデータ（`DUMMY_DATA` 等）の使用を固く禁じています。

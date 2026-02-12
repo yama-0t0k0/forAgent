@@ -1,0 +1,36 @@
+appId: host.exp.Exponent
+---
+# Security Verification: Corporate Access
+# Verifies that Corporate User can access their own Company information.
+# Related to Issue #291 (Security Verification)
+
+- openLink: ${EXPO_URL}
+# Standard startup handling
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    text: "開く"
+    optional: true
+- tapOn:
+    point: "75%, 54%"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    point: "50%, 90%"
+    optional: true
+- tapOn:
+    text: "Dismiss"
+    optional: true
+
+# 1. Verify Company Profile Access (Own Data)
+# Corporate App displays own company profile on home screen.
+# Visibility of Company Name confirms read access to 'corporate' collection (own data).
+- extendedWaitUntil:
+    visible:
+        id: "company_detail_name"
+    timeout: 60000
+- assertVisible:
+    id: "company_detail_name"

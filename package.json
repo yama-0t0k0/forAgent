@@ -13,7 +13,9 @@
         "start:corporate": "bash scripts/start_expo.sh corporate_user_app",
         "start:job_description": "bash scripts/start_expo.sh job_description",
         "start:fmjs": "bash scripts/start_expo.sh fmjs",
-        "push": "bash githooks/safe_push.sh"
+        "push": "bash githooks/safe_push.sh",
+        "test": "jest",
+        "test:rules": "npx firebase emulators:exec --only firestore 'npx jest firestore.test.js'"
     },
     "dependencies": {
         "@react-native-community/datetimepicker": "8.4.4",
@@ -43,6 +45,7 @@
         "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
         "@babel/plugin-transform-template-literals": "^7.27.1",
         "@expo/ngrok": "^4.1.3",
+        "@firebase/rules-unit-testing": "^5.0.0",
         "@testing-library/react-native": "^13.3.3",
         "babel-plugin-module-resolver": "^5.0.2",
         "babel-preset-expo": "~12.0.0",

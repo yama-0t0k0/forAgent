@@ -42,6 +42,7 @@ import { GlobalLoadingOverlay } from '@shared/src/core/components/StateComponent
  * @property {ImageConfig} mainImageConfig - Configuration for the main profile image
  * @property {ImageConfig} bgImageConfig - Configuration for the background image
  * @property {function(object): React.ReactNode} [renderBottomNav] - Function to render bottom navigation
+ * @property {function(object, string, object): Promise<void>} [customSaveLogic] - Custom logic for saving data
  */
 
 /**
@@ -57,7 +58,8 @@ export const GenericImageEditScreen = ({
     idFieldKey,
     mainImageConfig,
     bgImageConfig,
-    renderBottomNav
+    renderBottomNav,
+    customSaveLogic
 }) => {
     const { data, updateValue } = useContext(DataContext);
     const navigation = useNavigation();
@@ -104,7 +106,12 @@ export const GenericImageEditScreen = ({
                 };
 
                 const cleanedData = cleanData(dataToSave);
-                await setDoc(doc(db, collectionName, id), cleanedData);
+                
+                if (customSaveLogic) {
+                    await customSaveLogic(db, id, cleanedData);
+                } else {
+                    await setDoc(doc(db, collectionName, id), cleanedData);
+                }
             }
 
             setTimeout(() => {
