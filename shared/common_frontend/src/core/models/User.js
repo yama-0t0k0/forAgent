@@ -82,8 +82,10 @@ export class User {
         let familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
         
         // Fallback: If kanji names are empty but 'name' exists (e.g. from public_profile), use it
-        if (!firstNameKanji && !familyNameKanji && data.name) {
-            firstNameKanji = data.name;
+        if (!firstNameKanji && !familyNameKanji) {
+            if (data.name) firstNameKanji = data.name;
+            else if (data.fullName) firstNameKanji = data.fullName;
+            else if (data.displayName) firstNameKanji = data.displayName;
         }
 
         const email = basicInfo[User.FIELDS.EMAIL] || data.email || '';
