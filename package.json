@@ -13,7 +13,9 @@
         "start:corporate": "bash scripts/start_expo.sh corporate_user_app",
         "start:job_description": "bash scripts/start_expo.sh job_description",
         "start:fmjs": "bash scripts/start_expo.sh fmjs",
-        "push": "bash githooks/safe_push.sh"
+        "push": "bash githooks/safe_push.sh",
+        "test": "jest",
+        "test:rules": "npx firebase emulators:exec --only firestore 'npx jest firestore.test.js'"
     },
     "dependencies": {
         "@react-native-community/datetimepicker": "8.4.4",

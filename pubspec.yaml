@@ -10,6 +10,7 @@ workspace:
   - apps/fmjs/dart_backend
   - apps/individual_user_app/dart_backend
   - apps/job_description/dart_backend
+  - apps/backend
   - shared/domain_models
   - shared/common_logic
   - shared/common_backend

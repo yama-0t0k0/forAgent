@@ -1,0 +1,324 @@
+# JavaScript コーディング規約 (Phase 1.5)
+**〜Flutter (Dart) への円滑な移行を見据えた記述スタイル〜**
+
+本プロジェクトは将来的にFlutterへの移行を予定しています。
+そのため、JavaScriptコードであっても静的型付け言語（Dart）の構造や概念に寄せた記述を行うことで、将来的な移植コストの最小化を目指します。
+
+なお、本規約に記載のない一般的なスタイルについては [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript) および [Google JavaScript Style Guide](https://google.github.io/styleguide/jsguide.html) に準拠します。
+ただし、**「モバイルファースト」および「Dart移行（静的型付け指向）」の観点において、本規約の記述が優先されます。**
+
+特に以下の点において、Airbnbスタイルガイドの原則を本プロジェクトの文脈に合わせて適用します：
+*   **厳格な等価演算子 (`===`) の使用**: JSの暗黙の型変換を防ぎ、Dartのような型安全性を模倣するため。
+*   **シングルクォート (`'`) の使用**: Dartの標準コーディング規約に合わせるため。
+*   **定数の命名**: `UPPER_CASE` を徹底し、Enumライクな使用を強制するため。
+
+---
+
+## 1. 基本原則：Dartライクな記述とモバイルファースト
+
+### 1.1 クラスベースのデータ構造
+複雑なデータ構造はオブジェクトリテラル（`{}`）ではなく、ES6クラスを使用して定義してください。Airbnb Style Guideではクラスの使用を推奨しないケースもありますが、本プロジェクトではDart移行時の移植性を最優先するため、クラス定義を必須とします。
+
+**❌ Bad (単なる連想配列)**
+```javascript
+const user = {
+  name: 'Tanaka',
+  age: 30,
+  isActive: true
+};
+```
+
+**✅ Good (クラス定義)**
+```javascript
+class User {
+  /**
+   * @param {string} name 
+   * @param {number} age 
+   * @param {boolean} isActive 
+   */
+  constructor(name, age, isActive = false) {
+    this.name = name;
+    this.age = age;
+    this.isActive = isActive;
+  }
+}
+const user = new User('Tanaka', 30, true);
+```
+
+### 1.2 変数初期化とNull Safety対策
+DartのNull Safety（Null許容性の厳格化）を意識し、変数は宣言時に可能な限り初期化してください。`undefined` は極力使用せず、値がない場合は `null` を明示的に代入してください。
+また、Airbnbスタイルと同様に `var` は使用せず、再代入しない変数は `const`、再代入が必要な変数は `let` を使用してください。
+
+**❌ Bad (undefined放置 / var使用)**
+```javascript
+var title;      // undefinedかstringか不明
+let count;
+```
+
+**✅ Good (型を確定させる初期化 / const・let使用)**
+```javascript
+let title = ""; // string型として確定
+let count = 0;  // int型として確定
+const user = null; // null許容のオブジェクトとして確定（再代入しない場合）
+```
+
+### 1.3 モバイルファースト・UI設計原則
+本アプリは**モバイルファースト**で設計・実装されます。PCブラウザ向けの独自UIは作成せず、モバイルUIをベースとしたレスポンシブデザインで対応してください。
+
+*   **モバイルUIが正（Master）**: すべてのUIコンポーネントは、まずスマートフォン（iOS/Android）での表示と操作性を最優先に実装してください。
+*   **レスポンシブ対応**: PCやタブレットでの表示は、モバイル用コンポーネントの幅（width）やレイアウト（Flexbox）を調整するレスポンシブデザインのみで対応します。PC専用の画面やコンポーネントへの分岐は避けてください。
+*   **タッチ操作前提**: ボタンやインタラクティブな要素は、指での操作に適したサイズ（最低 44x44 pt/dp）を確保してください。マウスオーバー（Hover）のみに依存した機能実装は禁止です。
+
+---
+
+## 2. 型定義と制御構文：Dart移行を見据えて
+
+すべての関数、メソッド、主要な変数にはJSDocを使用して型を明記してください。これにより、IDEの型チェック機能を有効活用し、Dart移行時の型決定の拠り所とします。
+
+### 2.1 関数の型定義
+引数と戻り値の型を必ず記載してください。Airbnbスタイルではアロー関数の使用が推奨されますが、本プロジェクトでも関数式やアロー関数を積極的に使用しつつ、JSDocを付与してください。
+
+```javascript
+/**
+ * ユーザーの有効性を検証する
+ * @param {string} userId - ユーザーID
+ * @param {number} loginCount - ログイン回数
+ * @returns {boolean} - 有効な場合true
+ */
+const isValidUser = (userId, loginCount) => {
+  return !!userId && loginCount > 0;
+};
+```
+
+### 2.2 複雑なオブジェクトの型定義
+`@typedef` を使用して、Dartのクラスやインターフェースに相当する型定義を行ってください。
+
+```javascript
+/**
+ * @typedef {Object} JobDescription
+ * @property {string} id - 求人ID
+ * @property {string} title - 求人タイトル
+ * @property {number} [salary] - 給与（省略可能）
+ */
+
+/**
+ * @param {JobDescription} job
+ */
+const processJob = (job) => { ... }
+```
+
+### 2.3 非同期処理 (Async/Await)
+非同期処理には `Promise` チェーン（`.then().catch()`）ではなく、必ず `async/await` 構文を使用してください。これはDartの `async/await` と構文がほぼ同一であり、移行時の書き換えコストを最小化するためです。
+
+**❌ Bad (Promise Chain)**
+```javascript
+function fetchData() {
+  return api.get('/data')
+    .then(response => process(response))
+    .catch(error => handleError(error));
+}
+```
+
+**✅ Good (Async/Await)**
+```javascript
+/**
+ * @returns {Promise<void>}
+ */
+async function fetchData() {
+  try {
+    const response = await api.get('/data');
+    process(response);
+  } catch (error) {
+    handleError(error);
+  }
+}
+```
+
+---
+
+## 3. 定数管理：Enumライクな記述
+
+### 3.1 定数の定義と命名規則
+定数として扱う変数やオブジェクトのプロパティは、Airbnbスタイルに従い **UPPER_CASE（大文字スネークケース）** で命名してください。
+マジックナンバーや文字列リテラルの直接使用を避け、オブジェクトを `const` で定義してEnum（列挙型）のように扱ってください。
+
+**❌ Bad (文字列リテラル / 小文字命名)**
+```javascript
+if (status === 'pending') { ... }
+```
+
+**✅ Good (Enumライクな定数)**
+```javascript
+/**
+ * @readonly
+ * @enum {string}
+ */
+const USER_STATUS = {
+  PENDING: 'pending',
+  ACTIVE: 'active',
+  SUSPENDED: 'suspended'
+};
+
+if (status === USER_STATUS.PENDING) { ... }
+```
+
+---
+
+## 4. 構文・フォーマット：Airbnbスタイル準拠
+
+Airbnb Style Guideに基づき、以下の構文ルールを適用します。これらはDart移行時のコード解析を容易にするためにも重要です。
+
+### 4.1 厳格な等価演算子 (`===`)
+比較には必ず `===` および `!==` を使用してください。`==` は型変換により予期せぬ挙動を招くため禁止します。これはDartの型安全性に近い挙動を保証するためです。
+
+```javascript
+// ❌ Bad
+if (id == 123) { ... }
+
+// ✅ Good
+if (id === 123) { ... }
+```
+
+### 4.2 文字列の引用符 (`'`)
+文字列リテラルにはシングルクォート (`'`) を使用してください。これはDartの標準コーディング規約とも一致します。
+
+```javascript
+// ❌ Bad
+const name = "Tanaka";
+
+// ✅ Good
+const name = 'Tanaka';
+```
+
+### 4.3 スプレッド構文 (`...`) の活用
+オブジェクトや配列の結合・コピーには `Object.assign` ではなくスプレッド構文を使用してください。Dartにも同様のスプレッド演算子が存在するため、可読性と移植性が向上します。
+
+```javascript
+// ❌ Bad
+const newObj = Object.assign({}, oldObj, { isActive: true });
+
+// ✅ Good
+const newObj = { ...oldObj, isActive: true };
+```
+
+### 4.4 反復処理のメソッド化
+`for` 文ではなく、配列メソッド（`map`, `filter`, `reduce`, `find`）を優先して使用してください。これらはDartの `Iterable` メソッド（`map`, `where`, `fold`, `firstWhere`）と直感的に対応します。
+
+```javascript
+// ❌ Bad
+const activeUsers = [];
+for (let i = 0; i < users.length; i++) {
+  if (users[i].isActive) activeUsers.push(users[i]);
+}
+
+// ✅ Good
+const activeUsers = users.filter(user => user.isActive);
+```
+
+---
+
+## 5. ファイル・ディレクトリ構成
+
+- ファイル名は `camelCase` ではなく、クラスを含むファイルは `PascalCase`（例: `UserDetailModal.js`）、ユーティリティや関数群は `camelCase`（例: `dateUtils.js`）とします（Dart/Flutterの慣習とは異なりますが、現在のReact Nativeの慣習に合わせつつ、中身はクラス構造を意識します）。
+- Sharedコンポーネントは、将来的にFlutterのPackageとして切り出せるよう、依存関係を疎結合に保ってください。
+
+---
+
+## 6. Path Aliases（エイリアス）の利用
+
+### 6.1 基本ルール
+相対パス（`../../../../`）の使用は、ファイル移動時のパス崩れや可読性低下の原因となるため、原則禁止とします。
+代わりに、`babel.config.js` で定義された Path Aliases（`@shared/`, `@job_app/` 等）を使用してください。
+
+**❌ Bad (相対パス地獄)**
+```javascript
+import { THEME } from '../../../../shared/common_frontend/src/theme/theme';
+import { JobDescriptionScreen } from '../../../../../apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen';
+```
+
+**✅ Good (エイリアス利用)**
+```javascript
+import { THEME } from '@shared/src/core/theme/theme';
+import { JobDescriptionScreen } from '@job_app/src/features/job_description/JobDescriptionScreen';
+```
+
+### 6.2 エイリアスの追加運用
+新しいエイリアスが必要になった場合は、以下の手順で追加してください。
+1. 各アプリの `babel.config.js` の `plugins` -> `module-resolver` -> `alias` に追加。
+2. IDEの補完を効かせるため、`jsconfig.json` (または `tsconfig.json`) の `compilerOptions` -> `paths` にも同様に追加。
+
+---
+
+## 7. チェックリスト（PR提出前）
+
+- [ ] 変数は宣言時に初期化されているか？（`undefined` になっていないか）
+- [ ] JSDocで引数と戻り値の型が明記されているか？
+- [ ] データ構造はクラス（または明確な構造体）として定義されているか？
+- [ ] マジックナンバーを使用せず、定数（Enum）を使用しているか？
+- [ ] 深い相対パス（`../../`）を使わず、Path Alias（`@shared/`等）を使用しているか？
+
+---
+
+## 8. 本規約遵守のメリット（JS環境での継続運用における価値）
+
+本規約に従って実装することは、将来的なDart移行を円滑にするだけでなく、仮にJavaScript/React Nativeでの運用を継続する場合においても、技術的負債を最小化し、以下の多大なメリットをもたらします。
+
+1.  **可読性と保守性の向上**:
+    JSDocによる型定義とクラスベースのデータ構造化により、コードが自己文書化されます。「どのデータがどこにあるか」が一目で理解できるようになり、スパゲッティコード化を防ぎます。
+
+2.  **変更影響範囲の極小化**:
+    データアクセスをモデルクラスやユーティリティに隠蔽することで、APIレスポンスの構造変更などの影響を局所化できます。これにより、機能追加や改修時のバグ発生リスクを大幅に低減します。
+
+3.  **テスト容易性の向上**:
+    ビジネスロジックをUIから切り出し、純粋な関数やクラスとして定義することで、UIレンダリングに依存しない高速かつ堅牢なユニットテストが可能になります。
+
+4.  **オンボーディングコストの削減**:
+    構造化されたコードベースは、新規参画メンバーにとって理解しやすく、学習コストを大幅に削減します。
+
+---
+
+## 付録: TypeScriptへの移行を行わず、JavaScript改善から直接Flutter(Dart)へ移行する理由
+
+TypeScriptへのリプレイス（JS → TS → Dart）という二段階の移行プロセスを採用せず、現在のJavaScriptコードを改善した上で直接Flutter(Dart)へ移行する（JS → Dart）戦略を採用した理由は以下の通りです。
+
+1.  **二重の移行コストの削減**:
+    TypeScript化には型定義の追加やビルド構成の変更など、多大な工数が必要です。最終目標がDart（静的型付け言語）である以上、TypeScript化で行う型定義作業の多くはDart移行時に再度やり直すことになり、二度手間となります。
+
+2.  **ロジックと構造の整理への集中**:
+    現在の課題は「型がないこと」よりも「コンポーネントの責任範囲が不明確」「ビジネスロジックがUIに結合している」といった構造的な問題です。JSDocとリファクタリングによってこれらの構造的問題を解決する方が、Dartへの移行準備として本質的かつ効率的です。
+
+3.  **移行期間の短縮**:
+    TypeScript化を経由することで開発サイクルが長期化し、Flutter移行への着手が遅れるリスクがあります。JSコードの品質を「Dartに移植しやすい状態（Classベース、明確な入出力）」に高めることに注力することで、最短経路でのFlutter移行を目指します。
+
+---
+
+## 付録: リファクタリングロードマップ
+
+Dart移行を見据えた、手戻りの少ない効率的なリファクタリング順序は以下の通りです。
+基本原則は **「データモデル（Shared）→ ビジネスロジック（Shared）→ 各アプリのUI（Leaf Apps → Admin App）」** です。
+
+### 1. 【最優先】Shared領域へのモデル定義 (Data Modeling)
+Dart移行において最も重要な「型（クラス設計）」の基盤を作成します。
+生JSONを各画面でパースする現状を改め、`shared/common_frontend/src/core/models/` にモデルクラスを集約します。
+
+*   **作成対象**:
+    *   `User.js` (個人ユーザー: `individual_user_app`用)
+    *   `Company.js` (企業情報: `CompanyAdapter.js`の代替・強化)
+    *   `JobDescription.js` (求人票: `job_description`用)
+
+### 2. Shared Utilitiesの型適用 (Service Layer)
+既存のユーティリティ（例: `CompanyAdapter.js`）が、生JSONではなく上記モデルクラスを扱う（または生成する）ように修正します。
+
+### 3. Individual User App (Feature Layer 1)
+個人アプリの主要画面（`MyPageScreen.js`等）を、生JSONアクセス（`data['基本情報']`）からモデルプロパティアクセス（`user.firstName`）に変更します。
+
+### 4. Job Description App (Feature Layer 2)
+求人詳細画面などを同様にモデルベースにリファクタリングします。
+
+### 5. FMJS App (Feature Layer 3)
+FMJS（Fee Management & Job Status）は選考進捗や契約管理を扱うため、`SelectionProgress`モデルや契約関連モデルの整備と合わせてリファクタリングを実施します。
+特に`SelectionProgressListScreen.js`等の主要画面で、生Firestoreデータアクセスを排除します。
+
+### 6. Admin App (Integration Layer)
+個人・企業・求人・FMJSの全データを扱う最も複雑なアプリであるため、1〜5のモデルが揃ってから着手します。
+これにより、Adminアプリ特有の「データの混在」や「不整合」を防ぎやすくなります。

@@ -20,15 +20,16 @@ service cloud.firestore {
     }
 
     // Check if the user has a specific role (stored in their user profile)
-    // ユーザーが特定のロールを持っているか確認 (ユーザープロファイルに基づく)
+    // ユーザーが特定のロールを持っているか確認 (Custom Claims 優先、未設定時は users コレクション参照)
     function hasRole(role) {
-      // Note: This requires a read. For high-traffic, Custom Claims are recommended.
-      // Current implementation relies on 'users' collection lookup.
-      // 注: これには読み取り操作が必要です。高トラフィックの場合はCustom Claimsの使用を推奨します。
-      // 現在の実装は 'users' コレクションの参照に依存しています。
-      return isAuthenticated() 
-             && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+      // Option A: Hybrid Approach
+      // 1. Check Custom Claims first (High Performance)
+      // 2. Fallback to Firestore 'users' collection (Compatibility)
+      return (request.auth.token.keys().hasAll(['role']) && request.auth.token.role == role)
+             || (
+               exists(/databases/$(database)/documents/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role
+             );
     }
 
     // 管理者ロールかどうかを確認
@@ -37,17 +38,18 @@ service cloud.firestore {
     }
 
     // Check if the user is a member of the specific company
-    // ユーザーが特定の企業のメンバーであるか確認
+    // ユーザーが特定の企業のメンバーであるか確認 (Custom Claims 優先)
     function isCompanyMember(companyId) {
-      // Note: Safe navigation for optional fields isn't fully supported in rules, 
-      // but we assume schema consistency (role and companyId exist if role is corporate)
-      // 注: ルールではオプショナルフィールドの安全なナビゲーションは完全にはサポートされていませんが、
-      // スキーマの一貫性 (roleがcorporateならcompanyIdが存在する) を前提としています。
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isAuthenticated() 
-             && userDoc != null
-             && userDoc.data.role == 'corporate' 
-             && userDoc.data.companyId == companyId;
+      return (request.auth.token.keys().hasAll(['role', 'companyId']) 
+              && request.auth.token.role == 'corporate' 
+              && request.auth.token.companyId == companyId)
+             || (
+               // Fallback: Check Firestore
+               isAuthenticated() 
+               && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'corporate' 
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId
+             );
     }
     
     // Check if the requesting company user is allowed to view the private info
@@ -77,8 +79,11 @@ service cloud.firestore {
       
       // Prevent users from making themselves admin or changing their role/companyId
       // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ
+      // + Data Validation: role must be valid, companyId required for corporate
       allow create: if isOwner(userId) 
-                    && (!('role' in request.resource.data) || request.resource.data.role != 'admin');
+                    && (!('role' in request.resource.data) || request.resource.data.role != 'admin')
+                    && ('role' in request.resource.data && request.resource.data.role in ['individual', 'corporate'])
+                    && (request.resource.data.role != 'corporate' || ('companyId' in request.resource.data && request.resource.data.companyId is string));
                     
       allow update: if isAdmin() 
                     || (isOwner(userId) 
@@ -97,7 +102,15 @@ service cloud.firestore {
       
       // Writable only by the owner or Admin
       // 所有者本人または管理者のみ書き込み可能
-      allow write: if isOwner(userId) || isAdmin();
+      // Validation: 'name' must be a non-empty string
+      allow create: if (isOwner(userId) || isAdmin())
+                    && 'name' in request.resource.data
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+
+      allow update: if (isOwner(userId) || isAdmin())
+                    && (!('name' in request.resource.data) 
+                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
     }
 
     // ----------------------------------------------------------------------------
@@ -129,7 +142,17 @@ service cloud.firestore {
       
       // Writable by company members or Admin
       // その企業のメンバーまたは管理者のみ書き込み可能
-      allow write: if isCompanyMember(companyId) || isAdmin();
+      // Validation: 'name' is required and must be a non-empty string
+      allow create: if (isCompanyMember(companyId) || isAdmin())
+                    && request.resource.data.name is string 
+                    && request.resource.data.name.size() > 0;
+                    
+      allow update: if (isCompanyMember(companyId) || isAdmin())
+                    && (!('name' in request.resource.data) 
+                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
+      
+      // Fallback for delete (if needed)
+      allow delete: if isAdmin();
     }
     
     // Legacy support alias (if needed)
@@ -151,7 +174,17 @@ service cloud.firestore {
       
       match /JD_Number/{jdId} {
         allow read: if isAuthenticated();
-        allow write: if isCompanyMember(companyId) || isAdmin();
+        
+        // Validation: title, description, salaryRange are required string fields
+        allow create: if (isCompanyMember(companyId) || isAdmin())
+                      && request.resource.data.title is string && request.resource.data.title.size() > 0
+                      && request.resource.data.description is string && request.resource.data.description.size() > 0
+                      && request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0;
+
+        allow update: if (isCompanyMember(companyId) || isAdmin())
+                      && (!('title' in request.resource.data) || (request.resource.data.title is string && request.resource.data.title.size() > 0))
+                      && (!('description' in request.resource.data) || (request.resource.data.description is string && request.resource.data.description.size() > 0))
+                      && (!('salaryRange' in request.resource.data) || (request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0));
       }
     }
 
@@ -170,10 +203,21 @@ service cloud.firestore {
       );
       
       // Creation/Update: Allowed for authenticated users
-      // TODO: Refine this to ensure only valid applications/scouts can be created
-      // 作成/更新: 認証済みユーザーに許可
-      // TODO: 有効な応募/スカウトのみ作成できるように制限を強化する
-      allow write: if isAuthenticated();
+      // Create: Must be the candidate applying OR the company scouting OR Admin
+      // 作成: 応募する求職者本人、スカウトする企業、または管理者
+      allow create: if isAuthenticated() && (
+        request.resource.data['id_individual_個人ID'] == request.auth.uid ||
+        isCompanyMember(request.resource.data['id_company_法人ID']) ||
+        isAdmin()
+      );
+
+      // Update: Must be the candidate OR the company involved OR Admin
+      // 更新: 関係する求職者、企業、または管理者
+      allow update: if isAuthenticated() && (
+        resource.data['id_individual_個人ID'] == request.auth.uid || 
+        isCompanyMember(resource.data['id_company_法人ID']) ||
+        isAdmin()
+      );
     }
     // ----------------------------------------------------------------------------
     // 7. Fee Management & Job Stats (FeeMgmtAndJobStatDB)
@@ -194,16 +238,21 @@ service cloud.firestore {
       // 1. Admin
       // 2. The Individual (creating application)
       // 3. The Company Member (updating status)
+      // Validation: 'amount' must be a positive number (if present)
       allow create: if isAuthenticated() && (
         isAdmin() ||
         request.resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(request.resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
 
       allow update: if isAuthenticated() && (
         isAdmin() ||
         resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(resource.data.company_ID)
+      ) && (
+        !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
       
       allow delete: if isAdmin();

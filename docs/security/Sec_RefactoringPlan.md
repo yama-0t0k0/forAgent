@@ -104,6 +104,20 @@
 
 2.  **データ構造の移行 (Schema Migration)** [Issue #288](https://github.com/yama-0t0k0/engineer-registration-app/issues/288)
     - [x] `individual` コレクションを `public_profile` / `private_info` 構成へ分離・移行スクリプト作成。
+    - [ ] **開発用データ投入スクリプトの改修 (`scripts/seed_firestore_from_json.js`)**
+        - **現状**: `individual` コレクションに直接書き込んでいるため、新しいセキュリティルール下ではデータがアプリから見えない（またはアクセス拒否される）。
+        - **改修方針**: `individual` 向けJSONデータを読み込み、`migrate_individual.js` と同等のロジックで `public_profile` と `private_info` に分割して保存するよう修正する。
+        - **詳細設計**:
+            1. **JSON読み込み**: `loadJson` 関数を使用。
+            2. **データの分割ロジック**:
+                - **Private Info (PII)**: 以下のフィールドを `private_info/{id}` に移動する。
+                    - `基本情報` 内の: `['姓', '名', 'Family name(半角英)', 'First name(半角英)', 'メール', 'TEL', '住所', '生年月日', 'Googleアカウント', 'GitHubアカウント', 'ハンドルネーム', 'パスワード']`
+                    - トップレベルの: `['name', 'nameKana', 'birthDate', 'email', 'phoneNumber', 'tel', 'address', 'resumeUrl', 'resume']`
+                - **Public Profile**: 上記PIIを除外した残りのデータ（`職歴`, `スキル経験`, `希望条件` 等）を `public_profile/{id}` に保存する。
+            3. **Firestore書き込み**:
+                - `public_profile/{id}`: `setDoc(..., { merge: true })`
+                - `private_info/{id}`: `setDoc(..., { merge: true })`
+                - ※ `individual` コレクションへの書き込みは廃止する。
     - [x] `users` コレクションへの `companyId`, `role` フィールド追加とデータバックフィル。
     - **現状の課題**: `users` コレクション自体が未作成のため、`migrate_users.js` が機能しない。
     - **対応方針**: `public_profile` (または `individual`) の全ドキュメントIDを元に、`users` コレクションへ初期データを作成するスクリプト (`scripts/migration/create_users_collection.js`) を実装・実行する。
@@ -154,7 +168,7 @@
     - [x] 各コレクションごとの `match` ブロックと `allow` 条件の詳細定義。
     - [x] カスタム関数（`isCompanyAdmin()`, `isMatched()` 等）の定義。
     - [x] ローカルEmulatorでのユニットテスト検証 (18/18 passed)。
-    - [ ] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行。
+    - [x] **本番環境への適用 (Deployment)**: `firebase deploy --only firestore:rules` の実行 (2026-02-10 完了)。
     - *Note: `isMatched()` logic relies on `allowed_companies` field in `private_info`, which must be populated in Step 4.*
 
 5.  **クライアントアプリ (Frontend) の改修** [Issue #290](https://github.com/yama-0t0k0/engineer-registration-app/issues/290)
@@ -180,13 +194,25 @@
 6.  **検証 (Verification)** [Issue #291](https://github.com/yama-0t0k0/engineer-registration-app/issues/291)
     - [x] Firestore Emulator を用いたユニットテスト。
         - *Status*: `firestore.test.js` 作成済み。
-    - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人）でのアクセス権限確認テスト。
+    - [x] アプリケーション結合テスト（E2E）。各ロール（管理者、個人、法人）でのアクセス権限確認テスト。
         - *Status*: E2E実行・レポート基盤（`tests/run_e2e.sh`）構築完了。
         - *Scenarios*:
             - Admin: `tests/jobs/security_verification_admin.yaml` (Public/Private情報へのアクセス確認)
             - Individual: `tests/jobs/security_verification_individual.yaml` (自身のPublic/Private情報へのアクセス確認)
-        - *Pending*: 法人ロールの検証シナリオ。
+            - Corporate: `tests/jobs/security_verification_corporate.yaml` (自社情報へのアクセス確認)
+        - *Result*: 2026-02-10 全テストシナリオ（Admin, Individual, Corporate）の本番環境（REALモード）検証完了。
 
+
+
+7.  **追加データ検証ルールの実装 (Additional Data Validation)**
+    - **目的**: データベースの整合性と信頼性をさらに高めるため、`company` および `job_description` コレクションに対しても厳格なスキーマ検証を導入する。
+    - **タスク**:
+        - [x] **`company` コレクションのルール更新**:
+            - `create`/`update` 時に `name` (企業名) が必須かつ文字列であることを検証するバリデーションを追加。
+        - [x] **`job_description` コレクションのルール更新**:
+            - `JD_Number` サブコレクションへの書き込み時に、求人情報の必須フィールド (`title`, `description`, `salaryRange` 等) の存在と型を検証するバリデーションを追加。
+        - [x] **ユニットテストの追加**:
+            - バリデーションエラー（必須フィールド欠落、型不一致）が正しく機能することを検証するテストケースを `firestore.test.js` に追加。
 
 ## 5. 備考
 - 本計画は `FMJS` (Fee Management Job System) と共通のポリシーとして適用する。
