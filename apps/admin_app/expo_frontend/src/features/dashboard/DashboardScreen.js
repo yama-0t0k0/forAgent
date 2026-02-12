@@ -183,19 +183,8 @@ export default function DashboardScreen() {
     const query = searchQueries[DASHBOARD_TABS.INDIVIDUAL].toLowerCase();
     const users = [...(data?.users || [])];
 
-    // Inject E2E Dummy User if empty
-    if (users.length === 0) {
-      users.push(User.fromFirestore(E2E_CONFIG.DUMMY_USER_ID, {
-        id: E2E_CONFIG.DUMMY_USER_ID,
-        name: '【テスト】開発者 (E2E用)',
-        '基本情報': {
-          '姓': '開発者',
-          '名': '【テスト】',
-          'メール': 'test@example.com'
-        },
-        createdAt: 0
-      }));
-    }
+    // Inject E2E Dummy User if empty - REMOVED per user request
+    // if (users.length === 0) { ... }
 
     return users.filter(u => {
       // Use rawData for nested fields not fully mapped in User model yet
@@ -231,16 +220,7 @@ export default function DashboardScreen() {
     const rawCompanies = [...(data?.corporate || [])];
 
     if (rawCompanies.length === 0) {
-      rawCompanies.push({
-        id: 'B00000',
-        companyName: '【テスト】サンプル株式会社 (E2E用)',
-        createdAt: 0
-      });
-      rawCompanies.push({
-        id: 'B00001',
-        companyName: '【テスト】別の会社 (E2E用)',
-        createdAt: 1
-      });
+      // E2E Dummy Data Injection Removed
     }
 
     const companies = rawCompanies.map(c => Company.fromFirestore(c.id, c));
@@ -262,13 +242,7 @@ export default function DashboardScreen() {
     const rawJobs = [...(data?.jd || [])];
 
     if (rawJobs.length === 0) {
-      rawJobs.push(JobDescription.fromFirestore('J00000', {
-        id: 'J00000',
-        JD_Number: '02',
-        company_ID: 'B00000',
-        title: '【テスト】フロントエンドエンジニア (E2E用)',
-        createdAt: 0
-      }));
+      // E2E Dummy Data Injection Removed
     }
 
     const jobs = rawJobs;

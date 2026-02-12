@@ -27,7 +27,8 @@ export const FMJSService = {
             // 本来はカウンターが必要ですが、ここではタイムスタンプベースで簡易生成
             const jobStatId = `S${dateStr}${Math.floor(Math.random() * 9000) + 1000}`;
 
-            const fmjsRef = doc(db, 'FeeMgmtAndJobStatDB', jobStatId);
+            // Updated to use 'selection_progress' collection to match firestore.rules
+            const fmjsRef = doc(db, 'selection_progress', jobStatId);
 
             const newDoc = {
                 individual_ID: userId,

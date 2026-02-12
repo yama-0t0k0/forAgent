@@ -3,7 +3,7 @@
  * 共通データ取得ロジックを提供するサービス
  */
 
-import { db } from '@shared/src/core/firebaseConfig';
+import { db, auth } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { User } from '@shared/src/core/models/User';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
@@ -31,10 +31,29 @@ const mergeById = (arrays) => {
  */
 const fetchCollection = async (collectionName) => {
     try {
+        const currentUser = auth.currentUser;
+        const logMsg = `[FirestoreDataService] Fetching ${collectionName}. Auth: ${currentUser ? currentUser.uid : 'NULL'}`;
+        console.log(logMsg);
+        
+        if (__DEV__) {
+            const { DeviceEventEmitter } = require('react-native');
+            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', logMsg);
+        }
+
         const snap = await getDocs(collection(db, collectionName));
+        console.log(`[FirestoreDataService] Fetched ${snap.size} docs from ${collectionName}`);
         return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (e) {
-        console.error(`[FirestoreDataService] Error fetching ${collectionName}:`, e);
+        const errorMsg = `[FirestoreDataService] Error fetching ${collectionName}: ${e.code} ${e.message}`;
+        console.error(errorMsg);
+        if (__DEV__) {
+             const { DeviceEventEmitter } = require('react-native');
+             DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', errorMsg);
+        }
+
+        if (e.code === 'permission-denied') {
+             console.error(`[FirestoreDataService] PERMISSION DENIED for ${collectionName}. Check firestore.rules and current user role.`);
+        }
         return [];
     }
 };
@@ -53,7 +72,7 @@ const fetchDocument = async (collectionName, docId) => {
         }
         return null;
     } catch (e) {
-        console.error(`[FirestoreDataService] Error fetching ${collectionName}/${docId}:`, e);
+        console.error(`[FirestoreDataService] Error fetching ${collectionName}/${docId}:`, e.code, e.message);
         return null;
     }
 };
@@ -65,6 +84,7 @@ export const FirestoreDataService = {
      * @returns {Promise<Array<User>>}
      */
     async fetchAllIndividuals() {
+        console.log('[FirestoreDataService] fetchAllIndividuals started');
         // 1. Fetch Public Profiles (Base Data)
         const publicDocs = await fetchCollection('public_profile');
         
@@ -81,6 +101,8 @@ export const FirestoreDataService = {
             // Suppress error log for permission denied to avoid noise
             if (e.code !== 'permission-denied') {
                 console.warn('[FirestoreDataService] fetchAllIndividuals: Private info fetch failed:', e);
+            } else {
+                console.log('[FirestoreDataService] Private info fetch skipped (permission-denied).');
             }
         }
 
@@ -185,11 +207,18 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all Fee Management & Job Stats data.
+     * Uses 'selection_progress' collection.
      * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
-        const docs = await fetchCollection('FeeMgmtAndJobStatDB');
-        return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
+        try {
+            const docs = await fetchCollection('selection_progress');
+            return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
+        } catch (e) {
+            console.error('[FirestoreDataService] fetchAllFMJS failed:', e);
+            // Return empty array on error to prevent app crash
+            return [];
+        }
     },
 
     /**
