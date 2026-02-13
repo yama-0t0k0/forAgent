@@ -19,6 +19,7 @@ import { GenericRegistrationScreen } from '@shared/src/features/registration/Gen
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
+import { SignInScreen } from '@shared/src/features/auth/screens/SignInScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
 import { AppShell } from '@shared/src/core/components/AppShell';
@@ -218,6 +219,11 @@ const AdminAppWrapper = () => {
         <DataProvider initialData={initialData}>
           <NavigationContainer>
           <Stack.Navigator initialRouteName={ROUTES.ADMIN_DASHBOARD}>
+            <Stack.Screen
+              name={ROUTES.ADMIN_LOGIN}
+              component={SignInScreen}
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name={ROUTES.ADMIN_DASHBOARD}
               component={DashboardScreen}

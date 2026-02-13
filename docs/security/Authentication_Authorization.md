@@ -189,91 +189,178 @@ Adminアカウントは以下の構成で管理される。
 
 ---
 
-## 6. ログインアーキテクチャ設計（設計のみ・未実装）
+## 6. ログインアーキテクチャ設計（Passkey完全対応 & Hybrid Auth）
 
 > [!CAUTION]
 > **本セクションは設計ドキュメントです。実装は別途計画に基づいて行う。**
 
-### 6.1 背景と必要性
+### 6.1 設計方針
 
-現在の Admin App は `signInAnonymously`（匿名認証）を使用しており、以下の**重大な問題**がある:
+1.  **Authentication (本人確認)**:
+    - **Passkey First**: 2026年標準の FIDO/WebAuthn を主軸とし、UXとセキュリティを最大化する。
+    - **Fallback**: パスキー未対応環境のために従来のメール/パスワード認証も維持する。
 
-| 問題 | 影響 |
-| :--- | :--- |
-| 匿名ユーザーには Custom Claims を付与できない | `firestore.rules` の `isAdmin()` チェックが機能しない |
-| 誰でも Admin App を起動できる | アクセス制御が事実上無効 |
-| `dev_admin_grant` フラグで開発時に権限付与 | 本番環境では使えない（セキュリティホール） |
+2.  **Authorization (権限管理)**:
+    - **Custom Claims フル活用 (Global Scope)**: `role` や `companyId` などの基本権限は、Firestoreアクセスなしで Custom Claims から即座に判定する (§3.1準拠)。
+    - **Context Data 遅延ロード (Context Scope)**: アルムナイ区分（Lv1〜Lv3）などの複雑なリレーション情報は、ログイン後の非同期処理として Firestore から取得する (§3.2準拠)。
 
-→ **メールアドレス/パスワード認証によるログイン画面**の構築が必須。
-
-### 6.2 認証フロー設計
+### 6.2 認証・認可フロー詳細
 
 ```mermaid
 sequenceDiagram
-    participant User as Admin User
-    participant App as Admin App
+    participant User
+    participant Device as Device (Biometrics)
+    participant App as Frontend App
     participant Auth as Firebase Auth
-    participant Rules as Firestore Rules
-    participant DB as Firestore
+    participant DB as Firestore (Context Scope)
 
     User->>App: アプリ起動
     App->>Auth: onAuthStateChanged()
-    alt 未認証
-        App->>User: ログイン画面を表示
-        User->>App: Email / Password 入力
-        App->>Auth: signInWithEmailAndPassword()
-        Auth-->>App: UserCredential (IDトークン含む)
-    else 認証済み
-        Auth-->>App: User (IDトークン含む)
+    
+    alt 未認証 (Login Phase)
+        App->>User: ログイン画面 (Passkey / Password)
+        User->>App: 認証操作 (Biometrics or Password)
+        App->>Auth: signInWithCredential()
+        Auth-->>App: UserCredential (ID Token with Claims)
     end
-    App->>App: IDトークンから Claims を確認
-    alt role == "admin"
-        App->>DB: データ取得
-        Rules->>Rules: isAdmin() → true ✅
-        DB-->>App: データ返却
-        App->>User: ダッシュボード表示
-    else role != "admin" or Claims なし
-        App->>User: 「権限がありません」エラー表示
-        App->>Auth: signOut()
+
+    Note over App: Redirect to Initial Logic
+
+    rect rgb(230, 240, 255)
+        Note left of App: Phase A: Global Scope Verification<br/>(Synchronous / Instant)
+        App->>App: IDトークン解析 (Claims)
+        alt Claims == null or role mismatch
+            App->>Auth: user.getIdToken(true) // Force Refresh
+            Auth-->>App: Refreshed Token
+        end
+        
+        opt Role Check
+            App->>App: Verify `role` (admin/corporate/individual)
+            App->>App: Verify `companyId` (if corporate)
+        end
     end
+
+    rect rgb(255, 240, 230)
+        Note left of App: Phase B: Context Scope Loading<br/>(Asynchronous / Lazy)
+        alt Individual User (Future)
+            App->>DB: query `Relationships` for Alumni Status (Lv1~3)
+            DB-->>App: Alumni Data
+        else Admin User
+            App->>DB: query `users/{uid}` (Profile Data)
+            DB-->>App: Admin Profile
+        end
+    end
+
+    App->>User: ダッシュボード表示
 ```
 
-### 6.3 画面設計
+### 6.3 データアクセスの階層化
 
-#### LoginScreen（新規作成）
+本プロジェクトの基本方針に基づき、データアクセスを明確に2層に分離して実装する。
 
-| 要素 | 仕様 |
+#### Layer 1: Global Scope (Custom Claims)
+*   **データソース**: Firebase Auth ID Token
+*   **特徴**: **同期・ゼロレイテンシー・コストゼロ**
+*   **用途**:
+    *   アプリの基本ルーティング（Admin画面へ行くか、一般画面か）
+    *   セキュリティルールの根本判定（`allow write: if request.auth.token.role == 'admin'`）
+    *   **※ここに `id_individual` は含めない**（`auth.uid` で代替可能）。
+
+#### Layer 2: Context Scope (Firestore)
+*   **データソース**: Firestore (`users`, `Relationships`, etc.)
+*   **特徴**: **非同期・読み取りコストあり**
+*   **用途**:
+    *   **アルムナイ区分 (Lv1〜Lv3)**: 企業と個人の動的な関係性。
+    *   画面表示用の詳細プロフィールデータ。
+*   **実装方針**:
+    *   Layer 1 の判定通過後、必要なタイミングでのみ `get()` または `onSnapshot()` する。
+    *   これにより、ログイン直後のホワイトアウト時間を最小化する。
+
+### 6.4 画面設計 (UX)
+
+#### LoginScreen
+「パスワードレス」を前提としたモダンなUIを構築する。
+
+1.  **Primary Action (Passkey)**:
+    - 画面中央に大きく「✨ パスキーでログイン」ボタンを配置。
+    - ユーザーの認知負荷を最小限にする。
+2.  **Secondary Action (Fallback)**:
+    - その下に控えめに「パスワードまたはメールでログイン」リンクを配置。
+    - クリックすると従来の `TextInput` フォーム（Email/Password）が展開されるアコーディオンUI、または別画面へ遷移。
+3.  **Registration Flow (初回)**:
+    - Adminユーザーが初回（パスワードで）ログインした直後、**「次回からパスキーでログインしますか？」** というプロンプトを表示。
+    - `linkWithCredential` を使用して、既存のパスワードアカウントにパスキーを紐付けるフローを実装する。
+
+### 6.5 技術スタックと実装要件
+
+Firebase Authentication は Passkey (WebAuthn) をネイティブサポートしている。
+
+| コンポーネント | 技術選定 | 備考 |
+| :--- | :--- | :--- |
+| **Passkey Provider** | Firebase Auth (WebAuthn) | `firebase.auth.WebAuthnCredentials` |
+| **Frontend** | Expo (React Native) | ネイティブ(iOS/Android)は `expo-local-authentication` や `react-native-passkey` 等のライブラリ選定が必要。Web版はブラウザ標準APIで動作。 |
+| **Hosting** | Firebase Hosting | Passkeyの設定（`assetlinks.json` / `apple-app-site-association`）が必要になる場合がある。 |
+
+> [!NOTE]
+> **Admin App の提供形態**:
+> Admin App は現在 Web (Firebase Hosting) としてデプロイされているため、ブラウザ標準の WebAuthn API がそのまま利用可能であり、実装ハードルは低い。
+
+### 6.6 セキュリティ & リカバリー
+
+| シナリオ | 対策 |
 | :--- | :--- |
-| **Email入力** | `TextInput` (keyboardType: email-address) |
-| **Password入力** | `TextInput` (secureTextEntry: true) |
-| **ログインボタン** | `signInWithEmailAndPassword()` を呼び出し |
-| **エラー表示** | 認証失敗時にメッセージ表示（例: 「メールアドレスまたはパスワードが正しくありません」） |
-| **ローディング** | 認証処理中はスピナー表示 |
+| **デバイス紛失** | パスキーはデバイス依存だが、同期（iCloud Keychain / Google Password Manager）されていれば新端末でも即ログイン可能。 |
+| **同期外環境からのアクセス** | 予備手段としての「メール+パスワード」認証を維持する。 |
+| **権限剥奪** | Firebase Console または Admin SDK から当該ユーザーを `disabled` にするか、特定のパスキー登録を削除する。 |
 
-#### ナビゲーション変更
+### 6.7 アーキテクチャ選定理由 (Shared Library vs Standalone App)
 
-```
-現状:  App起動 → signInAnonymously → Dashboard
-変更後: App起動 → onAuthStateChanged
-                  ├─ 未認証 → LoginScreen → signIn → Claims確認 → Dashboard
-                  └─ 認証済み → Claims確認 → Dashboard
-```
+認証機能の実装にあたり、独立した認証アプリを作るのではなく、**`yama/shared` (共通ライブラリ)** として実装する方針を採用します。
 
-### 6.4 実装対象ファイル（予定）
+#### 1. OAuth (Google/GitHub Login) の利用における優位性
+本プロジェクトは「OAuthプロバイダを作る（他社に認証機能を提供する）」のではなく、「Google等のOAuthを**利用する**」立場です。
+*   **Shared Library案**: アプリ内でFirebase Auth SDKを直接叩くことで、OS標準のブラウザ/WebViewを用いたシームレスな認証が可能です。ユーザーはアプリから離脱することなくログインを完了できます。
+*   **Standalone App案**: 認証のために別アプリへリダイレクトし、完了後にDeep Linkで戻る必要があり、UXを著しく損ないます。
 
-| ファイル | 変更内容 |
-| :--- | :--- |
-| `admin_app/expo_frontend/src/screens/LoginScreen.js` | **[NEW]** ログイン画面コンポーネント |
-| `admin_app/expo_frontend/App.js` | `signInAnonymously` → ログイン判定ロジックに置換 |
-| `admin_app/expo_frontend/src/navigation/AppNavigator.js` | 未認証時は LoginScreen へルーティング |
-| `shared/src/core/firebaseConfig.js` | (変更不要。既存の `auth` インスタンスをそのまま使用) |
+#### 2. 将来的なSSO（シングルサインオン）への対応
+将来的に「一度のログインで全アプリを利用可能にする」要件が出た場合でも、Shared Library案で十分に対応可能です。
+*   **Keychain Access (iOS)**: Firebase Auth はiOSのKeychain共有機能を利用し、同ーパブリッシャーのアプリ間で認証状態（トークン）を共有できます。
+*   **Shared Sandbox**: Androidでも適切に署名されたアプリ間で認証情報の共有が可能です。
 
-### 6.5 セキュリティ考慮事項
+したがって、複雑な認証基盤アプリを別途構築する必要はなく、モジュラーモノリス構成に則った **Shared Library** への実装が、開発効率とUXの両面で最適解となります。
 
-| 項目 | 対策 |
-| :--- | :--- |
-| **パスワードポリシー** | Firebase Auth のデフォルト（6文字以上）。将来的に強化を検討 |
-| **ログイン試行制限** | Firebase Auth が自動的にブルートフォース保護を提供 |
-| **セッション管理** | Firebase Auth のトークン自動更新機構を利用（明示的なセッション管理不要） |
-| **ログアウト** | Admin App にログアウトボタンを設置し、`signOut()` を呼び出し |
-| **`dev_admin_grant` の廃止** | ログイン機能の本番稼働後、`dev_admin_grant` フラグによる権限付与ロジックを削除 |
+---
+
+## 7. 実装計画 (Implementation Plan)
+
+本アーキテクチャを実現するための段階的実装ロードマップです。
+進捗管理は GitHub Milestone [**Admin Login Architecture**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/14) で行います。
+
+### Phase 1: 認証基盤の刷新 (Passkey Foundation)
+まず「パスキー認証」を実装し、その予備手段としてメール/パスワード認証を統合する。
+
+- [ ] **1.1 Passkey Login UI の実装** ([Issue #369](https://github.com/yama-0t0k0/engineer-registration-app/issues/369))
+    - `SignInScreen` を新規作成。
+    - 「Passkeyでログイン」ボタンをメインに配置。
+    - 「パスワードを使う」フォールバックUIを実装。
+- [ ] **1.2 Firebase Auth 連携** ([Issue #370](https://github.com/yama-0t0k0/engineer-registration-app/issues/370))
+    - `signInWithCredential` (WebAuthn) の実装 (Web対応)。
+    - `signInWithEmailAndPassword` の実装 (Fallback)。
+- [ ] **1.3 既存認証の置換** ([Issue #371](https://github.com/yama-0t0k0/engineer-registration-app/issues/371))
+    - `App.js` の `signInAnonymously` を廃止し、`onAuthStateChanged` で未認証時に `SignInScreen` を表示するよう変更。
+
+### Phase 2: 認可・コンテキスト統合 (Hybrid Auth)
+「Custom Claims (Global Scope)」と「Context Scope (Firestore)」のハイブリッド認可を実装する。
+
+- [ ] **2.1 Global Scope (Claims) 判定** ([Issue #372](https://github.com/yama-0t0k0/engineer-registration-app/issues/372))
+    - ログイン直後に IDトークンを解析し、`role` と `companyId` を検証するロジックを実装。
+    - Claims がない場合に `getIdToken(true)` で強制リフレッシュする処理を追加。
+- [ ] **2.2 Context Scope (Firestore) 接続** ([Issue #373](https://github.com/yama-0t0k0/engineer-registration-app/issues/373))
+    - **Admin**: `users/{uid}` からプロフィール情報を取得し、ダッシュボードに表示。
+    - **(Future) Individual**: `Relationships` からアルムナイ区分を取得する基盤を用意。
+
+### Phase 3: クリーンアップ & 本番化 ([Issue #374](https://github.com/yama-0t0k0/engineer-registration-app/issues/374))
+- [ ] **3.1 開発用フラグの削除**
+    - `dev_admin_grant` などの暫定コードを完全削除。
+- [ ] **3.2 エラーハンドリング強化**
+    - 認可失敗時、ネットワークエラー時のユーザーフィードバックを洗練させる。
