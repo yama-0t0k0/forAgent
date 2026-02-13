@@ -1,3 +1,5 @@
+const TYPE_OBJECT = 'object';
+
 /**
  * User Model
  * Represents an individual user in the system.
@@ -167,7 +169,7 @@ export class User {
 
         const basicInfo = publicData[User.FIELDS.BASIC_INFO];
 
-        if (basicInfo && typeof basicInfo === 'object') {
+        if (basicInfo && typeof basicInfo === TYPE_OBJECT) {
             privateData[User.FIELDS.BASIC_INFO] = {};
             
             piiKeys.forEach(key => {

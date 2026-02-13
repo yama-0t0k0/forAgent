@@ -1,3 +1,15 @@
+// 役割:
+// - EngineerProfileモデルのユニットテスト
+//
+// 主要機能:
+// - 等価性（equality）の検証
+// - プロパティの検証
+// - JSON変換の検証
+//
+// ディレクトリ構造:
+// shared/domain_models/test/engineer_profile_test.dart
+//
+
 import 'package:domain_models/domain_models.dart';
 import 'package:test/test.dart';
 

@@ -96,11 +96,9 @@ export const SingleSelectGroup = ({ value, path }) => {
       } else {
         // --- Toggling OFF ---
         const relativePath = path.slice(rootKeyIndex + 1);
-        let targetJobObj = newRootData;
-        for (const p of relativePath) {
-          targetJobObj = targetJobObj[p];
-        }
-        if (targetJobObj) {
+        const targetJobObj = relativePath.reduce((obj, p) => (obj && obj[p] ? obj[p] : null), newRootData);
+
+        if (targetJobObj && typeof targetJobObj[key] === DATA_TYPE.BOOLEAN) {
           targetJobObj[key] = false;
         }
       }

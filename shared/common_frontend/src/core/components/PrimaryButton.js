@@ -59,11 +59,11 @@ export const PrimaryButton = ({
             style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]}
             onPress={onPress}
             disabled={disabled || loading}
-            testID="primary_button"
+            testID='primary_button'
             {...props}
         >
             {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <ActivityIndicator color='#fff' size='small' />
             ) : (
                 children || <Text style={[styles.text, getVariantTextStyle(), textStyle]}>{title}</Text>
             )}

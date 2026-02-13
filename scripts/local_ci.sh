@@ -11,7 +11,10 @@
 
 set -e # Exit immediately if any command fails
 
-PROJECT_ROOT=$(pwd)
+# Resolve the project root relative to the script location
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 if [ -n "$1" ]; then
     APPS=("$1")
@@ -115,6 +118,64 @@ for app in "${APPS[@]}"; do
     fi
 
     # Return to root
+    cd "$PROJECT_ROOT"
+done
+
+# --- Dart Projects Check ---
+echo ""
+echo "=================================================="
+echo "🎯 Dart Projects Check"
+echo "=================================================="
+
+# Ensure Dart dependencies are installed (Workspace root)
+echo "📦 Resolving Dart dependencies (dart pub get)..."
+if dart pub get; then
+    echo "   ✅ Dart dependencies resolved"
+else
+    echo "   ❌ Dart dependencies failed"
+    exit 1
+fi
+
+DART_PROJECTS=(
+    "apps/backend"
+    "apps/admin_app/dart_backend"
+    "shared/common_logic"
+    "shared/domain_models"
+    "infrastructure/firebase/functions"
+)
+
+for project in "${DART_PROJECTS[@]}"; do
+    PROJECT_DIR="$PROJECT_ROOT/$project"
+    echo ""
+    echo "🔍 Processing Dart Project: $project"
+    
+    if [ ! -d "$PROJECT_DIR" ]; then
+        echo "   ⚠️  Directory not found, skipping..."
+        continue
+    fi
+    
+    if [ ! -f "$PROJECT_DIR/pubspec.yaml" ]; then
+        echo "   ⚠️  pubspec.yaml not found, skipping..."
+        continue
+    fi
+
+    cd "$PROJECT_DIR"
+
+    # Stage 1: Static Analysis
+    run_stage "Dart Analysis" "dart analyze" "false"
+
+    # Stage 2: Testing
+    if [ -d "test" ]; then
+        run_stage "Dart Testing" "dart test" "false"
+    else
+        echo "   ℹ️  No test directory found, skipping tests..."
+    fi
+
+    # Stage 3: Coding Convention Check (Custom)
+    if [ -f "$PROJECT_ROOT/scripts/check_dart_coding_conventions.dart" ]; then
+         run_stage "Dart Coding Convention Check" "dart run $PROJECT_ROOT/scripts/check_dart_coding_conventions.dart ." "true"
+    fi
+
     cd "$PROJECT_ROOT"
 done
 
