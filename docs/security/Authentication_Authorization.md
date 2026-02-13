@@ -339,7 +339,7 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
     - 「Passkeyでログイン」ボタンをメインに配置。
     - 「パスワードを使う」フォールバックUIを実装。
     - **Auth Portal (Port 8086)** での動作検証環境を構築。
-- [ ] **1.2 Firebase Auth 連携** ([Issue #370](https://github.com/yama-0t0k0/engineer-registration-app/issues/370))
+- [ ] **1.2 Firebase Auth 連携** ([Issue #370](https://github.com/yama-0t0k0/engineer-registration-app/issues/370)) **← Current Task**
     - `signInWithCredential` (WebAuthn) の実装 (Web対応)。
     - `signInWithEmailAndPassword` の実装 (Fallback)。
 - [ ] **1.3 既存認証の置換** ([Issue #371](https://github.com/yama-0t0k0/engineer-registration-app/issues/371))
