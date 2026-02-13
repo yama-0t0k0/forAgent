@@ -14,6 +14,8 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { SecondaryButton } from '@shared/src/core/components/SecondaryButton';
 
+import { authService } from '../services/authService';
+
 /**
  * SignInScreen
  * 
@@ -28,48 +30,72 @@ export const SignInScreen = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Handle Passkey Login
+   * Initiates the WebAuthn flow via authService.
+   */
   const handlePasskeyLogin = async () => {
     setLoading(true);
     try {
-      // TODO: Implement Passkey login logic (Issue #370)
-      console.log('Passkey login initiated');
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      Alert.alert('Not Implemented', 'Passkey login logic will be implemented in Phase 1.2');
+      await authService.signInWithPasskey();
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Passkey login failed');
+      Alert.alert('Not Available', error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Handle Password Login
+   * Authenticates using email and password fallback.
+   */
   const handlePasswordLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('入力エラー', 'メールアドレスとパスワードを入力してください。');
+      return;
+    }
+
     setLoading(true);
     try {
-      // TODO: Implement Password login logic (Issue #370)
-      console.log('Password login initiated', email);
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      Alert.alert('Not Implemented', 'Password login logic will be implemented in Phase 1.2');
+      await authService.signInWithEmailPassword(email, password);
+      // Login success logic will be handled by onAuthStateChanged listener in App.js
+      // But we can show a temporary success message here
+      console.log('Login successful');
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Login failed');
+      let errorMessage = 'ログインに失敗しました。';
+      
+      const AUTH_ERRORS = {
+        INVALID_EMAIL: 'auth/invalid-email',
+        USER_NOT_FOUND: 'auth/user-not-found',
+        WRONG_PASSWORD: 'auth/wrong-password',
+        TOO_MANY_REQUESTS: 'auth/too-many-requests',
+      };
+
+      if (error.code === AUTH_ERRORS.INVALID_EMAIL) errorMessage = 'メールアドレスの形式が正しくありません。';
+      if (error.code === AUTH_ERRORS.USER_NOT_FOUND) errorMessage = 'ユーザーが見つかりません。';
+      if (error.code === AUTH_ERRORS.WRONG_PASSWORD) errorMessage = 'パスワードが間違っています。';
+      if (error.code === AUTH_ERRORS.TOO_MANY_REQUESTS) errorMessage = 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください。';
+      
+      Alert.alert('エラー', errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  const KEYBOARD_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={KEYBOARD_BEHAVIOR}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Admin Portal</Text>
-            <Text style={styles.subtitle}>エンジニア登録管理システム</Text>
+            <Text style={styles.title}>Career Architecture Platform</Text>
+            <Text style={styles.subtitle}>ログイン</Text>
           </View>
 
           <View style={styles.card}>
@@ -85,7 +111,7 @@ export const SignInScreen = () => {
                 </Text>
                 
                 <PrimaryButton
-                  title="✨ Passkeyでログイン"
+                  title={'✨ Passkeyでログイン'}
                   onPress={handlePasskeyLogin}
                   loading={loading}
                   style={styles.mainButton}
@@ -99,7 +125,7 @@ export const SignInScreen = () => {
                 </View>
 
                 <SecondaryButton
-                  title="パスワードまたはメールでログイン"
+                  title={'パスワードまたはメールでログイン'}
                   onPress={() => setIsPasswordMode(true)}
                   style={styles.secondaryButton}
                 />
@@ -115,11 +141,11 @@ export const SignInScreen = () => {
                     style={styles.input}
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="admin@example.com"
+                    placeholder={'admin@example.com'}
                     placeholderTextColor={THEME.subText}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    testID="email_input"
+                    autoCapitalize={'none'}
+                    keyboardType={'email-address'}
+                    testID={'email_input'}
                   />
                 </View>
 
@@ -129,15 +155,15 @@ export const SignInScreen = () => {
                     style={styles.input}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="••••••••"
+                    placeholder={'••••••••'}
                     placeholderTextColor={THEME.subText}
                     secureTextEntry
-                    testID="password_input"
+                    testID={'password_input'}
                   />
                 </View>
 
                 <PrimaryButton
-                  title="ログイン"
+                  title={'ログイン'}
                   onPress={handlePasswordLogin}
                   loading={loading}
                   style={styles.mainButton}
@@ -145,7 +171,7 @@ export const SignInScreen = () => {
                 />
 
                 <SecondaryButton
-                  title="← Passkeyでログインに戻る"
+                  title={'← Passkeyでログインに戻る'}
                   onPress={() => setIsPasswordMode(false)}
                   style={styles.backButton}
                   textStyle={styles.backButtonText}

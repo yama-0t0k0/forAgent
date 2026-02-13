@@ -313,36 +313,32 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 | **同期外環境からのアクセス** | 予備手段としての「メール+パスワード」認証を維持する。 |
 | **権限剥奪** | Firebase Console または Admin SDK から当該ユーザーを `disabled` にするか、特定のパスキー登録を削除する。 |
 
-### 6.7 アーキテクチャ選定理由 (Shared Library vs Standalone App)
+### 6.8 開発・検証用ポータル (Auth Portal)
 
-認証機能の実装にあたり、独立した認証アプリを作るのではなく、**`yama/shared` (共通ライブラリ)** として実装する方針を採用します。
+全ユーザー共通のログイン画面を確認・検証するために、専用の **Auth Portal** を用意しています。
+実体は `admin_app` のコンテナを利用していますが、ポートを分離することで独立した検証環境として機能します。
 
-#### 1. OAuth (Google/GitHub Login) の利用における優位性
-本プロジェクトは「OAuthプロバイダを作る（他社に認証機能を提供する）」のではなく、「Google等のOAuthを**利用する**」立場です。
-*   **Shared Library案**: アプリ内でFirebase Auth SDKを直接叩くことで、OS標準のブラウザ/WebViewを用いたシームレスな認証が可能です。ユーザーはアプリから離脱することなくログインを完了できます。
-*   **Standalone App案**: 認証のために別アプリへリダイレクトし、完了後にDeep Linkで戻る必要があり、UXを著しく損ないます。
-
-#### 2. 将来的なSSO（シングルサインオン）への対応
-将来的に「一度のログインで全アプリを利用可能にする」要件が出た場合でも、Shared Library案で十分に対応可能です。
-*   **Keychain Access (iOS)**: Firebase Auth はiOSのKeychain共有機能を利用し、同ーパブリッシャーのアプリ間で認証状態（トークン）を共有できます。
-*   **Shared Sandbox**: Androidでも適切に署名されたアプリ間で認証情報の共有が可能です。
-
-したがって、複雑な認証基盤アプリを別途構築する必要はなく、モジュラーモノリス構成に則った **Shared Library** への実装が、開発効率とUXの両面で最適解となります。
-
----
+*   **起動コマンド**: `bash scripts/start_expo.sh auth_portal`
+*   **ポート**: `8086`
+*   **URL (Web)**: http://localhost:8086
+*   **Expo Go**: `exp://xa-ezgm-anonymous-8086.exp.direct` (トンネルモード)
+*   **特徴**:
+    *   アプリ名が「ログイン画面」として表示されます（`app.config.js` で動的切替）。
+    *   Admin/Corporate/Individual 全ユーザーのログインエントリポイントとして機能検証が可能です。
 
 ## 7. 実装計画 (Implementation Plan)
 
 本アーキテクチャを実現するための段階的実装ロードマップです。
-進捗管理は GitHub Milestone [**Admin Login Architecture**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/14) で行います。
+進捗管理は GitHub Milestone [**Auth機能**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/14) で行います。
 
 ### Phase 1: 認証基盤の刷新 (Passkey Foundation)
 まず「パスキー認証」を実装し、その予備手段としてメール/パスワード認証を統合する。
 
-- [ ] **1.1 Passkey Login UI の実装** ([Issue #369](https://github.com/yama-0t0k0/engineer-registration-app/issues/369))
+- [x] **1.1 Passkey Login UI の実装** ([Issue #369](https://github.com/yama-0t0k0/engineer-registration-app/issues/369))
     - `SignInScreen` を新規作成。
     - 「Passkeyでログイン」ボタンをメインに配置。
     - 「パスワードを使う」フォールバックUIを実装。
+    - **Auth Portal (Port 8086)** での動作検証環境を構築。
 - [ ] **1.2 Firebase Auth 連携** ([Issue #370](https://github.com/yama-0t0k0/engineer-registration-app/issues/370))
     - `signInWithCredential` (WebAuthn) の実装 (Web対応)。
     - `signInWithEmailAndPassword` の実装 (Fallback)。
