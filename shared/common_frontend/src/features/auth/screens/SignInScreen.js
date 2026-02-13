@@ -95,7 +95,7 @@ export const SignInScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.headerContainer}>
             <Text style={styles.title}>Career Architecture Platform</Text>
-            <Text style={styles.subtitle}>ログイン</Text>
+            <Text style={styles.subtitle}>当サービスは完全招待制の会員サービスです</Text>
           </View>
 
           <View style={styles.card}>

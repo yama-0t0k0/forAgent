@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword, signOut, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { auth } from '@shared/core/firebaseConfig';
+import { auth } from '@shared/src/core/firebaseConfig';
 
 /**
  * Authentication Service

@@ -19,7 +19,7 @@ jest.mock('firebase/auth', () => ({
 }));
 
 // Mock firebaseConfig to avoid initialization side effects
-jest.mock('@shared/core/firebaseConfig', () => ({
+jest.mock('@shared/src/core/firebaseConfig', () => ({
   auth: { currentUser: null },
 }));
 
