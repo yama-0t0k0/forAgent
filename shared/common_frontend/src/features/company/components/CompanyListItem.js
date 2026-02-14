@@ -27,6 +27,9 @@ const MOCK_TECH_STACK_FALLBACK = {
 /**
  * Company List Item Component
  * @param {CompanyListItemProps} props
+ * @param {Company|Object} props.item - Company data
+ * @param {Function} [props.onPress] - Press handler
+ * @param {string} [props.testID] - Test ID
  */
 export const CompanyListItem = ({ item, onPress, testID }) => {
   /**

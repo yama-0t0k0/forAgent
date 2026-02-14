@@ -28,6 +28,12 @@ case $APP_NAME in
         APP_PATH="apps/fmjs/expo_frontend"
         PORT=8085
         ;;
+    "auth_portal")
+        # 【共通認証基盤】全ユーザー(Admin/Corporate/Individual)が利用する共通ログイン画面
+        # ※Expo起動のために便宜上 admin_app を実行コンテナとして利用しています
+        APP_PATH="apps/admin_app/expo_frontend"
+        PORT=8086
+        ;;
     "shared")
         echo "❌ 'shared' is a library module and cannot be run directly."
         exit 1
@@ -42,6 +48,9 @@ esac
 
 echo "🚀 Starting $APP_NAME on port $PORT..."
 echo "📂 Directory: $APP_PATH"
+
+# Export PORT so it can be accessed by app.config.js
+export PORT
 
 # Check if directory exists
 if [ ! -d "$APP_PATH" ]; then

@@ -1,8 +1,9 @@
+// ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:functions_framework/functions_framework.dart';
 import 'package:shelf/shelf.dart';
 import 'package:common_logic/common_logic.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+// import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 @CloudFunction()
 Future<Response> calculateMatch(Request request) async {

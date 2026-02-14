@@ -22,6 +22,7 @@ export const ROUTES = {
     CORPORATE_EVENTS: 'Events',
 
     // Admin App
+    ADMIN_LOGIN: 'Login',
     ADMIN_DASHBOARD: 'Dashboard',
     ADMIN_COMPANY_DETAIL: 'CompanyDetail',
 

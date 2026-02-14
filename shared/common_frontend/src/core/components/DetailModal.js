@@ -34,16 +34,16 @@ export const DetailModal = ({
         <Modal
             visible={visible}
             transparent
-            animationType="fade"
+            animationType='fade'
             onRequestClose={onClose}
         >
-            <View style={styles.detailOverlay} pointerEvents="box-none">
-                <View style={[styles.detailWindow, { width, height }]} pointerEvents="auto">
+            <View style={styles.detailOverlay} pointerEvents='box-none'>
+                <View style={[styles.detailWindow, { width, height }]} pointerEvents='auto'>
                     {/* Header */}
                     <View style={styles.detailWindowHeader}>
                         {/* Empty view for spacing balance if needed, or just standard flex-start/space-between */}
                         <Text style={styles.detailWindowTitle} numberOfLines={1}>{title}</Text>
-                        <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID="modal_close_button">
+                        <TouchableOpacity onPress={onClose} style={styles.detailWindowClose} testID='modal_close_button'>
                             <Text style={styles.detailWindowCloseText}>閉じる</Text>
                         </TouchableOpacity>
                     </View>
@@ -52,7 +52,7 @@ export const DetailModal = ({
                     <View style={styles.contentContainer}>
                         {loading && (
                             <View style={styles.centerContainer}>
-                                <ActivityIndicator size="large" color={THEME.accent} />
+                                <ActivityIndicator size='large' color={THEME.accent} />
                                 <Text style={styles.loadingText}>読み込み中...</Text>
                             </View>
                         )}

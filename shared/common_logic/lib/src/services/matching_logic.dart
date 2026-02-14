@@ -29,7 +29,13 @@ class MatchingLogic {
             // diff > 3 (Too Hard) or diff < 0 (Over-spec)
             // リファレンス実装準拠：その他は0
             if (isJobMatching) {
-              result[key] = 0; 
+              // オーバースペック（Source > Target）の場合、求人マッチングではペナルティを与える
+              // 理由: シニアエンジニアにジュニア向け案件を紹介してもアンマッチになりやすいため
+              if (diff < 0) {
+                 result[key] = -50;
+              } else {
+                 result[key] = 0; // Too Hard (diff > 3)
+              }
             } else {
               // 個人間マッチングの場合、自分が教えられる（メンター）可能性があるため高評価維持
               // diff < 0 の場合のみ

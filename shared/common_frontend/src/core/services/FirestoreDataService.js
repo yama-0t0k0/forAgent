@@ -10,6 +10,9 @@ import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { Company } from '@shared/src/core/models/Company';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 
+const ERROR_CODE_PERMISSION_DENIED = 'permission-denied';
+const DEBUG_LOG_LIMIT = 3;
+
 /**
  * Merges arrays of objects by ID, removing duplicates.
  * @param {Array<Array<Object>>} arrays - Array of object arrays to merge.
@@ -51,7 +54,7 @@ const fetchCollection = async (collectionName) => {
              DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', errorMsg);
         }
 
-        if (e.code === 'permission-denied') {
+        if (e.code === ERROR_CODE_PERMISSION_DENIED) {
              console.error(`[FirestoreDataService] PERMISSION DENIED for ${collectionName}. Check firestore.rules and current user role.`);
         }
         return [];
@@ -91,7 +94,7 @@ export const FirestoreDataService = {
         if (__DEV__) {
             console.log(`[Debug] fetchAllIndividuals: Fetched ${publicDocs.length} public profiles`);
             publicDocs.forEach((doc, index) => {
-                if (index < 3) { // Show first 3 only
+                if (index < DEBUG_LOG_LIMIT) { // Show first 3 only
                     console.log(`[Debug] User[${index}]: id=${doc.id}, name=${doc.name}, basicInfo=${JSON.stringify(doc.basicInfo || {})}`);
                 }
             });
@@ -108,7 +111,7 @@ export const FirestoreDataService = {
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
             // Suppress error log for permission denied to avoid noise
-            if (e.code !== 'permission-denied') {
+            if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
                 console.warn('[FirestoreDataService] fetchAllIndividuals: Private info fetch failed:', e);
             } else {
                 console.log('[FirestoreDataService] Private info fetch skipped (permission-denied).');
@@ -142,7 +145,7 @@ export const FirestoreDataService = {
              }
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
-            if (e.code !== 'permission-denied') {
+            if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
                 console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
             }
         }
