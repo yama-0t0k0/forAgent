@@ -43,7 +43,7 @@ export const GlobalLoadingOverlay = ({ visible, message }) => {
     return (
         <View style={styles.overlay}>
             <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color={THEME.accent} />
+                <ActivityIndicator size='large' color={THEME.accent} />
                 {message && (
                     <Text style={[THEME.typography.caption, styles.loadingText]}>{message}</Text>
                 )}

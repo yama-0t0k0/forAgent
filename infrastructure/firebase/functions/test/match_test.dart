@@ -1,3 +1,14 @@
+// 役割:
+// - マッチングロジック（MatchingLogic）のユニットテスト
+//
+// 主要機能:
+// - ジョブマッチングにおけるオーバースペックペナルティの検証
+// - ユーザー間マッチングにおけるボーナス付与の検証
+//
+// ディレクトリ構造:
+// infrastructure/firebase/functions/test/match_test.dart
+//
+
 import 'package:test/test.dart';
 import 'package:common_logic/common_logic.dart';
 
@@ -12,6 +23,7 @@ void main() {
       
       final result = logic.calculateMatchResult(userSkills, jdSkills, isJobMatching: true);
       
+      // Over-spec penalty is -50
       expect(result['matchedSkills']['Dart'], -50);
       expect(result['netScore'], -50);
     });
@@ -29,7 +41,7 @@ void main() {
 
     test('Job Match: Target > Source (Upskilling) should be rewarded', () {
       // Source: 3, Target: 4 (Diff +1) -> 110
-      // Source: 3, Target: 5 (Diff +2) -> 115
+      // Source: 3, Target: 5 (Diff +2) -> 120 (was 115 in old logic)
       
       final userSkills = {'Dart': 3, 'Flutter': 3};
       final jdSkills = {'Dart': 4, 'Flutter': 5};
@@ -37,7 +49,7 @@ void main() {
       final result = logic.calculateMatchResult(userSkills, jdSkills, isJobMatching: true);
       
       expect(result['matchedSkills']['Dart'], 110);
-      expect(result['matchedSkills']['Flutter'], 115);
+      expect(result['matchedSkills']['Flutter'], 120);
     });
 
     test('Job Match: Over-spec JD should be penalized/excluded even with Intent Match', () {
@@ -60,7 +72,7 @@ void main() {
       
       expect(result['matchedSkills']['Dart'], -50);
       expect(result['intentBonus'], 30);
-      expect(result['netScore'], -20); // Penalty outweighs bonus
+      expect(result['netScore'], -20);
     });
 
     test('Job Match: Upskilling JD should be boosted by Intent Match', () {
@@ -128,7 +140,8 @@ void main() {
       // Net: 200
       expect(result['intentBonus'], 100);
       expect(result['netScore'], 200);
-      expect(result['matchingScore'], 40); // 200 / 5
+      // Normalized score: 200 / 1 (matched skill count) = 200
+      expect(result['matchingScore'], 200);
     });
   });
 }

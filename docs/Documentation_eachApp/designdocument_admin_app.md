@@ -21,7 +21,15 @@
 | **corporate** | 法人ユーザー（企業） | 企業審査、アカウント管理、利用状況確認 | CompanyManagementScreen (Future) |
 | **FeeMgmtAndJobStatDB** (FMJS) | 選考・手数料・サーベイ | 選考進捗パイプライン分析、満足度調査集計、売上予測 | DashboardScreen (Selection Flow, Satisfaction) |
 | **jd** | 求人票 (Job Description) | 不適切求人の監視、求人動向分析 | JobMonitorScreen (Future) |
-| **admin_users** | 管理者アカウント | 管理者権限管理、操作ログ | Auth (Future) |
+| **admin_users** | 管理者アカウント | 管理者権限管理、操作ログ | Auth (Implemented) |
+
+## 認証・認可 (Authentication & Authorization)
+管理者アプリへのアクセスは、Firebase Auth および Custom Claims (`role: admin`) によって厳格に制御されます。
+詳細な設計、ログインフロー、およびアカウント管理については、以下のドキュメントを参照してください。
+
+- **[認証・認可設計 (Authentication_Authorization.md)](../security/Authentication_Authorization.md)**
+  - §5.3: 管理者アカウント定義
+  - §6: ログインアーキテクチャ設計（画面設計・シーケンス図）
 
 ## データモデル原則 (Data Modeling)
 Admin Appは複数のドメインデータを統合して扱うため、生JSONではなく**共有モデルクラス**を使用してデータを正規化します。

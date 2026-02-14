@@ -33,6 +33,10 @@ export const JobDescriptionScreen = ({ route, companyId: propCompanyId, jdNumber
     const companyId = propCompanyId || route?.params?.companyId || 'B00000';
     const jdNumber = propJdNumber || route?.params?.jdNumber || '02';
 
+    /**
+     * Handles the application process.
+     * Shows confirmation dialog and calls FMJSService.
+     */
     const handleApply = async () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;

@@ -1,6 +1,7 @@
 {
   "roots": [
     "admin_app_backend",
+    "backend",
     "common_backend",
     "common_logic",
     "corporate_user_app_backend",
@@ -9,7 +10,8 @@
     "fmjs_backend",
     "heatmap_engine",
     "individual_user_app_backend",
-    "job_description_backend"
+    "job_description_backend",
+    "matching_functions"
   ],
   "packages": [
     {
@@ -102,6 +104,22 @@
       ]
     },
     {
+      "name": "backend",
+      "version": "1.0.0",
+      "dependencies": [
+        "common_logic",
+        "domain_models",
+        "logging",
+        "shelf",
+        "shelf_router"
+      ],
+      "devDependencies": [
+        "http",
+        "lints",
+        "test"
+      ]
+    },
+    {
       "name": "domain_models",
       "version": "1.0.0",
       "dependencies": [
@@ -153,6 +171,21 @@
       ]
     },
     {
+      "name": "matching_functions",
+      "version": "1.0.0",
+      "dependencies": [
+        "common_logic",
+        "dart_jsonwebtoken",
+        "domain_models",
+        "functions_framework",
+        "shelf"
+      ],
+      "devDependencies": [
+        "lints",
+        "test"
+      ]
+    },
+    {
       "name": "melos",
       "version": "7.3.0",
       "dependencies": [
@@ -181,11 +214,6 @@
         "yaml",
         "yaml_edit"
       ]
-    },
-    {
-      "name": "lints",
-      "version": "3.0.0",
-      "dependencies": []
     },
     {
       "name": "test",
@@ -217,6 +245,49 @@
         "web_socket_channel",
         "webkit_inspection_protocol",
         "yaml"
+      ]
+    },
+    {
+      "name": "lints",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "dart_jsonwebtoken",
+      "version": "3.3.1",
+      "dependencies": [
+        "clock",
+        "convert",
+        "ed25519_edwards",
+        "pointycastle"
+      ]
+    },
+    {
+      "name": "shelf",
+      "version": "1.4.2",
+      "dependencies": [
+        "async",
+        "collection",
+        "http_parser",
+        "path",
+        "stack_trace",
+        "stream_channel"
+      ]
+    },
+    {
+      "name": "functions_framework",
+      "version": "0.4.3+1",
+      "dependencies": [
+        "args",
+        "collection",
+        "google_cloud",
+        "http",
+        "http_parser",
+        "io",
+        "json_annotation",
+        "meta",
+        "shelf",
+        "stack_trace"
       ]
     },
     {
@@ -333,11 +404,13 @@
       ]
     },
     {
-      "name": "dotenv",
-      "version": "4.2.0",
+      "name": "http",
+      "version": "1.6.0",
       "dependencies": [
-        "args",
-        "meta"
+        "async",
+        "http_parser",
+        "meta",
+        "web"
       ]
     },
     {
@@ -346,13 +419,20 @@
       "dependencies": []
     },
     {
-      "name": "http",
-      "version": "1.6.0",
+      "name": "shelf_router",
+      "version": "1.1.4",
       "dependencies": [
-        "async",
-        "http_parser",
+        "http_methods",
         "meta",
-        "web"
+        "shelf"
+      ]
+    },
+    {
+      "name": "dotenv",
+      "version": "4.2.0",
+      "dependencies": [
+        "args",
+        "meta"
       ]
     },
     {
@@ -644,18 +724,6 @@
       ]
     },
     {
-      "name": "shelf",
-      "version": "1.4.2",
-      "dependencies": [
-        "async",
-        "collection",
-        "http_parser",
-        "path",
-        "stack_trace",
-        "stream_channel"
-      ]
-    },
-    {
       "name": "package_config",
       "version": "2.2.0",
       "dependencies": [
@@ -743,6 +811,57 @@
       ]
     },
     {
+      "name": "clock",
+      "version": "1.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "ed25519_edwards",
+      "version": "0.3.1",
+      "dependencies": [
+        "adaptive_number",
+        "collection",
+        "convert",
+        "crypto"
+      ]
+    },
+    {
+      "name": "convert",
+      "version": "3.1.2",
+      "dependencies": [
+        "typed_data"
+      ]
+    },
+    {
+      "name": "pointycastle",
+      "version": "4.0.0",
+      "dependencies": [
+        "collection",
+        "convert"
+      ]
+    },
+    {
+      "name": "http_parser",
+      "version": "4.1.2",
+      "dependencies": [
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
+      ]
+    },
+    {
+      "name": "google_cloud",
+      "version": "0.2.0",
+      "dependencies": [
+        "collection",
+        "http",
+        "io",
+        "shelf",
+        "stack_trace"
+      ]
+    },
+    {
       "name": "leak_tracker_flutter_testing",
       "version": "3.0.10",
       "dependencies": [
@@ -756,11 +875,6 @@
     {
       "name": "vector_math",
       "version": "2.2.0",
-      "dependencies": []
-    },
-    {
-      "name": "clock",
-      "version": "1.1.2",
       "dependencies": []
     },
     {
@@ -919,13 +1033,6 @@
       ]
     },
     {
-      "name": "convert",
-      "version": "3.1.2",
-      "dependencies": [
-        "typed_data"
-      ]
-    },
-    {
       "name": "code_builder",
       "version": "4.11.0",
       "dependencies": [
@@ -975,14 +1082,9 @@
       "dependencies": []
     },
     {
-      "name": "http_parser",
-      "version": "4.1.2",
-      "dependencies": [
-        "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
-      ]
+      "name": "http_methods",
+      "version": "1.1.1",
+      "dependencies": []
     },
     {
       "name": "petitparser",
@@ -1069,6 +1171,13 @@
       "version": "91.0.0",
       "dependencies": [
         "meta"
+      ]
+    },
+    {
+      "name": "adaptive_number",
+      "version": "1.0.0",
+      "dependencies": [
+        "fixnum"
       ]
     },
     {

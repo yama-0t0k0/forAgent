@@ -6,6 +6,8 @@ publish_to: none
 environment:
   sdk: ">=3.6.0 <4.0.0"
 
+resolution: workspace
+
 dependencies:
   functions_framework: ^0.4.3
   common_logic:
@@ -16,5 +18,5 @@ dependencies:
   dart_jsonwebtoken: ^3.3.1
 
 dev_dependencies:
-  lints: ^5.0.0
+  lints: ^3.0.0
   test: ^1.24.0

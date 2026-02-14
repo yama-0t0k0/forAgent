@@ -42,13 +42,13 @@ export const ScreenHeader = ({
                         // hitSlop is handled inside IconButton.js if it follows standard implementation
                         style={styles.backButton}
                     >
-                        <Ionicons name="chevron-back" size={24} color={THEME.text} />
+                        <Ionicons name='chevron-back' size={24} color={THEME.text} />
                     </IconButton>
                 )}
             </View>
 
             <View style={styles.centerContainer}>
-                <Text style={[THEME.typography.h2, styles.title]} numberOfLines={1} testID="header_title">
+                <Text style={[THEME.typography.h2, styles.title]} numberOfLines={1} testID='header_title'>
                     {title}
                 </Text>
             </View>

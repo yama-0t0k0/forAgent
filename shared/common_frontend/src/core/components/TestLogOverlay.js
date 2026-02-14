@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { FirestoreLogger } from '../utils/FirestoreLogger';
 
+const MAX_LOGS = 5;
+
 /**
  * Overlay component to display Firestore I/O logs for Maestro to detect.
  * Visible only in __DEV__ mode.
@@ -19,7 +21,7 @@ export const TestLogOverlay = () => {
                 setLogs((prev) => {
                     // Keep only last 5 logs to prevent memory issues
                     const newLogs = [...prev, logString];
-                    if (newLogs.length > 5) return newLogs.slice(newLogs.length - 5);
+                    if (newLogs.length > MAX_LOGS) return newLogs.slice(newLogs.length - MAX_LOGS);
                     return newLogs;
                 });
             }
@@ -33,7 +35,7 @@ export const TestLogOverlay = () => {
     if (!__DEV__) return null;
 
     return (
-        <View style={styles.container} pointerEvents="none">
+        <View style={styles.container} pointerEvents='none'>
             {logs.map((log, index) => (
                 <Text key={index} style={styles.logText}>
                     {log}

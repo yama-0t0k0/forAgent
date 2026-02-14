@@ -11,7 +11,10 @@
 
 set -e # Exit immediately if any command fails
 
-PROJECT_ROOT=$(pwd)
+# Resolve the project root relative to the script location
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 if [ -n "$1" ]; then
     APPS=("$1")

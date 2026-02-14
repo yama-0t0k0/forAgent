@@ -21,7 +21,7 @@ const VARIANTS = {
 export const StatusBadge = ({ status, variant = 'default', style, textStyle }) => {
     const theme = VARIANTS[variant] || VARIANTS.default;
     return (
-        <View style={[styles.badge, { backgroundColor: theme.bg }, style]} testID="status_badge">
+        <View style={[styles.badge, { backgroundColor: theme.bg }, style]} testID='status_badge'>
             <Text style={[styles.text, { color: theme.text }, textStyle]}>{status}</Text>
         </View>
     );

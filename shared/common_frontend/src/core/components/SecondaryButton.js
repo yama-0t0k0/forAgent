@@ -57,7 +57,7 @@ export const SecondaryButton = ({
             style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]}
             onPress={onPress}
             disabled={disabled}
-            testID="secondary_button"
+            testID='secondary_button'
             {...props}
         >
             {children || <Text style={[styles.text, getVariantTextStyle(), textStyle]}>{title}</Text>}
