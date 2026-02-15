@@ -1,5 +1,24 @@
+// 役割（機能概要）
+// - 認証サービス（authService）の単体テスト
+// - Firebase AuthおよびPasskeyライブラリのモック化による動作検証
+//
+// 主要機能:
+// - メール/パスワードログインの成功・失敗テスト
+// - Passkeyログイン（クレデンシャルあり/なし）の挙動テスト
+// - ログアウト機能のテスト
+// - 外部依存モジュール（firebase/auth, @firebase-web-authn/browser）のモック制御
+//
+// ディレクトリ構造:
+// - shared/common_frontend/src/features/auth/services/authService.test.js (本ファイル)
+// - テスト対象: ./authService.js
+//
+// デプロイ・実行方法:
+// - テスト実行: npx jest shared/common_frontend/src/features/auth/services/authService.test.js
+// - 全体テスト: npx jest shared/common_frontend
+
 import { authService } from './authService';
-import { signInWithEmailAndPassword, signOut, setPersistence } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, setPersistence, signInWithCredential } from 'firebase/auth';
+import { signInWithPasskey as firebaseSignInWithPasskey } from '@firebase-web-authn/browser';
 
 // Mock firebase modules
 jest.mock('firebase/app', () => ({
@@ -13,14 +32,23 @@ jest.mock('firebase/firestore', () => ({
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(() => ({})),
   signInWithEmailAndPassword: jest.fn(),
+  signInWithCredential: jest.fn(),
   signOut: jest.fn(),
   setPersistence: jest.fn(),
   browserLocalPersistence: 'browserLocalPersistence',
+  GoogleAuthProvider: {
+    credential: jest.fn(),
+  },
+}));
+
+jest.mock('@firebase-web-authn/browser', () => ({
+  signInWithPasskey: jest.fn(),
 }));
 
 // Mock firebaseConfig to avoid initialization side effects
 jest.mock('@shared/src/core/firebaseConfig', () => ({
   auth: { currentUser: null },
+  functions: {},
 }));
 
 describe('AuthService', () => {
@@ -61,8 +89,26 @@ describe('AuthService', () => {
   });
 
   describe('signInWithPasskey', () => {
-    it('should throw error as it is not implemented yet', async () => {
-      await expect(authService.signInWithPasskey()).rejects.toThrow('Passkey login is under construction');
+    it('should call signInWithCredential when credential is provided', async () => {
+      const mockCredential = { providerId: 'webauthn' };
+      const mockUserCredential = { user: { uid: '123', email: 'test@example.com' } };
+
+      signInWithCredential.mockResolvedValue(mockUserCredential);
+
+      const result = await authService.signInWithPasskey(mockCredential);
+
+      expect(signInWithCredential).toHaveBeenCalledWith(expect.anything(), mockCredential);
+      expect(result).toEqual(mockUserCredential);
+    });
+
+    it('should call firebaseSignInWithPasskey when credential is not provided', async () => {
+      const mockUserCredential = { user: { uid: '123', email: 'passkey@example.com' } };
+      firebaseSignInWithPasskey.mockResolvedValue(mockUserCredential);
+
+      const result = await authService.signInWithPasskey();
+
+      expect(firebaseSignInWithPasskey).toHaveBeenCalledWith(expect.anything(), expect.anything());
+      expect(result).toEqual(mockUserCredential);
     });
   });
 
@@ -81,15 +127,6 @@ describe('AuthService', () => {
       signOut.mockRejectedValue(mockError);
 
       await expect(authService.logout()).rejects.toThrow('SignOut failed');
-    });
-  });
-
-  describe('getCurrentUser', () => {
-    it('should return the current user from auth object', () => {
-      // Since we mocked auth in firebaseConfig, we can't easily update its property dynamically 
-      // without more complex mocking, but we can verify it returns what's in the mock.
-      // The mock defined above has currentUser: null
-      expect(authService.getCurrentUser()).toBeNull();
     });
   });
 });

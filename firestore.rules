@@ -3,6 +3,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ----------------------------------------------------------------------------
+    // EXTENSION SECURITY (BLOCK DIRECT ACCESS)
+    // ----------------------------------------------------------------------------
+    match /ext-firebase-web-authn/{document=**} {
+      allow read, write: if false;
+    }
+
+    // ----------------------------------------------------------------------------
     // GLOBAL DEV PERMISSION (ALLOW EVERYTHING)
     // ----------------------------------------------------------------------------
     match /{document=**} {

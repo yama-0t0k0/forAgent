@@ -1,9 +1,9 @@
 module.exports = {
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.[t|j]sx?$': ['babel-jest', { presets: ['babel-preset-expo'] }]
-  },
+  preset: 'jest-expo',
   transformIgnorePatterns: [
-    'node_modules/(?!(firebase|@firebase)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
   ],
+  moduleNameMapper: {
+    '^@shared/(.*)$': '<rootDir>/shared/common_frontend/$1'
+  }
 };
