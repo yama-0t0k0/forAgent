@@ -304,6 +304,9 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 > [!NOTE]
 > **Admin App の提供形態**:
 > Admin App は現在 Web (Firebase Hosting) としてデプロイされているため、ブラウザ標準の WebAuthn API がそのまま利用可能であり、実装ハードルは低い。
+>
+> **スマホブラウザでのPasskey利用時の前提**:
+> Passkey / WebAuthn をスマホのブラウザで正常動作させるには、`https://` などのセキュアコンテキストが必須となる。このため、Firebase Hosting などの HTTPS ホスティング環境上で提供することを推奨する。
 
 ### 6.6 セキュリティ & リカバリー
 
@@ -312,6 +315,29 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 | **デバイス紛失** | パスキーはデバイス依存だが、同期（iCloud Keychain / Google Password Manager）されていれば新端末でも即ログイン可能。 |
 | **同期外環境からのアクセス** | 予備手段としての「メール+パスワード」認証を維持する。 |
 | **権限剥奪** | Firebase Console または Admin SDK から当該ユーザーを `disabled` にするか、特定のパスキー登録を削除する。 |
+
+### 6.7 アーキテクチャ選定理由 (Shared Library vs Standalone App)
+
+- OAuth（Google/GitHub Login）の観点: 利用者側から見てアプリ内完結型（Shared Library）の方がUXが良く、外部ブラウザ遷移や戻り先の不整合など「リダイレクト地獄」を回避できる。
+- SSO（シングルサインオン）対応: iOSのKeychain共有などOSレベルの仕組みを活用すれば、独立アプリを作らずとも実質的なSSOを達成可能であり、Shared Library構成でも要件を満たせる。
+
+#### Shared Library を採用する主理由
+- 単一の認証コンテキスト: Auth/Functions/Firestore のクライアントSDKが同一アプリコンテキストで動作し、トークンやApp Checkの連携がシンプルになる。
+- ルーティング一貫性: 役割（Admin/Corporate/Individual）に応じた画面遷移をアプリ内の状態管理で完結でき、深いリンクや戻り動線が安定する。
+- エラーハンドリング容易化: 認証・認可失敗時のUI/リトライロジックを単一の設計で共通化できる。
+- テスト容易性: 単一コードベースでのユニット/E2E検証が可能（Auth Portalを含む）。
+- 同一オリジン前提の機能適合: Passkey/WebAuthn は同一ドメイン到達が前提であり、Hostingのrewriteのみで到達性を担保しやすい。
+
+#### Standalone App を検討すべき条件
+- 規制や分離要件: 厳密なデータ境界や監査要件により、認証UI/フローを物理的に分離する必要がある場合。
+- OS固有機能の専用活用: ネイティブOSのセキュア領域への深い統合が必須で、共有ライブラリ形態だと制約が大きい場合。
+
+#### 設計パターンとの整合
+- UIの共通化: 役割別のUIは「Generic Wrapper Pattern」で共通コンポーネントへ集約し、設定注入で差分を吸収する。
+- インポート戦略: Adminのみが利用する機能でも、個別アプリとAdminでのみ利用する機能はShared化せず、個別アプリに配置してAdminから直接importする（共通機能のみSharedへ）。
+
+#### 決定のまとめ
+- 本プロジェクトでは Shared Library を基本方針とし、SSOはOSのKeychain共有等で達成する。Standalone化は規制・分離要件が明確な場合に限る。
 
 ### 6.8 開発・検証用ポータル (Auth Portal)
 
@@ -329,7 +355,7 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 ## 7. 実装計画 (Implementation Plan)
 
 本アーキテクチャを実現するための段階的実装ロードマップです。
-進捗管理は GitHub Milestone [**Auth機能**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/14) で行います。
+進捗管理は GitHub Milestone 一覧([**Auth機能**](https://github.com/yama-0t0k0/engineer-registration-app/milestones)) 上の「Auth機能」マイルストーンで行います。
 
 ### Phase 1: 認証基盤の刷新 (Passkey Foundation)
 まず「パスキー認証」を実装し、その予備手段としてメール/パスワード認証を統合する。
