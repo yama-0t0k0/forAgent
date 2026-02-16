@@ -60,6 +60,15 @@ if [ -d "shared/common_frontend" ]; then
              exit 1
          fi
     fi
+
+    # Run Unit Tests for Shared Frontend (Auth only for now to avoid unrelated failures)
+    echo "   🔍 Running Unit Tests for Shared Frontend (Auth)..."
+    if npx jest shared/common_frontend/src/features/auth --passWithNoTests; then
+        echo "   ✅ Shared Frontend Auth Tests Passed"
+    else
+        echo "   ❌ Shared Frontend Auth Tests Failed"
+        exit 1
+    fi
 else
     echo "   ❌ Shared modules missing"
     exit 1

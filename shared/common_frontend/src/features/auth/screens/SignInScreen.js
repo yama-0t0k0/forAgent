@@ -1,3 +1,22 @@
+// 役割（機能概要）
+// - ユーザーログイン画面コンポーネント
+// - Passkey（生体認証）を第一優先としたログインフローの提供
+// - 従来のメール/パスワード認証へのフォールバック機能
+//
+// 主要機能:
+// - Passkeyログイン実行（authService.signInWithPasskey呼び出し）
+// - メール/パスワード入力フォームとログイン実行
+// - 入力バリデーションとエラーハンドリング表示
+// - レスポンシブなUI（キーボード回避、セーフエリア対応）
+//
+// ディレクトリ構造:
+// - shared/common_frontend/src/features/auth/screens/SignInScreen.js (本ファイル)
+// - 依存: authService, @shared/src/core/theme, @shared/src/core/components
+//
+// デプロイ・実行方法:
+// - 画面として利用: NavigationContainer内でルートとして定義
+// - 開発実行: bash scripts/start_expo.sh auth_portal
+
 import React, { useState } from 'react';
 import {
   View,
