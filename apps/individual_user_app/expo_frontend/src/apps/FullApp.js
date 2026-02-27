@@ -23,10 +23,13 @@ export const FullApp = () => {
          */
         const load = async () => {
             try {
-                // Sign in anonymously
+                const auth = getAuth();
+                let userId = 'C000000000000'; // Default fallback or demo ID
+
                 try {
-                    const auth = getAuth();
-                    await signInAnonymously(auth);
+                    const userCredential = await signInAnonymously(auth);
+                    userId = userCredential.user.uid;
+                    console.log(`[FullApp] Signed in anonymously. UID: ${userId}`);
                 } catch (authError) {
                     console.error('Anonymous auth failed:', authError);
                 }
@@ -36,7 +39,7 @@ export const FullApp = () => {
                 );
 
                 const fetchDataPromise = FirestoreDataService.fetchIndividualAppData(
-                    'C000000000000',
+                    userId,
                     ENGINEER_TEMPLATE
                 );
 
