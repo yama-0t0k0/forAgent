@@ -1,3 +1,15 @@
+// ignore_for_file: avoid_print
+
+// 機能概要:
+// - 共有ライブラリ(shared)の統合動作検証用スクリプト
+// - CommonLogic, CommonService, DomainModels のインスタンス化と動作確認を行う
+//
+// ディレクトリ構造:
+// engineer-registration-app-yama/yama/apps/backend/bin/verify_shared.dart
+//
+// 実行方法:
+// dart bin/verify_shared.dart
+
 import 'package:domain_models/domain_models.dart';
 import 'package:common_logic/common_logic.dart';
 
@@ -15,7 +27,7 @@ void main() {
     print('✅ CommonLogic: MatchingLogic instantiated and executed. Result: $scores');
 
     // 2. Verify CommonService instantiation
-    final commonService = CommonService();
+    CommonService();
     print('✅ CommonLogic: CommonService instantiated.');
 
     // 3. Verify DomainModels (EngineerProfile)

@@ -6,10 +6,11 @@ import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMen
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
-import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+import { PureRegistrationScreen } from '@shared/src/features/registration/PureRegistrationScreen';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { doc, setDoc } from 'firebase/firestore';
 import { User } from '@shared/src/core/models/User';
+import { BottomNav } from '@shared/src/core/components/BottomNav';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -23,18 +24,20 @@ export const AppNavigator = () => (
     <Stack.Navigator initialRouteName={ROUTES.INDIVIDUAL_MY_PAGE} screenOptions={{ headerShown: false }}>
         <Stack.Screen name={ROUTES.REGISTRATION}>
             {(props) => (
-                <GenericRegistrationScreen
+                <PureRegistrationScreen
                     {...props}
                     title='エンジニア個人登録'
                     collectionName='public_profile'
                     idField='id_individual'
                     idPrefixChar='C'
-                    orderTemplate={ENGINEER_TEMPLATE}
                     customSaveLogic={async (db, id, data) => {
                         const { publicData, privateData } = User.splitData(data);
                         await setDoc(doc(db, 'public_profile', id), publicData);
                         await setDoc(doc(db, 'private_info', id), privateData);
                     }}
+                    orderTemplate={ENGINEER_TEMPLATE}
+                    showBottomNav={true}
+                    BottomNavComponent={BottomNav}
                 />
             )}
         </Stack.Screen>

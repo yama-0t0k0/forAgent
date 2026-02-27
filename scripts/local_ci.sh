@@ -11,7 +11,10 @@
 
 set -e # Exit immediately if any command fails
 
-PROJECT_ROOT=$(pwd)
+# Resolve the project root relative to the script location
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 if [ -n "$1" ]; then
     APPS=("$1")
@@ -56,6 +59,15 @@ if [ -d "shared/common_frontend" ]; then
              echo "   ❌ Shared Frontend Conventions Failed"
              exit 1
          fi
+    fi
+
+    # Run Unit Tests for Shared Frontend (Auth only for now to avoid unrelated failures)
+    echo "   🔍 Running Unit Tests for Shared Frontend (Auth)..."
+    if npx jest shared/common_frontend/src/features/auth --passWithNoTests; then
+        echo "   ✅ Shared Frontend Auth Tests Passed"
+    else
+        echo "   ❌ Shared Frontend Auth Tests Failed"
+        exit 1
     fi
 else
     echo "   ❌ Shared modules missing"

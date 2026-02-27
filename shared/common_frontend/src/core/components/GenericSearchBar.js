@@ -43,7 +43,7 @@ export const GenericSearchBar = ({
       placeholder={placeholder}
       value={searchQuery}
       onChangeText={setSearchQuery}
-      placeholderTextColor="#94A3B8"
+      placeholderTextColor='#94A3B8'
     />
     {quickFilters.length > 0 && (
       <ScrollView

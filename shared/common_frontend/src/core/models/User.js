@@ -1,3 +1,5 @@
+const TYPE_OBJECT = 'object';
+
 /**
  * User Model
  * Represents an individual user in the system.
@@ -82,8 +84,15 @@ export class User {
         let familyNameKanji = basicInfo[User.FIELDS.FAMILY_NAME_KANJI] || data.familyNameKanji || '';
         
         // Fallback: If kanji names are empty but 'name' exists (e.g. from public_profile), use it
-        if (!firstNameKanji && !familyNameKanji && data.name) {
-            firstNameKanji = data.name;
+        if (!firstNameKanji && !familyNameKanji) {
+            // Check root data
+            if (data.name) firstNameKanji = data.name;
+            else if (data.fullName) firstNameKanji = data.fullName;
+            else if (data.displayName) firstNameKanji = data.displayName;
+            // Check basicInfo (in case it's nested there)
+            else if (basicInfo.name) firstNameKanji = basicInfo.name;
+            else if (basicInfo.fullName) firstNameKanji = basicInfo.fullName;
+            else if (basicInfo.displayName) firstNameKanji = basicInfo.displayName;
         }
 
         const email = basicInfo[User.FIELDS.EMAIL] || data.email || '';
@@ -160,7 +169,7 @@ export class User {
 
         const basicInfo = publicData[User.FIELDS.BASIC_INFO];
 
-        if (basicInfo && typeof basicInfo === 'object') {
+        if (basicInfo && typeof basicInfo === TYPE_OBJECT) {
             privateData[User.FIELDS.BASIC_INFO] = {};
             
             piiKeys.forEach(key => {

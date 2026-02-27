@@ -40,6 +40,7 @@ shared/
 - **RecursiveField.js**: JSONデータ構造に基づき、再帰的に入力フォームを生成する中核コンポーネント。
 - **GlassCard.js**: すりガラス効果を持つカードUI。
 - **InputRow.js / StatusRow.js**: 標準的な入力行コンポーネント。
+- **PureRecursiveField.js**: [NEW] `ind-reg-app` 版の `RecursiveField`。`yama` 版のデータ加工ロジックから完全に隔離されており、テンプレート JSON に基づいた純粋な再帰レンダリングを行います。
 - **GenericSearchBar.js**: 検索ボックスとクイックフィルター（チップ）を備えた汎用検索コンポーネント。
 - **GenericDataList.js**: データ一覧を表示するためのFlatListラッパー。空の状態（Empty State）のハンドリングを含む。
 - **MiniHeatmap.js / HeatmapGrid.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。スコア計算ロジックとジオメトリ計算は `src/core/utils` 配下の共通ロジック（HeatmapCalculator / HeatmapGeometry / HeatmapMapper）を利用し、Individual/Job/Admin の各アプリで共通動作するように設計。
@@ -59,6 +60,7 @@ shared/
   - `fetchIndividualById(id)`: 単一ユーザー取得（戻り値: `Promise<User|null>`）。`public_profile` と `private_info` を取得し、`User.fromPublicPrivate` で結合して返します。
   - `fetchAllJobDescriptions()`: 全JD取得（ネスト構造対応, 戻り値: `Promise<JobDescription[]>`）
   - `fetchAllCorporates()`: 全企業取得（複数コレクション名対応, 戻り値: `Promise<Company[]>`）
+  - `fetchAllFMJS()`: 全選考データ取得（戻り値: `Promise<SelectionProgress[]>`）。`FeeMgmtAndJobStatDB` (Primary) と `selection_progress` (Legacy) の両方から取得し、同一IDのデータをマージして完全な状態を復元します。
   - `fetchAdminData()`: Admin App用一括取得（各プロパティもモデルインスタンス化済み）
   - `fetchIndividualAppData(userId, template)`: Individual App用データ取得
   - `fetchCorporateAppData(id, template)`: Corporate App用データ取得
@@ -73,7 +75,7 @@ shared/
 #### 6. Models (`src/core/models`)
 - **概要**: アプリケーション全体で使用されるデータモデル定義。
 - **主要クラス**:
-  - `User`: 個人ユーザー（エンジニア）。`public_profile`（公開情報）と `private_info`（PII）の分割管理に対応。
+  - `User`: 個人ユーザー（エンジニア）。`public_profile`（公開情報）と `private_info`（PII）の分割管理に対応。`fromPublicPrivate` メソッドでは、ルートレベルの `name` が欠落している場合に `basicInfo.name` や `basicInfo.fullName` を参照するフォールバックロジックを実装しています。
   - `Company`: 法人ユーザー
   - `JobDescription`: 求人票
   - `SelectionProgress`: 選考進捗・手数料
@@ -105,6 +107,11 @@ shared/
 - **パラメータ**:
   - `collectionName`: 保存先コレクション（例: `engineer`）
   - `idPrefixChar`: ID接頭辞（例: `C`）
+
+#### Pure Registration Mode Variant (`features/registration/PureRegistrationScreen.js`)
+- **概要**: `ind-reg-app` ブランチのUIを完全に再現するための孤立型コンポーネント。
+- **背景**: `yama` 版の `GenericRegistrationScreen` は `User` モデルや `orderTemplate` による複雑な表示制御を含んでいますが、本コンポーネントはそれらを一切排除し、JSON 構造そのままのタブ表示・入力を実現します。
+- **特徴**: `PureRecursiveField.js` とセットで使用され、データ汚染や整合性問題を回避します。
 
 #### Analytics (`features/analytics`)
 - **HeatmapGrid.js / MiniHeatmap.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。

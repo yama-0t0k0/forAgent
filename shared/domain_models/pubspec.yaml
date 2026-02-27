@@ -18,6 +18,7 @@
 name: domain_models
 description: Shared domain models for Engineer Registration App
 version: 1.0.0
+publish_to: none
 
 environment:
   sdk: ">=3.6.0 <4.0.0"

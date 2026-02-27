@@ -6,6 +6,7 @@
 import { initializeApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -24,5 +25,6 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
   experimentalForceLongPolling: true, // Needed for Expo Go on Android/iOS
 });
+const functions = getFunctions(app, 'asia-northeast1'); // Default to Tokyo region, adjust if needed
 
-export { db, auth };
+export { db, auth, functions };

@@ -68,10 +68,10 @@ export const MonthYearPickerInput = ({ label, valueObj, path }) => {
       {show && (
         <DateTimePicker
           value={dateValue}
-          mode="date"
-          display="default"
+          mode='date'
+          display='default'
           onChange={onChange}
-          locale="ja-JP"
+          locale='ja-JP'
         />
       )}
     </View>

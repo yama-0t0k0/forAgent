@@ -1,3 +1,17 @@
+// ignore_for_file: avoid_print
+
+// 機能概要:
+// - Dartバックエンドサーバーのエントリーポイント (Cloud Run対応)
+// - Shelf Routerを使用したHTTPリクエストハンドリング
+// - ミドルウェアによるリクエストログ出力
+//
+// ディレクトリ構造:
+// engineer-registration-app-yama/yama/apps/backend/bin/server.dart
+//
+// デプロイ・実行方法:
+// - ローカル実行: dart bin/server.dart
+// - Cloud Runデプロイ: gcloud run deploy ...
+
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';

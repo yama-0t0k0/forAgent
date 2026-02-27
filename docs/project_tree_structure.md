@@ -95,6 +95,10 @@
 │   ├── Documentation_eachApp/              # 各アプリ詳細設計書
 │   │   ├── designdocument_admin_app.md
 │   │   └── ...
+│   ├── security/                           # セキュリティ設計・ルール
+│   │   ├── Authentication_Authorization.md # 認証・認可設計（ハイブリッド認証）
+│   │   ├── Firestore _SecRules.md          # Firestoreセキュリティルール定義
+│   │   └── Sec_RefactoringPlan.md          # セキュリティ強化計画
 │   ├── purpose.md
 │   ├── dev_basicinfo.md
 │   └── project_tree_structure.md           # 本ファイル

@@ -10,6 +10,9 @@ import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { Company } from '@shared/src/core/models/Company';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 
+const ERROR_CODE_PERMISSION_DENIED = 'permission-denied';
+const DEBUG_LOG_LIMIT = 3;
+
 /**
  * Merges arrays of objects by ID, removing duplicates.
  * @param {Array<Array<Object>>} arrays - Array of object arrays to merge.
@@ -51,7 +54,7 @@ const fetchCollection = async (collectionName) => {
              DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', errorMsg);
         }
 
-        if (e.code === 'permission-denied') {
+        if (e.code === ERROR_CODE_PERMISSION_DENIED) {
              console.error(`[FirestoreDataService] PERMISSION DENIED for ${collectionName}. Check firestore.rules and current user role.`);
         }
         return [];
@@ -88,13 +91,13 @@ export const FirestoreDataService = {
         // 1. Fetch Public Profiles (Base Data)
         const publicDocs = await fetchCollection('public_profile');
         
-        if (__DEV__ && publicDocs.length > 0) {
-            console.log('[Debug] First public_profile doc keys:', Object.keys(publicDocs[0]));
-            console.log('[Debug] First public_profile doc name:', publicDocs[0].name);
-            console.log('[Debug] First public_profile doc basicInfo:', publicDocs[0].basicInfo);
-            const { DeviceEventEmitter } = require('react-native');
-            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|KEYS|${Object.keys(publicDocs[0]).join(',')}`);
-            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[DEBUG]|NAME|${publicDocs[0].name}`);
+        if (__DEV__) {
+            console.log(`[Debug] fetchAllIndividuals: Fetched ${publicDocs.length} public profiles`);
+            publicDocs.forEach((doc, index) => {
+                if (index < DEBUG_LOG_LIMIT) { // Show first 3 only
+                    console.log(`[Debug] User[${index}]: id=${doc.id}, name=${doc.name}, basicInfo=${JSON.stringify(doc.basicInfo || {})}`);
+                }
+            });
         }
         
         // 2. Try to fetch Private Info (Admin only)
@@ -108,7 +111,7 @@ export const FirestoreDataService = {
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
             // Suppress error log for permission denied to avoid noise
-            if (e.code !== 'permission-denied') {
+            if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
                 console.warn('[FirestoreDataService] fetchAllIndividuals: Private info fetch failed:', e);
             } else {
                 console.log('[FirestoreDataService] Private info fetch skipped (permission-denied).');
@@ -142,7 +145,7 @@ export const FirestoreDataService = {
              }
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
-            if (e.code !== 'permission-denied') {
+            if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
                 console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
             }
         }
@@ -216,13 +219,27 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all Fee Management & Job Stats data.
-     * Uses 'selection_progress' collection.
+     * Uses 'FeeMgmtAndJobStatDB' collection (primary) and 'selection_progress' (legacy/fallback).
      * @returns {Promise<Array<SelectionProgress>>}
      */
     async fetchAllFMJS() {
         try {
-            const docs = await fetchCollection('selection_progress');
-            return docs.map(d => SelectionProgress.fromFirestore(d.id, d));
+            console.log('[FirestoreDataService] fetchAllFMJS started');
+            
+            // Fetch from both possible collections to be safe, similar to fetchAllCorporates
+            const [fmjsPrimary, fmjsSecondary] = await Promise.all([
+                fetchCollection('FeeMgmtAndJobStatDB'),
+                fetchCollection('selection_progress')
+            ]);
+            
+            const mergedDocs = mergeById([fmjsPrimary, fmjsSecondary]);
+            console.log(`[FirestoreDataService] Fetched ${mergedDocs.length} unique docs from FeeMgmtAndJobStatDB/selection_progress`);
+            
+            if (__DEV__ && mergedDocs.length > 0) {
+                 console.log(`[Debug] First FMJS doc: id=${mergedDocs[0].id}, data=${JSON.stringify(mergedDocs[0])}`);
+            }
+
+            return mergedDocs.map(d => SelectionProgress.fromFirestore(d.id, d));
         } catch (e) {
             console.error('[FirestoreDataService] fetchAllFMJS failed:', e);
             // Return empty array on error to prevent app crash
