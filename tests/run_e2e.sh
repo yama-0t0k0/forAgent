@@ -46,6 +46,7 @@ case $APP_NAME in
   individual_user_app)
     echo "⚙️  Configuring for Individual User App..."
     TEST_FILES=(
+      "tests/profile_edit_verification.yaml"
       "tests/jobs/security_verification_individual.yaml"
     )
     ;;
