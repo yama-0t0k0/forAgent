@@ -11,12 +11,12 @@ export const APP_CONFIG = {
         // Standard full-featured application
         default: {
             component: FullApp,
-            description: "Individual User Full App"
+            description: 'Individual User Full App'
         },
         // Pure registration tool (Pure Mode)
         registration: {
             component: RegistrationApp,
-            description: "Pure Registration Specialist Tool"
+            description: 'Pure Registration Specialist Tool'
         }
     },
 
