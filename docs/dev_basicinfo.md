@@ -154,7 +154,28 @@
 ./scripts/start_expo.sh <app_name>
 ```
 
-#### ⚠️ 起動設定の厳格化基準 (Commit bc573ab準拠)
+#### 🆕 アプリケーション・モード (App Mode)
+本リポジトリでは、同一のアプリ基盤を使用して異なる用途のUI/機能を提供する「モード切替」をサポートしています。
+
+- **モードの切り替え**: 環境変数 `EXPO_PUBLIC_APP_MODE` を指定して起動します。
+- **動作の仕組み**: 
+  1. `scripts/start_expo.sh` が起動時に `EXPO_PUBLIC_APP_MODE` の値を検知。
+  2. 自動的に対象アプリの `.env` ファイルに `EXPO_PUBLIC_APP_MODE=...` を追記（これがないと Expo Metro Bundler は環境変数を認識しません）。
+  3. `LaunchController.js` が実行時にモードを判定し、エントリポイントを切り替えます。
+  4. スクリプト終了（Ctrl+C）時に、注入された変数は `.env` から自動削除されます。
+
+| モード名 | 指定値 | 概要 |
+| :--- | :--- | :--- |
+| **Default** | (未指定) | 通常のフル機能アプリケーションを起動します。 |
+| **Registration** | `registration` | `ind-reg-app` 互換の「ピュアな登録画面」を起動します。`yama` 版のデータ加工ロジックを通さない、特化型のモードです。 |
+
+**実行例:**
+```bash
+# 登録特化モードで起動
+EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
+```
+
+#### ⚠️ 起動設定の厳格化基準 (Commit bc573ab / 47bc92d準拠)
 
 アプリ起動プロセスは、安定稼働が確認された **Commit bc573ab** (2026-02-12) の状態を「正」とし、以下の仕様を厳密に堅持する必要があります。これらに変更を加える際は、実機での徹底的な検証が必須です。（サンドボックスはNG）
 

@@ -152,6 +152,34 @@ if [ -f "$APP_PATH/.expo/settings.json" ]; then
     rm "$APP_PATH/.expo/settings.json"
 fi
 
+# Inject EXPO_PUBLIC_APP_MODE into .env for the Expo bundler
+# Expo reads EXPO_PUBLIC_* from .env files at bundle time
+ENV_FILE="./.env"
+INJECTED_MODE=""
+if [ -n "$EXPO_PUBLIC_APP_MODE" ]; then
+    export EXPO_PUBLIC_APP_MODE
+    # Ensure .env file exists
+    touch "$ENV_FILE"
+    # Remove any existing EXPO_PUBLIC_APP_MODE line, then append
+    grep -v "^EXPO_PUBLIC_APP_MODE=" "$ENV_FILE" > "${ENV_FILE}.tmp" 2>/dev/null || true
+    mv "${ENV_FILE}.tmp" "$ENV_FILE"
+    echo "EXPO_PUBLIC_APP_MODE=$EXPO_PUBLIC_APP_MODE" >> "$ENV_FILE"
+    INJECTED_MODE="true"
+    echo "🔧 APP_MODE: $EXPO_PUBLIC_APP_MODE (injected into .env)"
+    # Use --clear to force Metro to re-read env
+    EXTRA_FLAGS="$EXTRA_FLAGS --clear"
+fi
+
+# Cleanup: remove injected mode from .env on exit
+cleanup_env() {
+    if [ "$INJECTED_MODE" = "true" ] && [ -f "$ENV_FILE" ]; then
+        # Use a temporary file for cleanup to avoid sed -i issues across platforms
+        grep -v "^EXPO_PUBLIC_APP_MODE=" "$ENV_FILE" > "${ENV_FILE}.tmp" 2>/dev/null && mv "${ENV_FILE}.tmp" "$ENV_FILE"
+        echo "🧹 Cleaned up .env (removed APP_MODE)"
+    fi
+}
+trap cleanup_env EXIT
+
 npx expo start --tunnel $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 

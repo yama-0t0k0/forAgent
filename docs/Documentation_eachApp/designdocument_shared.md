@@ -40,6 +40,7 @@ shared/
 - **RecursiveField.js**: JSONデータ構造に基づき、再帰的に入力フォームを生成する中核コンポーネント。
 - **GlassCard.js**: すりガラス効果を持つカードUI。
 - **InputRow.js / StatusRow.js**: 標準的な入力行コンポーネント。
+- **PureRecursiveField.js**: [NEW] `ind-reg-app` 版の `RecursiveField`。`yama` 版のデータ加工ロジックから完全に隔離されており、テンプレート JSON に基づいた純粋な再帰レンダリングを行います。
 - **GenericSearchBar.js**: 検索ボックスとクイックフィルター（チップ）を備えた汎用検索コンポーネント。
 - **GenericDataList.js**: データ一覧を表示するためのFlatListラッパー。空の状態（Empty State）のハンドリングを含む。
 - **MiniHeatmap.js / HeatmapGrid.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。スコア計算ロジックとジオメトリ計算は `src/core/utils` 配下の共通ロジック（HeatmapCalculator / HeatmapGeometry / HeatmapMapper）を利用し、Individual/Job/Admin の各アプリで共通動作するように設計。
@@ -106,6 +107,11 @@ shared/
 - **パラメータ**:
   - `collectionName`: 保存先コレクション（例: `engineer`）
   - `idPrefixChar`: ID接頭辞（例: `C`）
+
+#### Pure Registration Mode Variant (`features/registration/PureRegistrationScreen.js`)
+- **概要**: `ind-reg-app` ブランチのUIを完全に再現するための孤立型コンポーネント。
+- **背景**: `yama` 版の `GenericRegistrationScreen` は `User` モデルや `orderTemplate` による複雑な表示制御を含んでいますが、本コンポーネントはそれらを一切排除し、JSON 構造そのままのタブ表示・入力を実現します。
+- **特徴**: `PureRecursiveField.js` とセットで使用され、データ汚染や整合性問題を回避します。
 
 #### Analytics (`features/analytics`)
 - **HeatmapGrid.js / MiniHeatmap.js**: スキルや稼働状況を可視化するためのヒートマップコンポーネント。

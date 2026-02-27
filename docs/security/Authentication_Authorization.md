@@ -355,7 +355,7 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 ## 7. 実装計画 (Implementation Plan)
 
 本アーキテクチャを実現するための段階的実装ロードマップです。
-進捗管理は GitHub Milestone 一覧([**Auth機能**](https://github.com/yama-0t0k0/engineer-registration-app/milestones)) 上の「Auth機能」マイルストーンで行います。
+進捗管理は GitHub Milestone [**Auth機能 (Milestone #14)**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/14) で行います。
 
 ### Phase 1: 認証基盤の刷新 (Passkey Foundation)
 まず「パスキー認証」を実装し、その予備手段としてメール/パスワード認証を統合する。

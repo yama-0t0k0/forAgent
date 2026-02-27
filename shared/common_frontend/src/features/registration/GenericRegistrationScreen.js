@@ -34,13 +34,13 @@ if (Platform.OS === PLATFORM.ANDROID && UIManager.setLayoutAnimationEnabledExper
  * @param {Object} props.route - Route object
  */
 const CategoryScreen = ({ route }) => {
-  const { rootKey, orderTemplateRoot } = route.params;
+  const { rootKey, orderTemplateRoot, paddingBottom = 100 } = route.params;
   const { data } = useContext(DataContext);
   const rootData = data[rootKey];
 
   return (
     <View style={styles.screenContainer}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom }]}>
         <RecursiveField data={rootData} depth={0} path={[rootKey]} orderTemplate={orderTemplateRoot} />
       </ScrollView>
     </View>
@@ -98,14 +98,14 @@ const getSortedKeys = (data, idField, orderTemplate) => {
   /** @type {string[]} */
   const dataKeys = Object.keys(data).filter(key => key !== idField && key !== FIELD_NAMES.DISPLAY_TYPE);
   if (!orderTemplate || typeof orderTemplate !== DATA_TYPE.OBJECT) return dataKeys;
-  
+
   /** @type {string[]} */
   const tplKeys = Object.keys(orderTemplate).filter(key => key !== idField && key !== FIELD_NAMES.DISPLAY_TYPE);
   /** @type {string[]} */
   const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
   /** @type {string[]} */
   const notInTpl = dataKeys.filter(k => !tplKeys.includes(k));
-  
+
   return [...inTpl, ...notInTpl];
 };
 
@@ -123,7 +123,10 @@ export const GenericRegistrationScreen = ({
   homeRouteName = 'MyPage',
   orderTemplate,
   BottomNavComponent = BottomNav,
-  customSaveLogic
+  customSaveLogic,
+  showBottomNav = true,
+  useSequentialId = false,
+  idLength = 5
 }) => {
   const { data, updateValue } = useContext(DataContext);
   const navigation = useNavigation();
@@ -139,33 +142,61 @@ export const GenericRegistrationScreen = ({
       // Determine ID: Use existing or generate new
       const existingId = data[idField];
       let newId = existingId;
-      
+
       if (!newId) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const datePrefix = `${idPrefixChar}${year}${month}${day}`;
+        if (useSequentialId) {
+          // Sequential ID logic: prefix + N digits (e.g., B00001)
+          const q = query(
+            collection(db, collectionName),
+            where(documentId(), ">=", idPrefixChar),
+            where(documentId(), "<", String.fromCharCode(idPrefixChar.charCodeAt(0) + 1))
+          );
 
-        const q = query(
-          collection(db, collectionName),
-          where(documentId(), '>=', datePrefix + ID_CONSTANTS.SUFFIX_START),
-          where(documentId(), '<=', datePrefix + ID_CONSTANTS.SUFFIX_END)
-        );
+          const querySnapshot = await getDocs(q);
+          let maxNum = 0;
+          const idRegex = new RegExp(`^${idPrefixChar}(\\d{${idLength}})$`);
 
-        const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const id = doc.id;
+            const match = id.match(idRegex);
+            if (match) {
+              const numPart = parseInt(match[1], 10);
+              if (numPart > maxNum) {
+                maxNum = numPart;
+              }
+            }
+          });
 
-        let maxNum = 0;
-        querySnapshot.forEach((doc) => {
-          const id = doc.id;
-          const numPart = parseInt(id.slice(-4), 10);
-          if (!isNaN(numPart) && numPart > maxNum) {
-            maxNum = numPart;
-          }
-        });
+          const nextNum = maxNum + 1;
+          newId = `${idPrefixChar}${String(nextNum).padStart(idLength, '0')}`;
+        } else {
+          // Legacy Date-based logic: prefix + yyyyMMdd + 4 digits
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const datePrefix = `${idPrefixChar}${year}${month}${day}`;
 
-        const nextNum = maxNum + 1;
-        newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+          const q = query(
+            collection(db, collectionName),
+            where(documentId(), '>=', datePrefix + ID_CONSTANTS.SUFFIX_START),
+            where(documentId(), '<=', datePrefix + ID_CONSTANTS.SUFFIX_END)
+          );
+
+          const querySnapshot = await getDocs(q);
+
+          let maxNum = 0;
+          querySnapshot.forEach((doc) => {
+            const id = doc.id;
+            const numPart = parseInt(id.slice(-4), 10);
+            if (!isNaN(numPart) && numPart > maxNum) {
+              maxNum = numPart;
+            }
+          });
+
+          const nextNum = maxNum + 1;
+          newId = `${datePrefix}${String(nextNum).padStart(4, '0')}`;
+        }
       }
 
       const cleanedData = cleanData(data);
@@ -241,12 +272,18 @@ export const GenericRegistrationScreen = ({
             key={key}
             name={key}
             component={CategoryScreen}
-            initialParams={{ rootKey: key, orderTemplateRoot: orderTemplate ? orderTemplate[key] : null }}
+            initialParams={{
+              rootKey: key,
+              orderTemplateRoot: orderTemplate ? orderTemplate[key] : null,
+              paddingBottom: showBottomNav ? 120 : 40
+            }}
           />
         ))}
       </Tab.Navigator>
 
-      <BottomNavComponent navigation={navigation} activeTab='Registration' />
+      {showBottomNav && BottomNavComponent && (
+        <BottomNavComponent navigation={navigation} activeTab='Registration' />
+      )}
     </View>
   );
 };
