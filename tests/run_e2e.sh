@@ -166,9 +166,8 @@ if command -v maestro &> /dev/null; then
     
     if [ $TEST_EXIT -ne 0 ]; then
       echo "❌ Test failed: $TEST_FILE"
-      # Capture failure screenshot using simctl
-      mkdir -p "tests/screenshots/$APP_NAME"
-      xcrun simctl io booted screenshot "tests/screenshots/$APP_NAME/failure_${TEST_FILE##*/}.png"
+      # Default failure screenshot logic removed to avoid cluttering tests/screenshots.
+      # Individual tests can capture evidence using record_success.sh if needed.
       
       FAILED_TESTS=$((FAILED_TESTS + 1))
       
@@ -186,9 +185,8 @@ if command -v maestro &> /dev/null; then
     PASSED_TESTS=$((PASSED_TESTS + 1))
   done
 
-  # Organize audit screenshots
-  mkdir -p "tests/screenshots/$APP_NAME"
-  mv *.png "tests/screenshots/$APP_NAME/" 2>/dev/null 2>&1
+  # Note: Success evidence (videos/screenshots) are managed by record_success.sh 
+  # or specific test logic, rather than being bulk moved here.
 
   echo "🎉 ALL TESTS PASSED for $APP_NAME!"
   
