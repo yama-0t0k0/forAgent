@@ -386,3 +386,58 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
     - `dev_admin_grant` などの暫定コードを完全削除。
 - [ ] **3.2 エラーハンドリング強化**
     - 認可失敗時、ネットワークエラー時のユーザーフィードバックを洗練させる。
+
+---
+
+## 8. 外部コンテンツ管理アーキテクチャ (microCMS連携)
+
+microCMSを活用したスマホネイティブアプリ（LP等）向けのコンテンツ配信において、Firebase認証・認可を組み合わせたセキュアなアーキテクチャを採用します。
+
+microCMS
+https://microcms.io/
+
+### 8.1 概要と目的
+
+*   **microCMS**: APIベースの日本製ヘッドレスCMS。すべてのコンテンツをJSON形式で返却するため、Expo (React Native) や Flutter (Dart) との親和性が高い。
+*   **目的**: microCMS無料プランを活用したスマホネイティブなLPやWebサイトを構築し、Firebaseによる認証・認可で特定のユーザー（会員など）のみにコンテンツを表示する。
+
+### 8.2 アーキテクチャ構成 (Cloud Functions + Custom Claims)
+
+microCMSのAPIキーをクライアント（アプリ）に持たせず、Cloud Functionsを経由させることで、**APIキーの隠蔽**と**ロールベースの認可制御**を同時に実現します。
+
+#### 構成イメージ
+
+1.  **認証 (Authentication)**:
+    *   アプリから Firebase Auth でログイン。
+2.  **権限付与 (Authorization)**:
+    *   会員登録時や管理操作時に、Cloud Functions 等でユーザーに Custom Claims（例: `plan: "premium"`, `role: "individual"`）を付与。
+    *   ※ §3.1 の定義 (`role`, `plan`) に準拠。
+3.  **認可とデータ取得 (Secure Fetch)**:
+    *   アプリは microCMS を直接叩かず、Cloud Functions (Callable Function) を呼び出す。
+    *   Functions は `context.auth.token` (Custom Claims) を検証し、権限がある場合のみ環境変数に隠蔽された **microCMS API Key** を使用してデータを取得。
+    *   取得したJSONデータをアプリに返却する。
+
+### 8.3 採用理由 (Best Practice)
+
+この構成が最適である理由は以下の通りです。
+
+1.  **APIキーの完全な隠蔽**:
+    *   microCMS無料版のAPIキーは権限管理が細かくできない場合が多く、フロントエンドに露出させると全コンテンツが抜き取られるリスクがある。
+    *   サーバーサイド（Functions）に環境変数として隠蔽することで、このリスクを排除できる。
+2.  **ロール判定の容易さとパフォーマンス**:
+    *   Custom Claims (`plan: "premium"` 等) を用いることで、Firestoreへの問い合わせなしで即座に権限判定が可能（§1.1 参照）。
+3.  **ネイティブアプリとの親和性**:
+    *   アプリ側では Firebase SDK の `getIdTokenResult()` を呼ぶだけで現在の権限状態を確認でき、UIの出し分け（鍵マーク表示など）が容易。
+
+### 8.4 他の選択肢との比較（不採用理由）
+
+| 選択肢 | 判定 | 理由 |
+| :--- | :--- | :--- |
+| **Firestore Security Rules** | ❌ | Firestore/Storage専用のルールであり、外部API (microCMS) のアクセス制御には使用できない。 |
+| **Identity Platform** | ❌ | マルチテナントBtoB向け機能であり、LPの会員限定コンテンツ程度の認可にはオーバースペックかつ高コスト・複雑。 |
+
+### 8.5 注意点と対策
+
+*   **APIリクエスト数制限**:
+    *   microCMS無料版には月間APIリクエスト数に上限がある。
+    *   対策: Cloud Functions側でキャッシュ戦略（Redis等）を検討するか、更新頻度の低いデータはFirestoreへ同期（コピー）して読み取る構成を検討する。
