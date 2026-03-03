@@ -1,5 +1,7 @@
 # E2Eテスト計画・詳細設計: プロフィール編集フロー検証
 
+進捗管理は GitHub Milestone [**E2Eテスト**](https://github.com/yama-0t0k0/engineer-registration-app/milestone/15?closed=1) で行います。
+
 ## 1. テスト概要
 `individual_user_app` のプロフィール編集画面への遷移と、統合された `PureRegistrationScreen` の内容（タブ構造およびメタデータ主導のUIレンダリング）が正常であることを検証する。
 
@@ -42,5 +44,8 @@
 - [x] テスト実行とデバッグ
     - [x] `testID` の不一致修正 (`nav_tab_Menu`)
     - [x] 実行環境の安定化（Simulator/Maestroセッション競合の解消）
+- [ ] テストロジックの強化（タブ切り替え検証）
+    - [ ] `assertVisible` による各タブ固有コンテンツの表示確認を追加
+    - [ ] 座標 (`point`) タップ後の `sleep` 依存を `assertVisible` に置換
 - [x] 最終エビデンスの取得
     - [x] `tests/logs/profile_edit_evidence.mp4` の生成確認

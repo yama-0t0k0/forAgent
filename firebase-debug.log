@@ -1,0 +1,204 @@
+[debug] [2026-03-03T02:56:32.460Z] ----------------------------------------------------------------------
+[debug] [2026-03-03T02:56:32.462Z] Command:       /usr/local/Cellar/node/23.11.0/bin/node /usr/local/bin/firebase emulators:start --only functions
+[debug] [2026-03-03T02:56:32.464Z] CLI Version:   15.5.1
+[debug] [2026-03-03T02:56:32.464Z] Platform:      darwin
+[debug] [2026-03-03T02:56:32.465Z] Node Version:  v23.11.0
+[debug] [2026-03-03T02:56:32.466Z] Time:          Tue Mar 03 2026 11:56:32 GMT+0900 (Japan Standard Time)
+[debug] [2026-03-03T02:56:32.466Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-03T02:56:33.660Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-03T02:56:33.672Z] > authorizing via signed-in user (m.yamakawa@lat-inc.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2026-03-03T02:56:34.334Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-03-03T02:56:34.334Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-03-03T02:56:34.340Z] Write emulator hub locator at /var/folders/7j/z22ch1fj6v78g1_tj27_kzww0000gn/T/hub-flutter-frontend-21d0a.json
+[debug] [2026-03-03T02:56:34.896Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-03-03T02:56:34.896Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-03-03T02:56:34.896Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-03-03T02:56:34.896Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2026-03-03T02:56:34.909Z] defaultcredentials: writing to file /Users/yamakawamakoto/.config/firebase/m_yamakawa_lat-inc.com_application_default_credentials.json
+[debug] [2026-03-03T02:56:34.913Z] Setting GAC to /Users/yamakawamakoto/.config/firebase/m_yamakawa_lat-inc.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/yamakawamakoto/.config/firebase/m_yamakawa_lat-inc.com_application_default_credentials.json"}}
+[debug] [2026-03-03T02:56:34.913Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:56:34.914Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:56:34.914Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig [none]
+[debug] [2026-03-03T02:56:35.292Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig 200
+[debug] [2026-03-03T02:56:35.292Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig {"projectId":"flutter-frontend-21d0a","databaseURL":"https://flutter-frontend-21d0a-default-rtdb.firebaseio.com","storageBucket":"flutter-frontend-21d0a.firebasestorage.app"}
+[info] i  functions: Watching "/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions\" for Cloud Functions..."}}
+[debug] [2026-03-03T02:56:35.321Z] Validating nodejs source
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-03-03T02:56:35.895Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^11.8.0",
+    "firebase-functions": "^4.3.1",
+    "microcms-js-sdk": "^3.1.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0",
+    "typescript": "^4.9.0"
+  },
+  "private": true
+}
+[debug] [2026-03-03T02:56:35.895Z] Building nodejs source
+[debug] [2026-03-03T02:56:35.895Z] Failed to find version of module node: reached end of search path /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "22" doesn't match your global version "23". Using node@23 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[info] i  functions: You are using a version of firebase-functions SDK (4.9.0) that does not have support for the newest Firebase Extensions features. Please update firebase-functions SDK to >=5.1.0 to use them correctly 
+[debug] [2026-03-03T02:56:35.900Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-03-03T02:56:35.906Z] Found firebase-functions binary at '/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8606
+
+[info] [microCMS Config] Domain: dummy-service-domain, API Key: ******
+
+[debug] [2026-03-03T02:56:36.321Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"helloWorld"},"getLpContent":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"getLpContent"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[info] ✔  functions: Loaded functions definitions from source: helloWorld, getLpContent. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, getLpContent."}}
+[info] ✔  functions[us-central1-helloWorld]: http function initialized (http://127.0.0.1:5001/flutter-frontend-21d0a/us-central1/helloWorld). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/flutter-frontend-21d0a/us-central1/helloWorld)."}}
+[info] ✔  functions[us-central1-getLpContent]: http function initialized (http://127.0.0.1:5001/flutter-frontend-21d0a/us-central1/getLpContent). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/flutter-frontend-21d0a/us-central1/getLpContent)."}}
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2026-03-03T02:57:01.032Z] ----------------------------------------------------------------------
+[debug] [2026-03-03T02:57:01.034Z] Command:       /usr/local/Cellar/node/23.11.0/bin/node /usr/local/bin/firebase functions:shell
+[debug] [2026-03-03T02:57:01.035Z] CLI Version:   15.5.1
+[debug] [2026-03-03T02:57:01.035Z] Platform:      darwin
+[debug] [2026-03-03T02:57:01.035Z] Node Version:  v23.11.0
+[debug] [2026-03-03T02:57:01.036Z] Time:          Tue Mar 03 2026 11:57:01 GMT+0900 (Japan Standard Time)
+[debug] [2026-03-03T02:57:01.037Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-03T02:57:01.884Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-03T02:57:01.885Z] > authorizing via signed-in user (m.yamakawa@lat-inc.com)
+[debug] [2026-03-03T02:57:01.886Z] [iam] checking project flutter-frontend-21d0a for permissions ["firebase.projects.get"]
+[debug] [2026-03-03T02:57:01.887Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:57:01.887Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:57:01.888Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/flutter-frontend-21d0a:testIamPermissions [none]
+[debug] [2026-03-03T02:57:01.888Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/flutter-frontend-21d0a:testIamPermissions  x-goog-user-project=flutter-frontend-21d0a
+[debug] [2026-03-03T02:57:01.888Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/flutter-frontend-21d0a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-03-03T02:57:02.593Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/flutter-frontend-21d0a:testIamPermissions 200
+[debug] [2026-03-03T02:57:02.594Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/flutter-frontend-21d0a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-03-03T02:57:02.595Z] Found emulator hub locator: {"version":"15.5.1","origins":["http://127.0.0.1:4400","http://[::1]:4400"],"pid":10000}
+[debug] [2026-03-03T02:57:02.596Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2026-03-03T02:57:02.618Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2026-03-03T02:57:02.618Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"ui":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"name":"ui","host":"127.0.0.1","port":4000},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"functions":{"name":"functions","host":"127.0.0.1","port":5001},"eventarc":{"name":"eventarc","host":"127.0.0.1","port":9299},"tasks":{"name":"tasks","host":"127.0.0.1","port":9499}}
+[debug] [2026-03-03T02:57:02.618Z] Running emulators:  {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"ui":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"name":"ui","host":"127.0.0.1","port":4000},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"functions":{"name":"functions","host":"127.0.0.1","port":5001},"eventarc":{"name":"eventarc","host":"127.0.0.1","port":9299},"tasks":{"name":"tasks","host":"127.0.0.1","port":9499}}
+[warn] ⚠  functions: You are already running the Cloud Functions emulator on port 5001. Running the emulator and the Functions shell simultaenously can result in unexpected behavior. 
+[warn] ⚠  functions: Functions Emulator unable to start on port 5000, starting on 5002 instead. {"metadata":{"emulator":{"name":"functions"},"message":"Functions Emulator unable to start on port 5000, starting on 5002 instead."}}
+[debug] [2026-03-03T02:57:03.006Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-03-03T02:57:03.015Z] defaultcredentials: writing to file /Users/yamakawamakoto/.config/firebase/m_yamakawa_lat-inc.com_application_default_credentials.json
+[debug] [2026-03-03T02:57:03.016Z] DEBUG: Setting GAC to /Users/yamakawamakoto/.config/firebase/m_yamakawa_lat-inc.com_application_default_credentials.json
+[debug] [2026-03-03T02:57:03.016Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:57:03.016Z] Checked if tokens are valid: true, expires at: 1772508666140
+[debug] [2026-03-03T02:57:03.016Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig [none]
+[debug] [2026-03-03T02:57:03.397Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig 200
+[debug] [2026-03-03T02:57:03.398Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/flutter-frontend-21d0a/adminSdkConfig {"projectId":"flutter-frontend-21d0a","databaseURL":"https://flutter-frontend-21d0a-default-rtdb.firebaseio.com","storageBucket":"flutter-frontend-21d0a.firebasestorage.app"}
+[debug] [2026-03-03T02:57:03.419Z] [functions] Watching "/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions" for Cloud Functions...
+[debug] [2026-03-03T02:57:03.426Z] Validating nodejs source
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-03-03T02:57:04.239Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^11.8.0",
+    "firebase-functions": "^4.3.1",
+    "microcms-js-sdk": "^3.1.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0",
+    "typescript": "^4.9.0"
+  },
+  "private": true
+}
+[debug] [2026-03-03T02:57:04.239Z] Building nodejs source
+[debug] [2026-03-03T02:57:04.239Z] Failed to find version of module node: reached end of search path /Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "22" doesn't match your global version "23". Using node@23 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[info] i  functions: You are using a version of firebase-functions SDK (4.9.0) that does not have support for the newest Firebase Extensions features. Please update firebase-functions SDK to >=5.1.0 to use them correctly 
+[debug] [2026-03-03T02:57:04.244Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-03-03T02:57:04.251Z] Found firebase-functions binary at '/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8098
+
+[info] [microCMS Config] Domain: dummy-service-domain, API Key: ******
+
+[debug] [2026-03-03T02:57:04.637Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"helloWorld"},"getLpContent":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"getLpContent"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[debug] [2026-03-03T02:57:08.683Z] [functions] Loaded functions definitions from source: helloWorld, getLpContent.
+[debug] [2026-03-03T02:57:08.684Z] [functions[us-central1-helloWorld]] http function initialized (http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/helloWorld).
+[debug] [2026-03-03T02:57:08.684Z] [functions[us-central1-getLpContent]] http function initialized (http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/getLpContent).
+[info] i  functions: Loaded functions: helloWorld, getLpContent 
+[info] i  functions: Connected to running eventarc emulator at 127.0.0.1:9299, calls to this service will affect the emulator 
+[info] i  functions: Connected to running tasks emulator at 127.0.0.1:9499, calls to this service will affect the emulator 
+[warn] ⚠  functions: The following emulators are not running, calls to these services will affect production: firestore, database, pubsub, storage 
+[debug] [2026-03-03T02:58:20.290Z] >>> [apiv2][query] POST http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/getLpContent/ [none]
+[debug] [2026-03-03T02:58:20.293Z] >>> [apiv2][body] POST http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/getLpContent/ {"data":{}}
+[debug] [2026-03-03T02:58:20.328Z] [work-queue] {"queuedWork":["/flutter-frontend-21d0a/us-central1/getLpContent/-2026-03-03T02:58:20.328Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-03-03T02:58:20.329Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/flutter-frontend-21d0a/us-central1/getLpContent/-2026-03-03T02:58:20.328Z"],"workRunningCount":1}
+[debug] [2026-03-03T02:58:20.330Z] Accepted request POST /flutter-frontend-21d0a/us-central1/getLpContent/ --> us-central1-getLpContent
+[debug] [2026-03-03T02:58:20.335Z] DEBUG: [functions] Runtime ready! Sending request!
+[debug] [2026-03-03T02:58:20.337Z] DEBUG: [functions] Got req.url=/flutter-frontend-21d0a/us-central1/getLpContent/, mapping to path=/
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2026-03-03T02:58:20.348Z] DEBUG: [worker-pool] addWorker(us-central1-getLpContent)
+[debug] [2026-03-03T02:58:20.348Z] DEBUG: [worker-pool] Adding worker with key us-central1-getLpContent, total=1
+[debug] [2026-03-03T02:58:21.206Z] DEBUG: [runtime-status] [11288] Resolved module firebase-admin {"declared":true,"installed":true,"version":"11.11.1","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2026-03-03T02:58:21.206Z] DEBUG: [runtime-status] [11288] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-functions/lib/v1/index.js"}
+[debug] [2026-03-03T02:58:21.207Z] DEBUG: [runtime-status] [11288] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}]
+[debug] [2026-03-03T02:58:21.207Z] DEBUG: [runtime-status] [11288] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-functions/lib/v1/index.js"}
+[debug] [2026-03-03T02:58:21.306Z] DEBUG: [runtime-status] [11288] Resolved module firebase-admin {"declared":true,"installed":true,"version":"11.11.1","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2026-03-03T02:58:21.308Z] DEBUG: [runtime-status] [11288] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-functions/lib/v1/index.js"}
+[debug] [2026-03-03T02:58:21.366Z] DEBUG: [runtime-status] [11288] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"11.11.1","resolution":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  [microCMS Config] Domain: latlp, API Key: ****** {"user":"[microCMS Config] Domain: latlp, API Key: ******","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-getLpContent"},"extension":{},"message":"\u001b[90m> \u001b[39m [microCMS Config] Domain: latlp, API Key: ******"}}
+[debug] [2026-03-03T02:58:21.375Z] DEBUG: [runtime-status] [11288] Functions runtime initialized. {"cwd":"/Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/yama/apps/functions","node_version":"23.11.0"}
+[debug] [2026-03-03T02:58:21.376Z] DEBUG: [runtime-status] [11288] Listening to port: /var/folders/7j/z22ch1fj6v78g1_tj27_kzww0000gn/T/fire_emu_0de58196c903df06.sock
+[debug] [2026-03-03T02:58:21.470Z] DEBUG: [worker-us-central1-getLpContent-5610b2c9-da29-438c-a45d-44202557f4f7]: IDLE
+[debug] [2026-03-03T02:58:21.470Z] DEBUG: [worker-pool] submitRequest(triggerId=us-central1-getLpContent)
+[debug] [2026-03-03T02:58:21.471Z] [functions] Beginning execution of "us-central1-getLpContent"
+[debug] [2026-03-03T02:58:21.471Z] DEBUG: [worker-us-central1-getLpContent-5610b2c9-da29-438c-a45d-44202557f4f7]: BUSY
+[info] >  {"verifications":{"app":"MISSING","auth":"MISSING"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"MISSING"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-getLpContent"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"MISSING\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[info] >  {"structuredData":true,"severity":"INFO","message":"getLpContent called"} {"user":{"structuredData":true,"severity":"INFO","message":"getLpContent called"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-getLpContent"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"structuredData\":true,\"severity\":\"INFO\",\"message\":\"getLpContent called\"}"}}
+[info] >  {"count":0,"severity":"INFO","message":"Fetched contents from microCMS"} {"user":{"count":0,"severity":"INFO","message":"Fetched contents from microCMS"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-getLpContent"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"count\":0,\"severity\":\"INFO\",\"message\":\"Fetched contents from microCMS\"}"}}
+[debug] [2026-03-03T02:58:21.749Z] DEBUG: Finishing up request with event=pause
+[debug] [2026-03-03T02:58:21.749Z] [functions] Finished "us-central1-getLpContent" in 278.446625ms
+[debug] [2026-03-03T02:58:21.749Z] DEBUG: [worker-us-central1-getLpContent-5610b2c9-da29-438c-a45d-44202557f4f7]: IDLE
+[debug] [2026-03-03T02:58:21.749Z] DEBUG: Finishing up request with event=finish
+[debug] [2026-03-03T02:58:21.749Z] DEBUG: Finishing up request with event=close
+[debug] [2026-03-03T02:58:21.750Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-03-03T02:58:21.754Z] <<< [apiv2][status] POST http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/getLpContent/ 200
+[debug] [2026-03-03T02:58:21.754Z] <<< [apiv2][body] POST http://127.0.0.1:5002/flutter-frontend-21d0a/us-central1/getLpContent/ {"result":{"contents":[],"totalCount":0,"offset":0,"limit":10}}

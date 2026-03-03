@@ -43,13 +43,29 @@ appId: host.exp.Exponent
 # 5. Switch Tabs (Verification of Metadata Rendering)
 - tapOn:
     point: "25%, 10%" # 基本情報 (approx)
-- evalScript: |
-    maestro.sleep(2000)
+- assertVisible:
+    text: "氏名" # 基本情報タブの代表項目
+    timeout: 5000
 
 - tapOn:
     point: "50%, 10%" # スキル経験 (approx)
-- evalScript: |
-    maestro.sleep(2000)
+- assertVisible:
+    text: "経験年数" # スキル経験タブの代表項目
+    timeout: 5000
 
-# 6. Final Evidence Capture
+- tapOn:
+    point: "75%, 10%" # 志向 (approx)
+- assertVisible:
+    text: "希望勤務地" # 志向タブの代表項目
+    timeout: 5000
+
+- tapOn:
+    point: "90%, 10%" # 職歴 (approx)
+- assertVisible:
+    text: "会社名" # 職歴タブの代表項目
+    timeout: 5000
+
+# 6. Final Evidence Capture (while on Work History tab)
+- takeScreenshot: profile_edit_evidence_success
+
 - stopApp
