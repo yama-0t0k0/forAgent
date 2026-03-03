@@ -159,19 +159,19 @@ export interface LpContent {
 **本計画のゴールは、microCMSからデータを取得し、認証状態に応じて出し分けができる「基盤」の完成です。**
 
 ### Phase 1: 基盤構築 (Infrastructure)
-- [ ] **microCMS環境セットアップ**
+- [x] **microCMS環境セットアップ**
     - サービス作成、APIキー発行。
     - **動作確認用**の最小限のコンテンツ入稿（公開用/限定用）。
-- [ ] **Cloud Functions 環境準備**
+- [x] **Cloud Functions 環境準備**
     - `microcms-js-sdk` のインストール。
     - 環境変数 (`MICROCMS_SERVICE_DOMAIN`, `MICROCMS_API_KEY`) の設定。
 
 ### Phase 2: バックエンド実装 (Backend)
-- [ ] **コンテンツ取得Functionの実装 (`getLpContent`)**
+- [x] **コンテンツ取得Functionの実装 (`getLpContent`)**
     - 認証チェックロジックの実装。
     - microCMSデータ取得ロジックの実装。
     - `is_premium_only` フラグに基づくフィルタリング実装。
-- [ ] **単体テスト**
+- [x] **単体テスト**
     - 権限あり/なし/未認証 パターンでの挙動検証。
 
 ### Phase 3: フロントエンド実装 (Frontend)
