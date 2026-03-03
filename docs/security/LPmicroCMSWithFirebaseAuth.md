@@ -105,7 +105,7 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
     4.  **データ返却**: 権限OKなら本文を含む完全なデータを、NGなら制限付きデータを返却。
 
 ### 4.3 microCMS スキーマ設計例
-*   **API Endpoint**: `lp-contents`
+*   **API Endpoint**: `lp_home`
 *   **Fields**:
     *   `title` (text)
     *   `body` (rich editor)

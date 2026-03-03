@@ -391,7 +391,7 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 
 ## 8. 外部コンテンツ管理アーキテクチャ (microCMS連携)
 
-microCMSを活用したスマホネイティブアプリ（LP等）向けのコンテンツ配信において、Firebase認証・認可を組み合わせたセキュアなアーキテクチャを採用します。
+microCMSを活用したスマホネイティブアプリ（LP）開発とそのLP向けのコンテンツ配信において、Firebase認証・認可を組み合わせたセキュアなアーキテクチャを採用します。
 
 microCMS
 https://microcms.io/
