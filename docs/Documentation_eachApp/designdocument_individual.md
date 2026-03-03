@@ -63,6 +63,22 @@ graph LR
 - Firebase: shared/common_frontend/src/core/firebaseConfig
   - initializeApp と getFirestore の初期化
 
+## 🆕 アプリケーション・モード (App Mode)
+本アプリは `LaunchController` を通じて、複数のエントリポイントを切り替えて起動することができます。
+
+### 1. Default モード (Full App)
+- **エントリポイント**: `src/apps/FullApp.js`
+- **概要**: 通常のエンジニア個人向けマイページおよび全機能を提供します。 `User` モデルを介して Firestore データ（public/private）を統合・加工して表示します。
+
+### 2. Registration モード (Pure Registration Mode)
+- **エントリポイント**: `src/apps/RegistrationApp.js`
+- **概要**: `ind-reg-app` ブランチのUIを完全に継承した、登録特化型の独立ページです。
+- **特徴**:
+  - `PureRegistrationScreen` を使用し、`yama` ブランチの複雑な加工ロジックをバイパスします。
+  - ボトムナビゲーションを表示せず、テンプレートJSONに基づいた純粋な入力を可能にします。
+  - データのフラット化（`User` モデルによる変換）の影響を受けないよう、孤立したコンポーネント群（`PureRecursiveField` 等）で構成されています。
+
+## 共有モジュール構成
 ```mermaid
 graph TD
     App["individual_user_app (Expo)"] --> Nav["AppNavigator (画面遷移)"]
@@ -102,7 +118,14 @@ graph TD
 ## 起動方法（個人ユーザーアプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行例:
-  - ./scripts/start_expo.sh individual_user_app
+  - **Full App (Default)**:
+    ```bash
+    ./scripts/start_expo.sh individual_user_app
+    ```
+  - **Registration Mode (Pure)**:
+    ```bash
+    EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
+    ```
 - 接続URL（例）:
   - exp://lm8s_7u-anonymous-8082.exp.direct
 
