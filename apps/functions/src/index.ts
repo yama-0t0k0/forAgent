@@ -23,7 +23,7 @@ const client = createClient({
 });
 
 export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
+  functions.logger.info("Hello logs!", { structuredData: true });
   response.send("Hello from Firebase Functions (Node.js)!");
 });
 
@@ -35,12 +35,23 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 export const getLpContent = functions.https.onCall(async (data, context) => {
   functions.logger.info("getLpContent called", { structuredData: true });
 
+  // 1. 認証チェック
+  // LP自体は未ログインでも閲覧可能だが、コンテンツごとにフィルタリングするため
+  // context.auth の有無を確認しておく
+  const uid = context.auth?.uid;
+  const userPlan = context.auth?.token?.plan || "free";
+  const userRole = context.auth?.token?.role || "individual";
+
+  functions.logger.info("Auth Context", { uid, userPlan, userRole });
+
   const CACHE_COLLECTION = "lp_content_cache";
   const CACHE_KEY = "lp_home_list";
   const CACHE_DURATION_MS = 60 * 60 * 1000; // 1時間
 
   try {
-    // 1. キャッシュ確認
+    let microcmsData;
+
+    // 2. キャッシュ確認
     const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
     const cacheDoc = await cacheRef.get();
 
@@ -49,31 +60,53 @@ export const getLpContent = functions.https.onCall(async (data, context) => {
       const now = admin.firestore.Timestamp.now();
 
       if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
-        functions.logger.info("Returning cached content", { key: CACHE_KEY });
-        return cacheData.data;
+        functions.logger.info("Using cached content", { key: CACHE_KEY });
+        microcmsData = cacheData.data;
       }
     }
 
-    // 2. microCMSから記事一覧を取得
-    // 現時点では全件取得し、クライアント側で出し分ける想定（またはPhase 4でクエリパラメータ追加）
-    const response = await client.getList({
-      endpoint: "lp_home",
+    if (!microcmsData) {
+      // 3. microCMSから取得
+      microcmsData = await client.getList({
+        endpoint: "lp_home",
+      });
+
+      // キャッシュ保存
+      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+      await cacheRef.set({
+        data: microcmsData,
+        fetchedAt: admin.firestore.Timestamp.now(),
+        expiresAt: expiresAt,
+      });
+      functions.logger.info("Fetched and cached from microCMS");
+    }
+
+    // 4. 認可レベルに応じたフィルタリング
+    // microCMSのレスポンス形式: { contents: [...], totalCount: N, offset: 0, limit: 10 }
+    const filteredContents = microcmsData.contents.map((item: any) => {
+      const isPremiumOnly = item.is_premium_only === true;
+
+      // 権限チェック: Premium限定かつユーザーがPremiumでない場合
+      if (isPremiumOnly && userPlan !== "premium") {
+        return {
+          ...item,
+          body: "【会員限定コンテンツ】この内容はプレミアムプランの方のみご覧いただけます。",
+          is_locked: true, // フロントエンド用のフラグ
+        };
+      }
+
+      return {
+        ...item,
+        is_locked: false,
+      };
     });
 
-    functions.logger.info("Fetched contents from microCMS", { count: response.totalCount });
-
-    // 3. キャッシュ保存
-    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
-    await cacheRef.set({
-      data: response,
-      fetchedAt: admin.firestore.Timestamp.now(),
-      expiresAt: expiresAt,
-    });
-
-    return response;
+    return {
+      ...microcmsData,
+      contents: filteredContents,
+    };
   } catch (error) {
-    functions.logger.error("Failed to fetch from microCMS", error);
-    // エラー詳細をクライアントに返さないよう、汎用的なエラーにする
-    throw new functions.https.HttpsError("internal", "Failed to fetch content");
+    functions.logger.error("Failed in getLpContent", error);
+    throw new functions.https.HttpsError("internal", "Failed to process content request");
   }
 });

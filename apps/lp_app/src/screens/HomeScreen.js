@@ -41,8 +41,9 @@ export const extractLpListItems = (raw) => {
       const title = typeof c.title === 'string' ? c.title : '';
       const thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
       const isPremiumOnly = c?.is_premium_only === true;
+      const isLocked = c?.is_locked === true;
 
-      return { id: c.id, title, thumbnailUrl, isPremiumOnly };
+      return { id: c.id, title, thumbnailUrl, isPremiumOnly, is_locked: isLocked };
     });
 };
 
@@ -139,11 +140,11 @@ const HomeScreen = (props) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header / Nav */}
         <View style={styles.header} testID="header-container" onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
-          <View 
-            testID="logo-text-wrapper" 
+          <View
+            testID="logo-text-wrapper"
           >
-            <Text 
-              style={styles.logoText} 
+            <Text
+              style={styles.logoText}
               testID="logo-text"
               accessible={true}
               accessibilityLabel="Engineer Reg."
@@ -153,14 +154,14 @@ const HomeScreen = (props) => {
             </Text>
           </View>
           <View style={styles.headerButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.registerButton}
               testID="register-button"
               onPress={() => console.log('Navigate to Register')}
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.loginButton}
               testID="login-button"
               onPress={() => console.log('Navigate to Login')}
@@ -222,27 +223,41 @@ const HomeScreen = (props) => {
               {items.slice(0, 3).map((item) => (
                 <TouchableOpacity
                   key={item.id}
-                  style={styles.newsItem}
+                  style={[styles.newsItem, item.is_locked && styles.lockedNewsItem]}
                   onPress={() => {
-                    if (item.url) {
+                    if (item.is_locked) {
+                      console.log('Premium content locked', item.id);
+                      // TODO: Upgrade dialog or snackbar
+                    } else if (item.url) {
                       Linking.openURL(item.url);
                     } else {
                       console.log('Open content', item.id);
                     }
                   }}
                 >
-                  {item.thumbnailUrl && <Image source={{ uri: item.thumbnailUrl }} style={styles.newsThumbnail} />}
+                  <View style={styles.newsThumbnailContainer}>
+                    {item.thumbnailUrl && <Image source={{ uri: item.thumbnailUrl }} style={styles.newsThumbnail} />}
+                    {item.is_locked && (
+                      <View style={styles.lockOverlay}>
+                        <Text style={styles.lockIcon}>🔒</Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={styles.newsTextBlock}>
-                    <Text style={styles.newsTitle} numberOfLines={2}>
+                    <Text style={[styles.newsTitle, item.is_locked && styles.lockedNewsTitle]} numberOfLines={2}>
                       {item.title}
                     </Text>
-                    {item.isPremiumOnly && <Text style={styles.premiumBadge}>会員限定</Text>}
+                    {item.isPremiumOnly && (
+                      <Text style={[styles.premiumBadge, item.is_locked && styles.lockedPremiumBadge]}>
+                        {item.is_locked ? 'プレミアム限定' : 'プレミアム'}
+                      </Text>
+                    )}
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.linkButton}
             onPress={() => console.log('Navigate to Contents List')}
           >
@@ -431,11 +446,38 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
   },
+  lockedNewsItem: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ddd',
+  },
+  newsThumbnailContainer: {
+    position: 'relative',
+  },
+  lockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  lockIcon: {
+    fontSize: 20,
+  },
+  lockedNewsTitle: {
+    color: '#999',
+  },
   premiumBadge: {
     alignSelf: 'flex-start',
     fontSize: 12,
     fontWeight: '700',
     color: '#007AFF',
+  },
+  lockedPremiumBadge: {
+    color: '#999',
   },
   linkButton: {
     alignSelf: 'flex-start',
