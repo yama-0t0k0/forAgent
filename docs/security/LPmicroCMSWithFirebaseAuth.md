@@ -204,3 +204,4 @@ export interface LpContent {
     - microCMSの記事データから動的に `<meta>` タグ（Title, Description, OGP画像）を生成し、SNSシェアや検索流入を最適化する。
 - [ ] **利用規約・プライバシーポリシー (Legal Pages)**
     - 認証機能（Firebase Auth）利用に伴い必須となる固定ページを作成し、ストア審査や法規対応を行う。
+    - ※プライバシーポリシーの文面は `reference_information_fordev/instructions/個人情報保護方針_プラポリ.md` を使用すること。
