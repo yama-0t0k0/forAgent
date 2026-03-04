@@ -205,16 +205,16 @@ export interface LpContent {
 - [x] **Webhookによるキャッシュの自動更新 (On-Demand Revalidation)**
     - microCMSのWebhookを受け取り、更新されたコンテンツのキャッシュを即座に無効化するCloud Functionsを作成する。
     - 署名検証（`X-MICROCMS-Signature`）を行い、セキュリティを確保する。
-- [ ] **画像最適化 (Image Optimization)**
+- [x] **画像最適化 (Image Optimization)**
     - microCMS (imgix) の画像APIを活用し、デバイス解像度や通信環境に応じた最適な画像サイズ・フォーマット(WebP等)を取得するロジックを実装する。
-- [ ] **プレビューモードの実装 (Preview Mode)**
+- [x] **プレビューモードの実装 (Preview Mode)**
     - 管理者権限を持つユーザーのみ、microCMSの下書き状態（draftKey利用）のコンテンツをアプリ内で確認できる機能を実装する。
     - **機密性保護**: draftKey はクライアント側に露出させず、Cloud Functions 内でのみセキュアに管理する。
-- [ ] **アナリティクス連携 (Analytics Integration)**
+- [x] **アナリティクス連携 (Analytics Integration)**
     - コンテンツごとの閲覧数、滞在時間、Premiumコンテンツへのアクセス試行数などを計測し、マーケティング施策に活用する。
-- [ ] **エラー監視とオブザーバビリティ (Monitoring)**
+- [x] **エラー監視とオブザーバビリティ (Monitoring)**
     - Cloud Functions のエラー率や microCMS API のレート制限状況を監視し、異常検知時に通知する仕組みを構築する。
-- [ ] **SEO・OGP設定 (SEO Metadata)**
+- [x] **SEO・OGP設定 (SEO Metadata)**
     - microCMSの記事データから動的に `<meta>` タグ（Title, Description, OGP画像）を生成し、SNSシェアや検索流入を最適化する。
 - [x] **利用規約・プライバシーポリシー (Legal Pages)**
     - 認証機能（Firebase Auth）利用に伴い必須となる固定ページを作成し、ストア審査や法規対応を行う。

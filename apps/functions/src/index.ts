@@ -43,15 +43,15 @@ const verifySignature = (signature: string, body: string): boolean => {
     .createHmac("sha256", webhookSecret)
     .update(body)
     .digest("hex");
-  
+
   // Use timingSafeEqual to prevent timing attacks
   const signatureBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expectedSignature);
-  
+
   if (signatureBuffer.length !== expectedBuffer.length) {
     return false;
   }
-  
+
   return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
 };
 
@@ -85,11 +85,11 @@ export const onContentUpdate = onRequest(async (req, res) => {
   // We need to be careful: req.rawBody might be a Buffer.
   const rawBody = (req as any).rawBody;
   if (!rawBody) {
-      logger.warn("Missing raw body for signature verification");
-      res.status(400).send("Bad Request: Missing body");
-      return;
+    logger.warn("Missing raw body for signature verification");
+    res.status(400).send("Bad Request: Missing body");
+    return;
   }
-  
+
   const rawBodyString = rawBody.toString('utf8');
 
   if (!verifySignature(signature, rawBodyString)) {
@@ -105,22 +105,22 @@ export const onContentUpdate = onRequest(async (req, res) => {
   // Currently we only have one cache key: "lp_home_list"
   // In a more complex app, we would check `payload.api` and `payload.id` to selectively invalidate.
   // For now, any update to `lp_home` API clears the list cache.
-  
+
   if (payload.api === "lp_home") {
-      const CACHE_COLLECTION = "lp_content_cache";
-      const CACHE_KEY = "lp_home_list";
-      
-      try {
-          await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
-          logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
-          res.status(200).send("Cache invalidated");
-      } catch (error) {
-          logger.error("Failed to invalidate cache", error);
-          res.status(500).send("Internal Server Error");
-      }
+    const CACHE_COLLECTION = "lp_content_cache";
+    const CACHE_KEY = "lp_home_list";
+
+    try {
+      await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
+      logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
+      res.status(200).send("Cache invalidated");
+    } catch (error) {
+      logger.error("Failed to invalidate cache", error);
+      res.status(500).send("Internal Server Error");
+    }
   } else {
-      logger.info(`Ignored update for API: ${payload.api}`);
-      res.status(200).send("Ignored");
+    logger.info(`Ignored update for API: ${payload.api}`);
+    res.status(200).send("Ignored");
   }
 });
 
@@ -139,14 +139,11 @@ export const getLpContent = onRequest(async (req, res) => {
     logger.info("getLpContent called", { structuredData: true });
 
     // 1. 認証チェック
-    // onRequestの場合、req.authは自動的にセットされないため、
-    // 必要であればAuthorizationヘッダーからIDトークンを検証する処理が必要。
-    // 今回は「LPアプリ」であり、未認証でも閲覧可能とするため、
     // トークンがあれば検証してRoleを取得し、なければゲストとして扱う。
-    
+
     let uid = null;
     let userPlan = "free";
-    // let userRole = "individual"; // 未使用のためコメントアウト
+    let isAdmin = false;
 
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -154,15 +151,22 @@ export const getLpContent = onRequest(async (req, res) => {
       try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         uid = decodedToken.uid;
-        // カスタムクレームにplanが含まれていると仮定、なければFirestoreから取得などの処理が必要
-        // ここでは簡易的にdecodedTokenから取得（設定されていれば）
         userPlan = (decodedToken as any).plan || "free";
-        // userRole = (decodedToken as any).role || "individual";
-        logger.info("Authenticated user", { uid, userPlan });
+        isAdmin = (decodedToken as any).role === "admin";
+        logger.info("Authenticated user", { uid, userPlan, isAdmin });
       } catch (error) {
         logger.warn("Invalid ID token", error);
-        // トークンが無効でも、ゲストとしてコンテンツは返却する
       }
+    }
+
+    const { draftKey } = req.query;
+    const isPreview = draftKey && typeof draftKey === "string";
+
+    // プレビューモードの場合はAdmin権限必須
+    if (isPreview && !isAdmin) {
+      logger.warn("Unauthorized preview access attempt", { uid });
+      res.status(403).send("Forbidden: Admin privileges required for preview mode");
+      return;
     }
 
     const CACHE_COLLECTION = "lp_content_cache";
@@ -186,20 +190,31 @@ export const getLpContent = onRequest(async (req, res) => {
         }
       }
 
-      if (!microcmsData) {
+      if (!microcmsData || isPreview) {
         // 3. microCMSから取得
+        const startTime = Date.now();
+        logger.info("Fetching from microCMS", { isPreview, api: "lp_home" });
+
         microcmsData = await client.getList({
           endpoint: "lp_home",
+          queries: isPreview ? { draftKey: draftKey as string } : undefined,
         });
 
-        // キャッシュ保存
-        const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
-        await cacheRef.set({
-          data: microcmsData,
-          fetchedAt: admin.firestore.Timestamp.now(),
-          expiresAt: expiresAt,
-        });
-        logger.info("Fetched and cached from microCMS");
+        const duration = Date.now() - startTime;
+        logger.info("microCMS fetch completed", { durationMs: duration });
+
+        // プレビューでない場合のみキャッシュ保存
+        if (!isPreview) {
+          const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+          await cacheRef.set({
+            data: microcmsData,
+            fetchedAt: admin.firestore.Timestamp.now(),
+            expiresAt: expiresAt,
+          });
+          logger.info("Fetched and cached from microCMS");
+        } else {
+          logger.info("Preview content fetched (not cached)");
+        }
       }
 
       // 4. 認可レベルに応じたフィルタリング

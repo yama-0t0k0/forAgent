@@ -40,19 +40,37 @@ export const extractLpListItems = (raw) => {
     .filter((c) => c && typeof c.id === 'string')
     .map((c) => {
       const title = typeof c.title === 'string' ? c.title : '';
-      const thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+      let thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+
+      // Image Optimization: Append imgix parameters
+      if (thumbnailUrl) {
+        // q=75: Quality 75%
+        // fm=webp: Format WebP (if supported)
+        // w=400: Max width 400px (appropriate for thumbnail)
+        thumbnailUrl = `${thumbnailUrl}?q=75&fm=webp&w=400`;
+      }
+
       const isPremiumOnly = c?.is_premium_only === true;
       const isLocked = c?.is_locked === true;
 
-      return { id: c.id, title, thumbnailUrl, isPremiumOnly, is_locked: isLocked };
+      return {
+        id: c.id,
+        title,
+        thumbnailUrl,
+        isPremiumOnly,
+        is_locked: isLocked,
+        seo_title: typeof c.seo_title === 'string' ? c.seo_title : title,
+        seo_description: typeof c.seo_description === 'string' ? c.seo_description : '',
+      };
     });
 };
 
 /**
  * @param {object} params
+ * @param {string} [params.draftKey]
  * @returns {Promise<Array<LpListItem>>}
  */
-export const fetchLpContents = async () => {
+export const fetchLpContents = async ({ draftKey } = {}) => {
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
   const region = 'asia-northeast1';
 
@@ -62,7 +80,10 @@ export const fetchLpContents = async () => {
     ? `http://${emulatorHost.split(':')[0]}:5001/${projectId}/${region}`
     : `https://${region}-${projectId}.cloudfunctions.net`;
 
-  const url = `${baseUrl}/getLpContent`;
+  let url = `${baseUrl}/getLpContent`;
+  if (draftKey) {
+    url += `?draftKey=${draftKey}`;
+  }
 
   const headers = {
     'Content-Type': 'application/json',
@@ -118,6 +139,17 @@ const getFirebaseFunctions = () => {
 };
 
 /**
+ * Analytics Tracking Utility
+ * @param {string} eventName
+ * @param {object} params
+ */
+const trackEvent = (eventName, params) => {
+  console.log(`[Analytics] Event: ${eventName}`, params);
+  // Integration point for Firebase Analytics or other tools
+  // if (analytics) logEvent(analytics, eventName, params);
+};
+
+/**
  * @param {object} props
  * @param {any} props.navigation
  * @returns {React.JSX.Element}
@@ -126,8 +158,33 @@ const HomeScreen = (props) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [draftKey, setDraftKey] = useState(null);
 
   const functions = useMemo(() => getFirebaseFunctions(), []);
+
+  useEffect(() => {
+    // Check for draftKey in deep link URL
+    const handleUrl = (event) => {
+      const url = event.url;
+      if (url && url.includes('draftKey=')) {
+        const key = url.split('draftKey=')[1].split('&')[0];
+        setDraftKey(key);
+        console.log('Preview mode activated with draftKey');
+      }
+    };
+
+    const getInitialUrl = async () => {
+      const url = await Linking.getInitialURL();
+      if (url) handleUrl({ url });
+    };
+
+    getInitialUrl();
+    const subscription = Linking.addEventListener('url', handleUrl);
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     console.log('HomeScreen mounted');
@@ -141,7 +198,7 @@ const HomeScreen = (props) => {
       setError(null);
 
       try {
-        const lpItems = await fetchLpContents();
+        const lpItems = await fetchLpContents({ draftKey });
         if (!isCanceled) {
           if (lpItems.length > 0) {
             setItems(lpItems);
@@ -167,11 +224,21 @@ const HomeScreen = (props) => {
     return () => {
       isCanceled = true;
     };
-  }, [functions]);
+  }, [functions, draftKey]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Preview Banner */}
+        {draftKey && (
+          <View style={styles.previewBanner}>
+            <Text style={styles.previewBannerText}>プレビューモード有効</Text>
+            <TouchableOpacity onPress={() => setDraftKey(null)}>
+              <Text style={styles.previewCloseText}>終了</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Header / Nav */}
         <View style={styles.header} testID="header-container" onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
           <View
@@ -259,8 +326,10 @@ const HomeScreen = (props) => {
                   key={item.id}
                   style={[styles.newsItem, item.is_locked && styles.lockedNewsItem]}
                   onPress={() => {
+                    trackEvent('content_click', { id: item.id, is_locked: item.is_locked });
                     if (item.is_locked) {
                       console.log('Premium content locked', item.id);
+                      trackEvent('premium_content_blocked', { id: item.id });
                       // TODO: Upgrade dialog or snackbar
                     } else if (item.url) {
                       Linking.openURL(item.url);
@@ -486,6 +555,24 @@ const styles = StyleSheet.create({
   lockedNewsItem: {
     backgroundColor: '#f5f5f5',
     borderColor: '#ddd',
+  },
+  previewBanner: {
+    backgroundColor: '#FF3B30',
+    padding: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  previewBannerText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  previewCloseText: {
+    color: '#fff',
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
   newsThumbnailContainer: {
     position: 'relative',
