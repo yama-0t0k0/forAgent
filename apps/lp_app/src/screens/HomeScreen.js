@@ -1,30 +1,169 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 
 /**
  * LP Home Screen
  * - microCMSで管理されたコンテンツを表示するトップ画面
  * - ヒーローセクション、特徴紹介、コンテンツリストへの導線を配置
  */
-const HomeScreen = ({ navigation }) => {
+/**
+ * @typedef {Object} LpListItem
+ * @property {string} id
+ * @property {string} title
+ * @property {string|null} thumbnailUrl
+ * @property {boolean} isPremiumOnly
+ * @property {string} [url]
+ */
+
+const FALLBACK_ITEMS = [
+  {
+    id: 'google-cloud-blog',
+    title: 'Google Cloud ブログ | ニュース、機能、およびお知らせ',
+    thumbnailUrl: null,
+    isPremiumOnly: false,
+    url: 'https://cloud.google.com/blog/ja',
+  },
+];
+
+/**
+ * @param {any} raw
+ * @returns {Array<LpListItem>}
+ */
+export const extractLpListItems = (raw) => {
+  const contents = Array.isArray(raw?.contents) ? raw.contents : [];
+
+  return contents
+    .filter((c) => c && typeof c.id === 'string')
+    .map((c) => {
+      const title = typeof c.title === 'string' ? c.title : '';
+      const thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+      const isPremiumOnly = c?.is_premium_only === true;
+      const isLocked = c?.is_locked === true;
+
+      return { id: c.id, title, thumbnailUrl, isPremiumOnly, is_locked: isLocked };
+    });
+};
+
+/**
+ * @param {object} params
+ * @param {any} params.functions
+ * @param {(functions: any, name: string) => (data: any) => Promise<any>} params.httpsCallableFn
+ * @returns {Promise<Array<LpListItem>>}
+ */
+export const fetchLpContents = async ({ functions, httpsCallableFn }) => {
+  const callable = httpsCallableFn(functions, 'getLpContent');
+  const result = await callable({});
+  return extractLpListItems(result?.data);
+};
+
+const getFirebaseFunctions = () => {
+  const firebaseConfig = {
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  };
+
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  const functions = getFunctions(app, 'asia-northeast1');
+
+  const emulatorHost = typeof process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST === 'string'
+    ? process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST.trim()
+    : '';
+  if (__DEV__ && emulatorHost.length > 0) {
+    connectFunctionsEmulator(functions, emulatorHost, 5001);
+  }
+
+  return functions;
+};
+
+/**
+ * @param {object} props
+ * @param {any} props.navigation
+ * @returns {React.JSX.Element}
+ */
+const HomeScreen = (props) => {
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const functions = useMemo(() => getFirebaseFunctions(), []);
+
+  useEffect(() => {
+    console.log('HomeScreen mounted');
+    let isCanceled = false;
+
+    /**
+     * @returns {Promise<void>}
+     */
+    const load = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const lpItems = await fetchLpContents({ functions, httpsCallableFn: httpsCallable });
+        if (!isCanceled) {
+          if (lpItems.length > 0) {
+            setItems(lpItems);
+          } else {
+            setItems(FALLBACK_ITEMS);
+          }
+        }
+      } catch (e) {
+        if (!isCanceled) {
+          console.warn('Failed to fetch LP contents, using fallback:', e);
+          setError(null);
+          setItems(FALLBACK_ITEMS);
+        }
+      } finally {
+        if (!isCanceled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      isCanceled = true;
+    };
+  }, [functions]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header / Nav */}
-        <View style={styles.header}>
-          <Text style={styles.logoText}>Engineer Reg.</Text>
+        <View style={styles.header} testID="header-container" onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
+          <View
+            testID="logo-text-wrapper"
+          >
+            <Text
+              style={styles.logoText}
+              testID="logo-text"
+              accessible={true}
+              accessibilityLabel="Engineer Reg."
+              onLayout={(e) => console.log('Logo layout:', e.nativeEvent.layout)}
+            >
+              Engineer Reg.
+            </Text>
+          </View>
           <View style={styles.headerButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.registerButton}
+              testID="register-button"
               onPress={() => console.log('Navigate to Register')}
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.loginButton}
+              testID="login-button"
               onPress={() => console.log('Navigate to Login')}
             >
               <Text style={styles.loginButtonText}>ログイン</Text>
@@ -64,11 +203,61 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Contents Section Placeholder (microCMS) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Latest News</Text>
-          <Text style={styles.placeholderText}>
-            (ここにmicroCMSから取得した記事が表示されます)
-          </Text>
-          <TouchableOpacity 
+          <Text style={styles.sectionTitle} testID="latest-news-section">Latest News</Text>
+          {isLoading && (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator size="small" />
+              <Text style={styles.loadingText}>読み込み中...</Text>
+            </View>
+          )}
+          {!isLoading && error && (
+            <Text style={styles.errorText}>
+              取得に失敗しました。エミュレータ/Functionsの起動状態やネットワークを確認してください。
+            </Text>
+          )}
+          {!isLoading && !error && items.length === 0 && (
+            <Text style={styles.placeholderText}>(表示できる記事がありません)</Text>
+          )}
+          {!isLoading && !error && items.length > 0 && (
+            <View style={styles.newsList}>
+              {items.slice(0, 3).map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.newsItem, item.is_locked && styles.lockedNewsItem]}
+                  onPress={() => {
+                    if (item.is_locked) {
+                      console.log('Premium content locked', item.id);
+                      // TODO: Upgrade dialog or snackbar
+                    } else if (item.url) {
+                      Linking.openURL(item.url);
+                    } else {
+                      console.log('Open content', item.id);
+                    }
+                  }}
+                >
+                  <View style={styles.newsThumbnailContainer}>
+                    {item.thumbnailUrl && <Image source={{ uri: item.thumbnailUrl }} style={styles.newsThumbnail} />}
+                    {item.is_locked && (
+                      <View style={styles.lockOverlay}>
+                        <Text style={styles.lockIcon}>🔒</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.newsTextBlock}>
+                    <Text style={[styles.newsTitle, item.is_locked && styles.lockedNewsTitle]} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    {item.isPremiumOnly && (
+                      <Text style={[styles.premiumBadge, item.is_locked && styles.lockedPremiumBadge]}>
+                        {item.is_locked ? 'プレミアム限定' : 'プレミアム'}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          <TouchableOpacity
             style={styles.linkButton}
             onPress={() => console.log('Navigate to Contents List')}
           >
@@ -210,6 +399,85 @@ const styles = StyleSheet.create({
     color: '#999',
     fontStyle: 'italic',
     marginBottom: 16,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#d93025',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  newsList: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  newsItem: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  newsThumbnail: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  newsTextBlock: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 6,
+  },
+  newsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#333',
+    lineHeight: 20,
+  },
+  lockedNewsItem: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ddd',
+  },
+  newsThumbnailContainer: {
+    position: 'relative',
+  },
+  lockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  lockIcon: {
+    fontSize: 20,
+  },
+  lockedNewsTitle: {
+    color: '#999',
+  },
+  premiumBadge: {
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  lockedPremiumBadge: {
+    color: '#999',
   },
   linkButton: {
     alignSelf: 'flex-start',

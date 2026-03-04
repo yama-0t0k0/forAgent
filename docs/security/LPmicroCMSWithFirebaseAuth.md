@@ -175,14 +175,33 @@ export interface LpContent {
     - 権限あり/なし/未認証 パターンでの挙動検証。
 
 ### Phase 3: フロントエンド実装 (Frontend)
-- [ ] **LP画面のUI実装 (プロトタイプ)**
+- [x] **LP画面のUI実装 (プロトタイプ)**
     - コンテンツリスト表示（デザインは最小限）。
     - 詳細表示。
-- [ ] **認証連携**
+- [x] **認証連携**
     - `cloudFunctions` 呼び出しの実装。
     - 権限不足時のUIハンドリング（ロックアイコン、アップグレード訴求）の基本実装。
 
 ### Phase 4: キャッシュ戦略 (Optional/Future)
-*本フェーズは基盤構築完了後の運用検討フェーズで実施します*
-- [ ] **キャッシュ層の導入**
+- [x] **キャッシュ層の導入**
     - 必要に応じてFirestoreにコンテンツをキャッシュし、APIコール数を削減する仕組みを検討・実装。
+
+### Phase 5: 高度な運用機能 (Advanced Operations)
+*本フェーズはアプリのリリース後、運用効率とUX向上を目的として実施します*
+- [ ] **Webhookによるキャッシュの自動更新 (On-Demand Revalidation)**
+    - microCMSのコンテンツ更新（Webhook）をトリガーに、Cloud Functionsを実行してFirestoreキャッシュを即座に削除・再取得する。
+    - **署名検証**: `X-MICROCMS-Signature` ヘッダーを利用したリクエストの真正性検証を行い、セキュリティを確保する。
+- [ ] **画像最適化 (Image Optimization)**
+    - microCMS (imgix) の画像APIを活用し、デバイス解像度や通信環境に応じた最適な画像サイズ・フォーマット(WebP等)を取得するロジックを実装する。
+- [ ] **プレビューモードの実装 (Preview Mode)**
+    - 管理者権限を持つユーザーのみ、microCMSの下書き状態（draftKey利用）のコンテンツをアプリ内で確認できる機能を実装する。
+    - **機密性保護**: draftKey はクライアント側に露出させず、Cloud Functions 内でのみセキュアに管理する。
+- [ ] **アナリティクス連携 (Analytics Integration)**
+    - コンテンツごとの閲覧数、滞在時間、Premiumコンテンツへのアクセス試行数などを計測し、マーケティング施策に活用する。
+- [ ] **エラー監視とオブザーバビリティ (Monitoring)**
+    - Cloud Functions のエラー率や microCMS API のレート制限状況を監視し、異常検知時に通知する仕組みを構築する。
+- [ ] **SEO・OGP設定 (SEO Metadata)**
+    - microCMSの記事データから動的に `<meta>` タグ（Title, Description, OGP画像）を生成し、SNSシェアや検索流入を最適化する。
+- [ ] **利用規約・プライバシーポリシー (Legal Pages)**
+    - 認証機能（Firebase Auth）利用に伴い必須となる固定ページを作成し、ストア審査や法規対応を行う。
+    - ※プライバシーポリシーの文面は `reference_information_fordev/instructions/個人情報保護方針_プラポリ.md` を使用すること。
