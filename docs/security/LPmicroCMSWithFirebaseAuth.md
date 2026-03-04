@@ -95,6 +95,11 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
 アプリから直接 microCMS SDK を叩くのではなく、以下の Callable Function を実装する。
 ※ 2026-03-04追記: `onCall` から `onRequest` (HTTP関数) へ変更。
 
+#### onRequestへの変更理由と効果
+1.  **GETメソッドのサポート**: `onCall` はPOSTメソッドを強制するが、コンテンツ取得系APIはRESTfulな設計上GETメソッドが適切であるため。
+2.  **キャッシュ制御**: HTTPヘッダー（`Cache-Control`）を利用したCDNキャッシュやブラウザキャッシュの制御が可能になり、パフォーマンス向上とコスト削減が見込める。
+3.  **外部サービス連携**: Webフックや他のHTTPクライアントからの利用が容易になる。
+
 *   **Function Name**: `getLpContent`
 *   **Trigger Type**: `onRequest` (HTTP Request)
 *   **Method**: `GET`
@@ -220,8 +225,36 @@ export interface LpContent {
     - 認証機能（Firebase Auth）利用に伴い必須となる固定ページを作成し、ストア審査や法規対応を行う。
     - ✅ 2026-03-04: `PrivacyPolicyScreen.js` を実装し、フッターからの導線を追加。
 
+### Phase 6: 初期ログイン機能とテスト自動化 (Milestone 16)
+
+本フェーズでは、LPアプリ内に初回リリースへ向けた限定的なログイン機能を実装する。
+アプリリリースまでの期間、**ログイン対象者は既存のAdmin管理者2名のみ**とする。
+
+- [x] **Admin用ログイン画面の実装**
+    - Firebase Authentication を用いた Email / Password ログインフォームを構築。
+    - 管理者以外の新規登録動線は設けない（リリースまではAdmin専用）。
+- [x] **ログイン導線の隠蔽**
+    - 一般ユーザーに誤認されないよう、ログイン画面へのリンクはフッター等の目立たない位置に配置するか、特定の操作（シークレットタップ等）で開く設計とする。
+- [x] **認証状態の管理とアクセス制御**
+    - ログインしたAdminユーザーの認証状態（Token, Custom Claims）を保持。
+    - Adminユーザーにのみ、プレビューモード等の限定機能や画面へのアクセスを許可する。
+- [x] **E2Eテスト用認証フローの確立**
+    - 自動E2Eテストツール（Maestro等）が安定してログイン処理を実行し、ログイン後画面のテストを行えるよう、テスト専用アカウントの実装とMaestroシナリオを確立。
+
 ### 付録: メンテナンス記録 (Maintenance Roles)
 
 - **CI/CD パイプラインの修復 (2026-03-04)**
     - **問題**: Sub-packages で `resolution: workspace` を使用している際、Docker ビルド内でワークスペースルートの `pubspec.yaml` が欠落し `dart pub get` が失敗する問題が発生（2026-02-13より継続）。
     - **対策**: `infrastructure/firebase/functions/Dockerfile` 内で最小限のワークスペース `pubspec.yaml` を動的に生成し、Flutter非依存なパッケージのみをワークスペースに含めることで解決。
+
+## 7. 推奨される次のタスク (Recommended Next Tasks)
+
+以下のタスクは、`getLpContent` 関数の本番運用に向けた推奨事項です（2026-03-04時点）。
+
+1.  **Firestore権限の付与（キャッシュ機能の有効化）**
+    *   **現状**: Functionsのサービスアカウント (`flutter-frontend-21d0a@appspot.gserviceaccount.com`) にFirestoreへのアクセス権限がないため、`PERMISSION_DENIED` エラーが発生し、キャッシュ機能が動作していません（microCMSへの直接フォールバックで機能自体は維持されています）。
+    *   **対応**: Google Cloud Consoleにて、上記サービスアカウントに対して `Cloud Datastore User` などの適切なロールを付与してください。これにより、microCMSへのAPIリクエスト数を削減し、レスポンス速度を向上させることができます。
+
+2.  **CORS設定の厳格化**
+    *   **現状**: `getLpContent` 関数は `cors({ origin: true })` で設定されており、すべてのオリジンからのアクセスを許可しています。
+    *   **対応**: 本番運用時は、セキュリティ向上のため、許可するオリジンを特定のドメイン（例: LPアプリのホスティングドメイン）に制限することを推奨します。

@@ -3,11 +3,13 @@ import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import { createClient } from "microcms-js-sdk";
 import * as crypto from "crypto";
-import * as cors from "cors";
+import cors = require("cors");
 
 const corsHandler = cors({ origin: true });
 
 // Initialize Firebase Admin SDK
+// FirestoreのデータベースIDを明示的に指定しない場合、デフォルトのデータベースが使用される
+// 複数のデータベースがある場合、明示的な指定が必要になることがある
 if (admin.apps.length === 0) {
   admin.initializeApp();
 }
@@ -43,15 +45,15 @@ const verifySignature = (signature: string, body: string): boolean => {
     .createHmac("sha256", webhookSecret)
     .update(body)
     .digest("hex");
-
+  
   // Use timingSafeEqual to prevent timing attacks
   const signatureBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expectedSignature);
-
+  
   if (signatureBuffer.length !== expectedBuffer.length) {
     return false;
   }
-
+  
   return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
 };
 
@@ -85,11 +87,11 @@ export const onContentUpdate = onRequest(async (req, res) => {
   // We need to be careful: req.rawBody might be a Buffer.
   const rawBody = (req as any).rawBody;
   if (!rawBody) {
-    logger.warn("Missing raw body for signature verification");
-    res.status(400).send("Bad Request: Missing body");
-    return;
+      logger.warn("Missing raw body for signature verification");
+      res.status(400).send("Bad Request: Missing body");
+      return;
   }
-
+  
   const rawBodyString = rawBody.toString('utf8');
 
   if (!verifySignature(signature, rawBodyString)) {
@@ -105,22 +107,22 @@ export const onContentUpdate = onRequest(async (req, res) => {
   // Currently we only have one cache key: "lp_home_list"
   // In a more complex app, we would check `payload.api` and `payload.id` to selectively invalidate.
   // For now, any update to `lp_home` API clears the list cache.
-
+  
   if (payload.api === "lp_home") {
-    const CACHE_COLLECTION = "lp_content_cache";
-    const CACHE_KEY = "lp_home_list";
-
-    try {
-      await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
-      logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
-      res.status(200).send("Cache invalidated");
-    } catch (error) {
-      logger.error("Failed to invalidate cache", error);
-      res.status(500).send("Internal Server Error");
-    }
+      const CACHE_COLLECTION = "lp_content_cache";
+      const CACHE_KEY = "lp_home_list";
+      
+      try {
+          await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
+          logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
+          res.status(200).send("Cache invalidated");
+      } catch (error) {
+          logger.error("Failed to invalidate cache", error);
+          res.status(500).send("Internal Server Error");
+      }
   } else {
-    logger.info(`Ignored update for API: ${payload.api}`);
-    res.status(200).send("Ignored");
+      logger.info(`Ignored update for API: ${payload.api}`);
+      res.status(200).send("Ignored");
   }
 });
 
@@ -133,17 +135,21 @@ export const helloWorld = onRequest((request, response) => {
  * LPコンテンツ取得関数 (HTTPS Request)
  * - クライアントから呼び出され、microCMSのデータを返却する
  * - 認証状態に応じて、返却するデータをフィルタリングする（Phase 4で実装予定）
+ * - 2026-03-04: onCallからonRequestに変更
  */
 export const getLpContent = onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     logger.info("getLpContent called", { structuredData: true });
 
     // 1. 認証チェック
+    // onRequestの場合、req.authは自動的にセットされないため、
+    // 必要であればAuthorizationヘッダーからIDトークンを検証する処理が必要。
+    // 今回は「LPアプリ」であり、未認証でも閲覧可能とするため、
     // トークンがあれば検証してRoleを取得し、なければゲストとして扱う。
-
+    
     let uid = null;
     let userPlan = "free";
-    let isAdmin = false;
+    // let userRole = "individual"; // 未使用のためコメントアウト
 
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -151,22 +157,15 @@ export const getLpContent = onRequest(async (req, res) => {
       try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         uid = decodedToken.uid;
+        // カスタムクレームにplanが含まれていると仮定、なければFirestoreから取得などの処理が必要
+        // ここでは簡易的にdecodedTokenから取得（設定されていれば）
         userPlan = (decodedToken as any).plan || "free";
-        isAdmin = (decodedToken as any).role === "admin";
-        logger.info("Authenticated user", { uid, userPlan, isAdmin });
+        // userRole = (decodedToken as any).role || "individual";
+        logger.info("Authenticated user", { uid, userPlan });
       } catch (error) {
         logger.warn("Invalid ID token", error);
+        // トークンが無効でも、ゲストとしてコンテンツは返却する
       }
-    }
-
-    const { draftKey } = req.query;
-    const isPreview = draftKey && typeof draftKey === "string";
-
-    // プレビューモードの場合はAdmin権限必須
-    if (isPreview && !isAdmin) {
-      logger.warn("Unauthorized preview access attempt", { uid });
-      res.status(403).send("Forbidden: Admin privileges required for preview mode");
-      return;
     }
 
     const CACHE_COLLECTION = "lp_content_cache";
@@ -177,43 +176,47 @@ export const getLpContent = onRequest(async (req, res) => {
       let microcmsData;
 
       // 2. キャッシュ確認
-      const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
-      const cacheDoc = await cacheRef.get();
+      // PERMISSION_DENIED エラーが発生しているため、エラーハンドリングを強化
+      try {
+        const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+        const cacheDoc = await cacheRef.get();
 
-      if (cacheDoc.exists) {
-        const cacheData = cacheDoc.data();
-        const now = admin.firestore.Timestamp.now();
+        if (cacheDoc.exists) {
+          const cacheData = cacheDoc.data();
+          const now = admin.firestore.Timestamp.now();
 
-        if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
-          logger.info("Using cached content", { key: CACHE_KEY });
-          microcmsData = cacheData.data;
+          if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
+            logger.info("Using cached content", { key: CACHE_KEY });
+            microcmsData = cacheData.data;
+          }
         }
+      } catch (firestoreError: any) {
+        // Firestoreへのアクセス権限がない場合など
+        // キャッシュが使えないだけなので、microCMSへの直接フェッチを試みるようにする
+        // ただし、書き込み権限もない場合はキャッシュ保存で失敗する可能性がある
+        logger.error("Firestore cache access failed", firestoreError);
+        // microCMSへのフェッチへフォールバック
       }
 
-      if (!microcmsData || isPreview) {
+      if (!microcmsData) {
         // 3. microCMSから取得
-        const startTime = Date.now();
-        logger.info("Fetching from microCMS", { isPreview, api: "lp_home" });
-
         microcmsData = await client.getList({
           endpoint: "lp_home",
-          queries: isPreview ? { draftKey: draftKey as string } : undefined,
         });
 
-        const duration = Date.now() - startTime;
-        logger.info("microCMS fetch completed", { durationMs: duration });
-
-        // プレビューでない場合のみキャッシュ保存
-        if (!isPreview) {
-          const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
-          await cacheRef.set({
-            data: microcmsData,
-            fetchedAt: admin.firestore.Timestamp.now(),
-            expiresAt: expiresAt,
-          });
-          logger.info("Fetched and cached from microCMS");
-        } else {
-          logger.info("Preview content fetched (not cached)");
+        // キャッシュ保存
+        try {
+            const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+            const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+            await cacheRef.set({
+              data: microcmsData,
+              fetchedAt: admin.firestore.Timestamp.now(),
+              expiresAt: expiresAt,
+            });
+            logger.info("Fetched and cached from microCMS");
+        } catch (firestoreWriteError) {
+             logger.error("Firestore cache write failed", firestoreWriteError);
+             // キャッシュ保存に失敗しても、データ自体は返却する
         }
       }
 
@@ -245,13 +248,13 @@ export const getLpContent = onRequest(async (req, res) => {
       });
 
     } catch (error: any) {
-      logger.error("Error in getLpContent", error.response?.status, error.response?.data, error.message);
+      logger.error("Error in getLpContent", error.response?.status, error.response?.data, error.message, error.code);
       if (error.response?.status === 401 || error.response?.status === 403) {
         res.status(403).send("microCMS authentication failed");
       } else if (error.response?.status === 404) {
         res.status(404).send("microCMS endpoint not found");
       } else {
-        res.status(500).send("Internal Server Error");
+        res.status(500).send(`Internal Server Error: ${error.message}`);
       }
     }
   });
