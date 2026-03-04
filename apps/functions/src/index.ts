@@ -1,5 +1,13 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import { createClient } from "microcms-js-sdk";
+
+// Initialize Firebase Admin SDK
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
+
+const db = admin.firestore();
 
 // Initialize microCMS client
 // Note: Environment variables should be set in .env or Firebase Config
@@ -27,14 +35,41 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 export const getLpContent = functions.https.onCall(async (data, context) => {
   functions.logger.info("getLpContent called", { structuredData: true });
 
+  const CACHE_COLLECTION = "lp_content_cache";
+  const CACHE_KEY = "lp_home_list";
+  const CACHE_DURATION_MS = 60 * 60 * 1000; // 1時間
+
   try {
-    // microCMSから記事一覧を取得
+    // 1. キャッシュ確認
+    const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+    const cacheDoc = await cacheRef.get();
+
+    if (cacheDoc.exists) {
+      const cacheData = cacheDoc.data();
+      const now = admin.firestore.Timestamp.now();
+
+      if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
+        functions.logger.info("Returning cached content", { key: CACHE_KEY });
+        return cacheData.data;
+      }
+    }
+
+    // 2. microCMSから記事一覧を取得
     // 現時点では全件取得し、クライアント側で出し分ける想定（またはPhase 4でクエリパラメータ追加）
     const response = await client.getList({
       endpoint: "lp_home",
     });
 
     functions.logger.info("Fetched contents from microCMS", { count: response.totalCount });
+
+    // 3. キャッシュ保存
+    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+    await cacheRef.set({
+      data: response,
+      fetchedAt: admin.firestore.Timestamp.now(),
+      expiresAt: expiresAt,
+    });
+
     return response;
   } catch (error) {
     functions.logger.error("Failed to fetch from microCMS", error);
