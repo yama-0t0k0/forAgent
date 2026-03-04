@@ -185,3 +185,15 @@ export interface LpContent {
 ### Phase 4: キャッシュ戦略 (Optional/Future)
 - [x] **キャッシュ層の導入**
     - 必要に応じてFirestoreにコンテンツをキャッシュし、APIコール数を削減する仕組みを検討・実装。
+
+### Phase 5: 高度な運用機能 (Advanced Operations)
+*本フェーズはアプリのリリース後、運用効率とUX向上を目的として実施します*
+- [ ] **Webhookによるキャッシュの自動更新 (On-Demand Revalidation)**
+    - microCMSのコンテンツ更新（Webhook）をトリガーに、Cloud Functionsを実行してFirestoreキャッシュを即座に削除・再取得する。
+    - これにより、1時間のキャッシュ期間を待たずに最新情報を反映可能にする。
+- [ ] **画像最適化 (Image Optimization)**
+    - microCMS (imgix) の画像APIを活用し、デバイス解像度や通信環境に応じた最適な画像サイズ・フォーマット(WebP等)を取得するロジックを実装する。
+- [ ] **プレビューモードの実装 (Preview Mode)**
+    - 管理者権限を持つユーザーのみ、microCMSの下書き状態（draftKey利用）のコンテンツをアプリ内で確認できる機能を実装する。
+- [ ] **アナリティクス連携 (Analytics Integration)**
+    - コンテンツごとの閲覧数、滞在時間、Premiumコンテンツへのアクセス試行数などを計測し、マーケティング施策に活用する。
