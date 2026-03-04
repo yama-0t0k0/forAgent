@@ -186,11 +186,11 @@ export interface LpContent {
 - [x] **キャッシュ層の導入**
     - 必要に応じてFirestoreにコンテンツをキャッシュし、APIコール数を削減する仕組みを検討・実装。
 
-### Phase 5: 高度な運用機能 (Advanced Operations)
-*本フェーズはアプリのリリース後、運用効率とUX向上を目的として実施します*
-- [ ] **Webhookによるキャッシュの自動更新 (On-Demand Revalidation)**
-    - microCMSのコンテンツ更新（Webhook）をトリガーに、Cloud Functionsを実行してFirestoreキャッシュを即座に削除・再取得する。
-    - **署名検証**: `X-MICROCMS-Signature` ヘッダーを利用したリクエストの真正性検証を行い、セキュリティを確保する。
+### Phase 5: 高度な運用機能 (Milestone 16)
+
+- [x] **Webhookによるキャッシュの自動更新 (On-Demand Revalidation)**
+    - microCMSのWebhookを受け取り、更新されたコンテンツのキャッシュを即座に無効化するCloud Functionsを作成する。
+    - 署名検証（`X-MICROCMS-Signature`）を行い、セキュリティを確保する。
 - [ ] **画像最適化 (Image Optimization)**
     - microCMS (imgix) の画像APIを活用し、デバイス解像度や通信環境に応じた最適な画像サイズ・フォーマット(WebP等)を取得するロジックを実装する。
 - [ ] **プレビューモードの実装 (Preview Mode)**

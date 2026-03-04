@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { createClient } from "microcms-js-sdk";
+import * as crypto from "crypto";
 
 // Initialize Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -14,12 +15,109 @@ const db = admin.firestore();
 // For local emulation, we need to ensure these values are present or use defaults
 const serviceDomain = process.env.MICROCMS_SERVICE_DOMAIN || "dummy-service-domain";
 const apiKey = process.env.MICROCMS_API_KEY || "dummy-api-key";
+const webhookSecret = process.env.MICROCMS_WEBHOOK_SECRET || "dummy-webhook-secret";
 
-console.log(`[microCMS Config] Domain: ${serviceDomain}, API Key: ${apiKey ? "******" : "MISSING"}`);
+console.log(`[microCMS Config] Domain: ${serviceDomain}, API Key: ${apiKey ? "******" : "MISSING"}, Webhook Secret: ${webhookSecret ? "******" : "MISSING"}`);
 
 const client = createClient({
   serviceDomain: serviceDomain,
   apiKey: apiKey,
+});
+
+/**
+ * Verify microCMS Webhook Signature
+ * @param {string} signature - The signature from X-MICROCMS-Signature header
+ * @param {string} body - The raw request body
+ * @returns {boolean} - True if signature is valid
+ */
+const verifySignature = (signature: string, body: string): boolean => {
+  if (!webhookSecret) {
+    console.error("MICROCMS_WEBHOOK_SECRET is not set.");
+    return false;
+  }
+  const expectedSignature = crypto
+    .createHmac("sha256", webhookSecret)
+    .update(body)
+    .digest("hex");
+  
+  // Use timingSafeEqual to prevent timing attacks
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  
+  if (signatureBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+  
+  return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+};
+
+/**
+ * microCMS Webhook Handler (On-Demand Revalidation)
+ * - microCMSのコンテンツ更新時に呼び出される
+ * - 署名を検証し、キャッシュを無効化（削除）する
+ */
+export const onContentUpdate = functions.https.onRequest(async (req, res) => {
+  functions.logger.info("onContentUpdate called", { structuredData: true });
+
+  // 1. Validate Method
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  // 2. Validate Signature
+  const signature = req.headers["x-microcms-signature"];
+  if (!signature || typeof signature !== "string") {
+    functions.logger.warn("Missing or invalid signature header");
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  // Cloud Functions for Firebase parses JSON body automatically if Content-Type is application/json
+  // But we need raw body for HMAC. 
+  // Fortunately, `req.rawBody` is available in Firebase Functions if we need it, 
+  // but `req.body` is already parsed object.
+  // Standard practice for microCMS webhook is JSON.
+  // We need to be careful: req.rawBody might be a Buffer.
+  const rawBody = (req as any).rawBody;
+  if (!rawBody) {
+      functions.logger.warn("Missing raw body for signature verification");
+      res.status(400).send("Bad Request: Missing body");
+      return;
+  }
+  
+  const rawBodyString = rawBody.toString('utf8');
+
+  if (!verifySignature(signature, rawBodyString)) {
+    functions.logger.warn("Invalid signature");
+    res.status(401).send("Unauthorized: Invalid signature");
+    return;
+  }
+
+  const payload = req.body;
+  functions.logger.info("Webhook payload received", payload);
+
+  // 3. Invalidate Cache
+  // Currently we only have one cache key: "lp_home_list"
+  // In a more complex app, we would check `payload.api` and `payload.id` to selectively invalidate.
+  // For now, any update to `lp_home` API clears the list cache.
+  
+  if (payload.api === "lp_home") {
+      const CACHE_COLLECTION = "lp_content_cache";
+      const CACHE_KEY = "lp_home_list";
+      
+      try {
+          await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
+          functions.logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
+          res.status(200).send("Cache invalidated");
+      } catch (error) {
+          functions.logger.error("Failed to invalidate cache", error);
+          res.status(500).send("Internal Server Error");
+      }
+  } else {
+      functions.logger.info(`Ignored update for API: ${payload.api}`);
+      res.status(200).send("Ignored");
+  }
 });
 
 export const helloWorld = functions.https.onRequest((request, response) => {
