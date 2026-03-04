@@ -6,13 +6,12 @@ FROM dart:stable AS build
 
 WORKDIR /app
 
-# Copy shared dependencies first
-COPY shared/domain_models /app/shared/domain_models
-COPY shared/common_logic /app/shared/common_logic
+# Copy the entire repository to access shared libraries and workspace root (monorepo support)
+# All sub-packages use `resolution: workspace`, which requires all workspace members
+# listed in the root pubspec.yaml to be present during `dart pub get`.
+COPY . .
 
-# Copy function code
-COPY infrastructure/firebase/functions /app/infrastructure/firebase/functions
-
+# Change to matching functions directory for dependency resolution and build
 WORKDIR /app/infrastructure/firebase/functions
 RUN dart pub get
 
