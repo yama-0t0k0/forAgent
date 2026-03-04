@@ -93,16 +93,30 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
 ### 4.2 Cloud Functions 設計
 
 アプリから直接 microCMS SDK を叩くのではなく、以下の Callable Function を実装する。
+※ 2026-03-04追記: `onCall` から `onRequest` (HTTP関数) へ変更。
 
 *   **Function Name**: `getLpContent`
-*   **Input**: `{ contentId: string }`
+*   **Trigger Type**: `onRequest` (HTTP Request)
+*   **Method**: `GET`
+*   **URL**: `https://<region>-<project-id>.cloudfunctions.net/getLpContent`
+*   **Input**: Query Parameters or Request Body
 *   **Logic**:
-    1.  **認証チェック**: `context.auth` が存在するか確認。
-    2.  **メタデータ取得**: microCMS からコンテンツのメタデータ（`is_premium_only`, `required_alumni_rank` 等）を取得。
-    3.  **認可判定**:
-        *   **Pattern A (Global)**: `is_premium_only` の場合、`context.auth.token.plan` を確認。
-        *   **Pattern B (Context)**: `required_alumni_rank` がある場合、Firestore (`Relationships`) を参照してユーザーと対象企業のつながりレベルを確認。
-    4.  **データ返却**: 権限OKなら本文を含む完全なデータを、NGなら制限付きデータを返却。
+    1.  **CORS制御**: 全オリジン(`origin: true`)または特定のドメインからのアクセスを許可。
+    2.  **認証チェック**: `Authorization: Bearer <ID_TOKEN>` ヘッダーを検証。
+        *   未認証でもアクセス可能（ゲスト扱い）。
+    3.  **メタデータ取得**: microCMS からコンテンツのメタデータ（`is_premium_only` 等）を取得。
+    4.  **認可判定**:
+        *   `is_premium_only` の場合、デコードしたトークンの `plan` を確認。
+    5.  **データ返却**: JSON形式で返却。権限NGなら制限付きデータを返す。
+
+#### 変更理由と期待効果 (2026-03-04)
+*   **変更理由**:
+    *   `onCall` はクライアントSDKに依存しており、`curl` や外部ツールからの疎通確認が難しい。
+    *   LPアプリの特性上、未ログインユーザー（ゲスト）の閲覧頻度が高く、将来的にSSG/ISR等のサーバーサイドフェッチと相性が良い `onRequest` が適していると判断。
+*   **期待する効果**:
+    *   **デバッグ効率向上**: `curl` コマンドで簡単にAPIの動作確認が可能になり、INTERNALエラー等の原因切り分けが容易になる。
+    *   **汎用性向上**: クライアントSDK（Firebase JS SDK）に依存せず、標準的な `fetch` API で利用可能。
+    *   **将来性**: 将来的にWeb版LPを展開する際、SEO対策（サーバーサイドレンダリング）への移行がスムーズになる。
 
 ### 4.3 microCMS スキーマ設計例
 *   **API Endpoint**: `lp_home`

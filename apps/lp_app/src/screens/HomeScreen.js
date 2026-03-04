@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
+import { getAuth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 /**
  * LP Home Screen
@@ -49,14 +50,47 @@ export const extractLpListItems = (raw) => {
 
 /**
  * @param {object} params
- * @param {any} params.functions
- * @param {(functions: any, name: string) => (data: any) => Promise<any>} params.httpsCallableFn
  * @returns {Promise<Array<LpListItem>>}
  */
-export const fetchLpContents = async ({ functions, httpsCallableFn }) => {
-  const callable = httpsCallableFn(functions, 'getLpContent');
-  const result = await callable({});
-  return extractLpListItems(result?.data);
+export const fetchLpContents = async () => {
+  const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
+  const region = 'asia-northeast1';
+
+  // Use emulator if configured
+  const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
+  const baseUrl = emulatorHost
+    ? `http://${emulatorHost.split(':')[0]}:5001/${projectId}/${region}`
+    : `https://${region}-${projectId}.cloudfunctions.net`;
+
+  const url = `${baseUrl}/getLpContent`;
+
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add Authorization header if logged in
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const idToken = await user.getIdToken();
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+  } catch (error) {
+    console.warn('Auth check failed:', error);
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return extractLpListItems(result);
 };
 
 const getFirebaseFunctions = () => {
@@ -107,7 +141,7 @@ const HomeScreen = (props) => {
       setError(null);
 
       try {
-        const lpItems = await fetchLpContents({ functions, httpsCallableFn: httpsCallable });
+        const lpItems = await fetchLpContents();
         if (!isCanceled) {
           if (lpItems.length > 0) {
             setItems(lpItems);
@@ -267,6 +301,9 @@ const HomeScreen = (props) => {
 
         {/* Footer */}
         <View style={styles.footer}>
+          <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')}>
+            <Text style={styles.footerLink}>プライバシーポリシー</Text>
+          </TouchableOpacity>
           <Text style={styles.footerText}>© 2026 Engineer Registration App</Text>
         </View>
       </ScrollView>
@@ -488,10 +525,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footer: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    backgroundColor: '#fff',
+  },
+  footerLink: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginBottom: 12,
+    fontWeight: '500',
   },
   footerText: {
     fontSize: 12,
