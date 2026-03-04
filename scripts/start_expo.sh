@@ -34,6 +34,11 @@ case $APP_NAME in
         APP_PATH="apps/admin_app/expo_frontend"
         PORT=8086
         ;;
+    "lp_app")
+    APP_PATH="apps/lp_app"
+    PORT=8087
+    EXTRA_FLAGS="$EXTRA_FLAGS --clear"
+    ;;
     "shared")
         echo "❌ 'shared' is a library module and cannot be run directly."
         exit 1
