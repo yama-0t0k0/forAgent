@@ -3,11 +3,13 @@ import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import { createClient } from "microcms-js-sdk";
 import * as crypto from "crypto";
-import * as cors from "cors";
+import cors = require("cors");
 
 const corsHandler = cors({ origin: true });
 
 // Initialize Firebase Admin SDK
+// FirestoreのデータベースIDを明示的に指定しない場合、デフォルトのデータベースが使用される
+// 複数のデータベースがある場合、明示的な指定が必要になることがある
 if (admin.apps.length === 0) {
   admin.initializeApp();
 }
@@ -133,6 +135,7 @@ export const helloWorld = onRequest((request, response) => {
  * LPコンテンツ取得関数 (HTTPS Request)
  * - クライアントから呼び出され、microCMSのデータを返却する
  * - 認証状態に応じて、返却するデータをフィルタリングする（Phase 4で実装予定）
+ * - 2026-03-04: onCallからonRequestに変更
  */
 export const getLpContent = onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
@@ -173,17 +176,26 @@ export const getLpContent = onRequest(async (req, res) => {
       let microcmsData;
 
       // 2. キャッシュ確認
-      const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
-      const cacheDoc = await cacheRef.get();
+      // PERMISSION_DENIED エラーが発生しているため、エラーハンドリングを強化
+      try {
+        const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+        const cacheDoc = await cacheRef.get();
 
-      if (cacheDoc.exists) {
-        const cacheData = cacheDoc.data();
-        const now = admin.firestore.Timestamp.now();
+        if (cacheDoc.exists) {
+          const cacheData = cacheDoc.data();
+          const now = admin.firestore.Timestamp.now();
 
-        if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
-          logger.info("Using cached content", { key: CACHE_KEY });
-          microcmsData = cacheData.data;
+          if (cacheData && cacheData.expiresAt && cacheData.expiresAt > now) {
+            logger.info("Using cached content", { key: CACHE_KEY });
+            microcmsData = cacheData.data;
+          }
         }
+      } catch (firestoreError: any) {
+        // Firestoreへのアクセス権限がない場合など
+        // キャッシュが使えないだけなので、microCMSへの直接フェッチを試みるようにする
+        // ただし、書き込み権限もない場合はキャッシュ保存で失敗する可能性がある
+        logger.error("Firestore cache access failed", firestoreError);
+        // microCMSへのフェッチへフォールバック
       }
 
       if (!microcmsData) {
@@ -193,13 +205,19 @@ export const getLpContent = onRequest(async (req, res) => {
         });
 
         // キャッシュ保存
-        const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
-        await cacheRef.set({
-          data: microcmsData,
-          fetchedAt: admin.firestore.Timestamp.now(),
-          expiresAt: expiresAt,
-        });
-        logger.info("Fetched and cached from microCMS");
+        try {
+            const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+            const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+            await cacheRef.set({
+              data: microcmsData,
+              fetchedAt: admin.firestore.Timestamp.now(),
+              expiresAt: expiresAt,
+            });
+            logger.info("Fetched and cached from microCMS");
+        } catch (firestoreWriteError) {
+             logger.error("Firestore cache write failed", firestoreWriteError);
+             // キャッシュ保存に失敗しても、データ自体は返却する
+        }
       }
 
       // 4. 認可レベルに応じたフィルタリング
@@ -230,13 +248,13 @@ export const getLpContent = onRequest(async (req, res) => {
       });
 
     } catch (error: any) {
-      logger.error("Error in getLpContent", error.response?.status, error.response?.data, error.message);
+      logger.error("Error in getLpContent", error.response?.status, error.response?.data, error.message, error.code);
       if (error.response?.status === 401 || error.response?.status === 403) {
         res.status(403).send("microCMS authentication failed");
       } else if (error.response?.status === 404) {
         res.status(404).send("microCMS endpoint not found");
       } else {
-        res.status(500).send("Internal Server Error");
+        res.status(500).send(`Internal Server Error: ${error.message}`);
       }
     }
   });
