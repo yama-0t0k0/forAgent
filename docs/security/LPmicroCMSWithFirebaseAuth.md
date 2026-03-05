@@ -50,9 +50,9 @@ sequenceDiagram
         Functions->>Auth: verifyIdToken(token) -> Check Claims
         
         alt 権限OK (role: individual, plan: premium)
-            Functions->>CMS: fetch(premium_endpoint) (API Key A)
-            CMS-->>Functions: Premium JSON
-            Functions-->>App: 限定コンテンツ返却
+        Functions->>CMS: fetch(premium_endpoint) (API Key A)
+        CMS-->>Functions: Premium JSON
+        Functions-->>App: 限定コンテンツ返却
         else 権限NG
             Functions-->>App: 403 Forbidden / Upgrade UI
         end
@@ -258,3 +258,39 @@ export interface LpContent {
 2.  **CORS設定の厳格化**
     *   **現状**: `getLpContent` 関数は `cors({ origin: true })` で設定されており、すべてのオリジンからのアクセスを許可しています。
     *   **対応**: 本番運用時は、セキュリティ向上のため、許可するオリジンを特定のドメイン（例: LPアプリのホスティングドメイン）に制限することを推奨します。
+
+## 8. 実装詳細記録 (Implementation Details - Milestone 16)
+
+本セクションでは、GitHub Issue #449 に基づき実施した追加実装の詳細を記録します。
+
+### 8.1 アナリティクス機能の強化 (Analytics Enhancement)
+
+#### 何を (What)
+microCMS連携LPアプリにおいて、ユーザーの行動（画面遷移、クリックイベント、ログイン成否）を詳細に追跡するための分析基盤とトラッキングイベントを実装しました。
+
+#### どんな目的で (Why)
+当初予定していたSEO機能の実装を見送る（後述）代わりに、アプリ内でのユーザー行動データを詳細に収集・分析することで、マーケティング施策の精度向上とUX改善に繋げるためです。特に、管理者ログインフローやコンバージョンポイント（登録ボタン等）の利用状況を可視化することを重視しました。
+
+#### どのように実装したのか (How)
+1.  **Firebase Analyticsの条件付き初期化**:
+    *   `apps/lp_app/src/features/firebase/config.js` にて、`isSupported()` を用いた環境判定を行い、Web/Native環境に応じて適切にAnalyticsインスタンスを初期化するロジックを実装。
+2.  **トラッキング用ユーティリティの共通化**:
+    *   `apps/lp_app/src/features/analytics/index.js` を作成し、`logCustomEvent`, `logScreenView`, `setAnalyticsUser` 等のラッパー関数を実装。これにより、各画面でのイベント送信コードを簡略化・統一。
+3.  **画面遷移の自動計測**:
+    *   `AppNavigation.js` の `onStateChange` イベントフックを利用し、React Navigation の状態変化を検知して自動的にスクリーンビューイベントを送信する仕組みを構築。
+4.  **重要イベントの個別実装**:
+    *   `HomeScreen.js`: 「登録する」ボタン、外部リンク、ロゴ長押し（管理者機能）などの主要アクションにカスタムイベントを設定。
+    *   `LoginScreen.js`: ログイン成功・失敗（エラーコード含む）を記録し、成功時には `setAnalyticsUser` でユーザーIDを紐付け。
+
+### 8.2 SEO機能の実装スキップ (SEO Implementation Skipped)
+
+#### 何を (What)
+microCMS記事データに基づく動的な `<meta>` タグ（Title, Description, OGP）の生成・出力機能の実装を意図的にスキップしました。
+
+#### どんな目的で (Why)
+本アプリが**完全招待制のクローズドなビジネスSNS**であるため、SEOによってマスからの流入を促進することは目的に反すると判断しました。
+検索エンジン経由の不特定多数の流入よりも、招待されたユーザーの行動分析やアプリ内体験の向上を優先するため、SEO機能の実装をスキップしました。
+
+#### どのように実装したのか (How)
+*   `react-native-helmet-async` 等のSEO関連ライブラリの導入を行わず、メタデータ生成ロジックの実装を省略しました。
+*   既存のコードベース（Cloud Functions 等）には影響を与えず、フロントエンド側の実装スコープから除外しました。

@@ -13,12 +13,30 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../features/firebase/config';
+import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 
+const ERROR_CODES = {
+    USER_NOT_FOUND: 'auth/user-not-found',
+    WRONG_PASSWORD: 'auth/wrong-password',
+    INVALID_CREDENTIAL: 'auth/invalid-credential',
+};
+
+const PLATFORM_IOS = 'ios';
+
+/**
+ * Login Screen Component
+ * @param {object} props - Component props
+ * @param {object} props.navigation - Navigation object
+ * @returns {JSX.Element} Login Screen
+ */
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    /**
+     * Handle login process
+     */
     const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert('エラー', 'メールアドレスとパスワードを入力してください。');
@@ -27,13 +45,31 @@ const LoginScreen = ({ navigation }) => {
 
         setIsLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('Login successful');
+            
+            // Analytics Tracking
+            await setAnalyticsUser(userCredential.user.uid);
+            await setAnalyticsUserProperties({ 
+                user_type: 'admin'
+            });
+            await logCustomEvent('login', { method: 'email' });
+
             navigation.goBack();
         } catch (error) {
             console.error('Login failed:', error);
+            
+            // Analytics Tracking (Failure)
+            await logCustomEvent('login_failure', { 
+                method: 'email',
+                error_code: error.code,
+                error_message: error.message
+            });
+
             let message = 'ログインに失敗しました。';
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            if (error.code === ERROR_CODES.USER_NOT_FOUND || 
+                error.code === ERROR_CODES.WRONG_PASSWORD || 
+                error.code === ERROR_CODES.INVALID_CREDENTIAL) {
                 message = 'メールアドレスまたはパスワードが正しくありません。';
             }
             Alert.alert('ログイン失敗', message);
@@ -45,7 +81,7 @@ const LoginScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === PLATFORM_IOS ? 'padding' : 'height'}
                 style={styles.content}
             >
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -62,13 +98,13 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.label}>メールアドレス</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="example@lat-inc.com"
+                            placeholder='example@lat-inc.com'
                             value={email}
                             onChangeText={setEmail}
-                            autoCapitalize="none"
-                            keyboardType="email-address"
-                            autoComplete="email"
-                            placeholderTextColor="#999"
+                            autoCapitalize='none'
+                            keyboardType='email-address'
+                            autoComplete='email'
+                            placeholderTextColor='#999'
                         />
                     </View>
 
@@ -76,12 +112,12 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.label}>パスワード</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="••••••••"
+                            placeholder='••••••••'
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry
-                            autoComplete="password"
-                            placeholderTextColor="#999"
+                            autoComplete='password'
+                            placeholderTextColor='#999'
                         />
                     </View>
 
@@ -91,7 +127,7 @@ const LoginScreen = ({ navigation }) => {
                         disabled={isLoading}
                     >
                         {isLoading ? (
-                            <ActivityIndicator color="#fff" />
+                            <ActivityIndicator color='#fff' />
                         ) : (
                             <Text style={styles.loginButtonText}>ログイン</Text>
                         )}

@@ -119,7 +119,7 @@ export const fetchLpContents = async ({ draftKey } = {}) => {
   return extractLpListItems(result);
 };
 
-// getFirebaseFunctions removed as it is now centralized in features/firebase/config.js
+import { logCustomEvent, logScreenView } from '../features/analytics';
 
 /**
  * Analytics Tracking Utility
@@ -127,9 +127,7 @@ export const fetchLpContents = async ({ draftKey } = {}) => {
  * @param {object} params
  */
 const trackEvent = (eventName, params) => {
-  console.log(`[Analytics] Event: ${eventName}`, params);
-  // Integration point for Firebase Analytics or other tools
-  // if (analytics) logEvent(analytics, eventName, params);
+  logCustomEvent(eventName, params);
 };
 
 /**
@@ -223,8 +221,10 @@ const HomeScreen = (props) => {
             <TouchableOpacity
               style={[styles.adminButton, isPreviewEnabled && styles.adminButtonActive]}
               onPress={() => {
-                setIsPreviewEnabled(!isPreviewEnabled);
-                if (!isPreviewEnabled) {
+                const newState = !isPreviewEnabled;
+                setIsPreviewEnabled(newState);
+                trackEvent('toggle_preview_mode', { enabled: newState });
+                if (newState) {
                   Alert.alert('プレビュー', 'microCMSの最新の下書き内容を表示します。');
                 }
               }}
@@ -256,6 +256,7 @@ const HomeScreen = (props) => {
           <TouchableOpacity
             testID="logo-text-wrapper"
             onLongPress={() => {
+              trackEvent('logo_long_press', { user_id: user?.uid });
               if (!user) {
                 navigation.navigate('Login');
               } else {
@@ -278,7 +279,10 @@ const HomeScreen = (props) => {
             <TouchableOpacity
               style={styles.registerButton}
               testID="register-button"
-              onPress={() => console.log('Navigate to Register')}
+              onPress={() => {
+                trackEvent('click_register', { location: 'header' });
+                console.log('Navigate to Register');
+              }}
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
             </TouchableOpacity>
@@ -286,14 +290,20 @@ const HomeScreen = (props) => {
               <TouchableOpacity
                 style={styles.loginButton}
                 testID="login-button"
-                onPress={() => console.log('Login clicked - general users are currently restricted')}
+                onPress={() => {
+                  trackEvent('click_login', { location: 'header' });
+                  console.log('Login clicked - general users are currently restricted');
+                }}
               >
                 <Text style={styles.loginButtonText}>ログイン</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={[styles.loginButton, { backgroundColor: '#FF3B30' }]}
-                onPress={() => auth.signOut()}
+                onPress={() => {
+                  trackEvent('click_logout', { uid: user.uid });
+                  auth.signOut();
+                }}
               >
                 <Text style={[styles.loginButtonText, { color: '#fff' }]}>ログアウト</Text>
               </TouchableOpacity>
@@ -309,7 +319,13 @@ const HomeScreen = (props) => {
           <Text style={styles.heroSubtitle}>
             スキルと経験を価値に変える{'\n'}新しいプラットフォーム
           </Text>
-          <TouchableOpacity style={styles.ctaButton}>
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={() => {
+              trackEvent('click_cta_hero', { label: '無料で始める' });
+              console.log('CTA Clicked');
+            }}
+          >
             <Text style={styles.ctaButtonText}>無料で始める</Text>
           </TouchableOpacity>
         </View>
@@ -391,7 +407,10 @@ const HomeScreen = (props) => {
           )}
           <TouchableOpacity
             style={styles.linkButton}
-            onPress={() => console.log('Navigate to Contents List')}
+            onPress={() => {
+              trackEvent('click_view_all_news');
+              console.log('Navigate to Contents List');
+            }}
           >
             <Text style={styles.linkText}>記事一覧を見る →</Text>
           </TouchableOpacity>
