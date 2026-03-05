@@ -64,6 +64,29 @@ Expo環境下でのネイティブ機能利用（CNG: Continuous Native Generati
         2.  **Server (Dart)**: バックエンドでCredentialを検証。
         3.  **Auth**: 検証成功後、Firebase Custom Tokenを発行してクライアントへ返し、`signInWithCustomToken` でログイン。
 
+#### 2.3.3 実装詳細と技術的留意点 (Technical Notes)
+
+**A. React Native (Expo) 実装時の注意点**
+
+*   **Firebase設定**: Firebase Console で「WebAuthn（パスキー）」プロバイダを有効化する必要があります。
+*   **検証フロー**: `react-native-passkey` で取得したCredentialは、Firebase JS SDK の `reauthenticateWithPublicKeyCredential` 等、またはAdmin SDK経由で検証・同期させる必要があります。
+*   **開発環境 (Expo)**:
+    *   パスキーはOSの深層機能（ASAuthorizationController / Credential Manager）を使用するため、**Expo Go では動作しません**。
+    *   `npx expo prebuild` を行い、**Development Client** (Custom Build) での検証が必須となります。
+*   **SDKバージョン**: `firebase/auth` は最新版（v10以降）の使用を推奨します。
+
+**B. Flutter (Full Stack Dart) 移行時の設計指針**
+
+バックエンドもDart（Dart Frog, Serverpod等）で統一する場合の役割分担は以下の通りです。
+
+1.  **役割分担**:
+    *   **フロント (Flutter/passkeys)**: ServerからChallenge受領 → 端末認証(FaceID/指紋) → 署名済みCredential生成。
+    *   **バックエンド (Dart)**: Challenge生成・管理 → Credential検証 (`webauthn_dart`等を利用) → Firebase Custom Token発行。
+2.  **Firebase Auth連携**:
+    *   Firebase AuthのネイティブSDKはWeb版ほどパスキー対応が直感的ではないため、「①Passkeysで認証完了 → ②Backendで検証 → ③**Custom TokenでFirebaseログイン**」というフローが一般的です。
+    *   移行時は `signInWithCustomToken` を用いたログインフローの実装が必要になります。
+
+
 
 ---
 
