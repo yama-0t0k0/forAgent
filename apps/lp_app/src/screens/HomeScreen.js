@@ -292,7 +292,7 @@ const HomeScreen = (props) => {
                 testID="login-button"
                 onPress={() => {
                   trackEvent('click_login', { location: 'header' });
-                  console.log('Login clicked - general users are currently restricted');
+                  props.navigation.navigate('PasskeyLogin');
                 }}
               >
                 <Text style={styles.loginButtonText}>ログイン</Text>
