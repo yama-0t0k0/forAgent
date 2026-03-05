@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFunctions } from 'firebase/functions';
+import { auth, functions } from '../features/firebase/config';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * LP Home Screen
@@ -40,19 +38,37 @@ export const extractLpListItems = (raw) => {
     .filter((c) => c && typeof c.id === 'string')
     .map((c) => {
       const title = typeof c.title === 'string' ? c.title : '';
-      const thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+      let thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+
+      // Image Optimization: Append imgix parameters
+      if (thumbnailUrl) {
+        // q=75: Quality 75%
+        // fm=webp: Format WebP (if supported)
+        // w=400: Max width 400px (appropriate for thumbnail)
+        thumbnailUrl = `${thumbnailUrl}?q=75&fm=webp&w=400`;
+      }
+
       const isPremiumOnly = c?.is_premium_only === true;
       const isLocked = c?.is_locked === true;
 
-      return { id: c.id, title, thumbnailUrl, isPremiumOnly, is_locked: isLocked };
+      return {
+        id: c.id,
+        title,
+        thumbnailUrl,
+        isPremiumOnly,
+        is_locked: isLocked,
+        seo_title: typeof c.seo_title === 'string' ? c.seo_title : title,
+        seo_description: typeof c.seo_description === 'string' ? c.seo_description : '',
+      };
     });
 };
 
 /**
  * @param {object} params
+ * @param {string} [params.draftKey]
  * @returns {Promise<Array<LpListItem>>}
  */
-export const fetchLpContents = async () => {
+export const fetchLpContents = async ({ draftKey } = {}) => {
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
   const region = 'asia-northeast1';
 
@@ -62,7 +78,18 @@ export const fetchLpContents = async () => {
     ? `http://${emulatorHost.split(':')[0]}:5001/${projectId}/${region}`
     : `https://${region}-${projectId}.cloudfunctions.net`;
 
-  const url = `${baseUrl}/getLpContent`;
+  let url = `${baseUrl}/getLpContent`;
+  const queryParams = [];
+  if (draftKey) {
+    queryParams.push(`draftKey=${draftKey}`);
+  }
+  if (params.preview) {
+    queryParams.push('preview=true');
+  }
+
+  if (queryParams.length > 0) {
+    url += `?${queryParams.join('&')}`;
+  }
 
   const headers = {
     'Content-Type': 'application/json',
@@ -70,7 +97,6 @@ export const fetchLpContents = async () => {
 
   // Add Authorization header if logged in
   try {
-    const auth = getAuth();
     const user = auth.currentUser;
     if (user) {
       const idToken = await user.getIdToken();
@@ -93,28 +119,15 @@ export const fetchLpContents = async () => {
   return extractLpListItems(result);
 };
 
-const getFirebaseFunctions = () => {
-  const firebaseConfig = {
-    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  };
+import { logCustomEvent, logScreenView } from '../features/analytics';
 
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  const functions = getFunctions(app, 'asia-northeast1');
-
-  const emulatorHost = typeof process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST === 'string'
-    ? process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST.trim()
-    : '';
-  if (__DEV__ && emulatorHost.length > 0) {
-    connectFunctionsEmulator(functions, emulatorHost, 5001);
-  }
-
-  return functions;
+/**
+ * Analytics Tracking Utility
+ * @param {string} eventName
+ * @param {object} params
+ */
+const trackEvent = (eventName, params) => {
+  logCustomEvent(eventName, params);
 };
 
 /**
@@ -123,11 +136,37 @@ const getFirebaseFunctions = () => {
  * @returns {React.JSX.Element}
  */
 const HomeScreen = (props) => {
+  const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [draftKey, setDraftKey] = useState(null);
+  const [isPreviewEnabled, setIsPreviewEnabled] = useState(false);
+  const navigation = props.navigation;
 
-  const functions = useMemo(() => getFirebaseFunctions(), []);
+  useEffect(() => {
+    // Check for draftKey in deep link URL
+    const handleUrl = (event) => {
+      const url = event.url;
+      if (url && url.includes('draftKey=')) {
+        const key = url.split('draftKey=')[1].split('&')[0];
+        setDraftKey(key);
+        console.log('Preview mode activated with draftKey');
+      }
+    };
+
+    const getInitialUrl = async () => {
+      const url = await Linking.getInitialURL();
+      if (url) handleUrl({ url });
+    };
+
+    getInitialUrl();
+    const subscription = Linking.addEventListener('url', handleUrl);
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     console.log('HomeScreen mounted');
@@ -141,7 +180,10 @@ const HomeScreen = (props) => {
       setError(null);
 
       try {
-        const lpItems = await fetchLpContents();
+        const lpItems = await fetchLpContents({
+          draftKey,
+          preview: isPreviewEnabled
+        });
         if (!isCanceled) {
           if (lpItems.length > 0) {
             setItems(lpItems);
@@ -167,15 +209,61 @@ const HomeScreen = (props) => {
     return () => {
       isCanceled = true;
     };
-  }, [functions]);
+  }, [draftKey, isPreviewEnabled]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Admin Section */}
+        {isAdmin && (
+          <View style={styles.adminBar}>
+            <Text style={styles.adminBarText}>管理者メニュー</Text>
+            <TouchableOpacity
+              style={[styles.adminButton, isPreviewEnabled && styles.adminButtonActive]}
+              onPress={() => {
+                const newState = !isPreviewEnabled;
+                setIsPreviewEnabled(newState);
+                trackEvent('toggle_preview_mode', { enabled: newState });
+                if (newState) {
+                  Alert.alert('プレビュー', 'microCMSの最新の下書き内容を表示します。');
+                }
+              }}
+            >
+              <Text style={styles.adminButtonText}>
+                {isPreviewEnabled ? 'プレビュー中' : 'プレビュー有効化'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Preview Banner */}
+        {(draftKey || isPreviewEnabled) && (
+          <View style={[styles.previewBanner, isPreviewEnabled && { backgroundColor: '#FF9500' }]}>
+            <Text style={styles.previewBannerText}>
+              {isPreviewEnabled ? '管理プレビューモード有効 (Draft/Public)' : 'プレビューモード有効'}
+            </Text>
+            <TouchableOpacity onPress={() => {
+              setDraftKey(null);
+              setIsPreviewEnabled(false);
+            }}>
+              <Text style={styles.previewCloseText}>終了</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Header / Nav */}
         <View style={styles.header} testID="header-container" onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
-          <View
+          <TouchableOpacity
             testID="logo-text-wrapper"
+            onLongPress={() => {
+              trackEvent('logo_long_press', { user_id: user?.uid });
+              if (!user) {
+                navigation.navigate('Login');
+              } else {
+                Alert.alert('管理者情報', `ログイン中: ${user.email}${isAdmin ? ' (Admin)' : ''}`);
+              }
+            }}
+            delayLongPress={1000}
           >
             <Text
               style={styles.logoText}
@@ -186,22 +274,40 @@ const HomeScreen = (props) => {
             >
               Engineer Reg.
             </Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.headerButtons}>
             <TouchableOpacity
               style={styles.registerButton}
               testID="register-button"
-              onPress={() => console.log('Navigate to Register')}
+              onPress={() => {
+                trackEvent('click_register', { location: 'header' });
+                console.log('Navigate to Register');
+              }}
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.loginButton}
-              testID="login-button"
-              onPress={() => console.log('Navigate to Login')}
-            >
-              <Text style={styles.loginButtonText}>ログイン</Text>
-            </TouchableOpacity>
+            {!user ? (
+              <TouchableOpacity
+                style={styles.loginButton}
+                testID="login-button"
+                onPress={() => {
+                  trackEvent('click_login', { location: 'header' });
+                  props.navigation.navigate('PasskeyLogin');
+                }}
+              >
+                <Text style={styles.loginButtonText}>ログイン</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.loginButton, { backgroundColor: '#FF3B30' }]}
+                onPress={() => {
+                  trackEvent('click_logout', { uid: user.uid });
+                  auth.signOut();
+                }}
+              >
+                <Text style={[styles.loginButtonText, { color: '#fff' }]}>ログアウト</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -213,7 +319,13 @@ const HomeScreen = (props) => {
           <Text style={styles.heroSubtitle}>
             スキルと経験を価値に変える{'\n'}新しいプラットフォーム
           </Text>
-          <TouchableOpacity style={styles.ctaButton}>
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={() => {
+              trackEvent('click_cta_hero', { label: '無料で始める' });
+              console.log('CTA Clicked');
+            }}
+          >
             <Text style={styles.ctaButtonText}>無料で始める</Text>
           </TouchableOpacity>
         </View>
@@ -259,8 +371,10 @@ const HomeScreen = (props) => {
                   key={item.id}
                   style={[styles.newsItem, item.is_locked && styles.lockedNewsItem]}
                   onPress={() => {
+                    trackEvent('content_click', { id: item.id, is_locked: item.is_locked });
                     if (item.is_locked) {
                       console.log('Premium content locked', item.id);
+                      trackEvent('premium_content_blocked', { id: item.id });
                       // TODO: Upgrade dialog or snackbar
                     } else if (item.url) {
                       Linking.openURL(item.url);
@@ -293,7 +407,10 @@ const HomeScreen = (props) => {
           )}
           <TouchableOpacity
             style={styles.linkButton}
-            onPress={() => console.log('Navigate to Contents List')}
+            onPress={() => {
+              trackEvent('click_view_all_news');
+              console.log('Navigate to Contents List');
+            }}
           >
             <Text style={styles.linkText}>記事一覧を見る →</Text>
           </TouchableOpacity>
@@ -487,6 +604,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderColor: '#ddd',
   },
+  previewBanner: {
+    backgroundColor: '#FF3B30',
+    padding: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  previewBannerText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  previewCloseText: {
+    color: '#fff',
+    fontSize: 12,
+    textDecorationLine: 'underline',
+  },
   newsThumbnailContainer: {
     position: 'relative',
   },
@@ -523,6 +658,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007AFF',
     fontWeight: '600',
+  },
+  adminBar: {
+    backgroundColor: '#333',
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  adminBarText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  adminButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+  },
+  adminButtonActive: {
+    backgroundColor: '#4CD964',
+  },
+  adminButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   footer: {
     padding: 24,
