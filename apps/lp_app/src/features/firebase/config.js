@@ -1,5 +1,6 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
@@ -14,7 +15,18 @@ const firebaseConfig = {
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
+
+// Initialize Auth with AsyncStorage persistence
+let auth;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} catch (e) {
+  // Auth already initialized
+  auth = getAuth(app);
+}
+
 const functions = getFunctions(app, 'asia-northeast1');
 
 // Initialize Analytics (Web only, conditionally)

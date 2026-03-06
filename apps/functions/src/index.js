@@ -1,9 +1,10 @@
-import { onRequest } from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
-import { createClient } from "microcms-js-sdk";
-import * as crypto from "crypto";
-import cors = require("cors");
+const { onRequest } = require("firebase-functions/v2/https");
+const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
+const { createClient } = require("microcms-js-sdk");
+const crypto = require("crypto");
+const cors = require("cors");
+const { getPasskeyChallenge, verifyPasskeyAndGetToken } = require('./passkey');
 
 const corsHandler = cors({ origin: true });
 
@@ -36,7 +37,7 @@ const client = createClient({
  * @param {string} body - The raw request body
  * @returns {boolean} - True if signature is valid
  */
-const verifySignature = (signature: string, body: string): boolean => {
+const verifySignature = (signature, body) => {
   if (!webhookSecret) {
     console.error("MICROCMS_WEBHOOK_SECRET is not set.");
     return false;
@@ -62,7 +63,7 @@ const verifySignature = (signature: string, body: string): boolean => {
  * - microCMSのコンテンツ更新時に呼び出される
  * - 署名を検証し、キャッシュを無効化（削除）する
  */
-export const onContentUpdate = onRequest(async (req, res) => {
+exports.onContentUpdate = onRequest(async (req, res) => {
   logger.info("onContentUpdate called", { structuredData: true });
 
   // 1. Validate Method
@@ -85,7 +86,7 @@ export const onContentUpdate = onRequest(async (req, res) => {
   // but `req.body` is already parsed object.
   // Standard practice for microCMS webhook is JSON.
   // We need to be careful: req.rawBody might be a Buffer.
-  const rawBody = (req as any).rawBody;
+  const rawBody = req.rawBody;
   if (!rawBody) {
       logger.warn("Missing raw body for signature verification");
       res.status(400).send("Bad Request: Missing body");
@@ -126,7 +127,7 @@ export const onContentUpdate = onRequest(async (req, res) => {
   }
 });
 
-export const helloWorld = onRequest((request, response) => {
+exports.helloWorld = onRequest((request, response) => {
   logger.info("Hello logs!", { structuredData: true });
   response.send("Hello from Firebase Functions (Node.js)!");
 });
@@ -137,7 +138,7 @@ export const helloWorld = onRequest((request, response) => {
  * - 認証状態に応じて、返却するデータをフィルタリングする（Phase 4で実装予定）
  * - 2026-03-04: onCallからonRequestに変更
  */
-export const getLpContent = onRequest(async (req, res) => {
+exports.getLpContent = onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     logger.info("getLpContent called", { structuredData: true });
 
@@ -159,8 +160,8 @@ export const getLpContent = onRequest(async (req, res) => {
         uid = decodedToken.uid;
         // カスタムクレームにplanが含まれていると仮定、なければFirestoreから取得などの処理が必要
         // ここでは簡易的にdecodedTokenから取得（設定されていれば）
-        userPlan = (decodedToken as any).plan || "free";
-        // userRole = (decodedToken as any).role || "individual";
+        userPlan = decodedToken.plan || "free";
+        // userRole = decodedToken.role || "individual";
         logger.info("Authenticated user", { uid, userPlan });
       } catch (error) {
         logger.warn("Invalid ID token", error);
@@ -190,7 +191,7 @@ export const getLpContent = onRequest(async (req, res) => {
             microcmsData = cacheData.data;
           }
         }
-      } catch (firestoreError: any) {
+      } catch (firestoreError) {
         // Firestoreへのアクセス権限がない場合など
         // キャッシュが使えないだけなので、microCMSへの直接フェッチを試みるようにする
         // ただし、書き込み権限もない場合はキャッシュ保存で失敗する可能性がある
@@ -222,7 +223,7 @@ export const getLpContent = onRequest(async (req, res) => {
 
       // 4. 認可レベルに応じたフィルタリング
       // microCMSのレスポンス形式: { contents: [...], totalCount: N, offset: 0, limit: 10 }
-      const filteredContents = microcmsData.contents.map((item: any) => {
+      const filteredContents = microcmsData.contents.map((item) => {
         const isPremiumOnly = item.is_premium_only === true;
 
         // 権限チェック: Premium限定かつユーザーがPremiumでない場合
@@ -246,8 +247,7 @@ export const getLpContent = onRequest(async (req, res) => {
         offset: microcmsData.offset,
         limit: microcmsData.limit
       });
-
-    } catch (error: any) {
+    } catch (error) {
       logger.error("Error in getLpContent", error.response?.status, error.response?.data, error.message, error.code);
       if (error.response?.status === 401 || error.response?.status === 403) {
         res.status(403).send("microCMS authentication failed");
@@ -259,3 +259,6 @@ export const getLpContent = onRequest(async (req, res) => {
     }
   });
 });
+
+exports.getPasskeyChallenge = getPasskeyChallenge;
+exports.verifyPasskeyAndGetToken = verifyPasskeyAndGetToken;

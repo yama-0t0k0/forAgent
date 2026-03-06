@@ -14,10 +14,15 @@ import { auth, functions } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { Passkey } from 'react-native-passkey';
 import { signInWithCredential } from 'firebase/auth';
+import { redirectToApp } from '../utils/navigationHelper';
+
+const PLATFORM_WEB = 'web';
+const TYPE_UNDEFINED = 'undefined';
+const TYPE_FUNCTION = 'function';
 
 // WebAuthn library for Web
-let webAuthn;
-if (Platform.OS === 'web') {
+let webAuthn = null;
+if (Platform.OS === PLATFORM_WEB) {
   import('@firebase-web-authn/browser').then((module) => {
     webAuthn = module;
   });
@@ -42,7 +47,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
   const handlePasskeyLogin = async () => {
     setIsLoading(true);
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === PLATFORM_WEB) {
         await handleWebPasskeyLogin();
       } else {
         await handleNativePasskeyLogin();
@@ -60,15 +65,19 @@ const PasskeyLoginScreen = ({ navigation }) => {
     }
   };
 
+  /**
+   * Handle Web Passkey Login
+   * @returns {Promise<void>}
+   */
   const handleWebPasskeyLogin = async () => {
     const isWebAuthnAvailable =
-      typeof window !== 'undefined' && 'PublicKeyCredential' in window;
+      typeof window !== TYPE_UNDEFINED && 'PublicKeyCredential' in window;
 
     if (!isWebAuthnAvailable) {
       throw new Error('WebAuthn is not supported in this browser.');
     }
 
-    if (!webAuthn || typeof webAuthn.signInWithPasskey !== 'function') {
+    if (!webAuthn || typeof webAuthn.signInWithPasskey !== TYPE_FUNCTION) {
       throw new Error('WebAuthn library is not loaded.');
     }
 
@@ -76,6 +85,10 @@ const PasskeyLoginScreen = ({ navigation }) => {
     await handleLoginSuccess(userCredential);
   };
 
+  /**
+   * Handle Native Passkey Login
+   * @returns {Promise<void>}
+   */
   const handleNativePasskeyLogin = async () => {
     // 1. Check if Passkey is supported
     const isSupported = Passkey.isSupported();
@@ -116,11 +129,28 @@ const PasskeyLoginScreen = ({ navigation }) => {
     */
   };
 
+  /**
+   * Handle Login Success
+   * @param {object} userCredential - Firebase user credential
+   * @returns {Promise<void>}
+   */
   const handleLoginSuccess = async (userCredential) => {
+    // Analytics Tracking
     await setAnalyticsUser(userCredential.user.uid);
-    await setAnalyticsUserProperties({ user_type: 'admin' });
-    await logCustomEvent('login', { method: 'passkey' });
-    navigation.goBack();
+    
+    // Get role from ID token
+    const idTokenResult = await userCredential.user.getIdTokenResult();
+    const role = idTokenResult.claims.role;
+
+    await setAnalyticsUserProperties({ user_type: role || 'unknown' });
+    await logCustomEvent('login', { method: 'passkey', role });
+
+    if (role) {
+      await redirectToApp(role);
+    } else {
+      // Fallback for users without role (or if redirect fails/is not applicable)
+      navigation.goBack();
+    }
   };
 
   return (
@@ -145,7 +175,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#fff' />
             ) : (
               <Text style={styles.loginButtonText}>✨ パスキーでログイン</Text>
             )}
@@ -220,6 +250,18 @@ const styles = StyleSheet.create({
   passwordLinkText: {
     color: '#007AFF',
     fontSize: 14,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
 });
 

@@ -73,6 +73,22 @@ Expo環境下でのネイティブ機能利用（CNG: Continuous Native Generati
 *   **開発環境 (Expo)**:
     *   パスキーはOSの深層機能（ASAuthorizationController / Credential Manager）を使用するため、**Expo Go では動作しません**。
     *   `npx expo prebuild` を行い、**Development Client** (Custom Build) での検証が必須となります。
+    *   **検証用ビルドコマンド**:
+        ```bash
+        # プロジェクトルートへ移動 (環境に合わせて調整してください)
+        cd engineer-registration-app-yama/yama
+
+        # iOS (Mac必須)
+        cd apps/lp_app
+        npx expo run:ios
+
+        # Android
+        cd apps/lp_app
+        npx expo run:android
+
+        # EAS Build (クラウドビルド)
+        eas build --profile development --platform ios
+        ```
 *   **SDKバージョン**: `firebase/auth` は最新版（v10以降）の使用を推奨します。
 
 **B. Flutter (Full Stack Dart) 移行時の設計指針**

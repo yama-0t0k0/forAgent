@@ -1,7 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth, functions } from '../features/firebase/config';
+import { auth } from '../features/firebase/config';
 import { useAuth } from '../context/AuthContext';
+import { redirectToApp } from '../utils/navigationHelper';
 
 /**
  * LP Home Screen
@@ -68,7 +70,7 @@ export const extractLpListItems = (raw) => {
  * @param {string} [params.draftKey]
  * @returns {Promise<Array<LpListItem>>}
  */
-export const fetchLpContents = async ({ draftKey } = {}) => {
+export const fetchLpContents = async ({ draftKey, preview } = {}) => {
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
   const region = 'asia-northeast1';
 
@@ -83,7 +85,7 @@ export const fetchLpContents = async ({ draftKey } = {}) => {
   if (draftKey) {
     queryParams.push(`draftKey=${draftKey}`);
   }
-  if (params.preview) {
+  if (preview) {
     queryParams.push('preview=true');
   }
 
@@ -119,7 +121,7 @@ export const fetchLpContents = async ({ draftKey } = {}) => {
   return extractLpListItems(result);
 };
 
-import { logCustomEvent, logScreenView } from '../features/analytics';
+import { logCustomEvent } from '../features/analytics';
 
 /**
  * Analytics Tracking Utility
@@ -136,13 +138,34 @@ const trackEvent = (eventName, params) => {
  * @returns {React.JSX.Element}
  */
 const HomeScreen = (props) => {
-  const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
+  const { user, isAdmin, role } = useAuth();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [draftKey, setDraftKey] = useState(null);
   const [isPreviewEnabled, setIsPreviewEnabled] = useState(false);
   const navigation = props.navigation;
+
+  const handleOpenMyPage = async () => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      const resolvedRole = typeof role === 'string' && role.length > 0
+        ? role
+        : (await user.getIdTokenResult(true))?.claims?.role;
+
+      if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
+        Alert.alert('エラー', 'ユーザー種別の取得に失敗しました。再ログインしてください。');
+        return;
+      }
+
+      await redirectToApp(resolvedRole);
+    } catch (e) {
+      Alert.alert('エラー', 'マイページへ遷移できませんでした。');
+    }
+  };
 
   useEffect(() => {
     // Check for draftKey in deep link URL
@@ -269,10 +292,10 @@ const HomeScreen = (props) => {
               style={styles.logoText}
               testID="logo-text"
               accessible={true}
-              accessibilityLabel="Engineer Reg."
+              accessibilityLabel="Career Dev Tool"
               onLayout={(e) => console.log('Logo layout:', e.nativeEvent.layout)}
             >
-              Engineer Reg.
+              Career Dev Tool
             </Text>
           </TouchableOpacity>
           <View style={styles.headerButtons}>
@@ -286,28 +309,42 @@ const HomeScreen = (props) => {
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
             </TouchableOpacity>
-            {!user ? (
-              <TouchableOpacity
-                style={styles.loginButton}
-                testID="login-button"
-                onPress={() => {
+            <TouchableOpacity
+              style={styles.loginButton}
+              testID="login-button"
+              activeOpacity={0.8}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={() => {
+                if (!user) {
                   trackEvent('click_login', { location: 'header' });
                   props.navigation.navigate('PasskeyLogin');
-                }}
-              >
-                <Text style={styles.loginButtonText}>ログイン</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.loginButton, { backgroundColor: '#FF3B30' }]}
-                onPress={() => {
-                  trackEvent('click_logout', { uid: user.uid });
-                  auth.signOut();
-                }}
-              >
-                <Text style={[styles.loginButtonText, { color: '#fff' }]}>ログアウト</Text>
-              </TouchableOpacity>
-            )}
+                  return;
+                }
+
+                trackEvent('click_mypage', { uid: user.uid });
+                handleOpenMyPage();
+              }}
+              onLongPress={() => {
+                if (!user) {
+                  return;
+                }
+
+                Alert.alert('ログアウト', 'ログアウトしますか？', [
+                  { text: 'キャンセル', style: 'cancel' },
+                  {
+                    text: 'ログアウト',
+                    style: 'destructive',
+                    onPress: () => {
+                      trackEvent('click_logout', { uid: user.uid });
+                      auth.signOut();
+                    },
+                  },
+                ]);
+              }}
+              delayLongPress={600}
+            >
+              <Text style={styles.loginButtonText}>{user ? 'マイページ' : 'ログイン'}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -421,7 +458,7 @@ const HomeScreen = (props) => {
           <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')}>
             <Text style={styles.footerLink}>プライバシーポリシー</Text>
           </TouchableOpacity>
-          <Text style={styles.footerText}>© 2026 Engineer Registration App</Text>
+          <Text style={styles.footerText}>© 2026 Career Dev Tool</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -470,12 +507,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#007AFF',
   },
   loginButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#fff',
   },
   heroSection: {
     padding: 32,

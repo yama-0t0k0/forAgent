@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
+import { redirectToApp } from '../utils/navigationHelper';
 
 const ERROR_CODES = {
     USER_NOT_FOUND: 'auth/user-not-found',
@@ -48,14 +49,22 @@ const LoginScreen = ({ navigation }) => {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('Login successful');
             
+            // Fetch user role
+            const idTokenResult = await userCredential.user.getIdTokenResult();
+            const role = idTokenResult.claims.role;
+
             // Analytics Tracking
             await setAnalyticsUser(userCredential.user.uid);
             await setAnalyticsUserProperties({ 
-                user_type: 'admin'
+                user_type: role || 'unknown'
             });
-            await logCustomEvent('login', { method: 'email' });
+            await logCustomEvent('login', { method: 'email', role: role || 'unknown' });
 
-            navigation.goBack();
+            if (role) {
+                await redirectToApp(role);
+            } else {
+                navigation.goBack();
+            }
         } catch (error) {
             console.error('Login failed:', error);
             

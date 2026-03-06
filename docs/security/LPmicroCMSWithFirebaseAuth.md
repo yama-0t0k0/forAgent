@@ -231,19 +231,62 @@ export interface LpContent {
 アプリリリースまでの期間は運用上、**既存のAdmin管理者2名のみがログインを行う想定**とする。
 ただし、これは「利用想定」であり、コード上は Email / Password を持つ Firebaseのusersコレクション内にデータが存在しているユーザーであればログイン自体は可能（※LPアプリ内に新規登録導線は実装しない）。
 
-- [x] **Admin用ログイン画面の実装**
+- [x] **リブランディング (Level 1)**
+    - アプリ名を「Engineer Registration App」から「**Career Dev Tool**」へ変更。
+    - ユーザーの目に触れる表示名（アプリ名、ヘッダー、フッター）および開発者向けメタデータ（package.json description）を更新。
+    - ※物理的なディレクトリ名やBundle ID等の変更（Level 2以降）はリスク回避のため実施しない。
+- [ ] **Admin用ログイン画面の実装**
     - LPアプリ側は Firebase Authentication の **パスキー（Passkey）ログインを主導線**とし、「Password でのログインはこちら」リンクから Email / Password 画面へ遷移できる構成に変更。
     - 画面ヘッダーに「新規登録」ボタンを設置し、タップ後は**招待コード確認画面**へ遷移する（一般公開ではなく招待制を前提とした登録導線）。
     - **技術選定**: モバイル体験最優先のため、React Nativeフェーズでは `react-native-passkey` を採用（Flutter移行時は `passkeys` パッケージへ移行予定）。
+- [x] **ロール別リダイレクト機能の実装**
+    - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
+        - **Admin**: `admin_app` (Web)
+        - **Corporate**: `corporate_user_app`
+        - **Individual**: `individual_user_app`
+    - `navigationHelper.js` にプラットフォーム（Web/Native）を考慮したリダイレクトロジックを集約。
 - [x] **ログイン導線の整備**
     - ヘッダーに「ログイン」ボタンを配置し、デフォルトで **パスキーログイン画面** へ遷移させる。
     - 従来の Email / Password ログイン（管理者用含む）への導線は、パスキーログイン画面内のテキストリンク「Password でのログインはこちら」として配置。
-    - **裏コマンド（シークレットタップ）**: ヘッダーロゴ（`Engineer Reg.`）の **長押し** でも Email / Password ログイン画面へ直接遷移可能（開発・管理者用ショートカット）。
+    - **裏コマンド（シークレットタップ）**: ヘッダーロゴ（`Career Dev Tool`）の **長押し** でも Email / Password ログイン画面へ直接遷移可能（開発・管理者用ショートカット）。
 - [x] **認証状態の管理とアクセス制御**
     - ログインしたAdminユーザーの認証状態（Token, Custom Claims）を保持。
     - Adminユーザーにのみ、プレビューモード等の限定機能や画面へのアクセスを許可する。
-- [x] **E2Eテスト用認証フローの確立**
+- [ ] **E2Eテスト用認証フローの確立**
     - 自動E2Eテストツール（Maestro等）が安定してログイン処理を実行し、ログイン後画面のテストを行えるよう、テスト専用アカウントの実装とMaestroシナリオを確立。
+
+### 6.1 ネイティブパスキー検証手順 (Development Client)
+
+ネイティブアプリ（iOS/Android）でのパスキー認証はOSの深層機能を使用するため、標準のExpo Goアプリでは動作しません。以下の手順でカスタムビルド（Development Client）を作成し、実機またはエミュレーターで検証を行ってください。
+
+1.  **前提条件**:
+    *   `expo-dev-client` がインストールされていること（対応済み）。
+    *   iOSの場合はMac環境とXcodeが必須。
+    *   Androidの場合はAndroid Studioが必須。
+
+2.  **ビルドとインストール**:
+    プロジェクトルートから以下のコマンドを実行します。
+
+    ```bash
+    # プロジェクトルートへ移動 (環境に合わせて調整してください)
+    cd engineer-registration-app-yama/yama
+
+    # アプリディレクトリへ移動
+    cd apps/lp_app
+    
+    # iOSの場合 (Simulator または 実機)
+    npx expo run:ios
+    
+    # Androidの場合 (Emulator または 実機)
+    npx expo run:android
+    
+    # EAS Build (クラウドビルド)
+    eas build --profile development --platform ios
+    ```
+
+3.  **検証**:
+    *   ビルド完了後、端末にインストールされた「LP App (Dev)」を起動します。
+    *   Metro Bundlerとの接続を確認し、アプリが起動したら「ログイン」ボタンをタップしてパスキー認証をテストします。
 
 ### 付録: メンテナンス記録 (Maintenance Roles)
 
