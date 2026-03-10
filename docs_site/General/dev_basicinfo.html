@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>開発基本情報 - Design Documentation Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1.5rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.3rem;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-blue-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">Guide & Strategy</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-10 14:41:56</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">開発基本情報</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        エンジニア登録アプリ / キャリアデベロップメントSNS 設計資産。
+      </p>
+    </header>
+
+    <main class="space-y-16">
+      <!-- Project Purpose -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-rocket-takeoff text-blue-400"></i> プロジェクト概要
+        </h2>
+        <div class="space-y-6">
+          <p class="text-lg text-slate-300">本サービスは「<strong>エンジニア個人のキャリア実現度を最大化させる</strong>」ことを目的とした「キャリアデベロップメントSNS」です。</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="info-card">
+              <h4 class="font-bold text-blue-300 mb-2">高精度マッチング</h4>
+              <p class="text-sm text-slate-400">ヒートマップ可視化によるスキル/志向の定量的なギャップ分析（Pure Dart実装）。</p>
+            </div>
+            <div class="info-card">
+              <h4 class="font-bold text-blue-300 mb-2">専門AIによる情報供給</h4>
+              <p class="text-sm text-slate-400">Gemini APIによる高度なキャリアドメイン知識のフィードバック提供。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Matching Logic -->
+      <section>
+        <h2 class="section-title">マッチングロジック (Matching Logic)</h2>
+        <div class="overflow-x-auto glass rounded-3xl p-6">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="text-slate-500 border-b border-slate-700">
+                <th class="p-4">ゾーン</th>
+                <th class="p-4">スキル差分 (Target - Source)</th>
+                <th class="p-4">評価</th>
+                <th class="p-4">意図</th>
+              </tr>
+            </thead>
+            <tbody class="text-slate-300">
+              <tr class="border-b border-white/5 bg-emerald-500/5">
+                <td class="p-4 font-bold text-emerald-400">成長ゾーン (Growth)</td>
+                <td class="p-4">+1 〜 +2</td>
+                <td class="p-4">110% 〜 115%</td>
+                <td class="p-4">最優先推奨。少し高い目標への挑戦を促す。</td>
+              </tr>
+              <tr class="border-b border-white/5">
+                <td class="p-4 font-bold text-sky-400">安全ゾーン (Comfort)</td>
+                <td class="p-4">0 (完全一致)</td>
+                <td class="p-4">100%</td>
+                <td class="p-4">即戦力だが成長幅は限定的。</td>
+              </tr>
+              <tr class="border-b border-white/5 bg-rose-500/5">
+                <td class="p-4 font-bold text-rose-400">危険ゾーン (Panic)</td>
+                <td class="p-4">+3 以上</td>
+                <td class="p-4">0%</td>
+                <td class="p-4">乖離しすぎており、不幸なマッチング。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-6 p-6 glass rounded-2xl border-l-4 border-amber-500">
+          <h5 class="font-bold text-amber-500 mb-2">オーバースペックの扱い</h5>
+          <ul class="text-sm space-y-2 text-slate-400">
+            <li><strong>対 求人 (Individual vs JD)</strong>: <span class="text-rose-400">減点 (-50点)</span>。キャリアの停滞を招くため推奨しない。</li>
+            <li><strong>対 個人 (Individual vs Individual)</strong>: <span class="text-emerald-400">高評価 (100点)</span>。メンターとしての価値発揮を期待。</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- DB Priority -->
+      <section>
+        <h2 class="section-title">データベース優先順位</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="p-6 glass rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400 font-bold">1</div>
+            <div>
+              <h4 class="font-bold text-slate-200">Individual (個人)</h4>
+              <p class="text-xs text-slate-500 italic">Core: Career Log & Skill Data</p>
+            </div>
+          </div>
+          <div class="p-6 glass rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 bg-slate-500/20 rounded-full flex items-center justify-center text-slate-400 font-bold">2</div>
+            <div>
+              <h4 class="font-bold text-slate-200">Corporate (法人)</h4>
+              <p class="text-xs text-slate-500 italic">Company Basic Information</p>
+            </div>
+          </div>
+          <div class="p-6 glass rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-400 font-bold">3</div>
+            <div>
+              <h4 class="font-bold text-slate-200">JD (求人詳細)</h4>
+              <p class="text-xs text-slate-500 italic">Job Requirements & Metadata</p>
+            </div>
+          </div>
+          <div class="p-6 glass rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">4</div>
+            <div>
+              <h4 class="font-bold text-slate-200">FMJS (選考管理)</h4>
+              <p class="text-xs text-slate-500 italic">Status Tracking & Analytics</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Git Worktree -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-purple-500">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-git text-purple-400"></i> Git Worktree による並列開発
+        </h2>
+        <p class="text-slate-300 mb-6 font-bold">AI Agent × Git Worktree：並列開発で生産性を最大化する次世代ワークフロー</p>
+        <div class="space-y-4 text-sm text-slate-400">
+          <div class="p-4 bg-purple-500/5 rounded-xl border border-purple-500/10">
+            <h5 class="font-bold text-purple-300 mb-1">コンテキストスイッチの高速化</h5>
+            <p><code>git stash</code> 不要。別ディレクトリで即座に他ブランチを確認・作業可能。</p>
+          </div>
+          <div class="p-4 bg-purple-500/5 rounded-xl border border-purple-500/10">
+            <h5 class="font-bold text-purple-300 mb-1">並行ビルド・テスト</h5>
+            <p>あるWorktreeでテストを回しながら、別のWorktreeでコーディングを継続。</p>
+          </div>
+          <div class="p-4 bg-purple-500/5 rounded-xl border border-purple-500/10">
+            <h5 class="font-bold text-purple-300 mb-1">PRレビューの効率化</h5>
+            <p>自分の環境を汚さず、レビュー専用Worktreeで動作確認を実施。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Full-stack Dart -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-sky-500">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-box-seam text-sky-400"></i> Full-stack Dart アーキテクチャ
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <h4 class="text-sky-300 font-bold mb-4">Phase 1: Backend Integration</h4>
+            <p class="text-sm text-slate-400 mb-4">全アプリ共通のAPIサーバー (<code>apps/backend</code>) を構築し、ビジネスロジックを Pure Dart に集約。</p>
+            <span class="px-2 py-1 bg-sky-500/10 text-sky-400 rounded text-[0.65rem] font-bold uppercase">Current Status</span>
+          </div>
+          <div>
+            <h4 class="text-emerald-300 font-bold mb-4">Phase 2: Frontend Migration</h4>
+            <p class="text-sm text-slate-400 mb-4">フロントエンドを Flutter に置き換え、型安全な完全 Dart 単一言語環境を実現（serverpod等）。</p>
+            <span class="px-2 py-1 bg-slate-500/10 text-slate-500 rounded text-[0.65rem] font-bold uppercase">Future Roadmap</span>
+          </div>
+        </div>
+        <div class="mt-8 p-4 bg-black/20 rounded-xl text-xs space-y-2">
+          <p><i class="bi bi-link-45deg"></i> <a href="https://cloud.google.com/blog/ja/topics/developers-practitioners/flutter-on-cloud-run-full-stack-dart-architecture" class="text-sky-400 hover:underline">Cloud Run における Flutter: フルスタックの Dart アーキテクチャ</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Career Development SNS Architecture Unit. All rights reserved.
+    </footer>
+  </div>
+</body>
+
+</html>

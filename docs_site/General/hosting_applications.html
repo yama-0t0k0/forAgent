@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hosting Application一覧表 | Flutter-Frontend</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      text-align: center;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      padding: 4rem 2rem;
+      color: white;
+      border-bottom: 4px solid var(--primary);
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      color: var(--primary-dark);
+      margin-top: 3rem;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 1rem;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+      vertical-align: middle;
+    }
+
+    .site-id {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      background: #eff6ff;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.5rem;
+      display: inline-block;
+    }
+
+    .screenshot-cell {
+      width: 350px;
+    }
+
+    .screenshot-img {
+      width: 100%;
+      max-width: 320px;
+      height: auto;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+
+    .screenshot-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .url-link {
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+      font-size: 0.85rem;
+    }
+
+    .url-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .screenshot-cell {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <h1>Hosting Application 一覧</h1>
+      <p class="subtitle">Firebase Hosting Deployed Site Inventory</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="info-panel"
+      style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); margin-bottom: 2rem; display: flex; gap: 2rem;">
+      <div><b>Firebase Project:</b> flutter-frontend-21d0a</div>
+      <div><b>Total Sites:</b> 27</div>
+      <div><b>Updated:</b> 2026-03-06</div>
+    </div>
+
+    <h2 class="section-title">Root Project Site</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Site ID / URL</th>
+            <th style="width: 20%;">Title</th>
+            <th style="width: 25%;">Description</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="site-id">flutter-frontend-21d0a</span><br><a href="https://flutter-frontend-21d0a.web.app"
+                class="url-link" target="_blank">https://flutter-frontend-21d0a.web.app</a></td>
+            <td><strong>基本情報</strong></td>
+            <td>Flutter-Frontend プロジェクトのルートホスティングサイト。エンジニア登録や企業登録の入り口。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/flutter-frontend-21d0a.png" class="screenshot-img">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Admin & Management -->
+    <h2 class="section-title">Admin & Management</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Site ID / URL</th>
+            <th style="width: 20%;">Title</th>
+            <th style="width: 25%;">Description</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="site-id">admin-app-site-d11f0</span><br><a href="https://admin-app-site-d11f0.web.app"
+                class="url-link" target="_blank">https://admin-app-site-d11f0.web.app</a></td>
+            <td><strong>Login</strong></td>
+            <td>Career Architecture Platform 当サービスは完全招待制の会員サービスです</td>
+            <td class="screenshot-cell"><img src="../images/hosting/admin-app-site-d11f0.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">admin-dashboard-3b424</span><br><a href="https://admin-dashboard-3b424.web.app"
+                class="url-link" target="_blank">https://admin-dashboard-3b424.web.app</a></td>
+            <td><strong>Admin Dashboard</strong></td>
+            <td>Admin Dashboard 管理者用ダッシュボード</td>
+            <td class="screenshot-cell"><img src="../images/hosting/admin-dashboard-3b424.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">admin-manage-app</span><br><a href="https://admin-manage-app.web.app"
+                class="url-link" target="_blank">https://admin-manage-app.web.app</a></td>
+            <td><strong>Lat Manage App</strong></td>
+            <td>メインメニュー 機能を選択してください</td>
+            <td class="screenshot-cell"><img src="../images/hosting/admin-manage-app.png" class="screenshot-img"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Corporate Apps -->
+    <h2 class="section-title">Corporate Applications</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Site ID / URL</th>
+            <th style="width: 20%;">Title</th>
+            <th style="width: 25%;">Description</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="site-id">company-app-c1d39</span><br><a href="https://company-app-c1d39.web.app"
+                class="url-link" target="_blank">https://company-app-c1d39.web.app</a></td>
+            <td><strong>company_app</strong></td>
+            <td>法人基本情報登録フォーム 企業情報を登録しましょう</td>
+            <td class="screenshot-cell"><img src="../images/hosting/company-app-c1d39.png" class="screenshot-img"></td>
+          </tr>
+          <tr>
+            <td><span class="site-id">company-dashboard</span><br><a href="https://company-dashboard.web.app"
+                class="url-link" target="_blank">https://company-dashboard.web.app</a></td>
+            <td><strong>企業ダッシュボード</strong></td>
+            <td>企業名 ダッシュボード 企業ID: B00001 求人一覧</td>
+            <td class="screenshot-cell"><img src="../images/hosting/company-dashboard.png" class="screenshot-img"></td>
+          </tr>
+          <tr>
+            <td><span class="site-id">corporate-app-site-d11f0</span><br><a
+                href="https://corporate-app-site-d11f0.web.app" class="url-link"
+                target="_blank">https://corporate-app-site-d11f0.web.app</a></td>
+            <td><strong>会社概要</strong></td>
+            <td>企業プロフィール登録 ID: B00000 社名 ヤフー株式会社</td>
+            <td class="screenshot-cell"><img src="../images/hosting/corporate-app-site-d11f0.png"
+                class="screenshot-img"></td>
+          </tr>
+          <tr>
+            <td><span class="site-id">corporate-mypage-app</span><br><a href="https://corporate-mypage-app.web.app"
+                class="url-link" target="_blank">https://corporate-mypage-app.web.app</a></td>
+            <td><strong>corporate_mypage</strong></td>
+            <td>私たちは革新的なテクノロジーソリューションを提供する企業です。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/corporate-mypage-app.png" class="screenshot-img">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Engineer Apps -->
+    <h2 class="section-title">Individual Engineer Applications</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Site ID / URL</th>
+            <th style="width: 20%;">Title</th>
+            <th style="width: 25%;">Description</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="site-id">engineer-app-site-d11f0</span><br><a
+                href="https://engineer-app-site-d11f0.web.app" class="url-link"
+                target="_blank">https://engineer-app-site-d11f0.web.app</a></td>
+            <td><strong>基本情報</strong></td>
+            <td>エンジニア個人登録画面。基本情報、スキル経験、志向、職歴などを入力するフォーム。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/engineer-app-site-d11f0.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">individual-mypage-app</span><br><a href="https://individual-mypage-app.web.app"
+                class="url-link" target="_blank">https://individual-mypage-app.web.app</a></td>
+            <td><strong>個人マイページ</strong></td>
+            <td>個人のマイページ画面。ハンドルネーム、コアスキル、スキルのヒートマップ、履歴書作成ボタンなどが表示される。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/individual-mypage-app.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">individual-user-app</span><br><a href="https://individual-user-app.web.app"
+                class="url-link" target="_blank">https://individual-user-app.web.app</a></td>
+            <td><strong>エンジニア登録フォーム</strong></td>
+            <td>エンジニア登録フォーム。基本情報（姓名、ハンドルネーム、パスワード、生年月日、住所など）を入力する。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/individual-user-app.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">individual-user-registration</span><br><a
+                href="https://individual-user-registration.web.app" class="url-link"
+                target="_blank">https://individual-user-registration.web.app</a></td>
+            <td><strong>個人登録アプリ</strong></td>
+            <td>個人の登録画面。基本情報、スキル経験、志向、繋がり、職歴、決済などの入力項目一覧が表示される。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/individual-user-registration.png"
+                class="screenshot-img"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Specialized Tools -->
+    <h2 class="section-title">Specialized Tools & Others</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Site ID / URL</th>
+            <th style="width: 20%;">Title</th>
+            <th style="width: 25%;">Description</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="site-id">fmjs-app-site-d11f0</span><br><a href="https://fmjs-app-site-d11f0.web.app"
+                class="url-link" target="_blank">https://fmjs-app-site-d11f0.web.app</a></td>
+            <td><strong>FMJS (選考管理)</strong></td>
+            <td>FMJSの選考進捗一覧画面。マッチングID、ステータス、フェーズ、求職者名などの項目が表示される。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/fmjs-app-site-d11f0.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">heatmap-standalone-app</span><br><a href="https://heatmap-standalone-app.web.app"
+                class="url-link" target="_blank">https://heatmap-standalone-app.web.app</a></td>
+            <td><strong>ヒートマップ</strong></td>
+            <td>スキルや興味のヒートマップを表示するアプリケーション。個人IDを選択してデータを表示できる。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/heatmap-standalone-app.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">matching-standalone-app</span><br><a
+                href="https://matching-standalone-app.web.app" class="url-link"
+                target="_blank">https://matching-standalone-app.web.app</a></td>
+            <td><strong>求人JDとのマッチ度</strong></td>
+            <td>パーソルクロステクノロジー株式会社 データエンジニア</td>
+            <td class="screenshot-cell"><img src="../images/hosting/matching-standalone-app.png" class="screenshot-img">
+            </td>
+          </tr>
+          <tr>
+            <td><span class="site-id">test-evidence-d11f0</span><br><a href="https://test-evidence-d11f0.web.app"
+                class="url-link" target="_blank">https://test-evidence-d11f0.web.app</a></td>
+            <td><strong>ログイン検証結果</strong></td>
+            <td>Google Cloud APIキーの制限およびFirebase承認済みドメインの設定が正常に反映され、認証ポータルからのログインが完全に成功するようになりました。</td>
+            <td class="screenshot-cell"><img src="../images/hosting/test-evidence-d11f0.png" class="screenshot-img">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer style="background: #f1f5f9; padding: 2rem 0; text-align: center; border-top: 1px solid var(--border);">
+    <p style="font-size: 0.8rem; color: var(--text-muted);">&copy; 2026 Flutter-Frontend Project. All rights reserved.
+    </p>
+  </footer>
+</body>
+
+</html>

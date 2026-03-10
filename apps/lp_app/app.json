@@ -32,7 +32,8 @@
       "package": "com.engineer.registration.lpapp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       [
@@ -48,6 +49,9 @@
           }
         }
       ]
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/lp"
+    }
   }
 }

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E2E テスト計画書 (登録・編集専用アプリ) | Flutter-Frontend</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      text-align: center;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      padding: 4rem 2rem;
+      color: white;
+      border-radius: 0 0 2rem 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .section {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 1.5rem;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 1rem;
+      background: #f1f5f9;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #e2e8f0;
+    }
+
+    .badge-blue {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-green {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .step-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: #f8fafc;
+      border-radius: 1rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    .step-number {
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .evidence-box {
+      border: 2px dashed var(--primary);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background: #f5f3ff;
+    }
+
+    .requirement-card {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .req-item {
+      padding: 1.5rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      text-align: center;
+    }
+
+    .req-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>E2E テスト計画書</h1>
+    <p class="subtitle">登録・編集専用アプリの UI挙動 ＆ Firestore データ整合性検証</p>
+  </header>
+
+  <div class="container">
+    <!-- 1. テスト概要 -->
+    <section class="section">
+      <h2 class="section-title">1. テスト目的と概要</h2>
+      <p>
+        本テストは、ユーザーが画面から入力した内容が、正しく Cloud Firestore の対応するコレクションに反映されるかを検証する<b>「フルスタック自動テスト」</b>です。
+        単なるUIの正常系確認にとどまらず、バックエンドデータとの不整合を未然に防ぐことを目的とします。
+      </p>
+      <div class="requirement-card">
+        <div class="req-item">
+          <span class="req-icon">🤖</span>
+          <b>完全自動化</b>
+          <p style="font-size: 0.8rem;">入力から検証まで自動実行</p>
+        </div>
+        <div class="req-item">
+          <span class="req-icon">💾</span>
+          <b>データ整合性</b>
+          <p style="font-size: 0.8rem;">Firestore I/Oの厳密な比較</p>
+        </div>
+        <div class="req-item">
+          <span class="req-icon">📸</span>
+          <b>エビデンス保持</b>
+          <p style="font-size: 0.8rem;">自動キャプチャとログ記録</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. テスト対象アプリ -->
+    <section class="section">
+      <h2 class="section-title">2. テスト対象アプリケーション</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>対象アプリ</th>
+            <th>検証 URL</th>
+            <th>Firestore Collection</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>エンジニア個人登録</b></td>
+            <td><a href="https://engineer-app-site-d11f0.web.app" target="_blank">engineer-app-site...</a></td>
+            <td><span class="badge badge-blue">public_profile</span></td>
+          </tr>
+          <tr>
+            <td><b>企業プロフィール登録</b></td>
+            <td><a href="https://corporate-app-site-d11f0.web.app" target="_blank">corporate-app-site...</a></td>
+            <td><span class="badge badge-blue">company</span></td>
+          </tr>
+          <tr>
+            <td><b>求人登録</b></td>
+            <td><a href="https://admin-app-site-d11f0.web.app" target="_blank">admin-app-site...</a></td>
+            <td><span class="badge badge-blue">job_description</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. テストステップ -->
+    <section class="section">
+      <h2 class="section-title">3. 実行・検証ステップ</h2>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-number">STEP 1</div>
+          <div class="step-content">
+            <b>検証前データの取得 (Pre-test Snapshot)</b><br>
+            対象ドキュメントの現在の値を Firestore より取得し、初期状態として記録します。
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">STEP 2</div>
+          <div class="step-content">
+            <b>入力・画面操作 (UI Automation)</b><br>
+            各アプリのタブ（基本情報、志向、職歴等）を巡回し、全項目にテストデータを入力します。各遷移ごとにスクリーンショットを保存します。
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">STEP 3</div>
+          <div class="step-content">
+            <b>保存実行 (Submit Action)</b><br>
+            「保存」または「更新」ボタンをクリックし、正常完了通知を待ちます。
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">STEP 4</div>
+          <div class="step-content">
+            <b>検証後データの取得と差分検証 (Post-test Diff)</b><br>
+            再度 Firestore よりデータを取得し、入力データとの一致、および事前データからの変化を自動判定します。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 提出エビデンス -->
+    <section class="section">
+      <h2 class="section-title">4. テスト結果エビデンス要件</h2>
+      <div class="evidence-box">
+        <p>テスト完了後、以下のエビデンスを含む「テスト結果報告書」を自動生成します。</p>
+        <ul style="padding-left: 1.2rem;">
+          <li><b>入力データ一覧:</b> 画面に入力した全パラメータ（JSON/Table形式）</li>
+          <li><b>UI スクリーンショット:</b> 入力中の各タブ、および保存直後の完了画面</li>
+          <li><b>データ比較レポート (Diff):</b>
+            <ul style="font-size: 0.85rem; color: var(--text-muted);">
+              <li>検証前 Firestore JSON</li>
+              <li>検証後 Firestore JSON</li>
+              <li>差分 (Modified Fields) のハイライト表示</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 5. 実行環境 -->
+    <section class="section">
+      <h2 class="section-title">5. テスト実行環境</h2>
+      <p style="font-size: 0.9rem;">
+        <b>Testing Framework:</b> Playwright / Antigravity Agent Logic<br>
+        <b>Verification Method:</b> Firebase Admin SDK (Direct Firestore Access)<br>
+        <b>Target Browser:</b> Chromium (Headless/Headed)
+      </p>
+    </section>
+
+    <div class="footer">
+      &copy; 2026 Flutter-Frontend Project Quality Assurance Team
+    </div>
+  </div>
+</body>
+
+</html>

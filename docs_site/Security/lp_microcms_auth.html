@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>microCMS 連携設計 - Design Documentation Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0d1117;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1.5rem;
+      margin-top: 5rem;
+      margin-bottom: 2.5rem;
+      font-weight: 800;
+      font-size: 2rem;
+    }
+
+    .mermaid-container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .audit-card {
+       background: rgba(255, 255, 255, 0.03);
+       border-radius: 1.5rem;
+       padding: 2rem;
+       border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .badge {
+       padding: 0.2rem 0.6rem;
+       border-radius: 9999px;
+       font-size: 0.65rem;
+       font-weight: 800;
+       text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-16">
+      <a href="../index.html" class="text-slate-400 hover:text-sky-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-24">
+      <div class="flex items-center gap-3 mb-8">
+        <span class="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-full text-xs font-bold uppercase tracking-wider">Secure Content Delivery</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-10 14:41:56</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">microCMS 連携設計</span>
+      </h1>
+      <p class="text-xl md:text-2xl text-slate-400 max-w-3xl leading-relaxed">
+        Firebase Auth × microCMS による、セキュアな会員限定コンテンツ配信基盤。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Overview -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-shield-check text-sky-400"></i> アーキテクチャの柱
+        </h2>
+        <div class="space-y-6">
+          <p class="text-lg text-slate-300">microCMS無料版のAPIキーを隠蔽しつつ、Cloud Functionsを経由させることで**APIキーの保護**と**ロールベースの認可制御**を同時に実現します。</p>
+          <div class="grid md:grid-cols-2 gap-4">
+             <div class="audit-card">
+                <h4 class="font-bold text-sky-300 mb-2 italic">APIキーの完全隠蔽</h4>
+                <p class="text-sm text-slate-500">フロントエンドに露出させず、サーバーサイド環境変数として保持。抜き取りリスクを排除。</p>
+             </div>
+             <div class="audit-card">
+                <h4 class="font-bold text-sky-300 mb-2 italic">onRequest 関数への移行</h4>
+                <p class="text-sm text-slate-500">Callableより汎用性の高いonRequestへ変換。GETサポートによりデバッグとキャッシングを容易化。</p>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Architecture Diagram -->
+      <section>
+        <h2 class="section-title">コンテンツ取得シーケンス</h2>
+        <div class="mermaid-container shadow-2xl">
+          <div class="mermaid">
+sequenceDiagram
+    participant App as Expo App (Client)
+    participant Functions as Cloud Functions (Server)
+    participant Auth as Firebase Auth
+    participant CMS as microCMS API
+
+    Note over App, Functions: Request with ID Token
+    App->>Functions: fetch(/getLpContent) [Authorization: Bearer ID_TOKEN]
+    
+    Functions->>Auth: verifyIdToken(idToken)
+    Auth-->>Functions: Decoded Token (Custom Claims)
+    
+    alt 権限OK (plan: premium)
+        Functions->>CMS: fetch(/v1/lp) [headers: X-MICROCMS-API-KEY]
+        CMS-->>Functions: Premium Content JSON
+        Functions-->>App: 200 OK + Content
+    else 権限不足 / 未ログイン
+        Functions-->>App: 403 Forbidden (Public View or Upgrade)
+    end
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced Features -->
+      <section>
+        <h2 class="section-title">高度運用機能 (Milestone 16)</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+           <div class="p-8 glass rounded-3xl border-l-4 border-amber-500">
+              <h4 class="font-bold text-amber-500 mb-4 flex items-center gap-2">
+                 <i class="bi bi-lightning-charge"></i> Webhook & Revalidation
+              </h4>
+              <p class="text-sm text-slate-400 leading-relaxed">
+                 microCMSでの更新時にCloud Functionsをキックし、Redisキャッシュを無効化。画像リサイズエンジン(imgix)との連携によりデバイス解像度別配信を最適化。
+              </p>
+           </div>
+           <div class="p-8 glass rounded-3xl border-l-4 border-emerald-500">
+              <h4 class="font-bold text-emerald-500 mb-4 flex items-center gap-2">
+                 <i class="bi bi-bar-chart"></i> 非公開アナリティクス
+              </h4>
+              <p class="text-sm text-slate-400 leading-relaxed">
+                 SEOより内部回遊分析を重視。GA4連携をスキップし、Firestoreへの独自の行動ログ記録と管理者ログインヒートマップを統合。
+              </p>
+           </div>
+        </div>
+      </section>
+
+      <!-- Roadmap -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-sky-500">
+         <h2 class="text-2xl font-bold mb-6 italic">プロジェクト・ステータス</h2>
+         <div class="flex flex-wrap gap-4">
+            <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Phase 5 (Executing)</span>
+            <span class="badge bg-blue-500/20 text-blue-400 border border-blue-500/30">onRequest support [Live]</span>
+            <span class="badge bg-purple-500/20 text-purple-400 border border-purple-500/30">Cache invalidation [Beta]</span>
+         </div>
+      </section>
+    </main>
+
+    <footer class="mt-48 pt-12 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Content Engineering & Security Group.
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: true }
+    });
+  </script>
+</body>
+
+</html>

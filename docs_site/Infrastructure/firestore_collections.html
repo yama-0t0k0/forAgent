@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firestore Collections | Flutter-Frontend</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --accent-color: #4f46e5;
+      --accent-glow: rgba(79, 70, 229, 0.4);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(79, 70, 229, 0.05) 0%, transparent 40%);
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 6rem;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .badge {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 6rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      border-color: rgba(79, 70, 229, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-color);
+      opacity: 0.5;
+    }
+
+    .card-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .collection-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .collection-type {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+
+    .description {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      flex-grow: 1;
+    }
+
+    .fields-list {
+      list-style: none;
+    }
+
+    .fields-list li {
+      font-size: 0.9rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .fields-list li span:first-child {
+      color: #cbd5e1;
+      font-family: monospace;
+    }
+
+    .security-summary {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(79, 70, 229, 0.1);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      font-size: 0.85rem;
+    }
+
+    .security-summary strong {
+      color: var(--accent-color);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Hero Animation */
+    .glow-sphere {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      z-index: -1;
+      filter: blur(60px);
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 4rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--card-border);
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2.5rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glow-sphere" style="top: -200px; right: -200px;"></div>
+  <div class="glow-sphere" style="bottom: -200px; left: -200px;"></div>
+
+  <div class="container">
+    <header>
+      <div class="collection-type" style="margin-bottom: 1rem;">Architecture Overview</div>
+      <h1>Firestore Collections</h1>
+      <p>Flutter-Frontend プロジェクトにおける主要なデータ構造とセキュリティ設計の概要</p>
+      <div class="badges">
+        <div class="badge">Project ID: flutter-frontend-21d0a</div>
+        <div class="badge">Environment: Production / Staging</div>
+        <div class="badge">Updated: 2026-03-03 11:10:00</div>
+      </div>
+    </header>
+
+    <section id="collections">
+      <h2 class="section-title">Core Collections</h2>
+      <div class="grid">
+        <!-- users -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Root Collection</span>
+            <h3 class="collection-name">users</h3>
+          </div>
+          <p class="description">
+            認証済みユーザーの基本プロフィールと権限(RBAC)を管理する最重要コレクション。
+          </p>
+          <ul class="fields-list">
+            <li><span>role</span><span>admin | corporate | individual</span></li>
+            <li><span>companyId</span><span>String (only for corporate)</span></li>
+            <li><span>dev_admin_grant</span><span>String (emergency access)</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            本人は読み書き可能 (Role変更不可)。管理者はフルアクセス。
+          </div>
+        </div>
+
+        <!-- public_profile -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Root Collection</span>
+            <h3 class="collection-name">public_profile</h3>
+          </div>
+          <p class="description">
+            エンジニアの公開プロフィール。他のユーザーや企業から検索・閲覧されるデータ。
+          </p>
+          <ul class="fields-list">
+            <li><span>name</span><span>String (Required)</span></li>
+            <li><span>photoURL</span><span>URL String</span></li>
+            <li><span>headline</span><span>String</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            認証済みユーザーであれば全員閲覧可能。本人のみ編集可能。
+          </div>
+        </div>
+
+        <!-- private_info -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Root Collection</span>
+            <h3 class="collection-name">private_info</h3>
+          </div>
+          <p class="description">
+            エンジニアの個人情報(PII)。職務経歴書や連絡先など、機密性の高いデータを保持。
+          </p>
+          <ul class="fields-list">
+            <li><span>email</span><span>String</span></li>
+            <li><span>phoneNumber</span><span>String</span></li>
+            <li><span>allowed_companies</span><span>Array&lt;ID&gt;</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            本人、管理者、または matched した企業のみ閲覧可能。
+          </div>
+        </div>
+
+        <!-- company -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Root Collection</span>
+            <h3 class="collection-name">company</h3>
+          </div>
+          <p class="description">
+            企業（法人）の基本情報。`corporate` コレクションとエイリアス関係。
+          </p>
+          <ul class="fields-list">
+            <li><span>name</span><span>String (Required)</span></li>
+            <li><span>industry</span><span>String</span></li>
+            <li><span>website</span><span>URL</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            全ユーザーが閲覧可能。所属企業のメンバーまたは管理者が編集可能。
+          </div>
+        </div>
+
+        <!-- job_description -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Hierarchical</span>
+            <h3 class="collection-name">job_description</h3>
+          </div>
+          <p class="description">
+            求人情報。企業ごとにサブコレクション `JD_Number` で階層化されている。
+          </p>
+          <ul class="fields-list">
+            <li><span>title</span><span>String (Required)</span></li>
+            <li><span>description</span><span>String (Required)</span></li>
+            <li><span>salaryRange</span><span>String (Required)</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            全ユーザーが閲覧可能。当該企業の担当者のみ書き込み可能。
+          </div>
+        </div>
+
+        <!-- selection_progress -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">State Machine</span>
+            <h3 class="collection-name">selection_progress</h3>
+          </div>
+          <p class="description">
+            候補者と企業の選考プロセス。ステータス遷移やフェーズを管理。
+          </p>
+          <ul class="fields-list">
+            <li><span>id_individual_個人ID</span><span>Reference / UID</span></li>
+            <li><span>id_company_法人ID</span><span>ID</span></li>
+            <li><span>status</span><span>String</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            関係者（本人・企業担当者）および管理者のみがアクセス可能。
+          </div>
+        </div>
+
+        <!-- FeeMgmtAndJobStatDB -->
+        <div class="card">
+          <div class="card-header">
+            <span class="collection-type">Analytics & Finance</span>
+            <h3 class="collection-name">FeeMgmtAndJobStatDB</h3>
+          </div>
+          <p class="description">
+            紹介手数料や求人統計データ。収益管理とパフォーマンス計測に使用。
+          </p>
+          <ul class="fields-list">
+            <li><span>individual_ID</span><span>UID</span></li>
+            <li><span>company_ID</span><span>ID</span></li>
+            <li><span>amount</span><span>Number (Positive)</span></li>
+          </ul>
+          <div class="security-summary">
+            <strong>🛡 Security Rule</strong>
+            管理者および関係する企業・個人が閲覧可能。
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Security Architecture</h2>
+      <div
+        style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 1.5rem; padding: 3rem; margin-bottom: 6rem;">
+        <h3 style="margin-bottom: 1.5rem; color: #fff;">Role-Based Access Control (RBAC)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+          Firestore Security Rules は、`users` コレクションの `role` フィールドまたは Firebase Auth の Custom Claims に基づいて動的に評価されます。
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+          <div>
+            <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">Admin</h4>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">全コレクションへの書き込み・読み取り権限を持ちます。システムメンテナンスを想定。</p>
+          </div>
+          <div>
+            <h4 style="color: var(--success); margin-bottom: 0.5rem;">Individual</h4>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">自身のプロフィールの編集、公開プロフィールの閲覧、選考中の案件へのアクセスが可能です。</p>
+          </div>
+          <div>
+            <h4 style="color: var(--warning); margin-bottom: 0.5rem;">Corporate</h4>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">自社の求人情報の編集、マッチングした候補者の非公開情報の閲覧が可能です。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      &copy; 2026 Flutter-Frontend Project Documentation Site.
+    </footer>
+  </div>
+</body>
+
+</html>

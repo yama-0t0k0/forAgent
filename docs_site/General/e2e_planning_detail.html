@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E2Eテスト計画・詳細設計 - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #10b981;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .task-card {
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .task-card:hover {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.8rem;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-emerald-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Testing Blueprint</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 11:10:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">E2E テスト計画・詳細設計</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        プロフィール編集フローの堅牢性を Maestro で担保するための戦略と、証拠記録プロトコル。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <section>
+        <h2 class="section-title">テスト概要</h2>
+        <div class="glass p-10 rounded-3xl">
+          <p class="text-slate-300 leading-relaxed mb-6">
+            `individual_user_app` のプロフィール編集画面への遷移と、統合された `PureRegistrationScreen`
+            の内容（タブ構造およびメタデータ主導のUIレンダリング）が正常であることを検証します。
+          </p>
+          <ul class="text-sm space-y-4 text-emerald-400">
+            <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill"></i> フッターから編集画面への遷移検証</li>
+            <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill"></i> 4つの主要タブの存在と表示検証</li>
+            <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill"></i> 実行エビデンスの自動保存プロトコル</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">テスト手法 (Test Stack)</h2>
+        <div class="grid md:grid-cols-2 gap-8 text-sm">
+          <div class="task-card p-8 rounded-3xl glass">
+            <h5 class="font-bold mb-4 text-emerald-400 uppercase tracking-widest">Automation Tool</h5>
+            <p class="text-slate-500">Maestro (E2Eテスティングフレームワーク) を採用し、YAML 形式で直感的なシナリオを記述。</p>
+          </div>
+          <div class="task-card p-8 rounded-3xl glass">
+            <h5 class="font-bold mb-4 text-emerald-400 uppercase tracking-widest">Environment</h5>
+            <p class="text-slate-500">iPhone 13 / iOS 18.4 シミュレータ上で、Expo 開発サーバーを経由して実行。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">エビデンス管理 (Evidence Management)</h2>
+        <div class="p-8 bg-black/40 rounded-3xl space-y-6">
+          <div>
+            <h4 class="font-bold text-slate-100 mb-2 flex items-center gap-2">
+              <i class="bi bi-camera-video"></i> 成功時のみ動画をアーカイブ
+            </h4>
+            <p class="text-[0.65rem] text-slate-500 italic">`maestro record --local`
+              を使用し、`tests/utils/record_success.sh` で成功判定時のみ永続化。</p>
+          </div>
+          <code class="block bg-slate-900 p-4 rounded-xl text-emerald-300">
+              # 成功時の保存パス<br>
+              yama/tests/logs/profile_edit_evidence.mp4
+           </code>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 QA Automation Engineering Team.
+    </footer>
+  </div>
+</body>
+
+</html>

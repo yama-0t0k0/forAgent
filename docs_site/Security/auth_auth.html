@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>認証・認可設計 - Design Documentation Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(22, 27, 34, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #059669;
+      padding-left: 1.5rem;
+      margin-top: 5rem;
+      margin-bottom: 2.5rem;
+      font-weight: 800;
+      font-size: 2rem;
+      color: #f0f6fc;
+    }
+
+    .mermaid-container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .info-box {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.1);
+      padding: 1.5rem;
+      border-radius: 1rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: #7d8590;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-16">
+      <a href="../index.html" class="text-slate-500 hover:text-emerald-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-24 text-center md:text-left">
+      <div class="flex items-center justify-center md:justify-start gap-3 mb-8">
+        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold uppercase tracking-wider">Security Architecture</span>
+        <span class="text-slate-500 text-sm italic">Updated: 2026-03-10 14:41:56</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">認証・認可設計</span>
+      </h1>
+      <p class="text-xl md:text-2xl text-slate-400 max-w-3xl leading-relaxed">
+        Custom Claims を用いたハイブリッド認証と、パスキー完全対応のセキュア基盤。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Hybrid Auth Strategy -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-3xl font-bold mb-8 flex items-center gap-3 text-white">
+          <i class="bi bi-shield-lock text-emerald-500"></i> 基本方針
+        </h2>
+        <div class="space-y-6">
+          <p class="text-lg text-slate-300">パフォーマンス、コスト、セキュリティのバランスを最適化するため、<strong>Custom Claimsを用いたハイブリッド認証</strong>を採用します。</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="info-box border-l-4 border-emerald-500">
+              <h4 class="font-bold text-emerald-400 mb-2">爆速判定 (Zero Latency)</h4>
+              <p class="text-sm text-slate-400 italic">Firestoreへの都度アクセスなし。トークン解析のみで権限チェックを完了。</p>
+            </div>
+            <div class="info-box border-l-4 border-blue-500 bg-blue-500/5 border-blue-500/10">
+              <h4 class="font-bold text-blue-400 mb-2">堅牢なパスキー対応</h4>
+              <p class="text-sm text-slate-400 italic">FaceID/指紋認証などの生体認証を主軸とし、セキュリティとUXを両立。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sequence Diagram -->
+      <section>
+        <h2 class="section-title">認証・認可フロー (Hybrid Auth)</h2>
+        <div class="mermaid-container shadow-2xl">
+          <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Device as Device (Biometrics)
+    participant App as Frontend App
+    participant Auth as Firebase Auth
+    participant DB as Firestore (Context Scope)
+
+    User->>App: アプリ起動
+    App->>Auth: onAuthStateChanged()
+    
+    alt 未認証 (Login Phase)
+        App->>User: ログイン画面 (Passkey / Password)
+        User->>App: 認証操作 (Biometrics or Password)
+        App->>Auth: signInWithCredential()
+        Auth-->>App: UserCredential (ID Token with Claims)
+    end
+
+    Note over App: Phase A: Global Scope Verification (Instant)
+    App->>App: IDトークン解析 (Claims)
+    
+    Note over App: Phase B: Context Scope Loading (Lazy)
+    alt Individual User
+        App->>DB: query Relationships for Alumni Status
+    else Admin User
+        App->>DB: query users/{uid} for Profile
+    end
+    DB-->>App: Data Loaded
+    App->>User: ダッシュボード表示
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Accounts -->
+      <section>
+        <h2 class="section-title">管理者アカウント管理</h2>
+        <div class="space-y-8">
+          <div class="p-8 glass rounded-3xl">
+            <h4 class="text-xl font-bold mb-6 text-white flex items-center gap-2">
+              <i class="bi bi-people text-emerald-500"></i> 初期 Admin アカウント構成
+            </h4>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Admin ID</th>
+                    <th>Email</th>
+                    <th>displayName</th>
+                    <th>用途</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-300">
+                  <tr>
+                    <td class="font-mono text-emerald-400">a000</td>
+                    <td>m.yamakawa@lat-inc.com</td>
+                    <td>M. Yamakawa</td>
+                    <td>主管理者</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono text-emerald-400">a001</td>
+                    <td>t.sameshima@lat-inc.com</td>
+                    <td>T. Sameshima</td>
+                    <td>副管理者</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-6 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 flex items-start gap-4">
+            <i class="bi bi-info-circle-fill text-emerald-500 mt-1"></i>
+            <div class="text-sm text-slate-400">
+              <p class="font-bold text-slate-200 mb-1">権限分離の原則</p>
+              開発メンバーであっても、個人の検証アカウントに Admin 権限を付与せず、専用の独立した ID で管理を徹底します。
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-48 pt-12 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Authentication & Security Architecture Unit.
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: true }
+    });
+  </script>
+</body>
+
+</html>

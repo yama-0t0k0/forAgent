@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firestore 戦略ガイド</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans p-4 md:p-8">
+
+  <!-- Header Section -->
+  <header class="max-w-5xl mx-auto text-center mb-12">
+    <div class="flex justify-center mb-4">
+      <span
+        class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+        For Shinjuku Startups
+      </span>
+    </div>
+    <h1
+      class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+      Firestore 戦略ガイド
+    </h1>
+    <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+      「爆速開発」と「コスト効率」を両立させるための、リージョン選択・完全比較ドキュメント
+    </p>
+  </header>
+
+  <main class="max-w-5xl mx-auto space-y-12">
+
+    <!-- 1. Mechanism Infographic -->
+    <section>
+      <div class="flex items-center gap-2 mb-6 text-blue-500">
+        <i class="fa-solid fa-server text-2xl"></i>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 ml-2">1. マルチリージョンの仕組み</h2>
+      </div>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="space-y-4">
+            <p class="text-slate-600 dark:text-slate-400">
+              都市レベルの大規模災害（地震、停電など）が発生しても、サービスを1秒も止めないための最強構成です。
+            </p>
+            <ul class="space-y-3">
+              <li class="flex items-start gap-3">
+                <div
+                  class="bg-blue-500 text-white rounded-full p-1 mt-1 flex items-center justify-center w-5 h-5 text-[10px]">
+                  <i class="fa-solid fa-check"></i></div>
+                <div><strong>読み書きレプリカ:</strong> 2つ以上の都市に完全なデータを同時保存。</div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div
+                  class="bg-blue-500 text-white rounded-full p-1 mt-1 flex items-center justify-center w-5 h-5 text-[10px]">
+                  <i class="fa-solid fa-check"></i></div>
+                <div><strong>ウィットネス:</strong> 3つ目の都市がデータの整合性を最終判定。</div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div
+                  class="bg-blue-500 text-white rounded-full p-1 mt-1 flex items-center justify-center w-5 h-5 text-[10px]">
+                  <i class="fa-solid fa-check"></i></div>
+                <div><strong>自動切り替え:</strong> 人間の介入なしで、正常な拠点へリクエストを誘導。</div>
+              </li>
+            </ul>
+          </div>
+          <div
+            class="bg-slate-100 dark:bg-slate-900 rounded-xl p-6 relative h-64 flex items-center justify-center overflow-hidden">
+            <!-- Visual Representation of Multi-region -->
+            <div
+              class="absolute top-10 left-10 w-16 h-16 bg-blue-500/20 rounded-lg border-2 border-blue-500 flex flex-col items-center justify-center animate-pulse">
+              <i class="fa-solid fa-database text-xl text-blue-500"></i>
+              <span class="text-[10px] mt-1 text-blue-500">都市 A</span>
+            </div>
+            <div
+              class="absolute bottom-10 right-10 w-16 h-16 bg-blue-500/20 rounded-lg border-2 border-blue-500 flex flex-col items-center justify-center animate-pulse"
+              style="animation-delay: 1s;">
+              <i class="fa-solid fa-database text-xl text-blue-500"></i>
+              <span class="text-[10px] mt-1 text-blue-500">都市 B</span>
+            </div>
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-indigo-500/20 rounded-full border-2 border-indigo-500 border-dashed flex items-center justify-center">
+              <i class="fa-solid fa-shield-halved text-indigo-500"></i>
+            </div>
+            <div class="w-full border-t border-slate-300 dark:border-slate-700 absolute rotate-45"></div>
+            <div class="w-full border-t border-slate-300 dark:border-slate-700 absolute -rotate-45"></div>
+            <span
+              class="absolute bottom-4 left-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">Multi-Region
+              Architecture</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Comparison Grid -->
+    <section>
+      <div class="flex items-center gap-2 mb-6 text-indigo-500">
+        <i class="fa-solid fa-chart-simple text-2xl"></i>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 ml-2">2. 総合比較: リージョン vs マルチリージョン</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-blue-500">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold">東京リージョン</h3>
+            <span
+              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              新宿・国内向け最適
+            </span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">レイテンシ</span>
+              <span class="font-bold text-green-500">爆速 (10-30ms)</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="bg-green-500 h-full w-[95%]"></div>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">SLA（可用性）</span>
+              <span class="font-bold">99.99%</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">主な場所</span>
+              <span class="font-bold italic">asia-northeast1</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-indigo-500">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold">マルチリージョン</h3>
+            <span
+              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              世界・安定性重視
+            </span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">レイテンシ</span>
+              <span class="font-bold text-amber-500">やや遅延 (200ms+)</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="bg-amber-500 h-full w-[40%]"></div>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">SLA（可用性）</span>
+              <span class="font-bold">99.999%</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">主な場所</span>
+              <span class="font-bold italic">nam5 (US)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Pros & Cons Cards -->
+    <section class="grid md:grid-cols-2 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-4 text-green-500">
+          <i class="fa-solid fa-circle-check text-xl"></i>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">長所 (Pros)</h3>
+        </div>
+        <div
+          class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-full">
+          <ul class="space-y-4">
+            <li class="p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
+              <h4 class="font-bold text-green-700 dark:text-green-400 mb-1">99.999% の鉄壁 SLA</h4>
+              <p class="text-sm">大手企業や金融系クライアントへの強力なアピールポイントに。</p>
+            </li>
+            <li class="p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
+              <h4 class="font-bold text-green-700 dark:text-green-400 mb-1">自動災害復旧</h4>
+              <p class="text-sm">都市レベルのダウンでも、エンジニアが深夜に叩き起こされることはありません。</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2 mb-4 text-rose-500">
+          <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">短所 (Cons)</h3>
+        </div>
+        <div
+          class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 h-full">
+          <ul class="space-y-4">
+            <li class="p-3 bg-rose-50 dark:bg-rose-900/10 rounded-lg">
+              <h4 class="font-bold text-rose-700 dark:text-rose-400 mb-1">国内マルチリージョンが不在</h4>
+              <p class="text-sm">「東京と大阪でマルチ」は不可。必然的に米国のデータセンターになります。</p>
+            </li>
+            <li class="p-3 bg-rose-50 dark:bg-rose-900/10 rounded-lg">
+              <h4 class="font-bold text-rose-700 dark:text-rose-400 mb-1">書き込み速度の犠牲</h4>
+              <p class="text-sm">都市間同期を待つため、チャットなどの「リアルタイム感」が削がれます。</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Cost Visualizer -->
+    <section>
+      <div class="flex items-center gap-2 mb-6 text-emerald-500">
+        <i class="fa-solid fa-hand-holding-dollar text-2xl"></i>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 ml-2">4. コスト（費用）のリアル</h2>
+      </div>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+        <div class="space-y-8">
+          <p class="text-slate-600 dark:text-slate-400">
+            スタートアップのバーンレートを考える上で無視できない、約1.6倍〜1.7倍の価格差。
+          </p>
+          <div class="space-y-6">
+            <div>
+              <div class="flex justify-between mb-2 items-end">
+                <span class="text-sm font-medium">読み取り (10万件あたり)</span>
+                <span class="text-xs text-slate-500">※概算</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex-1 h-8 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center px-4 relative">
+                  <div class="h-full bg-blue-500 absolute left-0" style="width: 60%;"></div>
+                  <span class="relative z-10 text-xs font-bold text-white">東京: $0.03</span>
+                </div>
+                <div
+                  class="flex-1 h-8 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center px-4 relative">
+                  <div class="h-full bg-indigo-500 absolute left-0" style="width: 100%;"></div>
+                  <span class="relative z-10 text-xs font-bold text-white">マルチ: $0.06</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-2 items-end">
+                <span class="text-sm font-medium">書き込み (10万件あたり)</span>
+                <span class="text-xs text-slate-500">※概算</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex-1 h-8 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center px-4 relative">
+                  <div class="h-full bg-blue-500 absolute left-0" style="width: 60%;"></div>
+                  <span class="relative z-10 text-xs font-bold text-white">東京: $0.15</span>
+                </div>
+                <div
+                  class="flex-1 h-8 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center px-4 relative">
+                  <div class="h-full bg-indigo-500 absolute left-0" style="width: 100%;"></div>
+                  <span class="relative z-10 text-xs font-bold text-white">マルチ: $0.18</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. The Decision Flowchart -->
+    <section>
+      <div class="flex items-center gap-2 mb-6 text-yellow-500">
+        <i class="fa-solid fa-bolt text-2xl"></i>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 ml-2">5. 意思決定フローチャート</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div
+          class="p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col items-center text-center">
+          <i class="fa-solid fa-users text-3xl mb-4 text-blue-500"></i>
+          <h4 class="font-bold mb-2">ターゲットは？</h4>
+          <p class="text-sm text-slate-500">日本国内・都内のユーザーがメインなら</p>
+          <i class="fa-solid fa-arrow-right mt-4 text-slate-300"></i>
+        </div>
+        <div
+          class="p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col items-center text-center">
+          <i class="fa-solid fa-globe text-3xl mb-4 text-indigo-500"></i>
+          <h4 class="font-bold mb-2">優先順位は？</h4>
+          <p class="text-sm text-slate-500">UIのサクサク感とコスト削減を重視するなら</p>
+          <i class="fa-solid fa-arrow-right mt-4 text-slate-300"></i>
+        </div>
+        <div
+          class="p-6 rounded-2xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 flex flex-col items-center text-center">
+          <i class="fa-solid fa-location-dot text-3xl mb-4 text-blue-600"></i>
+          <h4 class="font-bold mb-2 text-blue-600">東京リージョン</h4>
+          <p class="text-sm text-blue-600 font-medium">新宿スタートアップの最適解</p>
+          <div class="mt-4 bg-blue-600 text-white p-2 rounded-full flex items-center justify-center w-8 h-8"><i
+              class="fa-solid fa-check"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusion -->
+    <footer class="bg-indigo-600 rounded-3xl p-8 md:p-12 text-white text-center">
+      <h2 class="text-3xl font-bold mb-4">結論：まずは「東京」で突き進め</h2>
+      <p class="text-indigo-100 mb-8 max-w-2xl mx-auto">
+        スタートアップにとって最大の敵は「コスト」と「遅延」です。まずは東京リージョンで PMF（プロダクト・マーケット・フィット）を目指し、スケールした後にグローバル展開に合わせてマルチリージョン化を検討するのが王道です。
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <div class="bg-white/10 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/20">
+          <span class="block text-2xl font-bold">asia-northeast1</span>
+          <span class="text-xs uppercase tracking-widest text-indigo-200">Selected Location ID</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="max-w-5xl mx-auto mt-12 mb-20 text-center text-slate-500 text-xs">
+    <p>© 2026 Firestore Strategy Guide. Prepared for Tokyo-based innovators.</p>
+  </div>
+
+</body>
+
+</html>

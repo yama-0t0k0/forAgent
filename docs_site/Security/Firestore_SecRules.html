@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firestore セキュリティルール - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #dc2626;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code,
+    pre {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .warning-box {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-left: 4px solid #dc2626;
+    }
+
+    .success-box {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-left: 4px solid #10b981;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(220, 38, 38, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-red-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Security Architecture</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">Firestore ルール</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400 font-bold">ABAC & RBAC Hybrid Rules</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        Custom Claims による高速な権限判定と、ドキュメント属性に基づく厳密なアクセス制御を兼ね備えた堅牢なデータ保護設計。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Caution Banner -->
+      <section class="warning-box p-8 rounded-2xl">
+        <h3 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill"></i> 開発環境における一時的な全許可設定 (2026-02-12)
+        </h3>
+        <p class="text-sm text-slate-400 leading-relaxed italic">
+          現在、開発効率を最優先するため、`allow read, write: if true;` を一時的に適用しています。本ドキュメントに記載されているルールは、リリース時に復元すべき <strong>「あるべき姿
+            (Target State)」</strong> です。
+        </p>
+      </section>
+
+      <!-- Strategy Section -->
+      <section>
+        <h2 class="section-title">セキュリティ戦略</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="glass p-10 rounded-3xl">
+            <h3 class="font-bold text-slate-100 mb-6 flex items-center gap-2">
+              <i class="bi bi-lightning-charge text-amber-400"></i> Hybrid Auth
+            </h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-6">
+              Custom Claims (`request.auth.token.role`) を優先し、DB への `get()` 呼び出し（コストと遅延）を最小化します。
+            </p>
+            <pre class="bg-black/30 p-4 rounded-xl text-[0.65rem] text-amber-200">
+function hasRole(role) {
+  return request.auth.token.role == role
+    || get(/.../users/$(uid)).data.role == role;
+}</pre>
+          </div>
+
+          <div class="glass p-10 rounded-3xl">
+            <h3 class="font-bold text-slate-100 mb-6 flex items-center gap-2">
+              <i class="bi bi-shield-lock text-sky-400"></i> PII 分離 (Isolation)
+            </h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-6">
+              個人情報 (PII) は `private_info` コレクションに隔離し、マッチングした企業のみに「許可リスト」形式で Read 権限を付与します。
+            </p>
+            <pre class="bg-black/30 p-4 rounded-xl text-[0.65rem] text-sky-200">
+match /private_info/{userId} {
+  allow read: if isOwner(userId) 
+    || isMatched(resource.data.allowed_companies);
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rules Details -->
+      <section>
+        <h2 class="section-title">コレクション別基本ルール</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-500">
+                <th class="py-4 font-bold">Collection</th>
+                <th class="py-4 font-bold">Admin</th>
+                <th class="py-4 font-bold">Owner/Member</th>
+                <th class="py-4 font-bold">Others</th>
+              </tr>
+            </thead>
+            <tbody class="text-slate-300">
+              <tr class="border-b border-slate-800/50">
+                <td class="py-6 font-mono font-bold text-red-300">public_profile</td>
+                <td>R/W</td>
+                <td>R/W</td>
+                <td class="text-slate-600">ReadOnly (Auth)</td>
+              </tr>
+              <tr class="border-b border-slate-800/50">
+                <td class="py-6 font-mono font-bold text-red-300">private_info</td>
+                <td>R/W</td>
+                <td>R/W</td>
+                <td class="text-slate-600">Denied (Unless matched)</td>
+              </tr>
+              <tr class="border-b border-slate-800/50">
+                <td class="py-6 font-mono font-bold text-red-300">company</td>
+                <td>R/W</td>
+                <td>R/W</td>
+                <td class="text-slate-600">ReadOnly (Auth)</td>
+              </tr>
+              <tr class="border-b border-slate-800/50">
+                <td class="py-6 font-mono font-bold text-red-300">selection_progress</td>
+                <td>R/W</td>
+                <td>R/W (Participants)</td>
+                <td class="text-slate-600">Denied</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Key Improvements Section -->
+      <section class="glass p-10 rounded-3xl border-l-8 border-l-emerald-500">
+        <h2 class="text-2xl font-bold mb-8 italic">Key Improvements (2026-02-10)</h2>
+        <div class="grid md:grid-cols-2 gap-10">
+          <div>
+            <h4 class="font-bold text-emerald-400 mb-4">データ整合性バリデーション</h4>
+            <p class="text-sm text-slate-400 leading-relaxed italic">
+              `public_profile` において `name` フィールドの必須化・非空文字チェックを実装。`FeeMgmtAndJobStatDB` において `amount` の正数検証を追加しました。
+            </p>
+          </div>
+          <div>
+            <h4 class="font-bold text-emerald-400 mb-4">RBAC ベース基盤の確立</h4>
+            <p class="text-sm text-slate-400 leading-relaxed italic">
+              `users` コレクションへの不正なロール（Admin等）の自己付与をルールレベルで禁止。アプリケーションの信頼性を根幹から支えます。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Security Engineering & Data Privacy Group.
+    </footer>
+  </div>
+</body>
+
+</html>

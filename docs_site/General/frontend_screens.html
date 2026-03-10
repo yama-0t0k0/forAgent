@@ -212,6 +212,10 @@
     <!-- 1. 管理アプリ -->
     <section class="section">
       <h2 class="section-title">1. 管理者アプリ (admin_app)</h2>
+      <p style="margin-top: -1rem; margin-bottom: 1rem;">
+        <span class="badge" style="background: #dcfce7; color: #166534;">Deployed</span>
+        <a href="https://admin-app-site-d11f0.web.app" target="_blank">https://admin-app-site-d11f0.web.app</a>
+      </p>
       <div class="table-container">
         <table>
           <thead>
@@ -292,6 +296,10 @@
     <!-- 2. 個人ユーザーアプリ -->
     <section class="section">
       <h2 class="section-title">2. 個人ユーザーアプリ (individual_user_app)</h2>
+      <p style="margin-top: -1rem; margin-bottom: 1rem;">
+        <span class="badge" style="background: #dcfce7; color: #166534;">Deployed</span>
+        <a href="https://engineer-app-site-d11f0.web.app" target="_blank">https://engineer-app-site-d11f0.web.app</a>
+      </p>
       <div class="table-container">
         <table>
           <thead>
@@ -329,6 +337,10 @@
     <!-- 3. 企業ユーザーアプリ -->
     <section class="section">
       <h2 class="section-title">3. 企業ユーザーアプリ (corporate_user_app)</h2>
+      <p style="margin-top: -1rem; margin-bottom: 1rem;">
+        <span class="badge" style="background: #dcfce7; color: #166534;">Deployed</span>
+        <a href="https://corporate-app-site-d11f0.web.app" target="_blank">https://corporate-app-site-d11f0.web.app</a>
+      </p>
       <div class="table-container">
         <table>
           <thead>
@@ -368,6 +380,11 @@
     <!-- 4. 登録専用アプリ -->
     <section class="section">
       <h2 class="section-title">4. 登録・編集専用アプリ (Registration Apps)</h2>
+      <p style="margin-top: -1rem; margin-bottom: 1rem;">
+        <span class="badge" style="background: #eff6ff; color: #1e40af;">Registration Portal</span>
+        <a href="https://job-description-site-d11f0.web.app"
+          target="_blank">https://job-description-site-d11f0.web.app</a> (求人登録専用)
+      </p>
       <div class="table-container">
         <table>
           <thead>
@@ -423,9 +440,51 @@
       </div>
     </section>
 
-    <!-- 5. 共通ポップアップ・モーダル -->
+    <!-- 5. LPアプリ -->
     <section class="section">
-      <h2 class="section-title">5. 共通ポップアップ・モーダル (Modal Screens)</h2>
+      <h2 class="section-title">5. LPアプリ (lp_app)</h2>
+      <p style="margin-top: -1rem; margin-bottom: 1rem;">
+        <span class="badge" style="background: #dcfce7; color: #166534;">Deployed</span>
+        <a href="https://admin-app-site-d11f0.web.app/lp" target="_blank">https://admin-app-site-d11f0.web.app/lp</a>
+      </p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 25%;">画面名</th>
+              <th style="width: 25%;">パス (Routing)</th>
+              <th style="width: 50%;">実装ファイルパス</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>LPトップ (Home)</td>
+              <td><code>/lp/</code></td>
+              <td class="path">apps/lp_app/src/screens/HomeScreen.js</td>
+            </tr>
+            <tr>
+              <td>ログイン (Login)</td>
+              <td><code>/lp/Login</code></td>
+              <td class="path">apps/lp_app/src/screens/LoginScreen.js</td>
+            </tr>
+            <tr>
+              <td>パスキーログイン</td>
+              <td><code>/lp/PasskeyLogin</code></td>
+              <td class="path">apps/lp_app/src/screens/PasskeyLoginScreen.js</td>
+            </tr>
+            <tr>
+              <td>プライバシーポリシー</td>
+              <td><code>/lp/PrivacyPolicy</code></td>
+              <td class="path">apps/lp_app/src/screens/PrivacyPolicyScreen.js</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6. 共通ポップアップ・モーダル -->
+    <section class="section">
+      <h2 class="section-title">6. 共通ポップアップ・モーダル (Modal Screens)</h2>
       <div class="table-container">
         <table>
           <thead>
@@ -455,6 +514,42 @@
               <td>スキルレベル選択</td>
               <td>Popup (SkillSelector)</td>
               <td class="path">src/components/SkillSelector.js</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 7. 認証・その他補助アプリ -->
+    <section class="section">
+      <h2 class="section-title">7. 認証・その他補助アプリ (Utility Apps)</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30%;">アプリ名</th>
+              <th style="width: 30%;">用途</th>
+              <th style="width: 40%;">Deploy URL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>認証ポータル (auth_portal)</td>
+              <td>共通ログイン・パスキー管理</td>
+              <td><a href="https://auth-portal-site-d11f0.web.app"
+                  target="_blank">https://auth-portal-site-d11f0.web.app</a></td>
+            </tr>
+            <tr>
+              <td>選考状況管理 (selection_progress)</td>
+              <td>選考・売上ステータス一覧</td>
+              <td><a href="https://selection-progress-site-d11f0.web.app"
+                  target="_blank">https://selection-progress-site-d11f0.web.app</a></td>
+            </tr>
+            <tr>
+              <td>LPアプリ (lp_app)</td>
+              <td>サービス紹介・ランディングページ</td>
+              <td><a href="https://admin-app-site-d11f0.web.app/lp"
+                  target="_blank">https://admin-app-site-d11f0.web.app/lp</a></td>
             </tr>
           </tbody>
         </table>

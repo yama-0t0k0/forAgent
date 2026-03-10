@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FE リファクタリング計画 - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #0ea5e9;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .roadmap-item {
+      position: relative;
+      padding-left: 3rem;
+      padding-bottom: 3rem;
+      border-left: 2px solid rgba(14, 165, 233, 0.2);
+    }
+
+    .roadmap-item::before {
+      content: '';
+      position: absolute;
+      left: -0.65rem;
+      top: 0;
+      width: 1.2rem;
+      height: 1.2rem;
+      background: #0ea5e9;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+    }
+
+    .roadmap-item.completed::before {
+      background: #10b981;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .back-link {
+      color: #8b949e;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #38bdf8;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="back-link flex items-center gap-2">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag bg-sky-500/10 text-sky-400 border border-sky-500/20">Frontend Evolution</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">FE リファクタリング計画</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        エンジニア体験（DX）の向上、Sharedモジュール化の徹底、および Flutter への戦略的刷新プロセス。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <section>
+        <h2 class="section-title">戦略目標 (Strategic Goals)</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-slate-100 mb-4">DRY の徹底 (Don't Repeat Yourself)</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">重複する UI とロジックを `shared/common_frontend` へ 100%
+              集約し、アプリ間での一貫性を担保。各エンティティにはモデル (User, Job, etc.) を通じてアクセスを行う。</p>
+          </div>
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-slate-100 mb-4">モバイルファースト & Dart指向</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">JS環境下においても Dart のような型安全・クラスベースの設計を採用。Flutter
+              への移行を「焼き直し」ではなく「スムーズな昇華」へ。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-20">
+        <h2 class="section-title">実行ロードマップ</h2>
+
+        <div class="roadmap-item completed">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-slate-100">Step 1: モノレポ構成 & Shared 集約</h4>
+              <p class="text-xs text-emerald-400 font-bold mb-4 uppercase tracking-widest">Completed</p>
+              <ul class="text-sm text-slate-500 space-y-2">
+                <li>・`shared/common_frontend` への UI/Utility/Logic 移植</li>
+                <li>・パスエイリアス (@shared, @core) の導入</li>
+                <li>・共通モデルクラス (`User.js` 等) によるデータアクセスの抽象化</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-slate-100">Step 2: 🆕 Pure Registration 隔離と App Mode 拡張</h4>
+              <p class="text-xs text-sky-400 font-bold mb-4 uppercase tracking-widest">In Progress</p>
+              <ul class="text-sm text-slate-400 space-y-2">
+                <li>・`yama` ブランチの大規模リファクタリングをバイパスする `PureRegistrationScreen` の実装</li>
+                <li>・`LaunchController` による環境変数ベースでのモード切り替え</li>
+                <li>・各アプリ (`individual`, `corporate`, `admin`) への適用</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="roadmap-item">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-slate-100">Step 3: Flutter / Dart への完全移行</h4>
+              <p class="text-xs text-slate-500 font-bold mb-4 uppercase tracking-widest">Planned Range</p>
+              <ul class="text-sm text-slate-500 space-y-2">
+                <li>・Expo 資産を Flutter (Dart) へ順次移植。</li>
+                <li>・バックエンドの `domain_models` と 1:1 で同期。</li>
+                <li>・Dart の強力な型システムによる実行時エラーの最小化。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass p-10 rounded-3xl border-t-4 border-sky-500">
+        <h2 class="text-2xl font-bold mb-8">DX 向上に向けた優先事項</h2>
+        <ul class="space-y-6">
+          <li class="flex items-start gap-4">
+            <i class="bi bi-cursor-fill text-sky-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-200">共通コンポーネントライブラリの拡充</h5>
+              <p class="text-xs text-slate-500">`GenericSearchBar.js` や `GenericDataList.js` などの、各アプリで汎用的に利用できるコンポーネントを
+                Shared へ順次追加。</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <i class="bi bi-terminal-fill text-sky-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-200">起動スクリプトの統一</h5>
+              <p class="text-xs text-slate-500">`scripts/start_expo.sh` へのパラメータ集約により、全アプリの起動コマンドを統一。</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Frontend Systems & DX Engineering Group.
+    </footer>
+  </div>
+</body>
+
+</html>

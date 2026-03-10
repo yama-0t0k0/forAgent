@@ -11,6 +11,18 @@
         ],
         "engineer-app": [
           "engineer-app-site-d11f0"
+        ],
+        "design-document-site": [
+          "design-document-site-d11f0"
+        ],
+        "auth-portal": [
+          "auth-portal-site-d11f0"
+        ],
+        "job-description": [
+          "job-description-site-d11f0"
+        ],
+        "selection-progress": [
+          "selection-progress-site-d11f0"
         ]
       }
     }

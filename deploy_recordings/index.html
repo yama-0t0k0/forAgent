@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン検証結果 (最終成功) - Auth Portal</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f0fdf4;
+      /* Light success green */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      margin: 0;
+      color: #1a2f23;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      color: #166534;
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 16px;
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+      margin-bottom: 24px;
+    }
+
+    p {
+      color: #374151;
+      margin-bottom: 24px;
+      line-height: 1.6;
+      font-size: 18px;
+    }
+
+    .media-section {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      margin-top: 32px;
+    }
+
+    .media-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      background-color: #f9fafb;
+    }
+
+    .media-label {
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: block;
+      text-align: left;
+      font-size: 15px;
+      color: #4b5563;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-box {
+      margin-top: 40px;
+      padding: 24px;
+      background-color: #f0f9ff;
+      border-left: 6px solid #0ea5e9;
+      text-align: left;
+      font-size: 16px;
+      color: #0c4a6e;
+    }
+
+    .highlight {
+      font-weight: bold;
+      color: #166534;
+      background-color: #dcfce7;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>✨ 最終検証：ログイン成功</h1>
+    <div class="status-badge">SUCCESS (Verification Passed)</div>
+
+    <p>
+      Google Cloud APIキーの制限およびFirebase承認済みドメインの設定が正常に反映され、<br>
+      <span class="highlight">認証ポータルからのログインが完全に成功するようになりました。</span>
+    </p>
+
+    <div class="media-section">
+      <div class="media-item">
+        <span class="media-label">🎥 ログイン成功時の録画 (最終)</span>
+        <img src="success_recording.webp" alt="Final Success Recording">
+      </div>
+
+      <div class="media-item">
+        <span class="media-label">📸 成功画面スクリーンショット (UID表示)</span>
+        <img src="success_screenshot.png" alt="Success Screenshot">
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>✅ テスト項目クリア:</strong><br>
+      ・Firebase Authentication 認証リクエストの許可を確認済み<br>
+      ・GCP API Key HTTPリファラー制限の回避を確認済み<br>
+      ・ログイン後ダッシュボードへの正常遷移を確認済み<br>
+      <br>
+      設定のご対応ありがとうございました！
+    </div>
+  </div>
+</body>
+
+</html>

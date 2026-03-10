@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCP セキュリティ強化手順 - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #eab308;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .step-card {
+      padding: 2rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.3s;
+    }
+
+    .step-card:hover {
+      background: rgba(250, 204, 21, 0.05);
+      border-color: #eab308;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.8rem;
+      color: #fde047;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-yellow-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Audit Procedure</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">GCP セキュリティ強化手順</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        エンジニア登録アプリのプロダクション環境における IAM 最小権限の徹底、API キー制限、およびデータ移行の標準手順。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <!-- Section 1 -->
+      <section>
+        <h2 class="section-title">1. IAM 権限の確認と最小化</h2>
+        <div class="step-card">
+          <p class="text-sm text-slate-400 mb-6 font-bold flex items-center gap-2">
+            <i class="bi bi-shield-check"></i> Least Privilege Principle
+          </p>
+          <ul class="text-sm space-y-4 text-slate-300">
+            <li class="flex items-start gap-3">
+              <span
+                class="w-6 h-6 rounded-full bg-yellow-500/10 text-yellow-400 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+              <span><strong>オーナー (Owner)</strong> や <strong>編集者 (Editor)</strong> ロールを特定。</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span
+                class="w-6 h-6 rounded-full bg-yellow-500/10 text-yellow-400 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+              <span><strong>Cloud Datastore User</strong> 等、必要最小限のロールへ置き換えます。</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section>
+        <h2 class="section-title">2. API キーの制限 (Restrictions)</h2>
+        <div class="step-card">
+          <p class="text-xs text-slate-500 italic mb-6">フロントエンドで使用する API キーの不正利用防止。</p>
+          <div class="space-y-6">
+            <div>
+              <h5 class="text-yellow-400 font-bold mb-2">ウェブサイト制限</h5>
+              <code class="block bg-black/40 p-4 rounded-xl leading-relaxed">
+                  https://flutter-frontend-21d0a.web.app/*<br>
+                  https://flutter-frontend-21d0a.firebaseapp.com/*<br>
+                  http://localhost:19006/*
+                </code>
+            </div>
+            <div>
+              <h5 class="text-yellow-400 font-bold mb-2">API 制限 (必須)</h5>
+              <p class="text-[0.65rem] text-slate-500">Identity Toolkit API, Cloud Firestore API, Cloud Storage for
+                Firebase API, Firebase Installations API を選択。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section>
+        <h2 class="section-title">3. データ構造の移行実行</h2>
+        <div class="space-y-6">
+          <div class="step-card">
+            <h4 class="font-bold text-slate-100 mb-4">① 個人情報の分離</h4>
+            <p class="text-xs text-slate-500 mb-4 italic">Individual データを public_profile と private_info に分割。</p>
+            <code class="block bg-black/40 p-4 rounded-xl">node scripts/migration/migrate_individual.js</code>
+          </div>
+          <div class="step-card">
+            <h4 class="font-bold text-slate-100 mb-4">② RBAC 基盤の整備</h4>
+            <p class="text-xs text-slate-500 mb-4 italic">users コレクションの作成と role/companyId の一括付与。</p>
+            <code class="block bg-black/40 p-4 rounded-xl">node scripts/migration/create_users_collection.js</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4 -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-yellow-500">
+        <h2 class="text-2xl font-bold mb-8 italic">検証手順 (Deployment & Verification)</h2>
+        <div class="space-y-6 text-sm text-slate-400">
+          <p class="leading-relaxed">
+            セキュリティルールの適用後は、必ず以下の E2E テストを実行し、Admin/Individual/Corporate 各ロールのアクセス権限不備がないことを検証してください。
+          </p>
+          <code class="block bg-black/40 p-4 rounded-xl text-yellow-300">E2E_MODE=REAL ./tests/run_e2e.sh</code>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Cloud Security Compliance & Operations Team
+    </footer>
+  </div>
+</body>
+
+</html>

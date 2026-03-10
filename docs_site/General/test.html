@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テスト方針 (Test Strategy) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #10b981;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-emerald-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Quality Assurance</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">テスト方針</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        「実環境での検証」を最優先とし、UI 挙動と Firestore I/O の整合性を100%保証するためのクオリティガイドライン。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-shield-check text-emerald-400"></i> テストの三原則
+        </h2>
+        <div class="space-y-8">
+          <div class="flex gap-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <span class="text-emerald-400 font-black">1</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-100 mb-2">Real Data & Real Auth</h4>
+              <p class="text-sm text-slate-400">可能な限りモックを避け、実際の Firebase Auth と Firestore（テスター専用環境）を使用した実機レベルの検証を行います。
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <span class="text-emerald-400 font-black">2</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-100 mb-2">E2E-First</h4>
+              <p class="text-sm text-slate-400">単体テスト以上に、ユーザーのゴールが達成可能かを確認する E2E テストの網羅率を重視します。</p>
+            </div>
+          </div>
+
+          <div class="flex gap-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <span class="text-emerald-400 font-black">3</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-100 mb-2">I/O Integrity</h4>
+              <p class="text-sm text-slate-400">画面が「保存完了」を表示するだけでなく、実際に Firestore 上に正しいスキーマで書き込まれたかをアサーションします。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">テストカテゴリ</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="p-8 rounded-2xl bg-slate-800/50 border border-slate-700">
+            <h4 class="font-bold text-emerald-400 mb-4 italic">E2E Tests (Main Focus)</h4>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              `scripts/run_e2e.sh` を使用。主要なカスタマージャーニー（登録、検索、承認）を自動走査します。
+            </p>
+          </div>
+          <div class="p-8 rounded-2xl bg-slate-800/50 border border-slate-700">
+            <h4 class="font-bold text-emerald-400 mb-4 italic">Security Verification</h4>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Firestore Security Rules の整合性を `jest` で検証。不正アクセスが正しく拒絶されるかをチェックします。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass p-10 rounded-3xl border-t-8 border-emerald-500">
+        <h2 class="text-2xl font-bold mb-8">最新の実行レポート</h2>
+        <p class="text-sm text-slate-400 mb-8 italic italic">※詳細な履歴は「E2E テスト結果報告書」を参照してください。</p>
+        <div class="flex items-center justify-between p-6 bg-black/40 rounded-2xl">
+          <div>
+            <div class="text-xs text-slate-500 mb-1">Last Status</div>
+            <div class="text-emerald-400 font-black text-2xl tracking-tighter">ALL PASS</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500 mb-1">Last Updated</div>
+            <div class="text-slate-300 font-mono">2026-02-10 14:09</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Quality Assurance & Reliability Engineering Group.
+    </footer>
+  </div>
+</body>
+
+</html>
