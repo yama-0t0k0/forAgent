@@ -235,13 +235,13 @@ export interface LpContent {
     - アプリ名を「Engineer Registration App」から「**Career Dev Tool**」へ変更。
     - ユーザーの目に触れる表示名（アプリ名、ヘッダー、フッター）および開発者向けメタデータ（package.json description）を更新。
     - ※物理的なディレクトリ名やBundle ID等の変更（Level 2以降）はリスク回避のため実施しない。
-- [ ] **Admin用ログイン画面の実装**
+- [x] **Admin用ログイン画面の実装**
     - LPアプリ側は Firebase Authentication の **パスキー（Passkey）ログインを主導線**とし、「Password でのログインはこちら」リンクから Email / Password 画面へ遷移できる構成に変更。
     - 画面ヘッダーに「新規登録」ボタンを設置し、タップ後は**招待コード確認画面**へ遷移する（一般公開ではなく招待制を前提とした登録導線）。
     - **技術選定**: モバイル体験最優先のため、React Nativeフェーズでは `react-native-passkey` を採用（Flutter移行時は `passkeys` パッケージへ移行予定）。
-- [ ] **Passkeyログイン実装（Client Side）**
+- [x] **Passkeyログイン実装（Client Side）**
     - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用してログイン（実装済み）。
-    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（未実装）。
+    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（実装済み / 動作確認は本章 6.1 参照）。
 - [x] **ロール別リダイレクト機能の実装**
     - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
         - **Admin**: `admin_app` (Web)
@@ -272,34 +272,131 @@ export interface LpContent {
     - 例: `http://<PCのLAN IP>:8081`（同一Wi-Fi内）
     - もしくは本番のHosting URL（`https://admin-app-site-d11f0.web.app`）へ遷移させる
 
-1.  **前提条件**:
-    *   `expo-dev-client` がインストールされていること（対応済み）。
-    *   iOSの場合はMac環境とXcodeが必須。
-    *   Androidの場合はAndroid Studioが必須。
+#### 6.1.2 前提チェック（失敗原因の大半はここ）
 
-2.  **ビルドとインストール**:
-    プロジェクトルートから以下のコマンドを実行します。
+**アプリ設定（lp_app）**
+- `apps/lp_app/package.json` に `expo-dev-client` と `react-native-passkey` が含まれていること
+- `apps/lp_app/app.json` の `ios.bundleIdentifier` が意図した値であること（例: `com.engineer.registration.lpapp`）
+- `apps/lp_app/app.json` の `ios.associatedDomains` に `webcredentials:<RP_ID>` が設定されていること
+  - 現在の設定例: `webcredentials:engineer-registration-lp.web.app`
 
+**バックエンド（Cloud Functions）**
+- `apps/functions/src/passkey.js` の `RP_ID` と `EXPECTED_ORIGIN` が、アプリ/ドメイン側の設定と整合していること
+  - `RP_ID` の既定: `engineer-registration-lp.web.app`
+  - `EXPECTED_ORIGIN` の既定: `https://engineer-registration-lp.web.app` および `ios:bundle-id:com.engineer.registration.lpapp`
+
+**ドメイン（iOS: Associated Domains）**
+- `https://<RP_ID>/.well-known/apple-app-site-association` が配信されていること
+  - 例（確認）:
     ```bash
-    # プロジェクトルートへ移動 (環境に合わせて調整してください)
-    cd engineer-registration-app-yama/yama
-
-    # アプリディレクトリへ移動
-    cd apps/lp_app
-    
-    # iOSの場合 (Simulator または 実機)
-    npx expo run:ios
-    
-    # Androidの場合 (Emulator または 実機)
-    npx expo run:android
-    
-    # EAS Build (クラウドビルド)
-    eas build --profile development --platform ios
+    curl -s https://engineer-registration-lp.web.app/.well-known/apple-app-site-association | head
     ```
+  - 典型的な詰まり: AASA の `appID`（`<TEAM_ID>.<bundleIdentifier>`）が不一致 / 配信パスや Content-Type が不適切
 
-3.  **検証**:
-    *   ビルド完了後、端末にインストールされた「LP App (Dev)」を起動します。
-    *   Metro Bundlerとの接続を確認し、アプリが起動したら「ログイン」ボタンをタップしてパスキー認証をテストします。
+**端末要件**
+- 実機（推奨）の場合: iCloudキーチェーン（またはパスキー同期）・FaceID/TouchID が有効であること
+- Simulator の場合: パスキー/キーチェーン周りが不安定になり得るため、まずは実機での成功を優先する
+
+#### 6.1.3 Development Client のビルドと起動（iOS/Android）
+
+**必要要件**
+- iOS: Mac + Xcode
+- Android: Android Studio
+
+**iOS（Simulator or 実機）**
+```bash
+cd engineer-registration-app-yama/yama/apps/lp_app
+npx expo run:ios
+```
+
+**Android（Emulator or 実機）**
+```bash
+cd engineer-registration-app-yama/yama/apps/lp_app
+npx expo run:android
+```
+
+**Metro の起動（Dev Client 用）**
+```bash
+cd engineer-registration-app-yama/yama/apps/lp_app
+npx expo start --dev-client --tunnel
+```
+
+#### 6.1.4 アプリ内手順（切替（登録）→ パスキーでログイン成功）
+
+本手順は、LPアプリ内で **「パスワードログイン → パスキー登録（＝切替） → ログアウト → パスキーでログイン成功」** を通すためのチェックリストです。
+
+**(1) パスワード（Email/Password）でログイン**
+- 画面右上の「ログイン」→ パスキーログイン画面 → 「Password でのログインはこちら」からログイン画面へ遷移
+- 成功すると、ロール（`claims.role`）に応じて `redirectToApp(role)` が走る（デバッグ目的なら、端末から到達できるURLへ設定しておく）
+
+**(2) パスキー登録（＝切替）**
+- LPホーム画面で管理者権限が確認できると、上部に「管理者メニュー」が表示される
+- 「🔑 パスキ登録」をタップし、端末のパスキー作成フローを完了する
+  - 内部フロー（Native）:
+    - `getPasskeyRegistrationOptions` → `Passkey.create(...)` → `verifyPasskeyRegistration`
+  - 期待結果: 「パスキーを登録しました。次からパスキーでログインできます。」が表示される
+
+**(3) ログアウト**
+- 右上の「マイページ」を長押し → ログアウト
+
+**(4) パスキーでログイン**
+- 右上の「ログイン」→ パスキーログイン画面で「✨ パスキーでログイン」
+  - 内部フロー（Native）:
+    - `getPasskeyChallenge` → `Passkey.authenticate(...)` → `verifyPasskeyAndGetToken` → `signInWithCustomToken`
+  - 期待結果: ログイン成功し、`role` が取得できれば `redirectToApp(role)` が実行される
+
+#### 6.1.5 詰まりポイント（注意点・切り分け）
+
+**A. AASA（iOS: Associated Domains）が原因で登録/ログインに失敗する**
+- 症状例:
+  - パスキー作成ダイアログが出ない/すぐ閉じる
+  - `verifyPasskeyRegistration` / `verifyPasskeyAndGetToken` が `origin` 不一致で失敗する
+- 対策:
+  - `webcredentials:<RP_ID>` が `apps/lp_app/app.json` に入っているか確認
+  - `/.well-known/apple-app-site-association` の配信を確認
+  - `AASA.webcredentials.apps` に `<TEAM_ID>.<bundleIdentifier>` が含まれるよう調整
+
+**B. Cloud Functions の `RP_ID` / `EXPECTED_ORIGIN` 不整合**
+- 症状例:
+  - `expectedRPID` / `expectedOrigin` mismatch
+  - challenge は取れるが verify で落ちる
+- 対策:
+  - `apps/functions/src/passkey.js` の `RP_ID` と `EXPECTED_ORIGIN` を、実際の運用ドメイン・bundle id と一致させる
+  - 端末の `clientDataJSON.origin`（Functionsログ）と `EXPECTED_ORIGIN` を見比べて調整する
+
+**C. Expo Go で試してしまっている**
+- `react-native-passkey` は Expo Go では動作しない（Dev Client 必須）
+
+**D. 管理画面（admin_app）へ遷移できない**
+- 実機から `localhost` は参照できないため、`apps/lp_app/src/utils/navigationHelper.js` のURLを端末から到達可能なものにする
+
+#### 6.1.6 「切替（登録）」機能の現状と、追加実装が必要な場合の設計案
+
+**現状**
+- LPアプリ（`apps/lp_app`）では、管理者権限がある場合に「🔑 パスキ登録」ボタンが表示され、**ログイン中アカウントにパスキーを登録（＝切替）**できる。
+- Adminアプリ（`apps/admin_app`）側はWeb提供が主であり、「パスキー登録」をアプリ内で完結させる導線は未整備（LPアプリ側での登録を前提）。
+
+**追加実装が必要になるパターン**
+- 管理者以外（Individual/Corporate）でも、アプリ内のメニューから「パスキー登録/解除/状態確認」を行いたい
+- Adminアプリ内（または共通メニュー）から「パスキー登録」へ統一的にアクセスしたい
+
+**詳細設計（案）: 共通の「ログイン方法」/「パスキー管理」画面**
+- 画面: `shared/common_frontend/src/features/auth/screens/PasskeyManagementScreen.js`（新規）
+- 役割:
+  - 現在のログイン状態表示（Email/Passwordでログイン中か、パスキー登録済みか）
+  - パスキー登録（既存: `getPasskeyRegistrationOptions` / `verifyPasskeyRegistration` を利用）
+  - パスキー一覧/削除（追加APIが必要。下記参照）
+  - 「ログアウトしてパスキーでログイン」導線（UI上で明示）
+- 追加が必要なバックエンドAPI（案）:
+  - `listPasskeys`（onCall, 要認証）: `users/{uid}/passkeys` を返す（id, createdAt, lastUsed, transports）
+  - `deletePasskey`（onCall, 要認証）: 指定credentialIDを削除（本人のみ）
+  - セキュリティ: 直近ログイン（recent sign-in）要件や、操作ログの記録を検討
+
+**実装計画（案）**
+1. [ ] 共通画面の追加とナビゲーション接続（LP/Individual/Corporate のメニューから遷移可能にする）
+2. [ ] `listPasskeys` / `deletePasskey` のFunctions実装 + 最低限の監査ログ
+3. [ ] 端末実機でのE2E（手動）: 「パスワード→登録→ログアウト→パスキー→削除→パスワード」まで通して検証
+4. [ ] 失敗時のUX: フォールバック（Email/Password）を必ず残し、復旧導線を明確化する
 
 ### 6.2 Passkeyログイン実装（Client Side）概要
 

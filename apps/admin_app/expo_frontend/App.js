@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { StatusBar, ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -13,13 +13,14 @@ import { User } from '@shared/src/core/models/User';
 import { Company } from '@shared/src/core/models/Company';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
-import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { SignInScreen } from '@shared/src/features/auth/screens/SignInScreen';
+import { authService } from '@shared/src/features/auth/services/authService';
+import { GenericMenuScreen } from '@shared/src/features/profile/GenericMenuScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
 import { AppShell } from '@shared/src/core/components/AppShell';
@@ -30,6 +31,59 @@ import { logFirestoreIO } from '@shared/src/core/utils/FirestoreLogger';
 
 
 const Stack = createNativeStackNavigator();
+
+const AdminMenuScreen = () => {
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      Alert.alert('ログアウトに失敗しました', e?.message ? String(e.message) : '');
+    }
+  };
+
+  const menuGroups = [
+    {
+      title: '設定',
+      items: [
+        { id: 'login_method', label: 'ログイン方法', icon: 'key-outline' },
+        { id: 'security', label: 'アカウント情報 / セキュリティ', icon: 'shield-checkmark-outline' },
+      ]
+    },
+    {
+      title: 'その他',
+      items: [
+        { id: 'help', label: 'ヘルプ / お問合せ', icon: 'help-circle-outline' },
+        { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: '#EF4444' },
+      ]
+    }
+  ];
+
+  const handleItemPress = (item) => {
+    if (item.id === 'logout') {
+      Alert.alert('ログアウト', 'ログアウトしますか？', [
+        { text: 'キャンセル', style: 'cancel' },
+        { text: 'ログアウト', style: 'destructive', onPress: handleLogout },
+      ]);
+      return;
+    }
+
+    if (item.id === 'login_method') {
+      Alert.alert(
+        'ログイン方法',
+        'ログイン画面で Passkey / パスワード を選択できます。切り替える場合は一度ログアウトしてください。',
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          { text: 'ログアウトする', style: 'destructive', onPress: handleLogout },
+        ]
+      );
+      return;
+    }
+
+    Alert.alert('準備中', 'このメニューは準備中です。');
+  };
+
+  return <GenericMenuScreen menuGroups={menuGroups} onItemPress={handleItemPress} showBack />;
+};
 
 /**
  * Main application wrapper component.
@@ -243,7 +297,7 @@ const AdminAppWrapper = () => {
                 />
                 <Stack.Screen
                   name={ROUTES.MENU}
-                  component={IndividualMenuScreen}
+                  component={AdminMenuScreen}
                   options={{ title: 'メニュー', headerShown: false }}
                 />
                 <Stack.Screen

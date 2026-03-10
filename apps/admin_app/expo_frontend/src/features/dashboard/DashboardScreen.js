@@ -22,6 +22,7 @@ import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@share
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
+import { IconButton } from '@shared/src/core/components/IconButton';
 import { OverviewTab } from './components/tabs/OverviewTab';
 import { IndividualTab } from './components/tabs/IndividualTab';
 import { CompanyTab } from './components/tabs/CompanyTab';
@@ -31,6 +32,7 @@ import { DrillDownModal } from './components/modals/DrillDownModal';
 import { UserDetailModal } from './components/modals/UserDetailModal';
 import { JobDetailModal } from './components/modals/JobDetailModal';
 import { DASHBOARD_TABS, E2E_CONFIG } from '@core/constants';
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -56,6 +58,13 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const { data } = useContext(DataContext);
   const [activeTab, setActiveTab] = useState(DASHBOARD_TABS.DASHBOARD);
+
+  /**
+   * Opens the settings menu screen.
+   */
+  const handleOpenSettings = () => {
+    navigation.navigate(ROUTES.MENU);
+  };
 
   // Search States
   const [searchQueries, setSearchQueries] = useState({
@@ -368,7 +377,18 @@ export default function DashboardScreen() {
       <ScreenHeader
         title='管理ダッシュボード'
         showBack={false}
-        rightAction={<NotificationIcon />}
+        rightAction={(
+          <View style={styles.headerRightActions}>
+            <IconButton
+              testID='settings_button'
+              name='settings-outline'
+              size={26}
+              onPress={handleOpenSettings}
+              style={styles.headerIconButton}
+            />
+            <NotificationIcon />
+          </View>
+        )}
       />
 
       {/* Tabs */}
