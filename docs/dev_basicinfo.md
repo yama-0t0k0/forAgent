@@ -15,6 +15,7 @@
 - **ヒートマップ実装 (Pure Dart)**: ギャップ分析のロジックは別リポジトリの `Shared` ディレクトリにて Dart で実装済み。
 - **メタデータ駆動型UI**: JSON テンプレートから動的にフォームを生成する柔軟なアーキテクチャ。
 - **専門AIによる情報デリバリー**: Gemini API を統合し、キャリアドメイン知識に基づいた高度な分析とフィードバックを提供。
+- **SEO非依存の成長戦略**: 完全招待制のクローズドなビジネスSNSであるため、SEOによるマス流入ではなく、招待制による質の高いコミュニティ形成と内部回遊（分析に基づくUX改善）を重視します。
 - **候補者の未来価値起点**: 現状スキルだけでなく、エンジニアの「想い（志向）」を起点に戦略的なマッチングを実現。
 
 ### 🧩 マッチングロジック仕様 (Matching Logic)
@@ -154,6 +155,10 @@
 ./scripts/start_expo.sh <app_name>
 ```
 
+> [!IMPORTANT]
+> **実行ディレクトリ**: `start_expo.sh` は `engineer-registration-app-yama/yama` 直下での実行を前提とします。
+> 例えば `apps/lp_app` にいる場合は `cd ../..` で戻ってから実行してください。
+
 #### 🆕 アプリケーション・モード (App Mode)
 本リポジトリでは、同一のアプリ基盤を使用して異なる用途のUI/機能を提供する「モード切替」をサポートしています。
 
@@ -181,7 +186,8 @@ EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
 
 1.  **単一アプリ起動の原則**:
     - **仕様**: `start_expo.sh` は起動時に `pkill -f ngrok` を実行し、既存のトンネルを全て破棄します。
-    - **理由**: 複数のアプリ（ngrokトンネル）を同時に起動すると、ポート競合や HTTP 404 エラー（`ERR_NGROK_3200`）が多発するため、**一度に起動できるアプリは1つのみ**とします。
+    - **理由**: 複数のアプリ（ngrokトンネル）を同時に起動すると、ポート競合や HTTP 404 エラー（`ERR_NGROK_3200`）が多発するため、**トンネルURLが必要なアプリは同時に1つのみ**とします。
+    - **補足**: 管理画面のように「同一LAN上のブラウザから `http://<PCのIP>:<port>` で参照するだけ」の用途であれば、ngrokトンネルに依存しないため併用可能です。
 
 2.  **URL生成ロジックの固定**:
     - **仕様**: Expo Go URL の生成は、以下のロジック（Commit bc573ab版）を維持してください。
@@ -205,10 +211,18 @@ EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
 | **corporate_user_app** | `8083` | 法人ユーザー（企業）向け |
 | **job_description** | `8084` | 求人票プレビュー・管理 |
 | **fmjs** | `8085` | 選考進捗・手数料管理 |
+| **auth_portal** | `8086` | 共通ログイン画面（admin_appコンテナを流用） |
+| **lp_app** | `8087` | microCMS連携LPアプリ |
+
+> [!NOTE]
+> **Expo のポート確認プロンプト**（例: `Port 8081 is running ...` / `Use port 8082 instead?`）が出た場合は `no` を選択し、起動中のアプリを止めた上で `start_expo.sh` 経由で起動し直してください（ポート割当は本表と `scripts/start_expo.sh` を正とします）。
 
 ### 🔑 環境変数の管理 (.env)
 全アプリは同一の Firestore プロジェクトを参照するため、共通の `.env` 設定が必要です。
 `apps/individual_user_app/expo_frontend/.env` をマスターとし、各アプリの `expo_frontend/` 直下に複製して配置することを標準手順とします。
+
+> [!NOTE]
+> **例外**: `lp_app` は `expo_frontend/` 配下ではなく `apps/lp_app/.env` を使用します（`scripts/start_expo.sh` の `APP_PATH` に準拠）。
 
 **必須変数:**
 - `EXPO_PUBLIC_FIREBASE_API_KEY`

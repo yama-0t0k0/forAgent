@@ -2,7 +2,7 @@
     "name": "engineer-registration-app-yama",
     "version": "1.0.0",
     "private": true,
-    "description": "Modular Monolith Monorepo for Engineer Registration App",
+    "description": "Modular Monolith Monorepo for Career Dev Tool",
     "workspaces": [
         "apps/*/expo_frontend",
         "shared/*"
