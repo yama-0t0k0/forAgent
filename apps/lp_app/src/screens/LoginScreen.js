@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../features/firebase/config';
+import { auth, db } from '../features/firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { redirectToApp } from '../utils/navigationHelper';
 
@@ -39,6 +40,7 @@ const LoginScreen = ({ navigation }) => {
      * Handle login process
      */
     const handleLogin = async () => {
+        console.log('[Login] handleLogin started', { email });
         if (!email || !password) {
             Alert.alert('エラー', 'メールアドレスとパスワードを入力してください。');
             return;
@@ -47,41 +49,68 @@ const LoginScreen = ({ navigation }) => {
         setIsLoading(true);
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log('Login successful');
-            
-            // Fetch user role
             const idTokenResult = await userCredential.user.getIdTokenResult();
-            const role = idTokenResult.claims.role;
+            let role = idTokenResult.claims.role;
+
+            // Fallback: If no role in claims, check Firestore 'users' collection
+            if (!role) {
+                console.log('[Login] No role in claims, checking Firestore users collection...');
+                try {
+                    const userDocRef = doc(db, 'users', userCredential.user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    // Try lowercase 'users' first, then Capitalized 'Users' (legacy/migration handling)
+                    if (userDocSnap.exists()) {
+                        role = userDocSnap.data().role;
+                        console.log('[Login] Role found in Firestore (users):', role);
+                    } else {
+                        const legacyUserDocRef = doc(db, 'Users', userCredential.user.uid);
+                        const legacyUserDocSnap = await getDoc(legacyUserDocRef);
+                        if (legacyUserDocSnap.exists()) {
+                            role = legacyUserDocSnap.data().role;
+                            console.log('[Login] Role found in Firestore (Users):', role);
+                        }
+                    }
+                } catch (firestoreError) {
+                    console.error('[Login] Error fetching role from Firestore:', firestoreError);
+                }
+            }
+            
+            console.log('[Login] Login successful, role:', role);
 
             // Analytics Tracking
             await setAnalyticsUser(userCredential.user.uid);
-            await setAnalyticsUserProperties({ 
+            await setAnalyticsUserProperties({
                 user_type: role || 'unknown'
             });
             await logCustomEvent('login', { method: 'email', role: role || 'unknown' });
 
+            // Stay in LP App to register passkey or Redirect if role exists
+            console.log('[Login] Staying in app (navigation.goBack)');
+            
+            // If the role is found (in claims or Firestore fallback):
             if (role) {
                 await redirectToApp(role);
             } else {
-                navigation.goBack();
+                 navigation.goBack();
             }
         } catch (error) {
             console.error('Login failed:', error);
-            
+
             // Analytics Tracking (Failure)
-            await logCustomEvent('login_failure', { 
+            await logCustomEvent('login_failure', {
                 method: 'email',
                 error_code: error.code,
                 error_message: error.message
             });
 
             let message = 'ログインに失敗しました。';
-            if (error.code === ERROR_CODES.USER_NOT_FOUND || 
-                error.code === ERROR_CODES.WRONG_PASSWORD || 
+            if (error.code === ERROR_CODES.USER_NOT_FOUND ||
+                error.code === ERROR_CODES.WRONG_PASSWORD ||
                 error.code === ERROR_CODES.INVALID_CREDENTIAL) {
                 message = 'メールアドレスまたはパスワードが正しくありません。';
             }
-            Alert.alert('ログイン失敗', message);
+            Alert.alert('ログイン失敗', `${message}\n(${error.code})`);
         } finally {
             setIsLoading(false);
         }

@@ -46,15 +46,15 @@ const verifySignature = (signature, body) => {
     .createHmac("sha256", webhookSecret)
     .update(body)
     .digest("hex");
-  
+
   // Use timingSafeEqual to prevent timing attacks
   const signatureBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expectedSignature);
-  
+
   if (signatureBuffer.length !== expectedBuffer.length) {
     return false;
   }
-  
+
   return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
 };
 
@@ -88,11 +88,11 @@ exports.onContentUpdate = onRequest(async (req, res) => {
   // We need to be careful: req.rawBody might be a Buffer.
   const rawBody = req.rawBody;
   if (!rawBody) {
-      logger.warn("Missing raw body for signature verification");
-      res.status(400).send("Bad Request: Missing body");
-      return;
+    logger.warn("Missing raw body for signature verification");
+    res.status(400).send("Bad Request: Missing body");
+    return;
   }
-  
+
   const rawBodyString = rawBody.toString('utf8');
 
   if (!verifySignature(signature, rawBodyString)) {
@@ -108,22 +108,22 @@ exports.onContentUpdate = onRequest(async (req, res) => {
   // Currently we only have one cache key: "lp_home_list"
   // In a more complex app, we would check `payload.api` and `payload.id` to selectively invalidate.
   // For now, any update to `lp_home` API clears the list cache.
-  
+
   if (payload.api === "lp_home") {
-      const CACHE_COLLECTION = "lp_content_cache";
-      const CACHE_KEY = "lp_home_list";
-      
-      try {
-          await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
-          logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
-          res.status(200).send("Cache invalidated");
-      } catch (error) {
-          logger.error("Failed to invalidate cache", error);
-          res.status(500).send("Internal Server Error");
-      }
+    const CACHE_COLLECTION = "lp_content_cache";
+    const CACHE_KEY = "lp_home_list";
+
+    try {
+      await db.collection(CACHE_COLLECTION).doc(CACHE_KEY).delete();
+      logger.info(`Cache invalidated: ${CACHE_COLLECTION}/${CACHE_KEY}`);
+      res.status(200).send("Cache invalidated");
+    } catch (error) {
+      logger.error("Failed to invalidate cache", error);
+      res.status(500).send("Internal Server Error");
+    }
   } else {
-      logger.info(`Ignored update for API: ${payload.api}`);
-      res.status(200).send("Ignored");
+    logger.info(`Ignored update for API: ${payload.api}`);
+    res.status(200).send("Ignored");
   }
 });
 
@@ -147,7 +147,7 @@ exports.getLpContent = onRequest(async (req, res) => {
     // 必要であればAuthorizationヘッダーからIDトークンを検証する処理が必要。
     // 今回は「LPアプリ」であり、未認証でも閲覧可能とするため、
     // トークンがあれば検証してRoleを取得し、なければゲストとして扱う。
-    
+
     let uid = null;
     let userPlan = "free";
     // let userRole = "individual"; // 未使用のためコメントアウト
@@ -207,17 +207,17 @@ exports.getLpContent = onRequest(async (req, res) => {
 
         // キャッシュ保存
         try {
-            const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
-            const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
-            await cacheRef.set({
-              data: microcmsData,
-              fetchedAt: admin.firestore.Timestamp.now(),
-              expiresAt: expiresAt,
-            });
-            logger.info("Fetched and cached from microCMS");
+          const cacheRef = db.collection(CACHE_COLLECTION).doc(CACHE_KEY);
+          const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + CACHE_DURATION_MS);
+          await cacheRef.set({
+            data: microcmsData,
+            fetchedAt: admin.firestore.Timestamp.now(),
+            expiresAt: expiresAt,
+          });
+          logger.info("Fetched and cached from microCMS");
         } catch (firestoreWriteError) {
-             logger.error("Firestore cache write failed", firestoreWriteError);
-             // キャッシュ保存に失敗しても、データ自体は返却する
+          logger.error("Firestore cache write failed", firestoreWriteError);
+          // キャッシュ保存に失敗しても、データ自体は返却する
         }
       }
 
@@ -262,3 +262,7 @@ exports.getLpContent = onRequest(async (req, res) => {
 
 exports.getPasskeyChallenge = getPasskeyChallenge;
 exports.verifyPasskeyAndGetToken = verifyPasskeyAndGetToken;
+const { getPasskeyRegistrationOptions, verifyPasskeyRegistration, repairAdminPermissions } = require('./passkey');
+exports.getPasskeyRegistrationOptions = getPasskeyRegistrationOptions;
+exports.verifyPasskeyRegistration = verifyPasskeyRegistration;
+exports.repairAdminPermissions = repairAdminPermissions;

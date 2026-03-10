@@ -239,6 +239,9 @@ export interface LpContent {
     - LPアプリ側は Firebase Authentication の **パスキー（Passkey）ログインを主導線**とし、「Password でのログインはこちら」リンクから Email / Password 画面へ遷移できる構成に変更。
     - 画面ヘッダーに「新規登録」ボタンを設置し、タップ後は**招待コード確認画面**へ遷移する（一般公開ではなく招待制を前提とした登録導線）。
     - **技術選定**: モバイル体験最優先のため、React Nativeフェーズでは `react-native-passkey` を採用（Flutter移行時は `passkeys` パッケージへ移行予定）。
+- [ ] **Passkeyログイン実装（Client Side）**
+    - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用してログイン（実装済み）。
+    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（未実装）。
 - [x] **ロール別リダイレクト機能の実装**
     - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
         - **Admin**: `admin_app` (Web)
@@ -258,6 +261,16 @@ export interface LpContent {
 ### 6.1 ネイティブパスキー検証手順 (Development Client)
 
 ネイティブアプリ（iOS/Android）でのパスキー認証はOSの深層機能を使用するため、標準のExpo Goアプリでは動作しません。以下の手順でカスタムビルド（Development Client）を作成し、実機またはエミュレーターで検証を行ってください。
+
+#### 6.1.1 Expo Go でのログイン可否（整理）
+
+- **Email / Password ログイン**: Expo Go でも動作する（Firebase JS SDK 経由）。
+- **Passkey ログイン（Native）**: Expo Go では動作しない（Development Client が必要）。
+- **ログイン後の管理画面遷移（実機）**:
+  - 実機（Expo Go）から `http://localhost:8081` は参照できない（スマホの `localhost` はスマホ自身を指す）。
+  - 開発中に Admin へ遷移させる場合は、`apps/lp_app/src/utils/navigationHelper.js` の `APP_URLS.admin` を **端末から到達可能なURL** にする。
+    - 例: `http://<PCのLAN IP>:8081`（同一Wi-Fi内）
+    - もしくは本番のHosting URL（`https://admin-app-site-d11f0.web.app`）へ遷移させる
 
 1.  **前提条件**:
     *   `expo-dev-client` がインストールされていること（対応済み）。
@@ -287,6 +300,65 @@ export interface LpContent {
 3.  **検証**:
     *   ビルド完了後、端末にインストールされた「LP App (Dev)」を起動します。
     *   Metro Bundlerとの接続を確認し、アプリが起動したら「ログイン」ボタンをタップしてパスキー認証をテストします。
+
+### 6.2 Passkeyログイン実装（Client Side）概要
+
+#### 目的 / 期待する効果
+
+- **パスワードレス化**: Email / Password を主導線から外し、運用上のパスワード管理コストと漏洩リスクを抑える。
+- **フィッシング耐性の向上**: Passkeyはオリジン/RPに紐づくため、偽サイト誘導による資格情報詐取を受けにくい。
+- **UX向上**: 生体認証/端末ロック解除により入力負荷が小さく、ログイン完了までが速い。
+- **権限連動の一貫性**: ログイン後は Custom Claims の `role` に基づいて既存のリダイレクト機構へ接続し、管理者向け機能（プレビュー等）も同じ権限体系で制御する。
+
+#### 詳細設計
+
+**対象コンポーネント**
+
+- `apps/lp_app/src/screens/PasskeyLoginScreen.js`
+
+**プラットフォーム分岐**
+
+- **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用し、Firebase Authentication と Cloud Functions の連携をライブラリ側に委譲する。
+- **Native (iOS/Android)**: `react-native-passkey` と Cloud Functions を組み合わせ、認証結果を Firebase Authentication へ接続する。
+
+**Nativeログインフロー（想定）**
+
+1. **チャレンジ取得**
+   - Callable Function: `getPasskeyChallenge`
+   - 返却値: `challenge`, `rpId` など（認証オプション）
+2. **端末でパスキー認証**
+   - `Passkey.authenticate({ rpId, challenge, allowCredentials })` を実行
+   - 成功時に WebAuthn 互換のレスポンス（`id`, `rawId`, `response.clientDataJSON`, `response.authenticatorData`, `response.signature` 等）を取得
+3. **サーバー検証 & トークン発行**
+   - Callable Function: `verifyPasskeyAndGetToken`
+   - 入力: `response`（手順2の結果）
+   - 出力: `{ customToken }`
+4. **Firebase Authへサインイン**
+   - `signInWithCustomToken(auth, customToken)` を実行して `userCredential` を取得
+5. **ロール取得とリダイレクト**
+   - `userCredential.user.getIdTokenResult()` から `claims.role` を取得
+   - `redirectToApp(role)` により role別に遷移
+
+**失敗時の扱い**
+
+- UI: 「ログイン失敗」を表示し、再試行を許可（Email / Password へのフォールバック導線は維持）。
+- 計測: `login_failure` を `method=passkey` として送信し、`error_code` / `error_message` を記録する。
+
+**セキュリティ上の前提**
+
+- クライアントには microCMS APIキー等の秘匿情報を置かないのと同様に、Passkey検証（署名検証）は Cloud Functions 側で実施する。
+- Challenge は **使い捨て** とし、期限切れ（TTL）を設定する（Functions側の `passkey_challenges` 管理方針に従う）。
+
+#### 実装計画（概要）
+
+1. **前提条件の確定**
+   - RP ID / Origin / Associated Domains（iOS）/ Asset Links（Android）の整合性を確定し、Functions側の検証条件と一致させる。
+2. **Nativeログイン経路の実装**
+   - `PasskeyLoginScreen.js` のネイティブ分岐を、チャレンジ取得 → 認証 → 検証 → Custom Token サインインの実フローに置き換える。
+3. **エラーハンドリングと計測の整理**
+   - 既存の `login` / `login_failure` 計測仕様に合わせ、Passkey経路のエラーコード体系とメッセージを整理する。
+4. **動作確認**
+   - Development Clientでの実機/シミュレータ確認（6.1）を行い、ロール別リダイレクトと管理者限定機能の連動を確認する。
 
 ### 付録: メンテナンス記録 (Maintenance Roles)
 

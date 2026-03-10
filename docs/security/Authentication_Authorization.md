@@ -255,6 +255,12 @@ Adminアカウントは以下の構成で管理される。
 >
 > 手順3はバックエンド実装（§4.2）完了後に自動化が可能。それまでは Firebase Console または Admin SDK スクリプトで手動設定する。
 
+> [!NOTE]
+> **UID再発行時のリカバリ（運用メモ）**:
+> - 管理者アカウントのUIDが変わった場合、最低限「新UIDへ Custom Claims（admin）を付与」し、「`users/{uid}` のデータを移行」する必要があります。
+> - 開発用途として、Callable Functions に `repairAdminPermissions`（Custom Claims 付与 + `users` データ移行）を用意しています（実装: `apps/functions/src/passkey.js`）。
+> - 本番運用では、実行可能者の制限・監査ログ・不要になった関数の削除を前提に運用してください。
+
 ---
 
 ## 6. ログインアーキテクチャ設計（Passkey完全対応 & Hybrid Auth）
@@ -270,6 +276,7 @@ Adminアカウントは以下の構成で管理される。
 
 2.  **Authorization (権限管理)**:
     - **Custom Claims フル活用 (Global Scope)**: `role` や `companyId` などの基本権限は、Firestoreアクセスなしで Custom Claims から即座に判定する (§3.1準拠)。
+    - **UI向けフォールバック**: LPアプリ等の「遷移先決定」では、Claims未付与のケースに備え `users/{uid}.role` を参照するフォールバックを許容する（ただし、セキュリティルール上の根本権限は Custom Claims を正とする）。
     - **Context Data 遅延ロード (Context Scope)**: アルムナイ区分（Lv1〜Lv3）などの複雑なリレーション情報は、ログイン後の非同期処理として Firestore から取得する (§3.2準拠)。
 
 ### 6.2 認証・認可フロー詳細

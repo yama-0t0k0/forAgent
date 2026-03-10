@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -13,7 +13,8 @@ import {
 import { auth, functions } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { Passkey } from 'react-native-passkey';
-import { signInWithCredential } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
+import { signInWithCustomToken } from 'firebase/auth';
 import { redirectToApp } from '../utils/navigationHelper';
 
 const PLATFORM_WEB = 'web';
@@ -90,43 +91,36 @@ const PasskeyLoginScreen = ({ navigation }) => {
    * @returns {Promise<void>}
    */
   const handleNativePasskeyLogin = async () => {
-    // 1. Check if Passkey is supported
     const isSupported = Passkey.isSupported();
     if (!isSupported) {
       throw new Error('Passkeys are not supported on this device.');
     }
 
-    // 2. Get Challenge from Firebase Cloud Functions (Placeholder)
-    // TODO: Implement getPasskeyChallenge Cloud Function
-    // const { challenge, rpId, allowCredentials } = await getPasskeyChallenge();
-    
-    // For now, we simulate the flow or alert the user that backend integration is pending
-    // since we need the backend to generate a valid challenge for Firebase Auth.
-    // However, following the user's instruction to "implement using react-native-passkey",
-    // we will outline the code structure.
-    
-    Alert.alert(
-      '開発中', 
-      'ネイティブアプリでのパスキー認証は現在バックエンド連携の準備中です。\n(react-native-passkey導入済み)'
-    );
-    
-    /* 
-    // Implementation Plan:
-    
-    // a. Authenticate with Native Passkey
+    const getChallenge = httpsCallable(functions, 'getPasskeyChallenge');
+    const verifyResponse = httpsCallable(functions, 'verifyPasskeyAndGetToken');
+
+    const options = await getChallenge();
+    const data = options.data || {};
+    const rpId = data.rpId || data.rpID;
+    const { challenge, allowCredentials } = data;
+    if (!rpId || !challenge) {
+      throw new Error('Invalid challenge options');
+    }
+
     const result = await Passkey.authenticate({
-      rpId: 'your-rp-id', // e.g., engineer-registration.web.app
-      challenge: 'base64-encoded-challenge-from-server',
-      allowCredentials: [], // Optional: list of allowed credentials
+      rpId,
+      challenge,
+      allowCredentials: Array.isArray(allowCredentials) ? allowCredentials : [],
     });
 
-    // b. Send result to backend to verify and get Custom Token
-    const { customToken } = await verifyPasskeyAndGetToken(result);
+    const verify = await verifyResponse({ response: result });
+    const { customToken } = verify.data || {};
+    if (!customToken) {
+      throw new Error('Custom token not returned');
+    }
 
-    // c. Sign in with Custom Token
     const userCredential = await signInWithCustomToken(auth, customToken);
     await handleLoginSuccess(userCredential);
-    */
   };
 
   /**

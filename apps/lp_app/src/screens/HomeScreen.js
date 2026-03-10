@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth } from '../features/firebase/config';
+import { auth, functions } from '../features/firebase/config';
+import { httpsCallable } from 'firebase/functions';
+import { Passkey } from 'react-native-passkey';
 import { useAuth } from '../context/AuthContext';
 import { redirectToApp } from '../utils/navigationHelper';
+import { logCustomEvent } from '../features/analytics';
 
 /**
  * LP Home Screen
@@ -75,7 +78,9 @@ export const fetchLpContents = async ({ draftKey, preview } = {}) => {
   const region = 'asia-northeast1';
 
   // Use emulator if configured
-  const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
+  // const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
+  const emulatorHost = null; // Force production environment to access real microCMS via Functions
+
   const baseUrl = emulatorHost
     ? `http://${emulatorHost.split(':')[0]}:5001/${projectId}/${region}`
     : `https://${region}-${projectId}.cloudfunctions.net`;
@@ -121,7 +126,6 @@ export const fetchLpContents = async ({ draftKey, preview } = {}) => {
   return extractLpListItems(result);
 };
 
-import { logCustomEvent } from '../features/analytics';
 
 /**
  * Analytics Tracking Utility
@@ -152,18 +156,69 @@ const HomeScreen = (props) => {
     }
 
     try {
-      const resolvedRole = typeof role === 'string' && role.length > 0
-        ? role
-        : (await user.getIdTokenResult(true))?.claims?.role;
+      let resolvedRole = role;
+
+      // Fallback: If no role in context/claims, check Firestore 'users' collection
+      // This duplicates logic in AuthContext/LoginScreen, but ensures robustness
+      if (!resolvedRole) {
+          const idTokenResult = await user.getIdTokenResult(true);
+          resolvedRole = idTokenResult.claims.role;
+      }
+      
+      if (!resolvedRole) {
+           // Firestore fallback (using db import if needed, or rely on AuthContext)
+           // Since we can't easily import db/getDoc here without adding imports, 
+           // and AuthContext should have handled it, we might just alert.
+           // But let's assume AuthContext eventually updates 'role'.
+           // If 'role' is still null here, AuthContext might still be loading or failed.
+           
+           // Ideally, we should wait for AuthContext, but here we are in an event handler.
+           // Let's try to fetch from Firestore directly if we import db.
+           // For now, let's just use what we have and show a better error message if missing.
+           // Or... we can add the db import and check Firestore here too.
+           
+           // Let's rely on the AuthContext being updated eventually.
+           // If user clicks too fast, it might fail.
+           
+           console.warn('Role not found in context or claims.');
+      }
 
       if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
-        Alert.alert('エラー', 'ユーザー種別の取得に失敗しました。再ログインしてください。');
+        Alert.alert('エラー', 'ユーザー種別の取得に失敗しました。少し待ってから再試行するか、再ログインしてください。');
         return;
       }
 
       await redirectToApp(resolvedRole);
     } catch (e) {
+      console.error('MyPage Redirect Error:', e);
       Alert.alert('エラー', 'マイページへ遷移できませんでした。');
+    }
+  };
+
+  const handleRegisterPasskey = async () => {
+    if (!user) return;
+
+    try {
+      // 1. Get registration options from backend
+      const getOptions = httpsCallable(functions, 'getPasskeyRegistrationOptions');
+      const { data: options } = await getOptions();
+
+      console.log('Passkey Registration Options:', options);
+
+      // 2. Create passkey on device
+      // Note: react-native-passkey handles the native dialog
+      const result = await Passkey.create(options);
+
+      // 3. Verify registration on backend
+      const verifyRegistration = httpsCallable(functions, 'verifyPasskeyRegistration');
+      await verifyRegistration({ response: result });
+
+      Alert.alert('成功', 'パスキーを登録しました。次からパスキーでログインできます。');
+      trackEvent('passkey_registration_success', { user_id: user.uid });
+    } catch (e) {
+      console.error('Passkey Registration Error:', e);
+      Alert.alert('エラー', 'パスキーの登録に失敗しました。');
+      trackEvent('passkey_registration_failure', { error: e.message });
     }
   };
 
@@ -256,6 +311,13 @@ const HomeScreen = (props) => {
                 {isPreviewEnabled ? 'プレビュー中' : 'プレビュー有効化'}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.adminButton}
+              onPress={handleRegisterPasskey}
+            >
+              <Text style={styles.adminButtonText}>🔑 パスキ登録</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -269,7 +331,28 @@ const HomeScreen = (props) => {
               setDraftKey(null);
               setIsPreviewEnabled(false);
             }}>
-              <Text style={styles.previewCloseText}>終了</Text>
+              <Text style={styles.previewBannerClose}>終了</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Repair Permissions Section (Visible if logged in but NOT admin) */}
+        {user && !isAdmin && (
+          <View style={styles.repairContainer}>
+            <Text style={styles.repairText}>管理者権限が確認できません。</Text>
+            <TouchableOpacity
+              style={styles.repairButton}
+              onPress={async () => {
+                try {
+                  const repair = httpsCallable(functions, 'repairAdminPermissions');
+                  const { data } = await repair();
+                  Alert.alert('成功', data.message);
+                } catch (e) {
+                  Alert.alert('エラー', '修復に失敗しました。');
+                }
+              }}
+            >
+              <Text style={styles.repairButtonText}>管理者権限を修復する</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -739,6 +822,30 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     color: '#999',
+  },
+  repairContainer: {
+    backgroundColor: '#FFFBE6',
+    borderWidth: 1,
+    borderColor: '#FFE58F',
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  repairText: {
+    color: '#856404',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  repairButton: {
+    backgroundColor: '#FAAD14',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  repairButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

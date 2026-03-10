@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../features/firebase/config';
+import { auth, db } from '../features/firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 
 const ROLE_ADMIN = 'admin';
 
@@ -31,11 +32,32 @@ export const AuthProvider = ({ children }) => {
                 // Check for custom claims
                 try {
                     const idTokenResult = await currentUser.getIdTokenResult();
-                    const userRole = idTokenResult.claims.role || null;
+                    let userRole = idTokenResult.claims.role || null;
+
+                    // Fallback: If no role in claims, check Firestore 'users' collection
+                    if (!userRole) {
+                        console.log('No role in claims, checking Firestore users collection...');
+                        const userDocRef = doc(db, 'users', currentUser.uid);
+                        const userDocSnap = await getDoc(userDocRef);
+                        
+                        // Try lowercase 'users' first, then Capitalized 'Users' (legacy/migration handling)
+                        if (userDocSnap.exists()) {
+                            userRole = userDocSnap.data().role;
+                            console.log('Role found in Firestore (users):', userRole);
+                        } else {
+                             const legacyUserDocRef = doc(db, 'Users', currentUser.uid);
+                             const legacyUserDocSnap = await getDoc(legacyUserDocRef);
+                             if (legacyUserDocSnap.exists()) {
+                                 userRole = legacyUserDocSnap.data().role;
+                                 console.log('Role found in Firestore (Users):', userRole);
+                             }
+                        }
+                    }
+
                     setRole(userRole);
                     setIsAdmin(userRole === ROLE_ADMIN);
                 } catch (e) {
-                    console.error('Error fetching claims:', e);
+                    console.error('Error fetching claims/role:', e);
                     setRole(null);
                     setIsAdmin(false);
                 }

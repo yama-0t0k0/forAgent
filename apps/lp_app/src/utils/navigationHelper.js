@@ -2,9 +2,10 @@ import { Platform, Linking, Alert } from 'react-native';
 
 // TODO: Update these URLs with actual production/development URLs
 const APP_URLS = {
-  admin: 'https://admin-app-site-d11f0.web.app', // Based on firebase.json
-  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'http://localhost:8082', // Placeholder
-  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'http://localhost:8081', // Placeholder
+  // Use LAN IP for Expo Go compatibility (localhost is not reachable from device)
+  admin: __DEV__ ? 'http://10.190.85.60:8081' : 'https://admin-app-site-d11f0.web.app', 
+  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'http://10.190.85.60:8082', 
+  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'http://10.190.85.60:8081', 
 };
 
 const PLATFORM_WEB = 'web';
