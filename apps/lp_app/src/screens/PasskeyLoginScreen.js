@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -13,11 +13,17 @@ import {
 import { auth, functions } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { Passkey } from 'react-native-passkey';
-import { signInWithCredential } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
+import { signInWithCustomToken } from 'firebase/auth';
+import { redirectToApp } from '../utils/navigationHelper';
+
+const PLATFORM_WEB = 'web';
+const TYPE_UNDEFINED = 'undefined';
+const TYPE_FUNCTION = 'function';
 
 // WebAuthn library for Web
-let webAuthn;
-if (Platform.OS === 'web') {
+let webAuthn = null;
+if (Platform.OS === PLATFORM_WEB) {
   import('@firebase-web-authn/browser').then((module) => {
     webAuthn = module;
   });
@@ -42,7 +48,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
   const handlePasskeyLogin = async () => {
     setIsLoading(true);
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === PLATFORM_WEB) {
         await handleWebPasskeyLogin();
       } else {
         await handleNativePasskeyLogin();
@@ -60,15 +66,19 @@ const PasskeyLoginScreen = ({ navigation }) => {
     }
   };
 
+  /**
+   * Handle Web Passkey Login
+   * @returns {Promise<void>}
+   */
   const handleWebPasskeyLogin = async () => {
     const isWebAuthnAvailable =
-      typeof window !== 'undefined' && 'PublicKeyCredential' in window;
+      typeof window !== TYPE_UNDEFINED && 'PublicKeyCredential' in window;
 
     if (!isWebAuthnAvailable) {
       throw new Error('WebAuthn is not supported in this browser.');
     }
 
-    if (!webAuthn || typeof webAuthn.signInWithPasskey !== 'function') {
+    if (!webAuthn || typeof webAuthn.signInWithPasskey !== TYPE_FUNCTION) {
       throw new Error('WebAuthn library is not loaded.');
     }
 
@@ -76,51 +86,65 @@ const PasskeyLoginScreen = ({ navigation }) => {
     await handleLoginSuccess(userCredential);
   };
 
+  /**
+   * Handle Native Passkey Login
+   * @returns {Promise<void>}
+   */
   const handleNativePasskeyLogin = async () => {
-    // 1. Check if Passkey is supported
     const isSupported = Passkey.isSupported();
     if (!isSupported) {
       throw new Error('Passkeys are not supported on this device.');
     }
 
-    // 2. Get Challenge from Firebase Cloud Functions (Placeholder)
-    // TODO: Implement getPasskeyChallenge Cloud Function
-    // const { challenge, rpId, allowCredentials } = await getPasskeyChallenge();
-    
-    // For now, we simulate the flow or alert the user that backend integration is pending
-    // since we need the backend to generate a valid challenge for Firebase Auth.
-    // However, following the user's instruction to "implement using react-native-passkey",
-    // we will outline the code structure.
-    
-    Alert.alert(
-      '開発中', 
-      'ネイティブアプリでのパスキー認証は現在バックエンド連携の準備中です。\n(react-native-passkey導入済み)'
-    );
-    
-    /* 
-    // Implementation Plan:
-    
-    // a. Authenticate with Native Passkey
+    const getChallenge = httpsCallable(functions, 'getPasskeyChallenge');
+    const verifyResponse = httpsCallable(functions, 'verifyPasskeyAndGetToken');
+
+    const options = await getChallenge();
+    const data = options.data || {};
+    const rpId = data.rpId || data.rpID;
+    const { challenge, allowCredentials } = data;
+    if (!rpId || !challenge) {
+      throw new Error('Invalid challenge options');
+    }
+
     const result = await Passkey.authenticate({
-      rpId: 'your-rp-id', // e.g., engineer-registration.web.app
-      challenge: 'base64-encoded-challenge-from-server',
-      allowCredentials: [], // Optional: list of allowed credentials
+      rpId,
+      challenge,
+      allowCredentials: Array.isArray(allowCredentials) ? allowCredentials : [],
     });
 
-    // b. Send result to backend to verify and get Custom Token
-    const { customToken } = await verifyPasskeyAndGetToken(result);
+    const verify = await verifyResponse({ response: result });
+    const { customToken } = verify.data || {};
+    if (!customToken) {
+      throw new Error('Custom token not returned');
+    }
 
-    // c. Sign in with Custom Token
     const userCredential = await signInWithCustomToken(auth, customToken);
     await handleLoginSuccess(userCredential);
-    */
   };
 
+  /**
+   * Handle Login Success
+   * @param {object} userCredential - Firebase user credential
+   * @returns {Promise<void>}
+   */
   const handleLoginSuccess = async (userCredential) => {
+    // Analytics Tracking
     await setAnalyticsUser(userCredential.user.uid);
-    await setAnalyticsUserProperties({ user_type: 'admin' });
-    await logCustomEvent('login', { method: 'passkey' });
-    navigation.goBack();
+    
+    // Get role from ID token
+    const idTokenResult = await userCredential.user.getIdTokenResult();
+    const role = idTokenResult.claims.role;
+
+    await setAnalyticsUserProperties({ user_type: role || 'unknown' });
+    await logCustomEvent('login', { method: 'passkey', role });
+
+    if (role) {
+      await redirectToApp(role);
+    } else {
+      // Fallback for users without role (or if redirect fails/is not applicable)
+      navigation.goBack();
+    }
   };
 
   return (
@@ -145,7 +169,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#fff' />
             ) : (
               <Text style={styles.loginButtonText}>✨ パスキーでログイン</Text>
             )}
@@ -220,6 +244,18 @@ const styles = StyleSheet.create({
   passwordLinkText: {
     color: '#007AFF',
     fontSize: 14,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
 });
 
