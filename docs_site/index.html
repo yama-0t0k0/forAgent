@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Documentation Portal | Flutter-Frontend</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    .portal-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 5rem 2rem;
+      text-align: center;
+      border-bottom: 4px solid var(--primary);
+    }
+
+    .portal-header h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-group {
+      margin: 4rem 0;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      border-left: 8px solid var(--primary);
+      padding-left: 1.5rem;
+    }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .doc-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .doc-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      border-color: var(--primary);
+    }
+
+    .doc-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: var(--primary-dark);
+    }
+
+    .doc-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .doc-tag {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-date {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .doc-date::before {
+      content: "🕒";
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="portal-header">
+    <h1>Design Document Portal</h1>
+    <p style="opacity: 0.8; font-size: 1.2rem;">エンジニア登録アプリ / キャリアデベロップメントSNS 設計資産</p>
+  </header>
+
+  <main class="container">
+    <!-- General Section -->
+    <section class="section-group">
+      <h2 class="section-title">General Documentation</h2>
+      <div class="doc-grid">
+        <a href="General/purpose.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Philosophy</div>
+            <h3>パーパス (Purpose)</h3>
+            <p>プロジェクトの存在意義、目的、依然システム実装における成長優先の哲学。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/dev_basicinfo.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Guide</div>
+            <h3>開発基本情報</h3>
+            <p>技術スタック、マッチングロジック、モノレポ構成、AI運用ルールなどの重要事項。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-10 14:41:56</div>
+        </a>
+        <a href="General/screen_transition_diagram.html" class="doc-card">
+          <div>
+            <div class="doc-tag">UI/UX</div>
+            <h3>画面遷移図 (Interaction Flows)</h3>
+            <p>5つの主要サービスにおけるナビゲーションと状態変遷の定義（Mermaid/Interactive）。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/coding_conventions.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Standard</div>
+            <h3>JS コーディング規約</h3>
+            <p>Dart移行を見据えたクラスベース記述とモバイルファーストUIの原則。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/coding_conventions_dart.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Standard</div>
+            <h3>Dart コーディング規約</h3>
+            <p>Full-stack Dart アーキテクチャに向けた標準ガイドライン。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/be_refactoring_plan.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Roadmap</div>
+            <h3>BE リファクタリング計画</h3>
+            <p>Cloud Run (Dart) への集約と Full-stack Dart サーバー移行戦略。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/fe_refactoring_plan.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Roadmap</div>
+            <h3>FE リファクタリング計画</h3>
+            <p>Shared化による重複排除と Expo から Flutter への刷新計画。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/test.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Quality</div>
+            <h3>テスト方針</h3>
+            <p>実環境での検証を最優先とするテスト戦略と、E2Eテストの原則。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/branch_comparison.html" class="doc-card">
+          <div>
+            <div class="doc-tag">History</div>
+            <h3>ブランチ比較レポート</h3>
+            <p>mainからyama（モノレポ）への大規模な刷新内容とマッピング解説。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-10 14:41:56</div>
+        </a>
+        <a href="General/project_tree_structure.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Architecture</div>
+            <h3>プロジェクト構造</h3>
+            <p>Modular Monolith構成のディレクトリ配置と、ドメインごとの責務定義。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/dev_postmortem.html" class="doc-card">
+          <div>
+            <div class="doc-tag">History</div>
+            <h3>開発ポストモーテム</h3>
+            <p>リファクタリングミスやAI運用エラーから得られた教訓と再発防止策。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-04 15:11:00</div>
+        </a>
+        <a href="General/test_report.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Quality</div>
+            <h3>E2E テスト結果報告書</h3>
+            <p>UI挙動とFirestore I/Oの整合性を検証する最新の自動テスト結果レポート。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-04 15:11:00</div>
+        </a>
+        <a href="General/frontend_screens.html" class="doc-card">
+          <div>
+            <div class="doc-tag">UI/UX</div>
+            <h3>フロントエンド画面一覧</h3>
+            <p>全アプリケーションの画面構成、Firestore連携、および遷移関係のインベントリ。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/hosting_applications.html" class="doc-card">
+          <div>
+            <div class="doc-tag">UI/UX</div>
+            <h3>Hosting Applications 一覧</h3>
+            <p>Firebase Hostingにデプロイ済みのアプリケーション実機（トップ画面）の一覧表。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-06 21:10:00</div>
+        </a>
+        <a href="General/e2e_planning_detail.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Quality</div>
+            <h3>E2E テスト詳細設計</h3>
+            <p>プロフィール編集フローを中心とした、Maestro による自動テストシナリオの設計詳説。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 11:10:00</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Infrastructure & Security Section -->
+    <section class="section-group">
+      <h2 class="section-title">Infrastructure & Security</h2>
+      <div class="doc-grid">
+        <a href="Security/Firestore_SecRules.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>Firestore セキュリティルール</h3>
+            <p>ABAC（属性ベースアクセス制御）と Custom Claims による堅牢な認可設計の詳説。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Security/auth_auth.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>認証・認可設計</h3>
+            <p>Custom Claims を用いた高速な権限判定と、パスキー導入を見据えた認証基盤設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-10 14:41:56</div>
+        </a>
+        <a href="Security/lp_microcms_auth.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>microCMS 連携設計</h3>
+            <p>Firebase Auth と microCMS を組み合わせた、会員限定コンテンツのセキュアな配信設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-10 14:41:56</div>
+        </a>
+        <a href="Infrastructure/GCP_Setup_Backend.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Infrastructure</div>
+            <h3>GCP Setup for Backend</h3>
+            <p>Cloud Run (Dart) と Artifact Registry を用いた CI/CD パイプラインの構築手順。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Infrastructure/microcms_setup.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Infrastructure</div>
+            <h3>microCMS セットアップ</h3>
+            <p>会員限定コンテンツ配信のための microCMS サービス作成と API スキーマ定義の詳細。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-04 15:11:00</div>
+        </a>
+        <a href="General/sec_refactoring_plan.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>セキュア・リファクタリング計画</h3>
+            <p>属性と関係性に基づく厳密なデータアクセス制御への移行計画の詳細。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Security/gcp_security_procedures.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>GCP セキュリティ強化手順</h3>
+            <p>IAM権限の最小化、APIキー制限、データ移行スクリプトの実行手順。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="General/firestore_strategy.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Database</div>
+            <h3>Firestore 運用戦略</h3>
+            <p>スタートアップにおける効率的なFirestore設計と運用ガイドライン。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Infrastructure/firestore_collections.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Database</div>
+            <h3>Firestore コレクション一覧</h3>
+            <p>全コレクションの役割、主要フィールド、およびセキュリティルールの詳細概要。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="security-roadmap/index.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Security</div>
+            <h3>セキュリティ・ロードマップ</h3>
+            <p>「allow if true」からの脱却と、段階的なアクセス制限の実装計画。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Application Section -->
+    <section class="section-group">
+      <h2 class="section-title">Application Design</h2>
+      <div class="doc-grid">
+        <a href="Documentation_eachApp/designdocument_shared.html" class="doc-card">
+          <div>
+            <div class="doc-tag">Core</div>
+            <h3>共有モジュール (shared)</h3>
+            <p>Frontend Core, Data Models, Services, 共通UIの詳細設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_admin_app.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>管理者アプリ (admin_app)</h3>
+            <p>全データの特権監視、KPI可視化、ヒートマップ要約ロジック。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_backend_app.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>バックエンドアプリ (backend)</h3>
+            <p>Pure Dart による集中ロジック管理と Cloud Run API サーバー設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_individual.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>個人ユーザー向けアプリ</h3>
+            <p>エンジニア個人のキャリアログ、スキル可視化の詳細設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_corporate_user_app.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>企業ユーザー向けアプリ</h3>
+            <p>企業プロフィールの管理と技術スタックの発信設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_fmjs.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>選考管理 (fmjs)</h3>
+            <p>選考プロセスエディタ、手数料管理、状態遷移の設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+        <a href="Documentation_eachApp/designdocument_job_description.html" class="doc-card">
+          <div>
+            <div class="doc-tag">App</div>
+            <h3>求人票管理 (JD)</h3>
+            <p>求人情報のメタデータ管理とスキル要件の可視化設計。</p>
+          </div>
+          <div class="doc-date">Updated: 2026-03-03 10:11:00</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer style="background: #f8fafc; padding: 4rem 2rem; text-align: center; border-top: 1px solid var(--border);">
+    <p style="color: var(--text-muted);">&copy; 2026 Flutter-Frontend Project Documentation. All rights reserved.</p>
+  </footer>
+</body>
+
+</html>

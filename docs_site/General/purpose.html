@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パーパス (Purpose) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-blue-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Philosophy</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">パーパス (Purpose)</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        エンジニアが真に評価され、成長し続けられる世界をテクノロジーで創る。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-rocket-takeoff text-blue-400"></i> プロジェクトの存在意義
+        </h2>
+        <p class="text-slate-300 leading-relaxed mb-6">
+          本プロジェクトは、単なる求人マッチングに留まらず、エンジニアの「スキル」「経験」「志向」を多角的に可視化し、最適なキャリアパスを提示することを目的としています。
+        </p>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="p-6 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
+            <h4 class="font-bold text-blue-400 mb-2">Transparency</h4>
+            <p class="text-xs text-slate-500">不透明な評価制度を排除し、実績とスキルに基づいた透明性の高いマッチングを実現します。</p>
+          </div>
+          <div class="p-6 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
+            <h4 class="font-bold text-blue-400 mb-2">Growth Engine</h4>
+            <p class="text-xs text-slate-500">個人の成長ログを資産化し、次のステップへ進むためのヒントを提供し続けます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">開発哲学 (Core Values)</h2>
+        <ul class="space-y-6">
+          <li class="flex items-start gap-4">
+            <i class="bi bi-lightning-charge text-yellow-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-100">Speed over Perfection</h5>
+              <p class="text-sm text-slate-400">価値を早期にユーザーへ届け、FBを得て改善するサイクルを最速で回します。</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <i class="bi bi-code-square text-emerald-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-100">Full-stack Awareness</h5>
+              <p class="text-sm text-slate-400">フロントエンドからインフラまで、エンドツーエンドでの品質に責任を持ちます。</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Flutter-Frontend Paradigm Group.
+    </footer>
+  </div>
+</body>
+
+</html>

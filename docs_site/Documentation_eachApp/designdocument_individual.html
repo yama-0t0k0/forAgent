@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>個人ユーザーアプリ (Individual App) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #38bdf8;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .diagram-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(56, 189, 248, 0.1);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .mode-card {
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mode-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #38bdf8;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-sky-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Application Design</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">個人ユーザーアプリ</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400">individual_user_app</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-3xl">
+        エンジニア本人が自身のキャリア資産を可視化し、成長の軌跡を管理するためのメインアプリケーション。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Overview Section -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-info-circle text-sky-400"></i> プロジェクト概要
+        </h2>
+        <div class="grid md:grid-cols-2 gap-10">
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-200">基本スペック</h3>
+            <ul class="space-y-3 text-sm text-slate-400">
+              <li class="flex items-center gap-3">
+                <i class="bi bi-cpu text-sky-500"></i>
+                <span>Framework: <strong>Expo (React Native)</strong></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <i class="bi bi-share text-sky-500"></i>
+                <span>Shared Module: <strong>common_frontend</strong></span>
+              </li>
+              <li class="flex items-center gap-3">
+                <i class="bi bi-database text-sky-500"></i>
+                <span>Data Source: <strong>Firestore + JSON Fallback</strong></span>
+              </li>
+            </ul>
+          </div>
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-200">設計目的</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              個人のプロフィール、スキル、および志向をヒートマップとして可視化。モデル・ファーストな設計により、公開/非公開データの透過的な結合を実現します。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Flow Section -->
+      <section>
+        <h2 class="section-title">データフローとライフサイクル</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph LR
+            A1["Firestore (public_profile/ID)"]
+            A2["Firestore (private_info/ID)"]
+            B["MyPageScreen (個人トップ)"]
+            C["HeatmapCalculator (共有ロジック)"]
+            D["HeatmapGrid (共有UI)"]
+            E["DataContext (テンプレートフォールバック)"]
+
+            A1 -->|getDoc| B
+            A2 -->|getDoc (Owner auth)| B
+            E -->|initialData| B
+            B -->|User.fromPublicPrivate| B
+            B -->|calculate data| C
+            C -->|values 0..89| D
+          </div>
+        </div>
+        <div class="mt-8 p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+          <h4 class="font-bold text-sky-400 mb-2">モデル利用の徹底 (Model-First)</h4>
+          <p class="text-sm text-slate-400">
+            `User.fromPublicPrivate()` メソッドを介して、Firestore上の分散データを一つのエンティティとして扱います。生データへの直接アクセスは禁止です。
+          </p>
+        </div>
+      </section>
+
+      <!-- App Modes Section -->
+      <section>
+        <h2 class="section-title">🆕 アプリケーション・モード (App Mode)</h2>
+        <p class="text-slate-400 mb-8">`LaunchController` を通じて、エントリポイントを切り替えて起動可能です。</p>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="mode-card p-10 rounded-3xl bg-slate-900">
+            <div class="w-12 h-12 rounded-full bg-sky-500/10 flex items-center justify-center mb-6">
+              <i class="bi bi-app-indicator text-sky-400 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-4">1. Default モード (Full App)</h3>
+            <p class="text-sm text-slate-500 mb-6">通常のマイページ全機能を提供。`User` モデルを介して加工・統合されたデータを表示します。</p>
+            <div class="bg-black/40 p-3 rounded font-mono text-[0.7rem] text-sky-300">src/apps/FullApp.js</div>
+          </div>
+          <div class="mode-card p-10 rounded-3xl bg-slate-900 border-l-4 border-l-emerald-500">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+              <i class="bi bi-pencil-square text-emerald-400 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-4">2. Registration モード</h3>
+            <p class="text-sm text-slate-500 mb-6">登録特化型の独立ページ。`yama` ブランチの複雑な加工をバイパスし、純粋な JSON 入力を可能にします。</p>
+            <div class="bg-black/40 p-3 rounded font-mono text-[0.7rem] text-emerald-300">src/apps/RegistrationApp.js
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Screen Transitions Section -->
+      <section>
+        <h2 class="section-title">画面構成</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph TD
+            MyPage["マイページ (MyPageScreen)"] -->|編集| Registration["プロフィール編集 (GenericRegistrationScreen)"]
+            MyPage -->|画像タップ| ImageEdit["画像編集 (ImageEditScreen)"]
+            MyPage -->|メニュー| Menu["メニュー (MenuScreen)"]
+            Registration -->|保存/キャンセル| MyPage
+            ImageEdit -->|保存/キャンセル| MyPage
+            Menu -->|閉じる| MyPage
+          </div>
+        </div>
+      </section>
+
+      <!-- JSON Structure Section -->
+      <section>
+        <h2 class="section-title">データ構造定義 (JSON Example)</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-sky-400 mb-6">スキル経験 (Skill)</h3>
+            <pre class="text-[0.7rem] bg-black/30 p-4 rounded-xl text-sky-200">
+{
+  "スキル経験": {
+    "サーバサイド": {
+      "Java": {
+        "実務で数年の経験があり、応用的な問題を解決できる": true
+      }
+    },
+    "クラウド": {
+      "AWS": {
+        "専門的な知識やスキルを有し他者を育成/指導できる": true
+      }
+    }
+  }
+}</pre>
+          </div>
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-emerald-400 mb-6">志向 (Preference)</h3>
+            <pre class="text-[0.7rem] bg-black/30 p-4 rounded-xl text-emerald-200">
+{
+  "志向": {
+    "やりたい業務": {
+      "サーバサイド": "やりたい",
+      "クラウド": "とてもやりたい"
+    },
+    "就業形態": {
+      "フルリモート": true
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Launch Guide Section -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-sky-500">
+        <h2 class="text-2xl font-bold mb-8">起動方法ガイド</h2>
+        <div class="space-y-6">
+          <div>
+            <h4 class="font-mono text-sm text-sky-300 mb-2"># Full App Launch</h4>
+            <code class="bg-black/50 p-4 block rounded-lg text-xs">./scripts/start_expo.sh individual_user_app</code>
+          </div>
+          <div>
+            <h4 class="font-mono text-sm text-emerald-300 mb-2"># Registration Mode Launch</h4>
+            <code
+              class="bg-black/50 p-4 block rounded-lg text-xs">EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Engineer Career Optimization Platform - Individual UX Team
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</body>
+
+</html>

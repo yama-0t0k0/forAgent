@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ブランチ比較レポート - Design Documentation Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(22, 27, 34, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1.5rem;
+      margin-top: 5rem;
+      margin-bottom: 2.5rem;
+      font-weight: 800;
+      font-size: 2rem;
+      color: #f0f6fc;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(22, 27, 34, 0.5);
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+
+    .comparison-table th, .comparison-table td {
+      padding: 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comparison-table th {
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.3rem;
+      color: #f0f6fc;
+    }
+
+    .status-check { color: #10b981; }
+    .status-cross { color: #f85149; }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-16">
+      <a href="../index.html" class="text-slate-500 hover:text-blue-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-24">
+      <div class="flex items-center gap-3 mb-8">
+        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">Git Migration</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-10 14:41:56</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">ブランチ比較レポート</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        main vs yama。単一アプリからスケーラブルなモノレポ構造への刷新ログ。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3 text-white">
+          <i class="bi bi-info-circle text-blue-400"></i> レポート概要
+        </h2>
+        <p class="text-slate-300 leading-loose">
+          <code>main</code> ブランチと <code>yama</code> ブランチを比較した結果、プロジェクト構造が**単一のExpoプロジェクトからモノレポ（Monorepo）構造へ大幅に刷新**されていることがわかりました。
+        </p>
+      </section>
+
+      <section>
+        <h2 class="section-title">トップレベルディレクトリの比較</h2>
+        <div class="overflow-hidden rounded-3xl">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>ディレクトリ / ファイル</th>
+                <th class="text-center">main</th>
+                <th class="text-center">yama</th>
+                <th>備考</th>
+              </tr>
+            </thead>
+            <tbody class="text-sm text-slate-400">
+              <tr>
+                <td><code>apps/</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>各アプリ（admin, individual, corporate等）</td>
+              </tr>
+              <tr>
+                <td><code>shared/</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>バックエンド、フロントエンド、共通ロジック</td>
+              </tr>
+              <tr>
+                <td><code>infrastructure/</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>Firebase設定やTerraform等のインフラ関連</td>
+              </tr>
+              <tr>
+                <td><code>scripts/</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>自動化スクリプト等</td>
+              </tr>
+              <tr>
+                <td><code>tests/</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>統合テスト・Firestore Rulesテスト等</td>
+              </tr>
+              <tr>
+                <td><code>melos.yaml</code></td>
+                <td class="text-center font-bold status-cross">❌</td>
+                <td class="text-center font-bold status-check">✅</td>
+                <td>Melos (Dartモノレポツール) 設定</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">ソースコード・マッピング</h2>
+        <div class="p-8 glass rounded-3xl space-y-6">
+           <div class="flex flex-col md:flex-row md:items-center gap-4">
+              <div class="bg-black/40 p-3 rounded-lg flex-1 border border-white/5">
+                 <span class="text-[0.65rem] text-slate-500 block mb-1">From: main</span>
+                 <code>/</code> (ルート直下のExpoコード)
+              </div>
+              <i class="bi bi-arrow-right text-blue-500 text-xl hidden md:block"></i>
+              <div class="bg-blue-500/5 p-3 rounded-lg flex-1 border border-blue-500/20">
+                 <span class="text-[0.65rem] text-blue-400 block mb-1">To: yama</span>
+                 <code>apps/individual_user_app/expo_frontend/</code>
+              </div>
+           </div>
+           <div class="flex flex-col md:flex-row md:items-center gap-4">
+              <div class="bg-black/40 p-3 rounded-lg flex-1 border border-white/5">
+                 <span class="text-[0.65rem] text-slate-500 block mb-1">From: main (templates)</span>
+                 <code>/assets/json/templates/...</code>
+              </div>
+              <i class="bi bi-arrow-right text-blue-500 text-xl hidden md:block"></i>
+              <div class="bg-blue-500/5 p-3 rounded-lg flex-1 border border-blue-500/20">
+                 <span class="text-[0.65rem] text-blue-400 block mb-1">To: yama</span>
+                 <code>apps/*/expo_frontend/assets/json/</code>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      <section class="glass p-10 rounded-3xl border-l-8 border-blue-500">
+        <h2 class="text-2xl font-bold mb-6 text-white italic text-center md:text-left">yama ブランチでの進化</h2>
+        <ul class="space-y-4 text-slate-300 text-sm">
+           <li class="flex items-start gap-4">
+              <i class="bi bi-check-circle-fill text-blue-500"></i>
+              <span><strong>複数アプリの並行開発</strong>: admin, individual, corporate, jd など役割別のサービスを独立して管理。</span>
+           </li>
+           <li class="flex items-start gap-4">
+              <i class="bi bi-check-circle-fill text-blue-500"></i>
+              <span><strong>共通部品の抽出 (shared/)</strong>: UI、API通信、データモデルをアプリ間で共有可能に。</span>
+           </li>
+           <li class="flex items-start gap-4">
+              <i class="bi bi-check-circle-fill text-blue-500"></i>
+              <span><strong>インフラのコード化</strong>: Firebase エミュレータやセキュリティルールが各環境ごとに整備。</span>
+           </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="mt-48 pt-12 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Core Infrastructure & Release Management.
+    </footer>
+  </div>
+</body>
+
+</html>

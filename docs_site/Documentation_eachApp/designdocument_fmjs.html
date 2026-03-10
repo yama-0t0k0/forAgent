@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>選考管理アプリ (FMJS) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #f59e0b;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .diagram-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-amber-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Transaction System</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">選考管理アプリ</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400 font-bold">fmjs (Transaction Engine)</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl">
+        選考プロセスの可視化、手数料管理、進捗トラッキング。紹介後の「価値確定」を担う、プロジェクトの収益・トランザクションエンジン。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Architecture Overview -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-gear-fill text-amber-500"></i> システム構成
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="space-y-4">
+            <h3 class="font-bold text-slate-100">データハブとしての役割</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              `fmjs` (Fee Mgmt and Job Stat) は、複数のコレクション（`selection_progress`,
+              `FeeMgmtAndJobStatDB`）をマージし、単一の選考エンティティとして状態を管理します。
+            </p>
+          </div>
+          <div class="space-y-4">
+            <h3 class="font-bold text-slate-100">中核コンポーネント</h3>
+            <ul class="text-xs space-y-2 text-slate-400 italic">
+              <li>- <strong>SelectionFlowEditor.js</strong>: フェーズ毎のステータス/日付編集</li>
+              <li>- <strong>SelectionDetailModal.js</strong>: 詳細情報のドリルダウン</li>
+              <li>- <strong>GenericDataList.js</strong>: フィルタリング対応一覧</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Flow Section -->
+      <section>
+        <h2 class="section-title">データ取得とマージフロー</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph LR
+            A["Firestore (selection_progress)"]
+            B["Firestore (FeeMgmtAndJobStatDB)"]
+            C["FirestoreDataService.fetchAllFMJS()"]
+            D["SelectionProgressListScreen (一覧)"]
+            E["SelectionFlowEditor (状態編集)"]
+
+            A -->|Fetch all| C
+            B -->|Fetch all| C
+            C -->|Merge by ID| D
+            D -->|Edit state| E
+            E -->|Write back| B
+          </div>
+        </div>
+        <div class="mt-8 p-6 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+          <p class="text-sm text-slate-300">
+            Legacy な進捗データと最新の会計データを透過的に結合。`SelectionProgress` モデルを使用し、UI 層が複雑な DB 構造を知る必要を無くしています。
+          </p>
+        </div>
+      </section>
+
+      <!-- Interaction Section -->
+      <section>
+        <h2 class="section-title">画面遷移・UI構造</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph TD
+            List["選考進捗リスト&lt;br/&gt;(SelectionProgressListScreen)"]
+            DetailModal[["詳細モーダル&lt;br/&gt;(Modal)"]]
+
+            subgraph "モーダル内タブ"
+            Basic[基本情報]
+            Progress["選考進捗&lt;br/&gt;(SelectionFlowEditor)"]
+            Fee[手数料]
+            Survey[サーベイ]
+            end
+
+            List -- "リスト行タップ" --&gt; DetailModal
+            DetailModal --&gt;|初期表示| Basic
+            DetailModal -- "タブ選択: 選考進捗" --&gt; Progress
+            DetailModal -- "タブ選択: 手数料" --&gt; Fee
+            DetailModal -- "タブ選択: サーベイ" --&gt; Survey
+
+            DetailModal -.- "閉じる(✕)ボタン" .-&gt; List
+          </div>
+        </div>
+      </section>
+
+      <!-- Rules Section -->
+      <section class="glass p-10 rounded-3xl border-l-8 border-l-amber-500">
+        <h2 class="text-2xl font-bold mb-8">ビジネスロジック・制約</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="p-6 rounded-2xl bg-slate-800/50">
+            <h4 class="font-bold mb-2 text-amber-400">ステータス不変性</h4>
+            <p class="text-[0.65rem] text-slate-500 leading-normal">
+              一度確定した選考フェーズの日付は、管理者以外の変更を制限。データの整合性を維持。
+            </p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-800/50">
+            <h4 class="font-bold mb-2 text-amber-400">手数料自動計算</h4>
+            <p class="text-[0.65rem] text-slate-500 leading-normal">
+              年収入力と成約ステータスに基づき、手数料を自動算出。マニュアルミスを排除。
+            </p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-800/50">
+            <h4 class="font-bold mb-2 text-amber-400">履歴管理</h4>
+            <p class="text-[0.65rem] text-slate-500 leading-normal">
+              いつ誰がステータスを変更したかの監査ログを Firestore 上に記録。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Selection & Financial Systems Engineering Team
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</body>
+
+</html>

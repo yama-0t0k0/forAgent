@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画面遷移図 (Interaction Flows) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #db2777;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .diagram-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(219, 39, 119, 0.1);
+      color: #ec4899;
+      border: 1px solid rgba(219, 39, 119, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-pink-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">UI/UX Interface</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">画面遷移図</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        各アプリケーションの主要なユーザー体験（UX）と、サービスを跨ぐ遷移フローの可視化。
+      </p>
+    </header>
+
+    <main class="space-y-40">
+      <!-- Admin App Flow -->
+      <section>
+        <h2 class="section-title">Admin App Flow</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph LR
+            Login["ログイン画面&lt;br/&gt;(Auth Portal)"]
+            Dashboard["ダッシュボード&lt;br/&gt;(KPI可視化)"]
+            UserList["ユーザー一覧&lt;br/&gt;(承認待ちリスト)"]
+            UserDetail["ユーザー詳細&lt;br/&gt;(情報承認/却下)"]
+            CorporateDetail["企業詳細"]
+
+            Login --&gt; Dashboard
+            Dashboard --&gt; UserList
+            UserList --&gt; UserDetail
+            Dashboard --&gt; CorporateDetail
+          </div>
+        </div>
+      </section>
+
+      <!-- Corporate App Flow -->
+      <section>
+        <h2 class="section-title">Corporate App Flow</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph TD
+            CorpTop["企業プロフィルトップ&lt;br/&gt;(CompanyPageScreen)"]
+            TechEdit["使用技術編集&lt;br/&gt;(TechStackView)"]
+            ImageEdit["画像・ヘッダー編集"]
+            JDList["求人一覧"]
+            JDEdit["求人票作成・編集"]
+
+            CorpTop --&gt; TechEdit
+            CorpTop --&gt; ImageEdit
+            CorpTop --&gt; JDList
+            JDList --&gt; JDEdit
+          </div>
+        </div>
+      </section>
+
+      <!-- Individual & Multi-App Synergy -->
+      <section>
+        <h2 class="section-title">Multi-App Synergy (FMJS Context)</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph LR
+            Individual["個人アプリ&lt;br/&gt;(応募・スカウト承諾)"]
+            FMJS["FMJS&lt;br/&gt;(選考・手数料管理)"]
+            Corporate["企業アプリ&lt;br/&gt;(面接設定・合否)"]
+
+            Individual --&gt;|Apply| FMJS
+            Corporate --&gt;|Status Change| FMJS
+            FMJS --&gt;|Notify| Individual
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 UI/UX Design System Group.
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</body>
+
+</html>

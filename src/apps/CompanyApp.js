@@ -11,6 +11,8 @@ export const CompanyRegistrationWrapper = () => (
       collectionName="company"
       idField="id"
       idPrefixChar="B"
+      useSequentialId={true}
+      idLength={5}
     />
   </DataProvider>
 );

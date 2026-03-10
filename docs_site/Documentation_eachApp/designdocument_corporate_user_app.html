@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企業ユーザー向けアプリ (Corporate App) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #7c3aed;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .diagram-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(124, 58, 237, 0.1);
+      color: #a78bfa;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-violet-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Business UI</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">企業ユーザー用アプリ</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400 font-bold">corporate_user_app</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl">
+        企業の技術ブランディング、求人掲載、および採用情報の管理を行うための法人向けプラットフォーム。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Architecture Overview -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-building text-violet-400"></i> システム構成
+        </h2>
+        <div class="grid md:grid-cols-2 gap-10">
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-100 italic flex items-center gap-2">
+              <i class="bi bi-layout-sidebar"></i> UI 構造
+            </h3>
+            <ul class="text-sm space-y-4 text-slate-400">
+              <li>- <strong>CompanyPageScreen</strong>: メインダッシュボード。カスタムボトムナビゲーションを搭載。</li>
+              <li>- <strong>TechStackView</strong>: 企業が保有・推奨する技術スタックの可視化。</li>
+              <li>- <strong>CorporateImageEditScreen</strong>: ヘッダー画像/プロフィール画像の編集。</li>
+            </ul>
+          </div>
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-100 italic flex items-center gap-2">
+              <i class="bi bi-cloud-arrow-up"></i> データ永続化
+            </h3>
+            <p class="text-sm text-slate-400 leading-relaxed italic">
+              共有コンポーネント `GenericRegistrationScreen` を介して `corporates` コレクションへの書き込みを実行。`Company` モデルによりデータ型を担保します。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Internal Navigation Diagram -->
+      <section>
+        <h2 class="section-title">画面内ナビゲーション</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph TD
+            CompanyPage["企業トップ&lt;br/&gt;(CompanyPageScreen)"]
+            ImageEdit["画像編集画面&lt;br/&gt;(CorporateImageEditScreen)"]
+            Registration["企業情報編集&lt;br/&gt;(GenericRegistrationScreen)"]
+
+            subgraph "カスタムボトムナビゲーション (Internal Tabs)"
+            TechStack["使用技術&lt;br/&gt;(TechStackView)"]
+            Jobs["求人 (UnderConstruction)"]
+            Connections["つながり (UnderConstruction)"]
+            Blog["ブログ (UnderConstruction)"]
+            end
+
+            CompanyPage --&gt;|初期表示| TechStack
+            CompanyPage -- "Nav選択: 求人" --&gt; Jobs
+            CompanyPage -- "Nav選択: つながり" --&gt; Connections
+            CompanyPage -- "Nav選択: ブログ" --&gt; Blog
+
+            CompanyPage -- "ヘッダー画像編集ボタンタップ" --&gt; ImageEdit
+            CompanyPage -- "メニュー ＞ 編集" --&gt; Registration
+
+            ImageEdit -.- "保存/キャンセル" .-&gt; CompanyPage
+            Registration -.- "保存/キャンセル" .-&gt; CompanyPage
+          </div>
+        </div>
+        <div class="mt-8 p-6 bg-violet-500/5 border border-violet-500/10 rounded-2xl">
+          <p class="text-sm text-slate-300">
+            企業用アプリは、Sharedコンポーネントをベースにしつつ、カスタムナビゲーションによりドメイン特化のUXを提供しています。
+          </p>
+        </div>
+      </section>
+
+      <!-- Key Features List -->
+      <section>
+        <h2 class="section-title">主要機能</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="glass p-8 rounded-2xl">
+            <i class="bi bi-megaphone text-violet-400 text-2xl mb-4"></i>
+            <h4 class="font-bold mb-2">技術ブランディング</h4>
+            <p class="text-xs text-slate-500">
+              企業が現在使用している技術スタックをバッジ形式で公開し、最適なエンジニアターゲットにアプローチ。
+            </p>
+          </div>
+          <div class="glass p-8 rounded-2xl">
+            <i class="bi bi-file-earmark-plus text-violet-400 text-2xl mb-4"></i>
+            <h4 class="font-bold mb-2">求人管理機能</h4>
+            <p class="text-xs text-slate-500">
+              `job_description` アプリと連携し、自社の求人情報を一覧管理。募集要項の編集を実行可能。
+            </p>
+          </div>
+          <div class="glass p-8 rounded-2xl">
+            <i class="bi bi-people text-violet-400 text-2xl mb-4"></i>
+            <h4 class="font-bold mb-2">つながり管理</h4>
+            <p class="text-xs text-slate-500">
+              エンジニアユーザーとのコンタクト状況をトラッキング（将来拡張）。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Engineer Career Optimization Platform - Business UX Department
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</body>
+
+</html>

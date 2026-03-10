@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者アプリ (admin_app) 設計書 - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #4338ca;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    .dashboard-preview {
+      background: #1e293b;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(99, 102, 241, 0.1);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-indigo-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">App Design</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight">
+        <span class="gradient-text">管理者アプリ (admin_app)</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        全データの特権監視、KPI可視化、ヒートマップ要約ロジックを統合した運用基盤。
+      </p>
+    </header>
+
+    <main class="space-y-12">
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-layout-wtf text-indigo-400"></i> ダッシュボード機能 (KPI Dashboard)
+        </h2>
+        <div class="dashboard-preview grid md:grid-cols-3 gap-6 text-center">
+          <div class="p-6 bg-slate-900/50 rounded-2xl border border-white/5">
+            <span class="text-xs text-slate-500 uppercase tracking-widest">Active Users</span>
+            <div class="text-3xl font-black text-indigo-400 mt-2">1,204</div>
+            <div class="text-[0.6rem] text-emerald-500 mt-1"><i class="bi bi-caret-up-fill"></i> 12.5%</div>
+          </div>
+          <div class="p-6 bg-slate-900/50 rounded-2xl border border-white/5">
+            <span class="text-xs text-slate-500 uppercase tracking-widest">FMJS Fees</span>
+            <div class="text-3xl font-black text-indigo-400 mt-2">¥892,000</div>
+            <div class="text-[0.6rem] text-indigo-300 mt-1 italic">Monthly Target: 89%</div>
+          </div>
+          <div class="p-6 bg-slate-900/50 rounded-2xl border border-white/5">
+            <span class="text-xs text-slate-500 uppercase tracking-widest">Pending Approv.</span>
+            <div class="text-3xl font-black text-rose-400 mt-2">42</div>
+            <div class="text-[0.6rem] text-slate-500 mt-1">Requires Action</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">ヒートマップ要約ロジック</h2>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed">
+          全エンジニアのスキルタグ・経験データを集計し、現在の技術トレンドをヒートマップ形式で可視化します。
+        </p>
+        <div class="p-10 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl text-xs space-y-4">
+          <p class="font-bold text-indigo-300 italic flex items-center gap-2">
+            <i class="bi bi-calculator"></i> Logic Implementation: `HeatmapCalculator.js`
+          </p>
+          <ul class="space-y-3 text-slate-500">
+            <li>1. Firestore から `individual_user` を一括取得。</li>
+            <li>2. `skillTags` を正規化 (Normalize) し、出現頻度をカウント。</li>
+            <li>3. Recharts 経由で、技術ドメインごとの強度をグラデーション表示。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="glass p-10 rounded-3xl border-t-8 border-indigo-500">
+        <h2 class="text-2xl font-bold mb-8 italic">特権アクセス制御 (RBAC)</h2>
+        <ul class="space-y-6">
+          <li class="flex items-start gap-4">
+            <i class="bi bi-shield-lock text-emerald-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-100">Only Admins Allowed</h5>
+              <p class="text-xs text-slate-500">Custom Claims `role: admin` が付与されたアカウントのみが、API 経由で全件データ取得を許可されます。</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <i class="bi bi-eye text-sky-400"></i>
+            <div>
+              <h5 class="font-bold text-slate-100">Audit Logging</h5>
+              <p class="text-xs text-slate-500">管理者が個人情報を閲覧・編集した際、`audit_logs` コレクションに操作ログが自動記録されます。</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm italic">
+      &copy; 2026 Admin Infrastructure & Operations Division.
+    </footer>
+  </div>
+</body>
+
+</html>

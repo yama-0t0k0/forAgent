@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Base Structure & Codebase Analysis</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #a855f7;
+      --accent: #ec4899;
+      --background: #0f172a;
+      --surface: rgba(30, 41, 59, 0.7);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --glass: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 40%);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 30px;
+      border-radius: 24px;
+      text-align: center;
+      transition: transform 0.3s ease;
+      animation: fadeInUp 0.8s ease-out both;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+    }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 5px;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    section {
+      margin-bottom: 80px;
+      animation: fadeInUp 0.8s ease-out both;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    h2::before {
+      content: '';
+      width: 40px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .visual-structure {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tree {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 15px;
+      background: var(--glass);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+      transition: all 0.2s ease;
+    }
+
+    .tree-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(10px);
+    }
+
+    .folder-icon {
+      font-size: 1.5rem;
+      color: var(--secondary);
+    }
+
+    .folder-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: block;
+    }
+
+    .folder-desc {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      margin-top: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    thead {
+      background: var(--glass);
+    }
+
+    th {
+      text-align: left;
+      padding: 20px;
+      color: var(--text-dim);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.9rem;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .loc-badge {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .search-container {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .diagram-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    svg.monorepo-diag {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Project Base Structure</h1>
+      <p class="subtitle">Monorepo Configuration & Codebase Step Analysis Report</p>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card" style="animation-delay: 0.1s">
+        <span class="stat-value">19,757</span>
+        <span class="stat-label">Total Steps (LOC)</span>
+      </div>
+      <div class="stat-card" style="animation-delay: 0.2s">
+        <span class="stat-value">193</span>
+        <span class="stat-label">Implementation Files</span>
+      </div>
+      <div class="stat-card" style="animation-delay: 0.3s">
+        <span class="stat-value">5</span>
+        <span class="stat-label">Core Applications</span>
+      </div>
+      <div class="stat-card" style="animation-delay: 0.4s">
+        <span class="stat-value">2</span>
+        <span class="stat-label">Languages (JS/Dart)</span>
+      </div>
+    </div>
+
+    <section id="structure">
+      <h2>構成図 (Monorepo Hierarchy)</h2>
+      <div class="visual-structure">
+        <div class="tree">
+          <div class="tree-item">
+            <span class="folder-icon">📂</span>
+            <div>
+              <span class="folder-name">apps/</span>
+              <span class="folder-desc">各アプリケーションのエントリポイントとフロントエンド実装</span>
+              <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <span
+                  style="background: rgba(168, 85, 247, 0.1); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem;">Admin
+                  App</span>
+                <span
+                  style="background: rgba(168, 85, 247, 0.1); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem;">Corporate
+                  User App</span>
+                <span
+                  style="background: rgba(168, 85, 247, 0.1); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem;">Individual
+                  User App</span>
+                <span
+                  style="background: rgba(168, 85, 247, 0.1); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem;">Job
+                  Description App</span>
+              </div>
+            </div>
+          </div>
+          <div class="tree-item" style="border-left-color: var(--secondary)">
+            <span class="folder-icon">📂</span>
+            <div>
+              <span class="folder-name">shared/</span>
+              <span class="folder-desc">プロジェクト全体で共有される共通ロジックとドメインモデル</span>
+              <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-dim);">
+                • <b>common_frontend:</b> Hooks, Services, Components<br>
+                • <b>common_backend (Dart):</b> Business logic, Cloud Functions integration<br>
+                • <b>domain_logic:</b> Matching engines, Heatmap logic
+              </div>
+            </div>
+          </div>
+          <div class="tree-item" style="border-left-color: var(--accent)">
+            <span class="folder-icon">📂</span>
+            <div>
+              <span class="folder-name">src/</span>
+              <span class="folder-desc">共通UIコンポーネントとグローバルコンテキスト</span>
+            </div>
+          </div>
+          <div class="tree-item" style="border-left-color: #10b981">
+            <span class="folder-icon">📂</span>
+            <div>
+              <span class="folder-name">infrastructure/</span>
+              <span class="folder-desc">Firebase (Firestore, Functions, Storage) と GitHub 連携設定</span>
+            </div>
+          </div>
+          <div class="tree-item" style="border-left-color: #f59e0b">
+            <span class="folder-icon">📂</span>
+            <div>
+              <span class="folder-name">scripts/</span>
+              <span class="folder-desc">開発・保守自動化（マイグレーション、シードデータ生成等）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="loc-analysis">
+      <h2>実装ファイル別ステップ数一覧</h2>
+      <div class="search-container">
+        <input type="text" id="fileSearch" placeholder="ファイルを検索...">
+      </div>
+      <div class="table-container">
+        <table id="statsTable">
+          <thead>
+            <tr>
+              <th>File Path</th>
+              <th style="width: 150px;">Steps (LOC)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Project Implementation Report • Generated by Antigravity AI</p>
+  </footer>
+
+  <script>
+    const rawData = `
+20 ./firebaseConfig.js
+57 ./app.config.js
+9 ./jest.config.js
+8 ./index.js
+23 ./shared/common_logic/lib/common_logic.dart
+183 ./shared/common_logic/lib/src/services/matching_logic.dart
+162 ./shared/common_logic/lib/src/services/common_service.dart
+7 ./shared/common_backend/test/basic_test.dart
+24 ./shared/common_backend/lib/common_backend.dart
+53 ./shared/common_backend/lib/src/services/matching_service.dart
+70 ./shared/common_frontend/tests/heatmap_geometry.spec.js
+185 ./shared/common_frontend/dart_references/heatmap_widget.dart
+26 ./shared/common_frontend/src/core/firebaseConfig.js
+24 ./shared/common_frontend/src/core/constants/ui.js
+77 ./shared/common_frontend/src/core/constants/system.js
+46 ./shared/common_frontend/src/core/constants/field.js
+35 ./shared/common_frontend/src/core/constants/index.js
+33 ./shared/common_frontend/src/core/constants/navigation.js
+20 ./shared/common_frontend/src/core/constants/selection.js
+32 ./shared/common_frontend/src/core/utils/FirestoreLogger.js
+209 ./shared/common_frontend/src/core/utils/MatchingService.js
+80 ./shared/common_frontend/src/core/utils/useFirestore.js
+55 ./shared/common_frontend/src/core/utils/CompanyAdapter.js
+60 ./shared/common_frontend/src/core/utils/__tests__/CompanyAdapter.test.js
+68 ./shared/common_frontend/src/core/utils/useForm.js
+111 ./shared/common_frontend/src/core/utils/dashboardUtils.js
+80 ./shared/common_frontend/src/core/utils/FMJSService.js
+199 ./shared/common_frontend/src/core/models/User.js
+186 ./shared/common_frontend/src/core/models/Company.js
+168 ./shared/common_frontend/src/core/models/SelectionProgress.js
+53 ./shared/common_frontend/src/core/models/__tests__/Company.test.js
+75 ./shared/common_frontend/src/core/models/JobDescription.js
+68 ./shared/common_frontend/src/core/state/DataContext.js
+122 ./shared/common_frontend/src/core/components/GenericSearchBar.js
+62 ./shared/common_frontend/src/core/components/TestLogOverlay.js
+69 ./shared/common_frontend/src/core/components/StatusRow.js
+99 ./shared/common_frontend/src/core/components/SecondaryButton.js
+42 ./shared/common_frontend/src/core/components/CorporateBottomNav.js
+63 ./shared/common_frontend/src/core/components/GenericDataList.js
+93 ./shared/common_frontend/src/core/components/MonthYearPickerInput.js
+94 ./shared/common_frontend/src/core/components/SkillSelector.js
+91 ./shared/common_frontend/src/core/components/ConnectionLevelSelector.js
+56 ./shared/common_frontend/src/core/components/IconButton.js
+133 ./shared/common_frontend/src/core/components/DetailModal.js
+54 ./shared/common_frontend/src/core/components/SwitchRow.js
+113 ./shared/common_frontend/src/core/components/InputRow.js
+54 ./shared/common_frontend/src/core/components/AppShell.js
+92 ./shared/common_frontend/src/core/components/StateComponents.js
+227 ./shared/common_frontend/src/core/components/RecursiveField.js
+57 ./shared/common_frontend/src/core/components/BottomNav.js
+91 ./shared/common_frontend/src/core/components/ScreenHeader.js
+41 ./shared/common_frontend/src/core/components/StatusBadge.js
+100 ./shared/common_frontend/src/core/components/BottomNavItem.js
+95 ./shared/common_frontend/src/core/components/GenericBottomNav.js
+97 ./shared/common_frontend/src/core/components/DatePickerInput.js
+166 ./shared/common_frontend/src/core/components/SingleSelectGroup.js
+95 ./shared/common_frontend/src/core/components/GlassCard.js
+102 ./shared/common_frontend/src/core/components/PrimaryButton.js
+60 ./shared/common_frontend/src/core/theme/theme.js
+238 ./shared/common_frontend/src/core/services/FirestoreDataService.js
+273 ./shared/common_frontend/src/features/registration/GenericRegistrationScreen.js
+98 ./shared/common_frontend/src/features/job_profile/screens/JobDescriptionScreen.js
+276 ./shared/common_frontend/src/features/job_profile/components/JobDescriptionContent.js
+69 ./shared/common_frontend/src/features/profile/CorporateMenuScreen.js
+287 ./shared/common_frontend/src/features/profile/GenericImageEditScreen.js
+47 ./shared/common_frontend/src/features/profile/CorporateImageEditScreen.js
+193 ./shared/common_frontend/src/features/profile/GenericMenuScreen.js
+58 ./shared/common_frontend/src/features/profile/IndividualImageEditScreen.js
+511 ./shared/common_frontend/src/features/profile/IndividualProfileScreen.js
+68 ./shared/common_frontend/src/features/profile/IndividualMenuScreen.js
+86 ./shared/common_frontend/src/features/job/CareerScreen.js
+349 ./shared/common_frontend/src/features/job/ConnectionScreen.js
+204 ./shared/common_frontend/src/features/job/components/JobListItem.js
+143 ./shared/common_frontend/src/features/job/hooks/useMatching.js
+377 ./shared/common_frontend/src/features/selection/SelectionFlowEditor.js
+206 ./shared/common_frontend/src/features/engineer/components/EngineerListItem.js
+39 ./shared/common_frontend/src/features/analytics/constants/heatmap.js
+199 ./shared/common_frontend/src/features/analytics/utils/HeatmapCalculator.js
+108 ./shared/common_frontend/src/features/analytics/utils/HeatmapGeometry.js
+134 ./shared/common_frontend/src/features/analytics/utils/HeatmapMapper.js
+159 ./shared/common_frontend/src/features/analytics/components/SelectableTechStackGrid.js
+187 ./shared/common_frontend/src/features/analytics/components/SelectableTechStackList.js
+215 ./shared/common_frontend/src/features/analytics/components/MiniHeatmap.js
+262 ./shared/common_frontend/src/features/analytics/components/HeatmapGrid.js
+139 ./shared/common_frontend/src/features/analytics/components/__tests__/SelectableTechStack.test.js
+261 ./shared/common_frontend/src/features/analytics/components/TechStackView.js
+143 ./shared/common_frontend/src/features/company/components/CompanyListItem.js
+472 ./shared/common_frontend/src/features/company/components/CompanyProfileView.js
+68 ./shared/domain_logic/heatmap_engine/test/heatmap_engine_test.dart
+113 ./shared/domain_logic/heatmap_engine/lib/src/heatmap_engine.dart
+104 ./shared/domain_logic/heatmap_engine/lib/src/heatmap_mapper.dart
+50 ./shared/domain_models/test/engineer_profile_test.dart
+21 ./shared/domain_models/lib/domain_models.dart
+39 ./shared/domain_models/lib/src/engineer_profile.dart
+30 ./shared/domain_models/lib/src/matching_models.dart
+23 ./shared/domain_models/lib/src/engineer_profile.g.dart
+144 ./firestore.test.js
+6 ./babel.config.js
+130 ./scripts/generate_gh_issues_from_plan.js
+312 ./scripts/create_push_issue.js
+103 ./scripts/generate_individual.js
+231 ./scripts/create_milestone_from_md.js
+110 ./scripts/generate_jd.js
+363 ./scripts/check_coding_conventions.js
+168 ./scripts/seed_firestore_from_json.js
+100 ./scripts/generate_company.js
+151 ./scripts/migration/migrate_individual.js
+100 ./scripts/migration/migrate_users.js
+310 ./scripts/push_with_milestone.js
+299 ./reference_information_fordev/code/matching_service.dart
+134 ./infrastructure/firebase/functions/test/match_test.dart
+10 ./infrastructure/firebase/functions/bin/server.dart
+179 ./infrastructure/firebase/functions/lib/functions.dart
+9 ./apps/job_description/dart_backend/test/basic_test.dart
+145 ./apps/job_description/dart_backend/test/jd_skill_experience_test.dart
+41 ./apps/job_description/expo_frontend/app.config.js
+8 ./apps/job_description/expo_frontend/index.js
+29 ./apps/job_description/expo_frontend/metro.config.js
+24 ./apps/job_description/expo_frontend/babel.config.js
+300 ./apps/job_description/expo_frontend/scripts/update_safie_jds.js
+87 ./apps/job_description/expo_frontend/scripts/seed_firestore.js
+83 ./apps/job_description/expo_frontend/scripts/test_core_skills_b00003.js
+59 ./apps/job_description/expo_frontend/scripts/verify_firestore.js
+28 ./apps/job_description/expo_frontend/App.js
+38 ./apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen.js
+29 ./apps/job_description/expo_frontend/src/navigation/AppNavigator.js
+21 ./apps/individual_user_app/dart_backend/test/basic_test.dart
+41 ./apps/individual_user_app/expo_frontend/app.config.js
+8 ./apps/individual_user_app/expo_frontend/index.js
+29 ./apps/individual_user_app/expo_frontend/metro.config.js
+27 ./apps/individual_user_app/expo_frontend/babel.config.js
+93 ./apps/individual_user_app/expo_frontend/App.js
+48 ./apps/individual_user_app/expo_frontend/src/navigation/AppNavigator.js
+9 ./apps/fmjs/dart_backend/test/basic_test.dart
+34 ./apps/fmjs/expo_frontend/app.config.js
+8 ./apps/fmjs/expo_frontend/index.js
+23 ./apps/fmjs/expo_frontend/metro.config.js
+19 ./apps/fmjs/expo_frontend/babel.config.js
+15 ./apps/fmjs/expo_frontend/App.js
+28 ./apps/fmjs/expo_frontend/src/core/constants/index.js
+490 ./apps/fmjs/expo_frontend/src/screens/SelectionProgressListScreen.js
+9 ./apps/admin_app/dart_backend/test/basic_test.dart
+35 ./apps/admin_app/expo_frontend/app.config.js
+8 ./apps/admin_app/expo_frontend/index.js
+23 ./apps/admin_app/expo_frontend/metro.config.js
+25 ./apps/admin_app/expo_frontend/babel.config.js
+169 ./apps/admin_app/expo_frontend/App.js
+55 ./apps/admin_app/expo_frontend/src/core/constants/index.js
+500 ./apps/admin_app/expo_frontend/src/features/dashboard/DashboardScreen.js
+54 ./apps/admin_app/expo_frontend/src/features/dashboard/components/tabs/JobTab.js
+56 ./apps/admin_app/expo_frontend/src/features/dashboard/components/tabs/CompanyTab.js
+53 ./apps/admin_app/expo_frontend/src/features/dashboard/components/tabs/SelectionTab.js
+50 ./apps/admin_app/expo_frontend/src/features/dashboard/components/tabs/IndividualTab.js
+133 ./apps/admin_app/expo_frontend/src/features/dashboard/components/tabs/OverviewTab.js
+45 ./apps/admin_app/expo_frontend/src/features/dashboard/components/modals/DrillDownModal.js
+203 ./apps/admin_app/expo_frontend/src/features/dashboard/components/modals/UserDetailModal.js
+31 ./apps/admin_app/expo_frontend/src/features/dashboard/components/modals/JobDetailModal.js
+38 ./apps/admin_app/expo_frontend/src/features/dashboard/components/common/DashboardHelpers.js
+427 ./apps/admin_app/expo_frontend/src/features/dashboard/dashboardStyles.js
+54 ./apps/admin_app/expo_frontend/src/features/company/utils/companyDataFormatter.js
+65 ./apps/admin_app/expo_frontend/src/features/company/utils/__tests__/companyDataFormatter.test.js
+111 ./apps/admin_app/expo_frontend/src/features/company/screens/__tests__/CompanyDetailScreen.test.js
+108 ./apps/admin_app/expo_frontend/src/features/company/screens/CompanyDetailScreen.js
+9 ./apps/corporate_user_app/dart_backend/test/basic_test.dart
+41 ./apps/corporate_user_app/expo_frontend/app.config.js
+8 ./apps/corporate_user_app/expo_frontend/index.js
+24 ./apps/corporate_user_app/expo_frontend/metro.config.js
+25 ./apps/corporate_user_app/expo_frontend/babel.config.js
+104 ./apps/corporate_user_app/expo_frontend/App.js
+56 ./apps/corporate_user_app/expo_frontend/src/features/company_profile/TechStackScreen.js
+71 ./apps/corporate_user_app/expo_frontend/src/features/company_profile/CompanyPageScreen.js
+46 ./apps/corporate_user_app/expo_frontend/src/features/company_profile/UnderConstructionScreen.js
+39 ./App.js
+26 ./src/context/DataContext.js
+24 ./src/constants/options.js
+15 ./src/constants/index.js
+11 ./src/constants/theme.js
+188 ./src/screens/GenericRegistrationScreen.js
+179 ./src/components/TimeRangeRow.js
+55 ./src/components/StatusRow.js
+69 ./src/components/MonthYearPickerInput.js
+68 ./src/components/SliderRow.js
+73 ./src/components/SkillSelector.js
+70 ./src/components/ConnectionLevelSelector.js
+39 ./src/components/SwitchRow.js
+84 ./src/components/InputRow.js
+172 ./src/components/RecursiveField.js
+73 ./src/components/DatePickerInput.js
+137 ./src/components/SingleSelectGroup.js
+18 ./src/apps/CompanyApp.js
+18 ./src/apps/JobApp.js
+1 ./src/apps/mode_config.js
+16 ./src/apps/EngineerApp.js
+        `;
+
+    const tableBody = document.querySelector('#statsTable tbody');
+    const searchInput = document.querySelector('#fileSearch');
+
+    const lines = rawData.trim().split('\n').filter(line => !line.includes('total') && line.trim() !== '');
+    const data = lines.map(line => {
+      const parts = line.trim().split(/\s+/);
+      return {
+        loc: parts[0],
+        path: parts[1]
+      };
+    }).sort((a, b) => b.loc - a.loc);
+
+    function renderTable(filter = '') {
+      tableBody.innerHTML = '';
+      data.filter(item => item.path.toLowerCase().includes(filter.toLowerCase()))
+        .forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+                        <td>${item.path}</td>
+                        <td><span class="loc-badge">${item.loc} steps</span></td>
+                    `;
+          tableBody.appendChild(tr);
+        });
+    }
+
+    searchInput.addEventListener('input', (e) => renderTable(e.target.value));
+    renderTable();
+  </script>
+</body>
+
+</html>

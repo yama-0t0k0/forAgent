@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>共有モジュール (Shared Modules) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #02ddcf 0%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #0ea5e9;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .tree {
+      font-family: 'Fira Code', monospace;
+      padding: 1.5rem;
+      background: #010409;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: #8b949e;
+      overflow-x: auto;
+    }
+
+    .tree-folder {
+      color: #58a6ff;
+      font-weight: 700;
+    }
+
+    .tree-file {
+      color: #c9d1d9;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(14, 165, 233, 0.1);
+      color: #0ea5e9;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+
+    .feature-card {
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #0ea5e9;
+    }
+
+    .back-link {
+      color: #94a3b8;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #38bdf8;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="back-link flex items-center gap-2">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Infrastructure</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">共有モジュール</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400">shared library</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-3xl leading-relaxed">
+        プロジェクト全体で再利用される、フロントエンド(Expo)およびバックエンド(Dart)の共通コードベース設計。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Directory Tree Section -->
+      <section>
+        <h2 class="section-title">ディレクトリ構造</h2>
+        <div class="tree glass">
+          <span class="tree-folder">shared/</span>
+          ├── <span class="tree-folder">common_frontend/</span> <span class="tree-comment">// Expo UI
+            (shared/@shared/common-frontend)</span>
+          │ ├── <span class="tree-folder">src/core/</span> <span class="tree-comment">// State, Theme, Firebase, Models,
+            Services</span>
+          │ └── <span class="tree-folder">src/features/</span> <span class="tree-comment">// Registration, Heatmap,
+            Selection</span>
+          ├── <span class="tree-folder">common_backend/</span> <span class="tree-comment">// Dart Backend Infra</span>
+          ├── <span class="tree-folder">common_logic/</span> <span class="tree-comment">// プラットフォーム非依存 Dart Logic</span>
+          ├── <span class="tree-folder">domain_logic/</span> <span class="tree-comment">// ヒートマップ計算エンジン (Dart/JS)</span>
+          └── <span class="tree-folder">domain_models/</span> <span class="tree-comment">// DTO & JSON エンティティ定義</span>
+        </div>
+      </section>
+
+      <!-- Common Frontend Core Section -->
+      <section>
+        <h2 class="section-title">Common Frontend (Core)</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="feature-card glass p-8 rounded-3xl">
+            <div class="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center mb-6">
+              <i class="bi bi-gear-fill text-sky-400"></i>
+            </div>
+            <h3 class="font-bold mb-4 italic">State Management</h3>
+            <p class="text-xs text-slate-500 mb-4 tracking-tighter">`DataContext` による一元化された深い階層データのリアクティブ更新。React
+              Context 配信。</p>
+            <code
+              class="bg-black/30 p-2 block rounded text-[0.65rem] text-sky-300">updateValue(['基本情報', '氏名'], '...')</code>
+          </div>
+
+          <div class="feature-card glass p-8 rounded-3xl">
+            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+              <i class="bi bi-box-seam text-emerald-400"></i>
+            </div>
+            <h3 class="font-bold mb-4 italic">Data Models</h3>
+            <p class="text-xs text-slate-500 mb-4 tracking-tighter">`User`, `JobDescription`, `Company`,
+              `SelectionProgress` クラス。分割管理されたデータの統合ロジックを内包。</p>
+            <code
+              class="bg-black/30 p-2 block rounded text-[0.65rem] text-emerald-300">user.fullNameKanji // getter</code>
+          </div>
+
+          <div class="feature-card glass p-8 rounded-3xl">
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mb-6">
+              <i class="bi bi-cloud-check text-amber-400"></i>
+            </div>
+            <h3 class="font-bold mb-4 italic">Services</h3>
+            <p class="text-xs text-slate-500 mb-4 tracking-tighter">`FirestoreDataService` による型安全なデータ取得。生 JSON
+              ではなく、モデルインスタンスのリストを返却。</p>
+            <code
+              class="bg-black/30 p-2 block rounded text-[0.65rem] text-amber-300">fetchAllIndividuals() -> Promise&lt;User[]&gt;</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logic & Architecture Section -->
+      <section>
+        <h2 class="section-title">ロジック & 設計方針</h2>
+        <div class="glass p-10 rounded-3xl">
+          <div class="space-y-10">
+            <div>
+              <h3 class="text-xl font-bold mb-4 text-sky-400 flex items-center gap-3">
+                <i class="bi bi-puzzle text-sky-500"></i> 🆕 Pure Registration 隔離アーキテクチャ
+              </h3>
+              <p class="text-sm text-slate-300 leading-relaxed">
+                `yama` ブランチの大規模リファクタリングの影響を受けない「登録のみ」に特化したモードをサポート。
+              </p>
+              <div class="mt-4 grid md:grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                  <span class="font-mono text-xs text-sky-400">PureRecursiveField.js</span>
+                  <p class="text-[0.7rem] text-slate-500">モデルやテンプレート加工ロジックを排除。JSON構造そのままを再帰レンダリング。</p>
+                </div>
+                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                  <span class="font-mono text-xs text-sky-400">PureRegistrationScreen.js</span>
+                  <p class="text-[0.7rem] text-slate-500">App Mode = "registration" 時のみ使用される、孤立したエントリポイント。</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-3">
+                <i class="bi bi-grid-3x3 text-emerald-500"></i> 共通UI: ヒートマップ
+              </h3>
+              <p class="text-sm text-slate-300 leading-relaxed">
+                `HeatmapGrid.js` は、`HeatmapCalculator` / `HeatmapGeometry` / `HeatmapMapper`
+                配下の共有ロジックを利用し、Individual/Job/Admin の各アプリで矛盾のない可視化を提供します。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Guidelines Section -->
+      <section>
+        <h2 class="section-title">開発ガイドライン</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="p-8 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+            <h3 class="font-bold mb-6 flex items-center gap-2">
+              <i class="bi bi-file-earmark-code text-indigo-400"></i> Frontend (Expo)
+            </h3>
+            <ul class="text-sm space-y-4 text-slate-400">
+              <li class="flex items-start gap-3">
+                <i class="bi bi-check2 text-indigo-400 mt-1"></i>
+                <span><strong>パスエイリアスの徹底</strong>: 相対パスは禁止。<code>@shared</code> <code>@core</code> 等を必ず使用。</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i class="bi bi-check2 text-indigo-400 mt-1"></i>
+                <span><strong>モデル利用</strong>: <code>FirestoreDataService</code> から受け取ったインスタンスを、UI層で再変換しない。</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i class="bi bi-check2 text-indigo-400 mt-1"></i>
+                <span><strong>定数化</strong>: 文字列リテラルを避け、<code>src/core/constants</code> 配下で一元管理。</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="p-8 rounded-2xl bg-teal-500/5 border border-teal-500/10">
+            <h3 class="font-bold mb-6 flex items-center gap-2">
+              <i class="bi bi-braces text-teal-400"></i> Backend (Dart)
+            </h3>
+            <ul class="text-sm space-y-4 text-slate-400">
+              <li class="flex items-start gap-3">
+                <i class="bi bi-check2 text-teal-400 mt-1"></i>
+                <span><strong>domain_models</strong>: 全エンティティの唯一の情報源。<code>build_runner</code> でシリアライズコード生成。</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i class="bi bi-check2 text-teal-400 mt-1"></i>
+                <span><strong>common_logic</strong>: 非同期処理やバリデーションなど、プラットフォーム非依存の純粋ロジック。</span>
+              </li>
+            </ul>
+            <code
+              class="bg-black/50 p-4 block rounded-lg text-xs mt-6 text-teal-300 font-mono">dart run build_runner build</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Core Infrastructure & Shared Systems Engineering Group.
+    </footer>
+  </div>
+</body>
+
+</html>

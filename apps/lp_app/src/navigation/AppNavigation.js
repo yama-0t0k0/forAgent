@@ -9,6 +9,29 @@ import { logScreenView } from '../features/analytics';
 
 const Stack = createNativeStackNavigator();
 
+const linking = {
+  prefixes: ['https://admin-app-site-d11f0.web.app', 'http://localhost:8089', '/'],
+  config: {
+    initialRouteName: 'Home',
+    screens: {
+      Home: {
+        path: 'lp',
+        exact: true,
+      },
+      PrivacyPolicy: {
+        path: 'lp/PrivacyPolicy',
+      },
+      Login: {
+        path: 'lp/Login',
+      },
+      PasskeyLogin: {
+        path: 'lp/PasskeyLogin',
+      },
+    },
+  },
+};
+
+
 function AppNavigation() {
   const navigationRef = useNavigationContainerRef();
   const routeNameRef = React.useRef();
@@ -16,6 +39,7 @@ function AppNavigation() {
   return (
     <NavigationContainer
       ref={navigationRef}
+      linking={linking}
       onReady={() => {
         const currentRoute = navigationRef.current?.getCurrentRoute();
         if (currentRoute) {

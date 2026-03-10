@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>求人票アプリ (Job Description) - Interactive Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      line-height: 1.6;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+      border-left: 4px solid #ea580c;
+      padding-left: 1rem;
+      margin-top: 4rem;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace !important;
+    }
+
+    .diagram-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(234, 88, 12, 0.1);
+      color: #fb923c;
+      border: 1px solid rgba(234, 88, 12, 0.2);
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-12 lg:p-20">
+  <div class="max-w-5xl mx-auto">
+    <nav class="mb-12">
+      <a href="../index.html" class="text-slate-400 hover:text-orange-400 flex items-center gap-2 transition-colors">
+        <i class="bi bi-arrow-left"></i>
+        <span>Document Portal</span>
+      </a>
+    </nav>
+
+    <header class="mb-20">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="tag">Domain Design</span>
+        <span class="text-slate-500 text-sm ml-auto italic">Updated: 2026-03-03 10:11:00</span>
+      </div>
+      <h1 class="text-4xl md:text-7xl font-black mb-8 leading-tight">
+        <span class="gradient-text">求人票管理</span><br>
+        <span class="text-3xl md:text-5xl text-slate-400 font-bold">job_description (JD)</span>
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        求人情報の定義、スキル要件、および志向ヒートマップの可視化。全アプリケーションから参照される独立したドメインアプリ。
+      </p>
+    </header>
+
+    <main class="space-y-24">
+      <!-- Architecture Overview -->
+      <section class="glass p-10 rounded-3xl">
+        <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+          <i class="bi bi-file-earmark-diff text-orange-500"></i> システム構成
+        </h2>
+        <div class="grid md:grid-cols-2 gap-10">
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-100 italic">基本スペック</h3>
+            <ul class="text-sm space-y-4 text-slate-400">
+              <li>- <strong>Framework</strong>: Expo (React Native)</li>
+              <li>- <strong>Root Collection</strong>: `job_description`</li>
+              <li>- <strong>Model</strong>: `JobDescription.js` (@shared/src/core/models)</li>
+            </ul>
+          </div>
+          <div class="space-y-6">
+            <h3 class="font-bold text-slate-100 italic">設計目的</h3>
+            <p class="text-sm text-slate-400 leading-relaxed italic">
+              ドメインモジュールとして独立させることで、Admin、Corporate、Individual のいずれからも共通の求人詳細 UI (`JobDescriptionContent.js`) を利用可能にします。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Flow Diagram -->
+      <section>
+        <h2 class="section-title">データフローとヒートマップ連携</h2>
+        <div class="diagram-container shadow-2xl">
+          <div class="mermaid">
+            graph LR
+            A["Firestore (job_description/ID)"]
+            B["JobDescriptionScreen (求人詳細)"]
+            C["HeatmapCalculator (共有ロジック)"]
+            D["HeatmapGrid (共有UI)"]
+            E["DataContext (テンプレートフォールバック)"]
+
+            A -->|onSnapshot| B
+            E -->|initialData| B
+            B -->|calculate data| C
+            C -->|values 0..89| D
+          </div>
+        </div>
+        <div class="mt-8 p-6 bg-orange-500/5 border border-orange-500/10 rounded-2xl">
+          <p class="text-sm text-slate-300">
+            `HeatmapCalculator` を用いて、求人要件（必須・歓迎スキル）と企業志向を可視化。これにより、エンジニアとのマッチング度を直感的に把握可能。
+          </p>
+        </div>
+      </section>
+
+      <!-- JSON Example Section -->
+      <section>
+        <h2 class="section-title">データ構造定義 (JSON Example)</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-orange-400 mb-6">基本項目</h3>
+            <pre class="text-[0.7rem] bg-black/30 p-4 rounded-xl text-orange-200">
+{
+  "求人基本項目": {
+    "ポジション名": "フロントエンドエンジニア",
+    "雇用形態": "正社員",
+    "勤務地": "東京/リモート可",
+    "年収レンジ": "600-900万円"
+  }
+}</pre>
+          </div>
+          <div class="glass p-8 rounded-2xl">
+            <h3 class="font-bold text-orange-400 mb-6">スキル (必須/歓迎)</h3>
+            <pre class="text-[0.7rem] bg-black/30 p-4 rounded-xl text-orange-200">
+{
+  "スキル経験": {
+    "必須": {
+      "TypeScript": {
+        "実務経験あり": true
+      }
+    },
+    "歓迎": {
+      "Next.js": {
+        "実務経験あり": true
+      }
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Launch Guide Section -->
+      <section class="glass p-10 rounded-3xl border-t-8 border-orange-500">
+        <h2 class="text-2xl font-bold mb-8">起動方法ガイド</h2>
+        <div class="space-y-6">
+          <div>
+            <h4 class="font-mono text-sm text-orange-300 mb-2"># Job Description Launch</h4>
+            <code class="bg-black/50 p-4 block rounded-lg text-xs">./scripts/start_expo.sh job_description</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-40 pt-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+      &copy; 2026 Engineer Career Optimization Platform - Job Domain Team
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</body>
+
+</html>
