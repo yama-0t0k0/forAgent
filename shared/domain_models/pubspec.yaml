@@ -16,7 +16,7 @@
 # - コード生成: dart run build_runner build
 
 name: domain_models
-description: Shared domain models for Engineer Registration App
+description: Shared domain models for Career Dev Tool
 version: 1.0.0
 publish_to: none
 
