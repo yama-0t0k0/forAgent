@@ -53,7 +53,8 @@ export const GenericMenuScreen = ({
     menuGroups,
     renderBottomNav,
     onItemPress,
-    showBack = false
+    showBack = false,
+    children
 }) => {
     const navigation = useNavigation();
 
@@ -118,6 +119,7 @@ export const GenericMenuScreen = ({
                         </View>
                     </View>
                 ))}
+                {children}
             </ScrollView>
 
             {renderBottomNav && renderBottomNav(navigation)}
