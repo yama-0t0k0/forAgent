@@ -1,7 +1,7 @@
 import React from 'react';
 import { GenericMenuScreen } from './GenericMenuScreen';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
-import { View } from 'react-native';
+import { PasskeyManagementSection } from '../auth/components/PasskeyManagementSection';
 
 /**
  * @typedef {Object} IndividualMenuScreenProps
@@ -61,7 +61,9 @@ export const IndividualMenuScreen = ({ navigation, hideSafeArea }) => {
             <GenericMenuScreen
                 menuGroups={menuGroups}
                 onItemPress={handlePress}
-            />
+            >
+                <PasskeyManagementSection />
+            </GenericMenuScreen>
             {!hideSafeArea && <BottomNav navigation={navigation} activeTab='Menu' />}
         </View>
     );

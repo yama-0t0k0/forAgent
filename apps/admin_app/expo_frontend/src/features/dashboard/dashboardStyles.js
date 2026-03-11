@@ -8,6 +8,8 @@ export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME.background, paddingTop: 50 },
   header: { paddingHorizontal: 20, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: THEME.text },
+  headerRightActions: { flexDirection: 'row', alignItems: 'center' },
+  headerIconButton: { padding: 5, marginRight: 2 },
   notificationContainer: { position: 'relative', padding: 5 },
   badge: { position: 'absolute', top: 0, right: 0, backgroundColor: 'red', borderRadius: 10, width: 18, height: 18, justifyContent: 'center', alignItems: 'center' },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },

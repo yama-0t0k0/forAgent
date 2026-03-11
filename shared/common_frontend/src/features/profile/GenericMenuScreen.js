@@ -52,7 +52,9 @@ import { IconButton } from '@shared/src/core/components/IconButton';
 export const GenericMenuScreen = ({
     menuGroups,
     renderBottomNav,
-    onItemPress
+    onItemPress,
+    showBack = false,
+    children
 }) => {
     const navigation = useNavigation();
 
@@ -77,6 +79,15 @@ export const GenericMenuScreen = ({
         <View style={styles.container}>
             <SafeAreaView style={styles.header}>
                 <View style={styles.headerContent}>
+                    {showBack && (
+                        <IconButton
+                            testID='menu_back_button'
+                            name='chevron-back'
+                            size={24}
+                            onPress={() => navigation.goBack()}
+                            style={styles.backButton}
+                        />
+                    )}
                     <Text style={styles.headerTitle}>メニュー</Text>
                 </View>
             </SafeAreaView>
@@ -108,6 +119,7 @@ export const GenericMenuScreen = ({
                         </View>
                     </View>
                 ))}
+                {children}
             </ScrollView>
 
             {renderBottomNav && renderBottomNav(navigation)}
@@ -129,6 +141,10 @@ const styles = StyleSheet.create({
         height: 60,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    backButton: {
+        position: 'absolute',
+        left: 8,
     },
     headerTitle: {
         fontSize: 18,
