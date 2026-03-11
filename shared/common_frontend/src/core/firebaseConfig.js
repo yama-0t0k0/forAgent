@@ -25,7 +25,7 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // Singleton pattern for Firebase Auth with persistence
-let auth;
+let auth = null;
 const persistence = Platform.select({
   web: browserLocalPersistence,
   default: getReactNativePersistence(ReactNativeAsyncStorage)
@@ -43,7 +43,7 @@ try {
 }
 
 // Singleton pattern for Firestore
-let db;
+let db = null;
 try {
   db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
