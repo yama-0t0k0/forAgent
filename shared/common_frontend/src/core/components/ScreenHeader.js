@@ -18,7 +18,8 @@ export const ScreenHeader = ({
     title,
     showBack = true,
     rightAction,
-    onBack
+    onBack,
+    titleAccessory
 }) => {
     const navigation = useNavigation();
 
@@ -39,7 +40,6 @@ export const ScreenHeader = ({
                 {showBack && (
                     <IconButton
                         onPress={handleBack}
-                        // hitSlop is handled inside IconButton.js if it follows standard implementation
                         style={styles.backButton}
                     >
                         <Ionicons name='chevron-back' size={24} color={THEME.text} />
@@ -48,9 +48,12 @@ export const ScreenHeader = ({
             </View>
 
             <View style={styles.centerContainer}>
-                <Text style={[THEME.typography.h2, styles.title]} numberOfLines={1} testID='header_title'>
-                    {title}
-                </Text>
+                <View style={styles.titleWrapper}>
+                    <Text style={[THEME.typography.h2, styles.title]} numberOfLines={1} testID='header_title'>
+                        {title}
+                    </Text>
+                    {titleAccessory}
+                </View>
             </View>
 
             <View style={styles.rightContainer}>
@@ -84,6 +87,10 @@ const styles = StyleSheet.create({
     },
     title: {
         color: THEME.text,
+    },
+    titleWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     backButton: {
         marginLeft: -THEME.spacing.sm,

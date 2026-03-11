@@ -235,13 +235,13 @@ export interface LpContent {
     - アプリ名を「Engineer Registration App」から「**Career Dev Tool**」へ変更。
     - ユーザーの目に触れる表示名（アプリ名、ヘッダー、フッター）および開発者向けメタデータ（package.json description）を更新。
     - ※物理的なディレクトリ名やBundle ID等の変更（Level 2以降）はリスク回避のため実施しない。
-- [x] **Admin用ログイン画面の実装**
+- [x] **Admin用ログイン画面の実装** (完了: Admin App 2026-03-12)
     - LPアプリ側は Firebase Authentication の **パスキー（Passkey）ログインを主導線**とし、「Password でのログインはこちら」リンクから Email / Password 画面へ遷移できる構成に変更。
     - 画面ヘッダーに「新規登録」ボタンを設置し、タップ後は**招待コード確認画面**へ遷移する（一般公開ではなく招待制を前提とした登録導線）。
     - **技術選定**: モバイル体験最優先のため、React Nativeフェーズでは `react-native-passkey` を採用（Flutter移行時は `passkeys` パッケージへ移行予定）。
-- [x] **Passkeyログイン実装（Client Side）**
+- [x] **Passkeyログイン実装（Client Side）** (完了: Admin App 2026-03-12)
     - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用してログイン（実装済み）。
-    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（実装済み / 動作確認は本章 6.1 参照）。
+    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（Admin App にて動作確認済み）。
 - [x] **ロール別リダイレクト機能の実装**
     - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
         - **Admin**: `admin_app` (Web)
@@ -395,7 +395,7 @@ npx expo start --dev-client --tunnel
 
 **詳細設計: 各メニュー内の「パスキー管理」コーナー**
 - **配置箇所**:
-  - `IndividualMenuScreen.js`, `CorporateMenuScreen.js` 等の「アカウント設定 / セキュリティ」セクション内。
+  - `AppMenuScreen.js` (Shared) 内の「アカウント設定 / セキュリティ」セクション。全アプリ（Admin, Individual, Corporate, LP）で共通利用。
   - 別の画面へ遷移させるのではなく、**その画面内で直接「登録状況の確認」および「登録ボタン」が表示されるコーナー**として実装する。
 - **機能**:
   - **状態表示**: 「パスキー未登録」または「登録済み（デバイス名等）」を表示。

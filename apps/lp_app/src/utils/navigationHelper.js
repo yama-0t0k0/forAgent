@@ -1,11 +1,9 @@
 import { Platform, Linking, Alert } from 'react-native';
 
-// TODO: Update these URLs with actual production/development URLs
 const APP_URLS = {
-  // Use LAN IP for Expo Go compatibility (localhost is not reachable from device)
-  admin: __DEV__ ? 'http://10.190.85.60:8081' : 'https://admin-app-site-d11f0.web.app', 
-  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'http://10.190.85.60:8082', 
-  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'http://10.190.85.60:8081', 
+  admin: process.env.EXPO_PUBLIC_ADMIN_APP_URL || 'https://admin-app-site-d11f0.web.app',
+  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'https://corporate-app.web.app',
+  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'https://individual-app.web.app',
 };
 
 const PLATFORM_WEB = 'web';

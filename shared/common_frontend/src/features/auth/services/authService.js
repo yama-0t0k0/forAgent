@@ -35,14 +35,17 @@ export const authService = {
    */
   async signInWithEmailPassword(email, password) {
     try {
-      // Ensure persistence is set (defaults to 'local' in web, but good to be explicit)
-      // Note: setPersistence might not be needed for React Native if initialized correctly,
-      // but for Web (Admin App), browserLocalPersistence is standard.
-      await setPersistence(auth, browserLocalPersistence);
+      console.log(`[AuthService] Attempting login: emailLength=${email?.length}, passwordLength=${password?.length}`);
+      console.log(`[AuthService] Auth project: ${auth?.app?.options?.projectId}`);
+
+      // Auth persistence is handled in firebaseConfig.js.
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('[AuthService] Login successful for UID:', userCredential.user.uid);
       return userCredential;
     } catch (error) {
-      console.error('Login Error:', error.code, error.message);
+      console.error('[AuthService] Login Error:', error.code, error.message);
+      // Log more error details if available
+      if (error.customData) console.error('[AuthService] Error Custom Data:', error.customData);
       throw error;
     }
   },

@@ -9,7 +9,7 @@ import { User } from '@shared/src/core/models/User';
 import { IndividualProfileScreen } from '@shared/src/features/profile/IndividualProfileScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
-import { IndividualMenuScreen } from '@shared/src/features/profile/IndividualMenuScreen';
+import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 // Fix import path for JobDescriptionScreen using relative path to avoid alias issues
@@ -94,7 +94,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
       case 'Career':
         return <CareerScreen {...props} />;
       case 'Menu':
-        return <IndividualMenuScreen {...props} />;
+        return <AppMenuScreen {...props} role="individual" />;
       case 'ImageEdit':
         return <IndividualImageEditScreen {...props} />;
       case 'JobDescription':

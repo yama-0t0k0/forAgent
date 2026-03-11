@@ -159,7 +159,7 @@ export default function DashboardScreen() {
         }
 
         const userModel = await FirestoreDataService.fetchIndividualById(selectedUserId);
-        
+
         if (!userModel) {
           setSelectedUserError(`ユーザー（ID: ${selectedUserId}）が見つかりませんでした`);
           setSelectedUserLoading(false);
@@ -377,15 +377,17 @@ export default function DashboardScreen() {
       <ScreenHeader
         title='管理ダッシュボード'
         showBack={false}
+        titleAccessory={(
+          <IconButton
+            testID='settings_button'
+            name='settings-outline'
+            size={24}
+            onPress={handleOpenSettings}
+            style={{ marginLeft: 8 }}
+          />
+        )}
         rightAction={(
           <View style={styles.headerRightActions}>
-            <IconButton
-              testID='settings_button'
-              name='settings-outline'
-              size={26}
-              onPress={handleOpenSettings}
-              style={styles.headerIconButton}
-            />
             <NotificationIcon />
           </View>
         )}
