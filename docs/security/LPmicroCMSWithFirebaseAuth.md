@@ -282,8 +282,12 @@ export interface LpContent {
 
 **バックエンド（Cloud Functions）**
 - `apps/functions/src/passkey.js` の `RP_ID` と `EXPECTED_ORIGIN` が、アプリ/ドメイン側の設定と整合していること
-  - `RP_ID` の既定: `engineer-registration-lp.web.app`
+  - `RP_ID` の既定: `engineer-registration-lp.web.app` (本番)
   - `EXPECTED_ORIGIN` の既定: `https://engineer-registration-lp.web.app` および `ios:bundle-id:com.engineer.registration.lpapp`
+  - **重要**: 開発クライアント（Expo Tunnel等）を使用する場合、OSの制約により `RP_ID` がドメイン（origin）と一致している必要があります。詳細は 6.1.5 B を参照。
+
+**通信・環境設定**
+- `apps/lp_app/src/utils/navigationHelper.js` の `APP_URLS` が、検証に使用している端末から実際に到達可能なIPアドレス（またはドメイン）に設定されていること。
 
 **ドメイン（iOS: Associated Domains）**
 - `https://<RP_ID>/.well-known/apple-app-site-association` が配信されていること
@@ -330,45 +334,54 @@ npx expo start --dev-client --tunnel
 - 成功すると、ロール（`claims.role`）に応じて `redirectToApp(role)` が走る（デバッグ目的なら、端末から到達できるURLへ設定しておく）
 
 **(2) パスキー登録（＝切替）**
-- LPホーム画面で管理者権限が確認できると、上部に「管理者メニュー」が表示される
-- 「🔑 パスキ登録」をタップし、端末のパスキー作成フローを完了する
-  - 内部フロー（Native）:
-    - `getPasskeyRegistrationOptions` → `Passkey.create(...)` → `verifyPasskeyRegistration`
-  - 期待結果: 「パスキーを登録しました。次からパスキーでログインできます。」が表示される
+- 「マイページ」または「アカウント設定 / セキュリティ」画面内に設けられた「パスキー管理セクション」へ移動。
+- 「🔑 パスキ登録」ボタンをタップし、端末のパスキー作成フローを完了する。
+- **内部フロー (Native)**:
+  1. `getPasskeyRegistrationOptions` (Functions) を呼び出し。
+     - 入力: `{}` (認証済みコンテキスト)
+     - 返却: `{ challenge, rp, user, pubKeyCredParams, ... }`
+  2. `Passkey.create(options)` (Client) を実行。
+     - OSが認証ダイアログを表示（FaceID/TouchID等）。
+     - 端末内で秘密鍵ペアを生成し、Secure Enclave等に保存。
+  3. `verifyPasskeyRegistration({ response })` (Functions) を呼び出し。
+     - 入力: 端末から返された登録レスポンス。
+     - 処理: 署名検証、Credential ID と公開鍵を Firestore (`users/{uid}/passkeys`) に保存。
+- 期待結果: パスキー作成が成功し、画面に「パスキーを登録しました。次からパスキーでログインできます。」および **「今すぐパスキーログインを試す（検証）」** ボタンが表示される。
 
-**(3) ログアウト**
-- 右上の「マイページ」を長押し → ログアウト
+**(3) 登録後の動作検証（推奨）**
+- 表示された「今すぐパスキーログインを試す（検証）」ボタンをタップ。
+- **内部フロー (Native)**:
+  1. `getPasskeyChallenge` (Functions) を呼び出し。
+     - 入力: `{}` 
+     - 返却: `{ challenge, rpId, allowCredentials }`
+  2. `Passkey.authenticate({ challenge, rpId, allowCredentials })` (Client) を実行。
+     - OSが認証ダイアログを表示。
+  3. `verifyPasskeyAndGetToken({ response })` (Functions) を呼び出し。
+     - 入力: 端末から返された認証レスポンス。
+     - 処理: 登録済み公開鍵を用いた署名検証。
+  4. 成功すれば「検証成功」と表示する。
+- これにより、ユーザーは一度ログアウトせずとも設定が正しく完了したことを確信できる。
 
-**(4) パスキーでログイン**
-- 右上の「ログイン」→ パスキーログイン画面で「✨ パスキーでログイン」
-  - 内部フロー（Native）:
-    - `getPasskeyChallenge` → `Passkey.authenticate(...)` → `verifyPasskeyAndGetToken` → `signInWithCustomToken`
-  - 期待結果: ログイン成功し、`role` が取得できれば `redirectToApp(role)` が実行される
+**(4) ログアウト & 実ログインテスト**
+- マイページ内からログアウトを実行。
+- 右上の「ログイン」→ パスキーログイン画面で「✨ パスキーでログイン」を試し、正常にリダイレクトされることを確認。
 
 #### 6.1.5 詰まりポイント（注意点・切り分け）
 
-**A. AASA（iOS: Associated Domains）が原因で登録/ログインに失敗する**
-- 症状例:
-  - パスキー作成ダイアログが出ない/すぐ閉じる
-  - `verifyPasskeyRegistration` / `verifyPasskeyAndGetToken` が `origin` 不一致で失敗する
-- 対策:
-  - `webcredentials:<RP_ID>` が `apps/lp_app/app.json` に入っているか確認
-  - `/.well-known/apple-app-site-association` の配信を確認
-  - `AASA.webcredentials.apps` に `<TEAM_ID>.<bundleIdentifier>` が含まれるよう調整
+**A. AASA（iOS: Associated Domains）が原因で失敗する**
+- **症状**: パスキーダイアログが出ない。「検証失敗」エラーが出る。
+- **Expo Tunnel での解決策 (Best UX)**:
+  - 開発中は実機検証用として、カスタムドメイン（例: `dev.engineer-registration-lp.web.app`）を一時的に Firebase Hosting に追加し、そこに AASA を配信しておく。
+  - 実機/Simulator の `app.json` にそのドメインを含めてビルドしておくことで、トンネル経由の Metro 接続時でもネイティブ側のドメイン紐付けを維持したまま検証が可能になる。
 
 **B. Cloud Functions の `RP_ID` / `EXPECTED_ORIGIN` 不整合**
-- 症状例:
-  - `expectedRPID` / `expectedOrigin` mismatch
-  - challenge は取れるが verify で落ちる
-- 対策:
-  - `apps/functions/src/passkey.js` の `RP_ID` と `EXPECTED_ORIGIN` を、実際の運用ドメイン・bundle id と一致させる
-  - 端末の `clientDataJSON.origin`（Functionsログ）と `EXPECTED_ORIGIN` を見比べて調整する
+- **重要（致命的な懸念）**: パスキーは「呼び出し元ドメイン（Origin）」が「`RP_ID`」と一致（またはそのドメインを包含）していることをOSレベルで強制します。
+- **推奨アプローチ**: 基本は本番用 `RP_ID` を使用しますが、開発クライアント（トンネル等）で検証する場合は、Cloud Functions の環境変数（`PASSKEY_RP_ID`）を設定して、一時的に検証用ドメインを許可する構成をとること。
+  - 理由: 本番専用 RP_ID のみでは、ローカル開発環境や一時的なトンネルURLでの検証が不可能になり、デバッグ効率が極端に低下するため。
 
-**C. Expo Go で試してしまっている**
-- `react-native-passkey` は Expo Go では動作しない（Dev Client 必須）
-
-**D. 管理画面（admin_app）へ遷移できない**
-- 実機から `localhost` は参照できないため、`apps/lp_app/src/utils/navigationHelper.js` のURLを端末から到達可能なものにする
+**C. navigationHelper.js の IPアドレス管理**
+- 症状: リダイレクト後に「ページが開けません」等。
+- 対策: `navigationHelper.js` 内の `APP_URLS` に、その時々の開発マシンのLAN IPアドレスが正確に設定されていることを確認してください。
 
 #### 6.1.6 「切替（登録）」機能の現状と、追加実装が必要な場合の設計案
 
@@ -380,20 +393,18 @@ npx expo start --dev-client --tunnel
 - 管理者以外（Individual/Corporate）でも、アプリ内のメニューから「パスキー登録/解除/状態確認」を行いたい
 - Adminアプリ内（または共通メニュー）から「パスキー登録」へ統一的にアクセスしたい
 
-**詳細設計（案）: 共通の「ログイン方法」/「パスキー管理」画面**
-- 画面: `shared/common_frontend/src/features/auth/screens/PasskeyManagementScreen.js`（新規）
-- 役割:
-  - 現在のログイン状態表示（Email/Passwordでログイン中か、パスキー登録済みか）
-  - パスキー登録（既存: `getPasskeyRegistrationOptions` / `verifyPasskeyRegistration` を利用）
-  - パスキー一覧/削除（追加APIが必要。下記参照）
-  - 「ログアウトしてパスキーでログイン」導線（UI上で明示）
-- 追加が必要なバックエンドAPI（案）:
-  - `listPasskeys`（onCall, 要認証）: `users/{uid}/passkeys` を返す（id, createdAt, lastUsed, transports）
-  - `deletePasskey`（onCall, 要認証）: 指定credentialIDを削除（本人のみ）
-  - セキュリティ: 直近ログイン（recent sign-in）要件や、操作ログの記録を検討
-
-**実装計画（案）**
-1. [ ] 共通画面の追加とナビゲーション接続（LP/Individual/Corporate のメニューから遷移可能にする）
+**詳細設計: 各メニュー内の「パスキー管理」コーナー**
+- **配置箇所**:
+  - `IndividualMenuScreen.js`, `CorporateMenuScreen.js` 等の「アカウント設定 / セキュリティ」セクション内。
+  - 別の画面へ遷移させるのではなく、**その画面内で直接「登録状況の確認」および「登録ボタン」が表示されるコーナー**として実装する。
+- **機能**:
+  - **状態表示**: 「パスキー未登録」または「登録済み（デバイス名等）」を表示。
+  - **登録アクション**: `registerPasskey` を実行。
+    - **内部フロー**: 上記 6.1.4 (2) と同様。
+    - 完了後にインラインで成功メッセージと「検証ボタン」を表示。
+  - **検証導線**: 登録後に出現する「今すぐパスキーログインを試す（検証）」をタップ。
+    - **内部フロー**: 上記 6.1.4 (3) と同様。
+    - 成功すれば検証済み状態へと表示を更新する。
 2. [ ] `listPasskeys` / `deletePasskey` のFunctions実装 + 最低限の監査ログ
 3. [ ] 端末実機でのE2E（手動）: 「パスワード→登録→ログアウト→パスキー→削除→パスワード」まで通して検証
 4. [ ] 失敗時のUX: フォールバック（Email/Password）を必ず残し、復旧導線を明確化する
@@ -418,23 +429,33 @@ npx expo start --dev-client --tunnel
 - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用し、Firebase Authentication と Cloud Functions の連携をライブラリ側に委譲する。
 - **Native (iOS/Android)**: `react-native-passkey` と Cloud Functions を組み合わせ、認証結果を Firebase Authentication へ接続する。
 
-**Nativeログインフロー（想定）**
+**Nativeログインフロー**
 
 1. **チャレンジ取得**
    - Callable Function: `getPasskeyChallenge`
-   - 返却値: `challenge`, `rpId` など（認証オプション）
+   - 入力: `{ allowCredentials: [] }` (または未指定)
+   - 返却: `{ challenge, rpId, allowCredentials }`
 2. **端末でパスキー認証**
-   - `Passkey.authenticate({ rpId, challenge, allowCredentials })` を実行
-   - 成功時に WebAuthn 互換のレスポンス（`id`, `rawId`, `response.clientDataJSON`, `response.authenticatorData`, `response.signature` 等）を取得
+   - `Passkey.authenticate({ rpId, challenge, allowCredentials })` を実行。
+   - OSの生体認証ダイアログを通じて署名を生成。
+   - 成功時に WebAuthn 互換のレスポンス（`id`, `rawId`, `response.clientDataJSON`, `response.authenticatorData`, `response.signature` 等）を取得。
 3. **サーバー検証 & トークン発行**
    - Callable Function: `verifyPasskeyAndGetToken`
    - 入力: `response`（手順2の結果）
+   - 内部処理:
+     - ユーザー検索（Credential IDから）。
+     - チャレンジの整合性チェック。
+     - 公開鍵による署名検証。
+     - `admin.auth().createCustomToken(uid)` を実行。
    - 出力: `{ customToken }`
 4. **Firebase Authへサインイン**
-   - `signInWithCustomToken(auth, customToken)` を実行して `userCredential` を取得
+   - `signInWithCustomToken(auth, customToken)` を実行。
+   - クライアント側で `Auth` オブジェクトが更新される。
 5. **ロール取得とリダイレクト**
-   - `userCredential.user.getIdTokenResult()` から `claims.role` を取得
-   - `redirectToApp(role)` により role別に遷移
+   - `userCredential.user.getIdTokenResult()` から `claims.role` を取得。
+   - `redirectToApp(role)` により role別に遷移。
+Line 426: 
+Line 427: **失敗時の扱い**
 
 **失敗時の扱い**
 
