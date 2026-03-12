@@ -281,6 +281,19 @@ Adminアカウントは以下の構成で管理される。
     - **UI向けフォールバック**: LPアプリ等の「遷移先決定」では、Claims未付与のケースに備え `users/{uid}.role` を参照するフォールバックを許容する（ただし、セキュリティルール上の根本権限は Custom Claims を正とする）。
     - **Context Data 遅延ロード (Context Scope)**: アルムナイ区分（Lv1〜Lv3）などの複雑なリレーション情報は、ログイン後の非同期処理として Firestore から取得する (§3.2準拠)。
 
+### 6.1.1 開発・検証環境の固定（dev / prod 分離）
+
+Passkey/WebAuthn は OS レベルで **RP ID（ドメイン）と Origin の整合**が強制されるため、開発時に Origin が毎回変動する環境（例: トンネルURL、端末から到達できない `localhost`）に依存すると、再現性のない失敗が発生しやすい。
+
+本プロジェクトでは、本番でも通用する形として以下を原則とする。
+
+1. **dev 用の固定ドメインを用意し、検証をそこへ寄せる**
+   - dev/prod それぞれで、AASA（iOS）/ Asset Links（Android）が成立するドメインを固定する。
+2. **Functions 側の検証条件を「許可リスト（複数 Origin）」で管理する**
+   - `PASSKEY_RP_ID` と `EXPECTED_ORIGINS`（複数）を環境変数として持ち、dev/prod を明確に分離する。
+3. **UI のリダイレクト先は「端末から到達可能」であることを前提に固定する**
+   - ローカルの `localhost` 依存を避け、dev は dev Hosting URL、prod は prod Hosting URL に寄せる。
+
 ### 6.2 認証・認可フロー詳細
 
 ```mermaid
@@ -374,9 +387,10 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 
 | コンポーネント | 技術選定 | 備考 |
 | :--- | :--- | :--- |
-| **Passkey Provider** | Firebase Auth (WebAuthn) | `firebase.auth.WebAuthnCredentials` |
-| **Frontend** | Expo (React Native) | ネイティブ(iOS/Android)は `expo-local-authentication` や `react-native-passkey` 等のライブラリ選定が必要。Web版はブラウザ標準APIで動作。 |
-| **Hosting** | Firebase Hosting | Passkeyの設定（`assetlinks.json` / `apple-app-site-association`）が必要になる場合がある。 |
+| **Passkey Provider (Web)** | Firebase Auth (WebAuthn) | `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用する。 |
+| **Passkey Provider (Native)** | `react-native-passkey` + Cloud Functions | Challenge取得 → OS認証 → 署名検証 → Custom Token発行 → `signInWithCustomToken` の経路で Firebase Auth に接続する。 |
+| **Frontend** | Expo (React Native) | Passkey（Native）は Expo Go では動作しないため Development Client を前提とする。 |
+| **Hosting** | Firebase Hosting | dev/prod それぞれの RP ドメインで AASA（iOS）/ Asset Links（Android）を成立させる。 |
 
 > [!NOTE]
 > **Admin App の提供形態**:
@@ -424,10 +438,11 @@ Firebase Authentication は Passkey (WebAuthn) をネイティブサポートし
 *   **起動コマンド**: `bash scripts/start_expo.sh auth_portal`
 *   **ポート**: `8086`
 *   **URL (Web)**: http://localhost:8086
-*   **Expo Go**: `exp://xa-ezgm-anonymous-8086.exp.direct` (トンネルモード)
+*   **Expo Go**: `exp://xa-ezgm-anonymous-8086.exp.direct` (トンネルモード / Email・Password の確認用途)
 *   **特徴**:
     *   アプリ名が「ログイン画面」として表示されます（`app.config.js` で動的切替）。
     *   Admin/Corporate/Individual 全ユーザーのログインエントリポイントとして機能検証が可能です。
+    *   Passkey（Native）の検証は、§6.1.1 の原則に従い dev/prod の固定ドメインと Development Client を前提に行う。
 
 ## 7. 実装計画 (Implementation Plan)
 

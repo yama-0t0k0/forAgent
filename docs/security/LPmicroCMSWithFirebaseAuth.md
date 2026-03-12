@@ -256,11 +256,21 @@ export interface LpContent {
     - ログインしたAdminユーザーの認証状態（Token, Custom Claims）を保持。
     - Adminユーザーにのみ、プレビューモード等の限定機能や画面へのアクセスを許可する。
 - [ ] **E2Eテスト用認証フローの確立**
-    - 自動E2Eテストツール（Maestro等）が安定してログイン処理を実行し、ログイン後画面のテストを行えるよう、テスト専用アカウントの実装とMaestroシナリオを確立。
+    - 自動E2E（Maestro等）は **Email / Password 経路**を基準に安定化し、Passkeyは OS/端末依存が強いため **手動スモーク + 計測/監査ログ**で担保する（6.1.4/6.1.5/6.1.6参照）。
 
 ### 6.1 ネイティブパスキー検証手順 (Development Client)
 
 ネイティブアプリ（iOS/Android）でのパスキー認証はOSの深層機能を使用するため、標準のExpo Goアプリでは動作しません。以下の手順でカスタムビルド（Development Client）を作成し、実機またはエミュレーターで検証を行ってください。
+
+#### 6.1.0 最重要: 検証環境の固定（dev / prod 分離）
+
+Passkey/WebAuthn は OS レベルで **RP ID（ドメイン）と Origin の整合**が強制されます。検証に Origin が毎回変動する環境（例: トンネルURL）へ依存すると、再現性のない失敗が発生しやすい。
+
+本番でも通用する形として、以下を原則とする。
+
+- **dev 用の固定ドメイン**を用意し、AASA（iOS）/ Asset Links（Android）を成立させた状態で検証する。
+- Cloud Functions の検証条件は `PASSKEY_RP_ID` と `EXPECTED_ORIGINS`（複数）を **許可リスト**として環境変数で管理し、dev/prod を分離する。
+- `navigationHelper.js` の遷移先は、端末から到達可能なURLで固定する（ローカル `localhost` 前提を避け、dev/prod の Hosting URL に寄せる）。
 
 #### 6.1.1 Expo Go でのログイン可否（整理）
 
@@ -322,7 +332,7 @@ npx expo run:android
 **Metro の起動（Dev Client 用）**
 ```bash
 cd engineer-registration-app-yama/yama/apps/lp_app
-npx expo start --dev-client --tunnel
+npx expo start --dev-client --lan
 ```
 
 #### 6.1.4 アプリ内手順（切替（登録）→ パスキーでログイン成功）
@@ -376,7 +386,7 @@ npx expo start --dev-client --tunnel
 
 **B. Cloud Functions の `RP_ID` / `EXPECTED_ORIGIN` 不整合**
 - **重要（致命的な懸念）**: パスキーは「呼び出し元ドメイン（Origin）」が「`RP_ID`」と一致（またはそのドメインを包含）していることをOSレベルで強制します。
-- **推奨アプローチ**: 基本は本番用 `RP_ID` を使用しますが、開発クライアント（トンネル等）で検証する場合は、Cloud Functions の環境変数（`PASSKEY_RP_ID`）を設定して、一時的に検証用ドメインを許可する構成をとること。
+- **推奨アプローチ**: Cloud Functions 側は単一値の `EXPECTED_ORIGIN` ではなく、`EXPECTED_ORIGINS`（複数）を許可リストとして持ち、dev/prod を環境変数で分離する。開発で dev ドメインを使う場合は、dev の `PASSKEY_RP_ID` と `EXPECTED_ORIGINS` を一致させる。
   - 理由: 本番専用 RP_ID のみでは、ローカル開発環境や一時的なトンネルURLでの検証が不可能になり、デバッグ効率が極端に低下するため。
 
 **C. navigationHelper.js の IPアドレス管理**
@@ -406,7 +416,9 @@ npx expo start --dev-client --tunnel
     - **内部フロー**: 上記 6.1.4 (3) と同様。
     - 成功すれば検証済み状態へと表示を更新する。
 1. [ ] `GenericMenuScreen.js` に `children` または `footer` プロップを追加し、任意のコンポーネントを埋め込めるようにする
-2. [ ] `listPasskeys` / `deletePasskey` のFunctions実装 + 最低限の監査ログ
+2. [ ] `listPasskeys` / `deletePasskey` の Functions 実装 + 最低限の監査ログ
+   - `listPasskeys`: 認証必須、`uid` はトークンからのみ取得、返却は最小（credentialIdのハッシュ/作成日時/デバイス表示名など）
+   - `deletePasskey`: 認証必須、本人の credential のみ削除可、削除操作は監査ログに必ず記録
 3. [ ] 端末実機でのE2E（手動）: 「パスワード→登録→ログアウト→パスキー→削除→パスワード」まで通して検証
 4. [ ] 失敗時のUX: フォールバック（Email/Password）を必ず残し、復旧導線を明確化する
 
@@ -455,9 +467,7 @@ npx expo start --dev-client --tunnel
 5. **ロール取得とリダイレクト**
    - `userCredential.user.getIdTokenResult()` から `claims.role` を取得。
    - `redirectToApp(role)` により role別に遷移。
-Line 426: 
-Line 427: **失敗時の扱い**
-
+   
 **失敗時の扱い**
 
 - UI: 「ログイン失敗」を表示し、再試行を許可（Email / Password へのフォールバック導線は維持）。
@@ -470,14 +480,20 @@ Line 427: **失敗時の扱い**
 
 #### 実装計画（概要）
 
-1. **前提条件の確定**
-   - RP ID / Origin / Associated Domains（iOS）/ Asset Links（Android）の整合性を確定し、Functions側の検証条件と一致させる。
-2. **Nativeログイン経路の実装**
-   - `PasskeyLoginScreen.js` のネイティブ分岐を、チャレンジ取得 → 認証 → 検証 → Custom Token サインインの実フローに置き換える。
-3. **エラーハンドリングと計測の整理**
-   - 既存の `login` / `login_failure` 計測仕様に合わせ、Passkey経路のエラーコード体系とメッセージを整理する。
-4. **動作確認**
-   - Development Clientでの実機/シミュレータ確認（6.1）を行い、ロール別リダイレクトと管理者限定機能の連動を確認する。
+本ドキュメントの前提（6.1.0/6.1.4/6.1.5/6.1.6）とズレないよう、作業は以下の順序で進める。
+
+1.[ ] **環境固定（dev / prod 分離）**
+   - RP ID / Origin / Associated Domains（iOS）/ Asset Links（Android）/ Redirect 到達性を確定し、検証環境の揺れを無くす（Issue #483）。
+2.[ ] **Functions運用（Passkey管理 + 監査ログ）**
+   - `listPasskeys` / `deletePasskey` を実装し、返却最小化・本人性・監査ログを担保する（Issue #475）。
+3.[ ] **UI（アカウント設定/セキュリティへ埋め込み）**
+   - 状態表示・登録・登録直後の検証・一覧・削除の導線をメニュー内に揃える（Issue #474）。
+4.[ ] **手動スモーク（実機）**
+   - 「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476）。
+5.[ ] **失敗時UX（復旧導線 + 計測）**
+   - Passkey失敗時に行き止まりを作らず、Email/Passwordフォールバックと失敗分類・計測を整理する（Issue #477）。
+6.[ ] **自動E2E回帰（Email/Password）**
+   - 自動E2EはEmail/Password経路で安定化し、Passkeyは手動スモーク＋計測/監査ログで担保する（Issue #453）。
 
 ### 付録: メンテナンス記録 (Maintenance Roles)
 
