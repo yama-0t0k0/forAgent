@@ -8,39 +8,43 @@ const APP_URLS = {
 
 const PLATFORM_WEB = 'web';
 
+export const getRedirectUrlForRole = (role) => {
+  switch (role) {
+    case 'admin':
+      return APP_URLS.admin;
+    case 'corporate':
+      return APP_URLS.corporate;
+    case 'individual':
+      return APP_URLS.individual;
+    default:
+      return null;
+  }
+};
+
 /**
  * Redirects the user to the appropriate application based on their role.
  * @param {string} role - The user's role ('admin', 'corporate', 'individual')
  */
 export const redirectToApp = async (role) => {
-  let url = null;
-
-  switch (role) {
-    case 'admin':
-      url = APP_URLS.admin;
-      break;
-    case 'corporate':
-      url = APP_URLS.corporate;
-      break;
-    case 'individual':
-      url = APP_URLS.individual;
-      break;
-    default:
-      console.warn('Unknown role for redirection:', role);
-      Alert.alert('Login Successful', 'Role not recognized for automatic redirection.');
-      return;
+  const url = getRedirectUrlForRole(role);
+  if (!url) {
+    console.warn('Unknown role for redirection:', role);
+    Alert.alert('Login Successful', 'Role not recognized for automatic redirection.');
+    return;
   }
 
-  if (url) {
-    if (Platform.OS === PLATFORM_WEB) {
-      window.location.href = url;
-    } else {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Error', `Cannot open URL: ${url}`);
-      }
-    }
+  console.log('[Redirect] role:', role, 'url:', url);
+
+  if (Platform.OS === PLATFORM_WEB) {
+    window.location.href = url;
+    return;
   }
+
+  const supported = await Linking.canOpenURL(url);
+  if (supported) {
+    await Linking.openURL(url);
+    return;
+  }
+
+  Alert.alert('Error', `Cannot open URL: ${url}`);
 };

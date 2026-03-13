@@ -75,7 +75,7 @@ export const extractLpListItems = (raw) => {
  */
 export const fetchLpContents = async ({ draftKey, preview } = {}) => {
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
-  const region = 'asia-northeast1';
+  const region = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
 
   // Use emulator if configured
   // const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
@@ -199,9 +199,12 @@ const HomeScreen = (props) => {
     if (!user) return;
 
     try {
+      const defaultRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'engineer-registration-lp.web.app';
+      const rpId = process.env.EXPO_PUBLIC_PASSKEY_RP_ID || defaultRpId;
+
       // 1. Get registration options from backend
       const getOptions = httpsCallable(functions, 'getPasskeyRegistrationOptions');
-      const { data: options } = await getOptions();
+      const { data: options } = await getOptions({ rpId });
 
       console.log('Passkey Registration Options:', options);
 

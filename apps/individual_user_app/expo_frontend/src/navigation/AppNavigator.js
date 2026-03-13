@@ -47,7 +47,7 @@ export const AppNavigator = () => (
             {(props) => (
                 <AppMenuScreen
                     {...props}
-                    role="individual"
+                    role='individual'
                     showBack={false}
                     bottomNav={<BottomNav navigation={props.navigation} activeTab='Menu' />}
                 />

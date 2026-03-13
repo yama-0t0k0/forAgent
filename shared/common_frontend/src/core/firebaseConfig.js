@@ -45,13 +45,18 @@ try {
 // Singleton pattern for Firestore
 let db = null;
 try {
-  db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  });
+  const firestoreSettings = Platform.OS === 'web'
+    ? {}
+    : {
+        experimentalForceLongPolling: true,
+        useFetchStreams: false,
+      };
+  db = initializeFirestore(app, firestoreSettings);
 } catch (e) {
   db = getFirestore(app);
 }
 
-const functions = getFunctions(app, 'asia-northeast1');
+const functionsRegion = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
+const functions = getFunctions(app, functionsRegion);
 
 export { db, auth, functions };

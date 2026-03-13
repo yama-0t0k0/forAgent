@@ -35,8 +35,107 @@
                     "function": "ext-firebase-web-authn-api"
                 },
                 {
+                    "source": "/api/matching/**",
+                    "run": {
+                        "serviceId": "matching-functions",
+                        "region": "asia-northeast1"
+                    }
+                },
+                {
                     "source": "**",
                     "destination": "/index.html"
+                }
+            ]
+        },
+        {
+            "target": "lp-domain",
+            "public": "apps/lp_domain_hosting/public",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "headers": [
+                {
+                    "source": "/.well-known/apple-app-site-association",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Cache-Control",
+                            "value": "no-store"
+                        }
+                    ]
+                },
+                {
+                    "source": "/.well-known/assetlinks.json",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Cache-Control",
+                            "value": "no-store"
+                        }
+                    ]
+                }
+            ],
+            "rewrites": [
+                {
+                    "source": "/api/matching/**",
+                    "run": {
+                        "serviceId": "matching-functions",
+                        "region": "asia-northeast1"
+                    }
+                }
+            ]
+        },
+        {
+            "target": "lp-domain-dev",
+            "public": "apps/lp_domain_hosting/public",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "headers": [
+                {
+                    "source": "/.well-known/apple-app-site-association",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Cache-Control",
+                            "value": "no-store"
+                        }
+                    ]
+                },
+                {
+                    "source": "/.well-known/assetlinks.json",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Cache-Control",
+                            "value": "no-store"
+                        }
+                    ]
+                }
+            ],
+            "rewrites": [
+                {
+                    "source": "/api/matching/**",
+                    "run": {
+                        "serviceId": "matching-functions",
+                        "region": "asia-northeast1"
+                    }
                 }
             ]
         }

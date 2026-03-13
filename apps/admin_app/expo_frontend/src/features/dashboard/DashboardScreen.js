@@ -1,9 +1,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
-import { db } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 // Models
@@ -33,8 +31,6 @@ import { UserDetailModal } from './components/modals/UserDetailModal';
 import { JobDetailModal } from './components/modals/JobDetailModal';
 import { DASHBOARD_TABS, E2E_CONFIG } from '@core/constants';
 import { ROUTES } from '@shared/src/core/constants/navigation';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // ---------------------------
 // Constants & Config
@@ -377,17 +373,16 @@ export default function DashboardScreen() {
       <ScreenHeader
         title='管理ダッシュボード'
         showBack={false}
-        titleAccessory={(
-          <IconButton
-            testID='settings_button'
-            name='settings-outline'
-            size={24}
-            onPress={handleOpenSettings}
-            style={{ marginLeft: 8 }}
-          />
-        )}
+        rightContainerStyle={{ flex: 2 }}
         rightAction={(
           <View style={styles.headerRightActions}>
+            <IconButton
+              testID='settings_button'
+              name='settings-outline'
+              size={24}
+              onPress={handleOpenSettings}
+              style={{ marginRight: 8 }}
+            />
             <NotificationIcon />
           </View>
         )}

@@ -94,7 +94,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
       case 'Career':
         return <CareerScreen {...props} />;
       case 'Menu':
-        return <AppMenuScreen {...props} role="individual" />;
+        return <AppMenuScreen {...props} role='individual' />;
       case 'ImageEdit':
         return <IndividualImageEditScreen {...props} />;
       case 'JobDescription':

@@ -19,7 +19,8 @@ export const ScreenHeader = ({
     showBack = true,
     rightAction,
     onBack,
-    titleAccessory
+    titleAccessory,
+    rightContainerStyle
 }) => {
     const navigation = useNavigation();
 
@@ -56,7 +57,7 @@ export const ScreenHeader = ({
                 </View>
             </View>
 
-            <View style={styles.rightContainer}>
+            <View style={[styles.rightContainer, rightContainerStyle]}>
                 {rightAction}
             </View>
         </View>

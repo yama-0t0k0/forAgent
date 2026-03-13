@@ -10,21 +10,159 @@ if (admin.apps.length === 0) {
 
 const db = admin.firestore();
 
-const RP_ID = process.env.RP_ID || "engineer-registration-lp.web.app";
-const RAW_EXPECTED_ORIGIN = process.env.EXPECTED_ORIGIN;
-const EXPECTED_ORIGIN = RAW_EXPECTED_ORIGIN
-  ? (() => {
-    try {
-      const parsed = JSON.parse(RAW_EXPECTED_ORIGIN);
-      return parsed;
-    } catch {
-      return RAW_EXPECTED_ORIGIN;
+const DEFAULT_RP_ID = "engineer-registration-lp.web.app";
+const DEFAULT_ALLOWED_RP_IDS = [
+  "engineer-registration-lp.web.app",
+  "engineer-registration-lp-dev.web.app",
+  "admin-app-site-d11f0.web.app",
+  "admin-app-site-d11f0.firebaseapp.com",
+];
+const DEFAULT_EXPECTED_ORIGINS = [
+  "https://engineer-registration-lp.web.app",
+  "https://engineer-registration-lp-dev.web.app",
+  "https://admin-app-site-d11f0.web.app",
+  "https://admin-app-site-d11f0.firebaseapp.com",
+  "ios:bundle-id:com.engineer.registration.lpapp",
+];
+
+const FALLBACK_RP_ID = process.env.PASSKEY_RP_ID || process.env.RP_ID || DEFAULT_RP_ID;
+
+const parseExpectedOrigins = (raw) => {
+  if (!raw || typeof raw !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((v) => typeof v === 'string' && v.trim().length > 0).map((v) => v.trim());
     }
-  })()
-  : [
-    "https://engineer-registration-lp.web.app",
-    "ios:bundle-id:com.engineer.registration.lpapp",
-  ];
+    if (typeof parsed === 'string' && parsed.trim().length > 0) {
+      return [parsed.trim()];
+    }
+    return null;
+  } catch {
+    const split = raw
+      .split(',')
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0);
+    return split.length > 0 ? split : null;
+  }
+};
+
+const EXPECTED_ORIGINS =
+  parseExpectedOrigins(process.env.EXPECTED_ORIGINS) ||
+  parseExpectedOrigins(process.env.EXPECTED_ORIGIN) ||
+  DEFAULT_EXPECTED_ORIGINS;
+
+const ALLOWED_RP_IDS = (() => {
+  const fromEnv = parseExpectedOrigins(process.env.PASSKEY_RP_IDS) || [];
+  const merged = [...fromEnv, FALLBACK_RP_ID, ...DEFAULT_ALLOWED_RP_IDS]
+    .filter((v) => typeof v === 'string' && v.trim().length > 0)
+    .map((v) => v.trim());
+  return Array.from(new Set(merged));
+})();
+
+const getOriginFromHeaders = (headers) => {
+  if (!headers || typeof headers !== 'object') return null;
+  const origin =
+    headers.origin ||
+    headers.Origin ||
+    headers.referer ||
+    headers.Referer ||
+    headers.referrer ||
+    headers.Referrer;
+  if (typeof origin !== 'string') return null;
+  const trimmed = origin.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const getHostnameFromOrigin = (origin) => {
+  if (typeof origin !== 'string' || origin.trim().length === 0) return null;
+  try {
+    return new URL(origin.trim()).hostname || null;
+  } catch {
+    return null;
+  }
+};
+
+const resolveRpIdFromRequest = (request) => {
+  const data = request?.data;
+  const requested = data?.rpId || data?.rpID;
+  if (typeof requested === 'string') {
+    const normalized = requested.trim();
+    if (normalized.length > 0 && ALLOWED_RP_IDS.includes(normalized)) {
+      return normalized;
+    }
+  }
+  const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
+  const hostname = getHostnameFromOrigin(origin);
+  if (hostname && ALLOWED_RP_IDS.includes(hostname)) {
+    return hostname;
+  }
+  return FALLBACK_RP_ID;
+};
+
+const toBase64UrlString = (value) => Buffer.from(value).toString('base64url');
+
+const toCredentialIdString = (value) => {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  if (Buffer.isBuffer(value)) return toBase64UrlString(value);
+  if (value instanceof Uint8Array) return toBase64UrlString(value);
+  if (typeof value?.toBase64 === 'function') {
+    return String(value.toBase64()).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+  return null;
+};
+
+const toCredentialIdBuffer = (value) => {
+  if (!value) return null;
+  if (Buffer.isBuffer(value)) return value;
+  if (value instanceof Uint8Array) return Buffer.from(value);
+  if (typeof value === 'string') {
+    try {
+      return Buffer.from(value, 'base64url');
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value?.toUint8Array === 'function') {
+    try {
+      return Buffer.from(value.toUint8Array());
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const decodeBase64OrBase64UrlToJson = (encoded) => {
+  if (typeof encoded !== 'string' || encoded.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'clientDataJSON is missing');
+  }
+
+  const raw = encoded.trim();
+  try {
+    return JSON.parse(Buffer.from(raw, 'base64').toString());
+  } catch {
+    return JSON.parse(Buffer.from(raw, 'base64url').toString());
+  }
+};
+
+const getClientDataJSONFromResponse = (response) => {
+  const top = response?.clientDataJSON;
+  if (typeof top === 'string' && top.trim().length > 0) {
+    return top;
+  }
+
+  const nested = response?.response?.clientDataJSON;
+  if (typeof nested === 'string' && nested.trim().length > 0) {
+    return nested;
+  }
+
+  return null;
+};
 
 /**
  * Generate authentication options for passkey login
@@ -34,10 +172,12 @@ exports.getPasskeyChallenge = onCall(async (request) => {
   logger.info("getPasskeyChallenge called", { data: request.data });
 
   try {
+    const rpId = resolveRpIdFromRequest(request);
+
     // Generate options for authentication (login)
     // For discoverable credentials (resident keys), we don't specify allowCredentials
     const options = await generateAuthenticationOptions({
-      rpID: RP_ID,
+      rpID: rpId,
       userVerification: 'preferred',
     });
 
@@ -48,6 +188,8 @@ exports.getPasskeyChallenge = onCall(async (request) => {
       challenge: options.challenge,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       used: false,
+      type: 'authentication',
+      rpId: rpId,
     });
 
     logger.info("Challenge generated", { challenge: options.challenge });
@@ -72,22 +214,30 @@ exports.getPasskeyRegistrationOptions = onCall(async (request) => {
   }
 
   const { uid, token } = request.auth;
-  const email = token.email || "";
+  const email =
+    (typeof token?.email === 'string' && token.email.trim().length > 0 && token.email.trim()) ||
+    (typeof token?.phone_number === 'string' && token.phone_number.trim().length > 0 && token.phone_number.trim()) ||
+    uid;
 
   try {
+    const rpId = resolveRpIdFromRequest(request);
+
     // 1. Get existing passkeys to prevent re-registering the same device
     const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
     const snapshot = await passkeysRef.get();
-    const excludeCredentials = snapshot.docs.map(doc => ({
-      id: doc.data().id,
-      type: 'public-key',
-    }));
+    const excludeCredentials = snapshot.docs
+      .map((doc) => {
+        const id = toCredentialIdBuffer(doc.data()?.id);
+        if (!id) return null;
+        return { id, type: 'public-key' };
+      })
+      .filter((v) => v);
 
     // 2. Generate registration options
     const options = await generateRegistrationOptions({
       rpName: 'Career Dev Tool',
-      rpID: RP_ID,
-      userID: uid,
+      rpID: rpId,
+      userID: Buffer.from(uid, 'utf8'),
       userName: email,
       userDisplayName: email,
       attestationType: 'none',
@@ -105,14 +255,21 @@ exports.getPasskeyRegistrationOptions = onCall(async (request) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       used: false,
       type: 'registration',
+      rpId: rpId,
     });
 
     logger.info("Registration challenge generated", { challenge: options.challenge, uid });
 
     return options;
   } catch (error) {
-    logger.error("Error generating registration challenge", error);
-    throw new HttpsError('internal', 'Failed to generate registration challenge');
+    const message = typeof error?.message === 'string' ? error.message : 'unknown_error';
+    logger.error("Error generating registration challenge", {
+      uid,
+      message,
+      stack: typeof error?.stack === 'string' ? error.stack : null,
+      rpId: resolveRpIdFromRequest(request),
+    });
+    throw new HttpsError('internal', `Failed to generate registration challenge: ${message}`);
   }
 });
 
@@ -135,7 +292,8 @@ exports.verifyPasskeyRegistration = onCall(async (request) => {
 
   try {
     // 1. Retrieve the challenge
-    const clientData = JSON.parse(Buffer.from(response.clientDataJSON, 'base64').toString());
+    const clientDataJSON = getClientDataJSONFromResponse(response);
+    const clientData = decodeBase64OrBase64UrlToJson(clientDataJSON);
     const challenge = clientData.challenge;
 
     const challengeDoc = await db.collection('passkey_challenges').doc(challenge).get();
@@ -144,32 +302,35 @@ exports.verifyPasskeyRegistration = onCall(async (request) => {
       throw new HttpsError('failed-precondition', 'Invalid or used challenge');
     }
 
+    const rpId = typeof challengeDoc.data().rpId === 'string' ? challengeDoc.data().rpId : FALLBACK_RP_ID;
+
     // 2. Verify registration response
     const verification = await verifyRegistrationResponse({
       response,
       expectedChallenge: challenge,
-      expectedOrigin: EXPECTED_ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: EXPECTED_ORIGINS,
+      expectedRPID: rpId,
     });
 
     if (verification.verified && verification.registrationInfo) {
       const { registrationInfo } = verification;
       const { credentialPublicKey, credentialID, counter } = registrationInfo;
+      const credentialIdString = toBase64UrlString(credentialID);
 
       // 3. Save the new passkey to Firestore
       const newPasskey = {
-        id: credentialID,
+        id: credentialIdString,
         publicKey: Buffer.from(credentialPublicKey),
         counter,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         lastUsed: admin.firestore.FieldValue.serverTimestamp(),
-        transports: response.response.transports || [],
+        transports: response?.response?.transports || response?.transports || [],
       };
 
-      await db.collection('users').doc(uid).collection('passkeys').doc(credentialID).set(newPasskey);
+      await db.collection('users').doc(uid).collection('passkeys').doc(credentialIdString).set(newPasskey);
       await challengeDoc.ref.update({ used: true });
 
-      logger.info("Passkey registered successfully", { uid, credentialID });
+      logger.info("Passkey registered successfully", { uid, credentialID: credentialIdString });
 
       return { success: true };
     } else {
@@ -246,7 +407,13 @@ exports.verifyPasskeyAndGetToken = onCall(async (request) => {
     // Strategy: Look up credential in a global 'passkeys' collection or Group Query
     // Assuming structure: users/{userId}/passkeys/{credentialId}
     const passkeysRef = db.collectionGroup('passkeys');
-    const snapshot = await passkeysRef.where('id', '==', credentialId).limit(1).get();
+    let snapshot = await passkeysRef.where('id', '==', credentialId).limit(1).get();
+    if (snapshot.empty) {
+      const maybeBuffer = toCredentialIdBuffer(credentialId);
+      if (maybeBuffer) {
+        snapshot = await passkeysRef.where('id', '==', maybeBuffer).limit(1).get();
+      }
+    }
 
     if (snapshot.empty) {
       throw new HttpsError('not-found', 'Credential not found');
@@ -261,24 +428,27 @@ exports.verifyPasskeyAndGetToken = onCall(async (request) => {
     // We can try to decode clientDataJSON to get the challenge, or iterate/lookup active challenges
     // Simplified: We assume the challenge doc ID matches the challenge in the response
     // In production, we should decode clientDataJSON to extract the challenge safely
-    const clientData = JSON.parse(Buffer.from(response.clientDataJSON, 'base64').toString());
+    const clientDataJSON = getClientDataJSONFromResponse(response);
+    const clientData = decodeBase64OrBase64UrlToJson(clientDataJSON);
     const challenge = clientData.challenge;
 
     const challengeDoc = await db.collection('passkey_challenges').doc(challenge).get();
 
-    if (!challengeDoc.exists || challengeDoc.data().used) {
+    if (!challengeDoc.exists || challengeDoc.data().used || challengeDoc.data().type !== 'authentication') {
       throw new HttpsError('failed-precondition', 'Invalid or used challenge');
     }
+
+    const rpId = typeof challengeDoc.data().rpId === 'string' ? challengeDoc.data().rpId : FALLBACK_RP_ID;
 
     // 3. Verify signature
     const verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge: challenge,
-      expectedOrigin: EXPECTED_ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: EXPECTED_ORIGINS,
+      expectedRPID: rpId,
       authenticator: {
         credentialPublicKey: passkeyData.publicKey,
-        credentialID: passkeyData.id,
+        credentialID: toCredentialIdBuffer(passkeyData.id),
         counter: passkeyData.counter,
       },
     });

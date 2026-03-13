@@ -21,7 +21,8 @@
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use FaceID for secure authentication."
       },
       "associatedDomains": [
-        "webcredentials:engineer-registration-lp.web.app"
+        "webcredentials:engineer-registration-lp.web.app",
+        "webcredentials:engineer-registration-lp-dev.web.app"
       ]
     },
     "android": {
