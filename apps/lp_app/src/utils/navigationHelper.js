@@ -1,48 +1,50 @@
 import { Platform, Linking, Alert } from 'react-native';
 
-// TODO: Update these URLs with actual production/development URLs
 const APP_URLS = {
-  // Use LAN IP for Expo Go compatibility (localhost is not reachable from device)
-  admin: __DEV__ ? 'http://10.190.85.60:8081' : 'https://admin-app-site-d11f0.web.app', 
-  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'http://10.190.85.60:8082', 
-  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'http://10.190.85.60:8081', 
+  admin: process.env.EXPO_PUBLIC_ADMIN_APP_URL || 'https://admin-app-site-d11f0.web.app',
+  corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'https://corporate-app.web.app',
+  individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'https://individual-app.web.app',
 };
 
 const PLATFORM_WEB = 'web';
+
+export const getRedirectUrlForRole = (role) => {
+  switch (role) {
+    case 'admin':
+      return APP_URLS.admin;
+    case 'corporate':
+      return APP_URLS.corporate;
+    case 'individual':
+      return APP_URLS.individual;
+    default:
+      return null;
+  }
+};
 
 /**
  * Redirects the user to the appropriate application based on their role.
  * @param {string} role - The user's role ('admin', 'corporate', 'individual')
  */
 export const redirectToApp = async (role) => {
-  let url = null;
-
-  switch (role) {
-    case 'admin':
-      url = APP_URLS.admin;
-      break;
-    case 'corporate':
-      url = APP_URLS.corporate;
-      break;
-    case 'individual':
-      url = APP_URLS.individual;
-      break;
-    default:
-      console.warn('Unknown role for redirection:', role);
-      Alert.alert('Login Successful', 'Role not recognized for automatic redirection.');
-      return;
+  const url = getRedirectUrlForRole(role);
+  if (!url) {
+    console.warn('Unknown role for redirection:', role);
+    Alert.alert('Login Successful', 'Role not recognized for automatic redirection.');
+    return;
   }
 
-  if (url) {
-    if (Platform.OS === PLATFORM_WEB) {
-      window.location.href = url;
-    } else {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Error', `Cannot open URL: ${url}`);
-      }
-    }
+  console.log('[Redirect] role:', role, 'url:', url);
+
+  if (Platform.OS === PLATFORM_WEB) {
+    window.location.href = url;
+    return;
   }
+
+  const supported = await Linking.canOpenURL(url);
+  if (supported) {
+    await Linking.openURL(url);
+    return;
+  }
+
+  Alert.alert('Error', `Cannot open URL: ${url}`);
 };

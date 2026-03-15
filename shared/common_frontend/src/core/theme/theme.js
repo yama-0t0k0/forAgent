@@ -7,6 +7,7 @@ export const THEME = {
   cardBorder: '#E2E8F0',
   text: '#1E293B',
   subText: '#64748B',
+  primary: '#0EA5E9',
   accent: '#0EA5E9',
   secondaryAccent: '#8B5CF6',
   inputBg: '#F1F5F9',

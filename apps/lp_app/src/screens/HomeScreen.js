@@ -50,7 +50,7 @@ export const extractLpListItems = (raw) => {
         // q=75: Quality 75%
         // fm=webp: Format WebP (if supported)
         // w=400: Max width 400px (appropriate for thumbnail)
-        thumbnailUrl = `${thumbnailUrl}?q=75&fm=webp&w=400`;
+        thumbnailUrl = `${thumbnailUrl}?q = 75 & fm=webp & w=400`;
       }
 
       const isPremiumOnly = c?.is_premium_only === true;
@@ -75,7 +75,7 @@ export const extractLpListItems = (raw) => {
  */
 export const fetchLpContents = async ({ draftKey, preview } = {}) => {
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
-  const region = 'asia-northeast1';
+  const region = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
 
   // Use emulator if configured
   // const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
@@ -161,26 +161,26 @@ const HomeScreen = (props) => {
       // Fallback: If no role in context/claims, check Firestore 'users' collection
       // This duplicates logic in AuthContext/LoginScreen, but ensures robustness
       if (!resolvedRole) {
-          const idTokenResult = await user.getIdTokenResult(true);
-          resolvedRole = idTokenResult.claims.role;
+        const idTokenResult = await user.getIdTokenResult(true);
+        resolvedRole = idTokenResult.claims.role;
       }
-      
+
       if (!resolvedRole) {
-           // Firestore fallback (using db import if needed, or rely on AuthContext)
-           // Since we can't easily import db/getDoc here without adding imports, 
-           // and AuthContext should have handled it, we might just alert.
-           // But let's assume AuthContext eventually updates 'role'.
-           // If 'role' is still null here, AuthContext might still be loading or failed.
-           
-           // Ideally, we should wait for AuthContext, but here we are in an event handler.
-           // Let's try to fetch from Firestore directly if we import db.
-           // For now, let's just use what we have and show a better error message if missing.
-           // Or... we can add the db import and check Firestore here too.
-           
-           // Let's rely on the AuthContext being updated eventually.
-           // If user clicks too fast, it might fail.
-           
-           console.warn('Role not found in context or claims.');
+        // Firestore fallback (using db import if needed, or rely on AuthContext)
+        // Since we can't easily import db/getDoc here without adding imports, 
+        // and AuthContext should have handled it, we might just alert.
+        // But let's assume AuthContext eventually updates 'role'.
+        // If 'role' is still null here, AuthContext might still be loading or failed.
+
+        // Ideally, we should wait for AuthContext, but here we are in an event handler.
+        // Let's try to fetch from Firestore directly if we import db.
+        // For now, let's just use what we have and show a better error message if missing.
+        // Or... we can add the db import and check Firestore here too.
+
+        // Let's rely on the AuthContext being updated eventually.
+        // If user clicks too fast, it might fail.
+
+        console.warn('Role not found in context or claims.');
       }
 
       if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
@@ -199,9 +199,12 @@ const HomeScreen = (props) => {
     if (!user) return;
 
     try {
+      const defaultRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'engineer-registration-lp.web.app';
+      const rpId = process.env.EXPO_PUBLIC_PASSKEY_RP_ID || defaultRpId;
+
       // 1. Get registration options from backend
       const getOptions = httpsCallable(functions, 'getPasskeyRegistrationOptions');
-      const { data: options } = await getOptions();
+      const { data: options } = await getOptions({ rpId });
 
       console.log('Passkey Registration Options:', options);
 

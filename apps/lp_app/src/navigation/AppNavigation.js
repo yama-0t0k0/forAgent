@@ -5,6 +5,7 @@ import HomeScreen from '../screens/HomeScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PasskeyLoginScreen from '../screens/PasskeyLoginScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { logScreenView } from '../features/analytics';
 
 const Stack = createNativeStackNavigator();
@@ -77,6 +78,11 @@ function AppNavigation() {
         <Stack.Screen
           name="PasskeyLogin"
           component={PasskeyLoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

@@ -2,9 +2,11 @@
 
 # scripts/start_expo.sh
 # Usage: ./scripts/start_expo.sh <app_name>
-# Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs
+# Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs, auth_portal, lp_app
 
 APP_NAME=$1
+EXTRA_FLAGS=""
+START_MODE="--tunnel"
 
 # 1. Map App Names to Paths & Ports
 case $APP_NAME in
@@ -35,10 +37,11 @@ case $APP_NAME in
         PORT=8086
         ;;
     "lp_app")
-    APP_PATH="apps/lp_app"
-    PORT=8087
-    EXTRA_FLAGS="$EXTRA_FLAGS --clear"
-    ;;
+        APP_PATH="apps/lp_app"
+        PORT=8087
+        EXTRA_FLAGS="$EXTRA_FLAGS --clear"
+        START_MODE="--lan"
+        ;;
     "shared")
         echo "❌ 'shared' is a library module and cannot be run directly."
         exit 1
@@ -126,7 +129,11 @@ fi
 pkill -f ngrok || true
 
 # 3. Start Expo
-echo "⚡ Starting Expo Server (Tunnel Mode)..."
+if [ "$START_MODE" = "--lan" ]; then
+    echo "⚡ Starting Expo Server (LAN Mode)..."
+else
+    echo "⚡ Starting Expo Server (Tunnel Mode)..."
+fi
 
 # Ensure Monorepo Workspace resolution is enabled
 export EXPO_USE_METRO_WORKSPACE=1
@@ -145,9 +152,8 @@ export HOME="$(pwd)/.home"
 # We will rely on ngrok API for the URL.
 
 # Add --web flag only for admin_app
-EXTRA_FLAGS=""
 if [ "$APP_NAME" == "admin_app" ]; then
-    EXTRA_FLAGS="--web"
+    EXTRA_FLAGS="$EXTRA_FLAGS --web"
 fi
 
 # Ensure strict adherence to Commit 4332902 standards:
@@ -185,10 +191,14 @@ cleanup_env() {
 }
 trap cleanup_env EXIT
 
-npx expo start --tunnel $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
+npx expo start $START_MODE $EXTRA_FLAGS --port $PORT > /tmp/expo_${APP_NAME}.log 2>&1 &
 EXPO_PID=$!
 
-echo "⏳ Waiting for tunnel to establish..."
+if [ "$START_MODE" = "--lan" ]; then
+    echo "⏳ Waiting for dev server to establish..."
+else
+    echo "⏳ Waiting for tunnel to establish..."
+fi
 sleep 5 # Wait for process to stabilize
 
 # 4. Extract URL
@@ -197,10 +207,18 @@ MAX_RETRIES=90
 COUNT=0
 URL=""
 LOG_FILE="/tmp/expo_${APP_NAME}.log"
+LAN_IP=$(ipconfig getifaddr en0 2>/dev/null || true)
+if [ -z "$LAN_IP" ]; then
+    LAN_IP=$(ipconfig getifaddr en1 2>/dev/null || true)
+fi
 
-while [ $COUNT -lt $MAX_RETRIES ]; do
+if [ "$START_MODE" != "--tunnel" ] && [ "$APP_NAME" = "lp_app" ] && [ -n "$LAN_IP" ]; then
+    URL="exp+lp-app://expo-development-client/?url=http%3A%2F%2F${LAN_IP}%3A${PORT}"
+fi
+
+while [ $COUNT -lt $MAX_RETRIES ] && [ -z "$URL" ]; do
     sleep 2
-    
+
     # Method A: Deterministic Construction (Priority 1)
     # Check .expo/settings.json for urlRandomness
     # CRITICAL FIX: Only trust settings.json if the tunnel is actually ready (verified via logs)
@@ -254,11 +272,24 @@ echo ""
 if [ -n "$URL" ]; then
     echo "=================================================="
     echo "✅ Start up successful."
-    echo "Here is the URL for Expo Go:"
+    if [ "$APP_NAME" = "lp_app" ]; then
+        echo "Here is the URL for Development Client:"
+    else
+        echo "Here is the URL for Expo Go:"
+    fi
     echo ""
     echo "   $URL"
     echo ""
-    echo "You can enter this URL manually in the Expo Go app."
+    if [ "$APP_NAME" = "lp_app" ]; then
+        echo "You can open this URL in the Development Client."
+    else
+        echo "You can enter this URL manually in the Expo Go app."
+    fi
+    echo ""
+    echo "Web URL (Mac): http://localhost:${PORT}"
+    if [ -n "$LAN_IP" ]; then
+        echo "Web URL (iOS Simulator/Device): http://${LAN_IP}:${PORT}"
+    fi
     echo "=================================================="
     
     # Wait for the Expo process to finish (keep script running)

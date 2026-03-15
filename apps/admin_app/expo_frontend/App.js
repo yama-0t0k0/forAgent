@@ -20,7 +20,7 @@ import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/J
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { SignInScreen } from '@shared/src/features/auth/screens/SignInScreen';
 import { authService } from '@shared/src/features/auth/services/authService';
-import { GenericMenuScreen } from '@shared/src/features/profile/GenericMenuScreen';
+import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import DashboardScreen from './src/features/dashboard/DashboardScreen';
 import { CompanyDetailScreen } from './src/features/company/screens/CompanyDetailScreen';
 import { AppShell } from '@shared/src/core/components/AppShell';
@@ -31,59 +31,6 @@ import { logFirestoreIO } from '@shared/src/core/utils/FirestoreLogger';
 
 
 const Stack = createNativeStackNavigator();
-
-const AdminMenuScreen = () => {
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch (e) {
-      Alert.alert('ログアウトに失敗しました', e?.message ? String(e.message) : '');
-    }
-  };
-
-  const menuGroups = [
-    {
-      title: '設定',
-      items: [
-        { id: 'login_method', label: 'ログイン方法', icon: 'key-outline' },
-        { id: 'security', label: 'アカウント情報 / セキュリティ', icon: 'shield-checkmark-outline' },
-      ]
-    },
-    {
-      title: 'その他',
-      items: [
-        { id: 'help', label: 'ヘルプ / お問合せ', icon: 'help-circle-outline' },
-        { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: '#EF4444' },
-      ]
-    }
-  ];
-
-  const handleItemPress = (item) => {
-    if (item.id === 'logout') {
-      Alert.alert('ログアウト', 'ログアウトしますか？', [
-        { text: 'キャンセル', style: 'cancel' },
-        { text: 'ログアウト', style: 'destructive', onPress: handleLogout },
-      ]);
-      return;
-    }
-
-    if (item.id === 'login_method') {
-      Alert.alert(
-        'ログイン方法',
-        'ログイン画面で Passkey / パスワード を選択できます。切り替える場合は一度ログアウトしてください。',
-        [
-          { text: 'キャンセル', style: 'cancel' },
-          { text: 'ログアウトする', style: 'destructive', onPress: handleLogout },
-        ]
-      );
-      return;
-    }
-
-    Alert.alert('準備中', 'このメニューは準備中です。');
-  };
-
-  return <GenericMenuScreen menuGroups={menuGroups} onItemPress={handleItemPress} showBack />;
-};
 
 /**
  * Main application wrapper component.
@@ -100,57 +47,57 @@ const AdminAppWrapper = () => {
     // Immediate sign-in check for development
     // Note: Temporarily disabled auto-login to allow verifying SignInScreen
     if (false && __DEV__ && !auth.currentUser) {
-       console.log('⚠️ [Dev Mode] No current user found initially. Attempting Anonymous Sign-In...');
-       const { DeviceEventEmitter } = require('react-native');
-       setTimeout(() => {
-          DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[INIT]|AUTH_MISSING|Attempting Anon Login...`);
-       }, 500);
+      console.log('⚠️ [Dev Mode] No current user found initially. Attempting Anonymous Sign-In...');
+      const { DeviceEventEmitter } = require('react-native');
+      setTimeout(() => {
+        DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[INIT]|AUTH_MISSING|Attempting Anon Login...`);
+      }, 500);
 
-       // Force Anonymous Login to bypass lack of persistence
-       signInAnonymously(auth).catch((e) => {
-           console.error('❌ [Dev Mode] Anonymous Sign-In Failed:', e);
-           DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|ANON_FAIL|${e.message}`);
-       });
+      // Force Anonymous Login to bypass lack of persistence
+      signInAnonymously(auth).catch((e) => {
+        console.error('❌ [Dev Mode] Anonymous Sign-In Failed:', e);
+        DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|ANON_FAIL|${e.message}`);
+      });
     }
 
     // Failsafe Timeout: If auth doesn't resolve in 5 seconds, stop loading so logs can be seen
     const timeoutId = setTimeout(() => {
-        if (loading) {
-            console.error('❌ [Auth Timeout] onAuthStateChanged did not fire within 5 seconds. Fetching data as fallback...');
-            if (__DEV__) {
-                const { DeviceEventEmitter } = require('react-native');
-                DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|TIMEOUT|Fallback Fetching...`);
-            }
-            // Fallback: Fetch data even if auth fails (assuming rules are relaxed)
-            fetchAllData();
+      if (loading) {
+        console.error('❌ [Auth Timeout] onAuthStateChanged did not fire within 5 seconds. Fetching data as fallback...');
+        if (__DEV__) {
+          const { DeviceEventEmitter } = require('react-native');
+          DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|TIMEOUT|Fallback Fetching...`);
         }
+        // Fallback: Fetch data even if auth fails (assuming rules are relaxed)
+        fetchAllData();
+      }
     }, 5000);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       clearTimeout(timeoutId); // Clear timeout on response
       console.log('🔐 [Auth State Changed] User:', user ? user.uid : 'null');
       setUser(user);
-      
+
       if (user) {
         try {
           // 1. Check & Grant Admin Role
           if (__DEV__) {
             const userDocRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userDocRef);
-            
+
             let isUserAdmin = false;
 
             if (userSnap.exists()) {
               const userData = userSnap.data();
               if (userData.role !== 'admin') {
                 console.log('🔧 [Dev Mode] Auto-granting Admin privileges...');
-                await setDoc(userDocRef, { 
+                await setDoc(userDocRef, {
                   role: 'admin',
                   dev_admin_grant: 'allow_local_dev',
-                  updatedAt: new Date().toISOString() 
+                  updatedAt: new Date().toISOString()
                 }, { merge: true });
                 console.log('✅ [Dev Mode] Admin privileges granted.');
-                
+
                 // Force token refresh to pick up new claims immediately
                 await user.getIdToken(true);
               }
@@ -160,16 +107,16 @@ const AdminAppWrapper = () => {
               console.log('🆕 [Dev Mode] Creating new user doc with Admin privileges...');
               try {
                 await setDoc(userDocRef, {
-                    role: 'admin',
-                    dev_admin_grant: 'allow_local_dev',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                  role: 'admin',
+                  dev_admin_grant: 'allow_local_dev',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
                 });
                 console.log('✅ [Dev Mode] New Admin user created.');
                 await user.getIdToken(true);
                 isUserAdmin = true;
               } catch (createErr) {
-                 console.error('❌ [Dev Mode] Failed to create Admin user:', createErr);
+                console.error('❌ [Dev Mode] Failed to create Admin user:', createErr);
               }
             }
 
@@ -178,15 +125,15 @@ const AdminAppWrapper = () => {
               try {
                 const selColRef = collection(db, 'selection_progress');
                 const selSnap = await getDocs(selColRef);
-                
+
                 if (selSnap.empty) {
                   console.log('📦 [Dev Mode] selection_progress is empty. Migrating from FeeMgmtAndJobStatDB...');
                   DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[MIGRATE]|START|From FeeMgmtAndJobStatDB`);
-                  
+
                   const sourceSnap = await getDocs(collection(db, 'FeeMgmtAndJobStatDB'));
-                  
+
                   if (!sourceSnap.empty) {
-                    const migrationPromises = sourceSnap.docs.map(docSnap => 
+                    const migrationPromises = sourceSnap.docs.map(docSnap =>
                       setDoc(doc(db, 'selection_progress', docSnap.id), docSnap.data())
                     );
                     await Promise.all(migrationPromises);
@@ -208,12 +155,12 @@ const AdminAppWrapper = () => {
 
           // 2. Fetch Data (Only after Auth is confirmed)
           console.log('🔄 Authenticated. Fetching all data...');
-          
+
           // Emit log to TestLogOverlay explicitly since it listens to DeviceEventEmitter
           // This ensures the user sees "Authenticated" in the overlay
           if (__DEV__) {
-              const { DeviceEventEmitter } = require('react-native');
-              DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|SIGNED_IN|${user.uid}`);
+            const { DeviceEventEmitter } = require('react-native');
+            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|SIGNED_IN|${user.uid}`);
           }
 
           await fetchAllData();
@@ -225,11 +172,11 @@ const AdminAppWrapper = () => {
       } else {
         console.log('⚠️ User not signed in.');
         if (__DEV__) {
-            const { DeviceEventEmitter } = require('react-native');
-            DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|NOT_SIGNED_IN|Waiting for Login...`);
+          const { DeviceEventEmitter } = require('react-native');
+          DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[AUTH]|NOT_SIGNED_IN|Waiting for Login...`);
         }
         // Do NOT fetch data if not signed in, just stop loading to show SignInScreen
-        setInitialData(null); 
+        setInitialData(null);
         setLoading(false);
       }
     });
@@ -276,75 +223,76 @@ const AdminAppWrapper = () => {
       <AppShell isLoading={loading}>
         <DataProvider initialData={initialData}>
           <NavigationContainer>
-          <Stack.Navigator initialRouteName={user ? ROUTES.ADMIN_DASHBOARD : ROUTES.ADMIN_LOGIN}>
-            {user ? (
-              // Authenticated Stack
-              <>
+            <Stack.Navigator initialRouteName={user ? ROUTES.ADMIN_DASHBOARD : ROUTES.ADMIN_LOGIN}>
+              {user ? (
+                // Authenticated Stack
+                <>
+                  <Stack.Screen
+                    name={ROUTES.ADMIN_DASHBOARD}
+                    component={DashboardScreen}
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.ADMIN_COMPANY_DETAIL}
+                    component={CompanyDetailScreen}
+                    options={{ title: '会社詳細', headerBackTitle: '戻る' }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.INDIVIDUAL_MY_PAGE}
+                    component={IndividualProfileScreen}
+                    options={{ title: '個人マイページ', headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.MENU}
+                    options={{ title: 'メニュー', headerShown: false }}
+                  >
+                    {(props) => <AppMenuScreen {...props} role="admin" />}
+                  </Stack.Screen>
+                  <Stack.Screen
+                    name={ROUTES.IMAGE_EDIT}
+                    component={IndividualImageEditScreen}
+                    options={{ title: '画像編集', headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.INDIVIDUAL_CONNECTION}
+                    component={ConnectionScreen}
+                    options={{ title: 'つながり', headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.INDIVIDUAL_CAREER}
+                    component={CareerScreen}
+                    options={{ title: 'キャリア', headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name={ROUTES.JOB_DESCRIPTION}
+                    component={JobDescriptionScreen}
+                    options={{ title: '求人詳細', headerShown: false }}
+                  />
+                  <Stack.Screen name={ROUTES.REGISTRATION}>
+                    {(props) => (
+                      <GenericRegistrationScreen
+                        {...props}
+                        title="エンジニア個人詳細編集"
+                        collectionName="public_profile"
+                        idField="id_individual"
+                        idPrefixChar="C"
+                        customSaveLogic={handleAdminUserSave}
+                      />
+                    )}
+                  </Stack.Screen>
+                </>
+              ) : (
+                // Unauthenticated Stack
                 <Stack.Screen
-                  name={ROUTES.ADMIN_DASHBOARD}
-                  component={DashboardScreen}
+                  name={ROUTES.ADMIN_LOGIN}
+                  component={SignInScreen}
                   options={{ headerShown: false }}
                 />
-                <Stack.Screen
-                  name={ROUTES.ADMIN_COMPANY_DETAIL}
-                  component={CompanyDetailScreen}
-                  options={{ title: '会社詳細', headerBackTitle: '戻る' }}
-                />
-                <Stack.Screen
-                  name={ROUTES.INDIVIDUAL_MY_PAGE}
-                  component={IndividualProfileScreen}
-                  options={{ title: '個人マイページ', headerShown: false }}
-                />
-                <Stack.Screen
-                  name={ROUTES.MENU}
-                  component={AdminMenuScreen}
-                  options={{ title: 'メニュー', headerShown: false }}
-                />
-                <Stack.Screen
-                  name={ROUTES.IMAGE_EDIT}
-                  component={IndividualImageEditScreen}
-                  options={{ title: '画像編集', headerShown: false }}
-                />
-                <Stack.Screen
-                  name={ROUTES.INDIVIDUAL_CONNECTION}
-                  component={ConnectionScreen}
-                  options={{ title: 'つながり', headerShown: false }}
-                />
-                <Stack.Screen
-                  name={ROUTES.INDIVIDUAL_CAREER}
-                  component={CareerScreen}
-                  options={{ title: 'キャリア', headerShown: false }}
-                />
-                <Stack.Screen
-                  name={ROUTES.JOB_DESCRIPTION}
-                  component={JobDescriptionScreen}
-                  options={{ title: '求人詳細', headerShown: false }}
-                />
-                <Stack.Screen name={ROUTES.REGISTRATION}>
-                  {(props) => (
-                    <GenericRegistrationScreen
-                      {...props}
-                      title="エンジニア個人詳細編集"
-                      collectionName="public_profile"
-                      idField="id_individual"
-                      idPrefixChar="C"
-                      customSaveLogic={handleAdminUserSave}
-                    />
-                  )}
-                </Stack.Screen>
-              </>
-            ) : (
-              // Unauthenticated Stack
-              <Stack.Screen
-                name={ROUTES.ADMIN_LOGIN}
-                component={SignInScreen}
-                options={{ headerShown: false }}
-              />
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </DataProvider>
-    </AppShell>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        </DataProvider>
+      </AppShell>
     </SafeAreaProvider>
   );
 };

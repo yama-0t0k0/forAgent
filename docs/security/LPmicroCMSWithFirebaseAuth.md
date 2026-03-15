@@ -235,13 +235,13 @@ export interface LpContent {
     - アプリ名を「Engineer Registration App」から「**Career Dev Tool**」へ変更。
     - ユーザーの目に触れる表示名（アプリ名、ヘッダー、フッター）および開発者向けメタデータ（package.json description）を更新。
     - ※物理的なディレクトリ名やBundle ID等の変更（Level 2以降）はリスク回避のため実施しない。
-- [x] **Admin用ログイン画面の実装**
+- [x] **Admin用ログイン画面の実装** (完了: Admin App 2026-03-12)
     - LPアプリ側は Firebase Authentication の **パスキー（Passkey）ログインを主導線**とし、「Password でのログインはこちら」リンクから Email / Password 画面へ遷移できる構成に変更。
     - 画面ヘッダーに「新規登録」ボタンを設置し、タップ後は**招待コード確認画面**へ遷移する（一般公開ではなく招待制を前提とした登録導線）。
     - **技術選定**: モバイル体験最優先のため、React Nativeフェーズでは `react-native-passkey` を採用（Flutter移行時は `passkeys` パッケージへ移行予定）。
-- [x] **Passkeyログイン実装（Client Side）**
+- [x] **Passkeyログイン実装（Client Side）** (完了: Admin App 2026-03-12)
     - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用してログイン（実装済み）。
-    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（実装済み / 動作確認は本章 6.1 参照）。
+    - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（Admin App にて動作確認済み）。
 - [x] **ロール別リダイレクト機能の実装**
     - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
         - **Admin**: `admin_app` (Web)
@@ -256,11 +256,21 @@ export interface LpContent {
     - ログインしたAdminユーザーの認証状態（Token, Custom Claims）を保持。
     - Adminユーザーにのみ、プレビューモード等の限定機能や画面へのアクセスを許可する。
 - [ ] **E2Eテスト用認証フローの確立**
-    - 自動E2Eテストツール（Maestro等）が安定してログイン処理を実行し、ログイン後画面のテストを行えるよう、テスト専用アカウントの実装とMaestroシナリオを確立。
+    - 自動E2E（Maestro等）は **Email / Password 経路**を基準に安定化し、Passkeyは OS/端末依存が強いため **手動スモーク + 計測/監査ログ**で担保する（6.1.4/6.1.5/6.1.6参照）。
 
 ### 6.1 ネイティブパスキー検証手順 (Development Client)
 
 ネイティブアプリ（iOS/Android）でのパスキー認証はOSの深層機能を使用するため、標準のExpo Goアプリでは動作しません。以下の手順でカスタムビルド（Development Client）を作成し、実機またはエミュレーターで検証を行ってください。
+
+#### 6.1.0 最重要: 検証環境の固定（dev / prod 分離）
+
+Passkey/WebAuthn は OS レベルで **RP ID（ドメイン）と Origin の整合**が強制されます。検証に Origin が毎回変動する環境（例: トンネルURL）へ依存すると、再現性のない失敗が発生しやすい。
+
+本番でも通用する形として、以下を原則とする。
+
+- **dev 用の固定ドメイン**を用意し、AASA（iOS）/ Asset Links（Android）を成立させた状態で検証する。
+- Cloud Functions の検証条件は `PASSKEY_RP_ID` / `PASSKEY_RP_IDS` と `EXPECTED_ORIGINS`（複数）を **許可リスト**として管理し、dev/prod を分離する。
+- `navigationHelper.js` の遷移先は、端末から到達可能なURLで固定する（ローカル `localhost` 前提を避け、dev/prod の Hosting URL に寄せる）。
 
 #### 6.1.1 Expo Go でのログイン可否（整理）
 
@@ -281,21 +291,34 @@ export interface LpContent {
   - 現在の設定例: `webcredentials:engineer-registration-lp.web.app`
 
 **バックエンド（Cloud Functions）**
-- `apps/functions/src/passkey.js` の `RP_ID` と `EXPECTED_ORIGIN` が、アプリ/ドメイン側の設定と整合していること
-  - `RP_ID` の既定: `engineer-registration-lp.web.app` (本番)
-  - `EXPECTED_ORIGIN` の既定: `https://engineer-registration-lp.web.app` および `ios:bundle-id:com.engineer.registration.lpapp`
-  - **重要**: 開発クライアント（Expo Tunnel等）を使用する場合、OSの制約により `RP_ID` がドメイン（origin）と一致している必要があります。詳細は 6.1.5 B を参照。
+- `apps/functions/src/passkey.js` の `PASSKEY_RP_ID` と `EXPECTED_ORIGINS` が、アプリ/ドメイン側の設定と整合していること
+  - `PASSKEY_RP_ID` の既定: `engineer-registration-lp.web.app` (本番)
+  - `EXPECTED_ORIGINS` の既定: `https://engineer-registration-lp.web.app` および `ios:bundle-id:com.engineer.registration.lpapp`
+  - **重要**: 開発用の dev ドメインを使う場合は、dev の `PASSKEY_RP_ID` と `EXPECTED_ORIGINS` を一致させること（6.1.5 B 参照）。
 
 **通信・環境設定**
+- Functions のデプロイリージョンとクライアントの設定が一致していること（例: `EXPO_PUBLIC_FUNCTIONS_REGION=us-central1`）。
 - `apps/lp_app/src/utils/navigationHelper.js` の `APP_URLS` が、検証に使用している端末から実際に到達可能なIPアドレス（またはドメイン）に設定されていること。
 
 **ドメイン（iOS: Associated Domains）**
 - `https://<RP_ID>/.well-known/apple-app-site-association` が配信されていること
   - 例（確認）:
     ```bash
-    curl -s https://engineer-registration-lp.web.app/.well-known/apple-app-site-association | head
+    curl -i 'https://engineer-registration-lp.web.app/.well-known/apple-app-site-association'
+    curl -i 'https://engineer-registration-lp-dev.web.app/.well-known/apple-app-site-association'
     ```
   - 典型的な詰まり: AASA の `appID`（`<TEAM_ID>.<bundleIdentifier>`）が不一致 / 配信パスや Content-Type が不適切
+  - 期待値: `HTTP/2 200` かつ `Content-Type: application/json`
+
+**ドメイン（Android: Digital Asset Links）**
+- `https://<RP_ID>/.well-known/assetlinks.json` が配信されていること
+  - 例（確認）:
+    ```bash
+    curl -i 'https://engineer-registration-lp.web.app/.well-known/assetlinks.json'
+    curl -i 'https://engineer-registration-lp-dev.web.app/.well-known/assetlinks.json'
+    ```
+  - 期待値: `HTTP/2 200` かつ `Content-Type: application/json`
+  - 注意: `assetlinks.json` 内の `__RELEASE_SHA256_FINGERPRINT__` はリリース用署名（Play App Signing / Upload Key）確定後に実値へ置換すること
 
 **端末要件**
 - 実機（推奨）の場合: iCloudキーチェーン（またはパスキー同期）・FaceID/TouchID が有効であること
@@ -322,7 +345,7 @@ npx expo run:android
 **Metro の起動（Dev Client 用）**
 ```bash
 cd engineer-registration-app-yama/yama/apps/lp_app
-npx expo start --dev-client --tunnel
+npx expo start --dev-client --lan
 ```
 
 #### 6.1.4 アプリ内手順（切替（登録）→ パスキーでログイン成功）
@@ -338,7 +361,7 @@ npx expo start --dev-client --tunnel
 - 「🔑 パスキ登録」ボタンをタップし、端末のパスキー作成フローを完了する。
 - **内部フロー (Native)**:
   1. `getPasskeyRegistrationOptions` (Functions) を呼び出し。
-     - 入力: `{}` (認証済みコンテキスト)
+     - 入力: `{ rpId: "<RP_ID>" }` (認証済みコンテキスト)
      - 返却: `{ challenge, rp, user, pubKeyCredParams, ... }`
   2. `Passkey.create(options)` (Client) を実行。
      - OSが認証ダイアログを表示（FaceID/TouchID等）。
@@ -352,7 +375,7 @@ npx expo start --dev-client --tunnel
 - 表示された「今すぐパスキーログインを試す（検証）」ボタンをタップ。
 - **内部フロー (Native)**:
   1. `getPasskeyChallenge` (Functions) を呼び出し。
-     - 入力: `{}` 
+     - 入力: `{ rpId: "<RP_ID>" }`
      - 返却: `{ challenge, rpId, allowCredentials }`
   2. `Passkey.authenticate({ challenge, rpId, allowCredentials })` (Client) を実行。
      - OSが認証ダイアログを表示。
@@ -374,9 +397,9 @@ npx expo start --dev-client --tunnel
   - 開発中は実機検証用として、カスタムドメイン（例: `dev.engineer-registration-lp.web.app`）を一時的に Firebase Hosting に追加し、そこに AASA を配信しておく。
   - 実機/Simulator の `app.json` にそのドメインを含めてビルドしておくことで、トンネル経由の Metro 接続時でもネイティブ側のドメイン紐付けを維持したまま検証が可能になる。
 
-**B. Cloud Functions の `RP_ID` / `EXPECTED_ORIGIN` 不整合**
+**B. Cloud Functions の `PASSKEY_RP_ID` / `EXPECTED_ORIGINS` 不整合**
 - **重要（致命的な懸念）**: パスキーは「呼び出し元ドメイン（Origin）」が「`RP_ID`」と一致（またはそのドメインを包含）していることをOSレベルで強制します。
-- **推奨アプローチ**: 基本は本番用 `RP_ID` を使用しますが、開発クライアント（トンネル等）で検証する場合は、Cloud Functions の環境変数（`PASSKEY_RP_ID`）を設定して、一時的に検証用ドメインを許可する構成をとること。
+ - **推奨アプローチ**: Cloud Functions 側は単一値（旧: `EXPECTED_ORIGIN`）ではなく、`EXPECTED_ORIGINS`（複数）を許可リストとして持ち、dev/prod を環境変数で分離する。開発で dev ドメインを使う場合は、dev の `PASSKEY_RP_ID` と `EXPECTED_ORIGINS` を一致させる。
   - 理由: 本番専用 RP_ID のみでは、ローカル開発環境や一時的なトンネルURLでの検証が不可能になり、デバッグ効率が極端に低下するため。
 
 **C. navigationHelper.js の IPアドレス管理**
@@ -395,7 +418,7 @@ npx expo start --dev-client --tunnel
 
 **詳細設計: 各メニュー内の「パスキー管理」コーナー**
 - **配置箇所**:
-  - `IndividualMenuScreen.js`, `CorporateMenuScreen.js` 等の「アカウント設定 / セキュリティ」セクション内。
+  - `AppMenuScreen.js` (Shared) 内の「アカウント設定 / セキュリティ」セクション。全アプリ（Admin, Individual, Corporate, LP）で共通利用。
   - 別の画面へ遷移させるのではなく、**その画面内で直接「登録状況の確認」および「登録ボタン」が表示されるコーナー**として実装する。
 - **機能**:
   - **状態表示**: 「パスキー未登録」または「登録済み（デバイス名等）」を表示。
@@ -406,7 +429,9 @@ npx expo start --dev-client --tunnel
     - **内部フロー**: 上記 6.1.4 (3) と同様。
     - 成功すれば検証済み状態へと表示を更新する。
 1. [ ] `GenericMenuScreen.js` に `children` または `footer` プロップを追加し、任意のコンポーネントを埋め込めるようにする
-2. [ ] `listPasskeys` / `deletePasskey` のFunctions実装 + 最低限の監査ログ
+2. [ ] `listPasskeys` / `deletePasskey` の Functions 実装 + 最低限の監査ログ
+   - `listPasskeys`: 認証必須、`uid` はトークンからのみ取得、返却は最小（credentialIdのハッシュ/作成日時/デバイス表示名など）
+   - `deletePasskey`: 認証必須、本人の credential のみ削除可、削除操作は監査ログに必ず記録
 3. [ ] 端末実機でのE2E（手動）: 「パスワード→登録→ログアウト→パスキー→削除→パスワード」まで通して検証
 4. [ ] 失敗時のUX: フォールバック（Email/Password）を必ず残し、復旧導線を明確化する
 
@@ -455,9 +480,7 @@ npx expo start --dev-client --tunnel
 5. **ロール取得とリダイレクト**
    - `userCredential.user.getIdTokenResult()` から `claims.role` を取得。
    - `redirectToApp(role)` により role別に遷移。
-Line 426: 
-Line 427: **失敗時の扱い**
-
+   
 **失敗時の扱い**
 
 - UI: 「ログイン失敗」を表示し、再試行を許可（Email / Password へのフォールバック導線は維持）。
@@ -470,14 +493,21 @@ Line 427: **失敗時の扱い**
 
 #### 実装計画（概要）
 
-1. **前提条件の確定**
-   - RP ID / Origin / Associated Domains（iOS）/ Asset Links（Android）の整合性を確定し、Functions側の検証条件と一致させる。
-2. **Nativeログイン経路の実装**
-   - `PasskeyLoginScreen.js` のネイティブ分岐を、チャレンジ取得 → 認証 → 検証 → Custom Token サインインの実フローに置き換える。
-3. **エラーハンドリングと計測の整理**
-   - 既存の `login` / `login_failure` 計測仕様に合わせ、Passkey経路のエラーコード体系とメッセージを整理する。
-4. **動作確認**
-   - Development Clientでの実機/シミュレータ確認（6.1）を行い、ロール別リダイレクトと管理者限定機能の連動を確認する。
+本ドキュメントの前提（6.1.0/6.1.4/6.1.5/6.1.6）とズレないよう、作業は以下の順序で進める。
+
+1.[ ] **環境固定（dev / prod 分離）**
+   - RP ID / Origin / Associated Domains（iOS）/ Asset Links（Android）/ Redirect 到達性を確定し、検証環境の揺れを無くす（Issue #483）。
+   - パスキーの共通化についての詳細は engineer-registration-app-yama/yama/reference_information_fordev/instructions/パスキー共通化方針.md を参考にすること。
+2.[ ] **Functions運用（Passkey管理 + 監査ログ）**
+   - `listPasskeys` / `deletePasskey` を実装し、返却最小化・本人性・監査ログを担保する（Issue #475）。
+3.[ ] **UI（アカウント設定/セキュリティへ埋め込み）**
+   - 状態表示・登録・登録直後の検証・一覧・削除の導線をメニュー内に揃える（Issue #474）。
+4.[ ] **手動スモーク（実機）**
+   - 「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476）。
+5.[ ] **失敗時UX（復旧導線 + 計測）**
+   - Passkey失敗時に行き止まりを作らず、Email/Passwordフォールバックと失敗分類・計測を整理する（Issue #477）。
+6.[ ] **自動E2E回帰（Email/Password）**
+   - 自動E2EはEmail/Password経路で安定化し、Passkeyは手動スモーク＋計測/監査ログで担保する（Issue #453）。
 
 ### 付録: メンテナンス記録 (Maintenance Roles)
 

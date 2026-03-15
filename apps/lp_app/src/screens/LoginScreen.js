@@ -15,7 +15,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../features/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
-import { redirectToApp } from '../utils/navigationHelper';
+import { getRedirectUrlForRole, redirectToApp } from '../utils/navigationHelper';
 
 const ERROR_CODES = {
     USER_NOT_FOUND: 'auth/user-not-found',
@@ -90,7 +90,24 @@ const LoginScreen = ({ navigation }) => {
             
             // If the role is found (in claims or Firestore fallback):
             if (role) {
-                await redirectToApp(role);
+                const url = getRedirectUrlForRole(role);
+                Alert.alert(
+                    'ログイン成功',
+                    `移動先: ${url || '不明'}\n管理画面に移動しますか？`,
+                    [
+                        {
+                            text: '開く',
+                            onPress: async () => {
+                                try {
+                                    await redirectToApp(role);
+                                } catch (openError) {
+                                    Alert.alert('エラー', openError?.message ? String(openError.message) : '');
+                                }
+                            },
+                        },
+                        { text: 'このまま戻る', style: 'cancel', onPress: () => navigation.goBack() },
+                    ],
+                );
             } else {
                  navigation.goBack();
             }

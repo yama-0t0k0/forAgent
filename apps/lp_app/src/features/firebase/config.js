@@ -1,9 +1,10 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence, connectAuthEmulator } from 'firebase/auth';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { getFunctions } from 'firebase/functions';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -29,8 +30,20 @@ try {
   auth = getAuth(app);
 }
 
-const functions = getFunctions(app, 'asia-northeast1');
-const db = getFirestore(app);
+const functionsRegion = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
+const functions = getFunctions(app, functionsRegion);
+let db;
+try {
+  const firestoreSettings = Platform.OS === 'web'
+    ? {}
+    : {
+        experimentalForceLongPolling: true,
+        useFetchStreams: false,
+      };
+  db = initializeFirestore(app, firestoreSettings);
+} catch (e) {
+  db = getFirestore(app);
+}
 
 // Initialize Analytics (Web only, conditionally)
 let analytics = null;
@@ -42,19 +55,5 @@ isSupported().then((supported) => {
 }).catch((e) => {
   console.warn('[Firebase] Analytics not supported in this environment:', e);
 });
-
-const emulatorHost = typeof process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST === 'string'
-  ? process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST.trim()
-  : '';
-
-/*
-if (__DEV__) {
-  const host = '127.0.0.1'; // Use 127.0.0.1 explicitly for better compatibility
-  connectFunctionsEmulator(functions, host, 5001);
-  connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
-  connectFirestoreEmulator(db, host, 8080);
-  console.log(`[Firebase] Emulators connected: ${host}`);
-}
-*/
 
 export { app, auth, functions, db, analytics };

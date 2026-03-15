@@ -10,7 +10,7 @@ import { DataProvider } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 import { CompanyPageScreen } from './src/features/company_profile/CompanyPageScreen';
-import { CorporateMenuScreen } from '@shared/src/features/profile/CorporateMenuScreen';
+import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { CorporateImageEditScreen } from '@shared/src/features/profile/CorporateImageEditScreen';
 import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
@@ -69,7 +69,16 @@ const CorporateRegistrationWrapper = () => {
                     <Stack.Screen name={ROUTES.CORPORATE_CONNECTIONS} component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
                     <Stack.Screen name={ROUTES.CORPORATE_BLOG} component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
                     <Stack.Screen name={ROUTES.CORPORATE_EVENTS} component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />
-                    <Stack.Screen name={ROUTES.MENU} component={CorporateMenuScreen} />
+                    <Stack.Screen name={ROUTES.MENU}>
+                        {(props) => (
+                            <AppMenuScreen
+                                {...props}
+                                role="corporate"
+                                showBack={false}
+                                bottomNav={<CorporateBottomNav navigation={props.navigation} activeTab='Menu' />}
+                            />
+                        )}
+                    </Stack.Screen>
                     <Stack.Screen name={ROUTES.IMAGE_EDIT} component={CorporateImageEditScreen} />
                     <Stack.Screen name={ROUTES.REGISTRATION}>
                         {(props) => (

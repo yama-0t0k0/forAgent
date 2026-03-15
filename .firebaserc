@@ -6,23 +6,11 @@
         "admin-app": [
           "admin-app-site-d11f0"
         ],
-        "corporate-app": [
-          "corporate-app-site-d11f0"
+        "lp-domain": [
+          "engineer-registration-lp"
         ],
-        "engineer-app": [
-          "engineer-app-site-d11f0"
-        ],
-        "design-document-site": [
-          "design-document-site-d11f0"
-        ],
-        "auth-portal": [
-          "auth-portal-site-d11f0"
-        ],
-        "job-description": [
-          "job-description-site-d11f0"
-        ],
-        "selection-progress": [
-          "selection-progress-site-d11f0"
+        "lp-domain-dev": [
+          "engineer-registration-lp-dev"
         ]
       }
     }
