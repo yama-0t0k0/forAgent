@@ -1,5 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 const logger = require("firebase-functions/logger");
 const { generateAuthenticationOptions, verifyAuthenticationResponse, generateRegistrationOptions, verifyRegistrationResponse } = require('@simplewebauthn/server');
 
@@ -12,20 +13,47 @@ const db = admin.firestore();
 
 const DEFAULT_RP_ID = "engineer-registration-lp.web.app";
 const DEFAULT_ALLOWED_RP_IDS = [
+  "latcoltd.net",
   "engineer-registration-lp.web.app",
+  "engineer-registration-lp.firebaseapp.com",
   "engineer-registration-lp-dev.web.app",
+  "engineer-registration-lp-dev.firebaseapp.com",
   "admin-app-site-d11f0.web.app",
   "admin-app-site-d11f0.firebaseapp.com",
 ];
 const DEFAULT_EXPECTED_ORIGINS = [
+  "https://latcoltd.net",
+  "https://www.latcoltd.net",
   "https://engineer-registration-lp.web.app",
+  "https://engineer-registration-lp.firebaseapp.com",
   "https://engineer-registration-lp-dev.web.app",
+  "https://engineer-registration-lp-dev.firebaseapp.com",
   "https://admin-app-site-d11f0.web.app",
   "https://admin-app-site-d11f0.firebaseapp.com",
   "ios:bundle-id:com.engineer.registration.lpapp",
 ];
 
 const FALLBACK_RP_ID = process.env.PASSKEY_RP_ID || process.env.RP_ID || DEFAULT_RP_ID;
+
+const sha256Hex = (value) => crypto.createHash('sha256').update(String(value)).digest('hex');
+
+const getAuthUid = (request) => {
+  if (!request?.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+  return request.auth.uid;
+};
+
+const writePasskeyAuditLog = async ({ action, uid, credentialIdHash, origin, rpId }) => {
+  await db.collection('audit_logs').add({
+    action,
+    uid,
+    credentialIdHash: credentialIdHash || null,
+    origin: origin || null,
+    rpId: rpId || null,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+};
 
 const parseExpectedOrigins = (raw) => {
   if (!raw || typeof raw !== 'string') {
@@ -86,13 +114,18 @@ const getHostnameFromOrigin = (origin) => {
   }
 };
 
-const resolveRpIdFromRequest = (request) => {
+const resolveRpIdFromRequest = (request, { strictRequested = false } = {}) => {
   const data = request?.data;
   const requested = data?.rpId || data?.rpID;
   if (typeof requested === 'string') {
     const normalized = requested.trim();
-    if (normalized.length > 0 && ALLOWED_RP_IDS.includes(normalized)) {
-      return normalized;
+    if (normalized.length > 0) {
+      if (ALLOWED_RP_IDS.includes(normalized)) {
+        return normalized;
+      }
+      if (strictRequested) {
+        throw new HttpsError('invalid-argument', 'rpId is not allowed');
+      }
     }
   }
   const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
@@ -172,7 +205,7 @@ exports.getPasskeyChallenge = onCall(async (request) => {
   logger.info("getPasskeyChallenge called", { data: request.data });
 
   try {
-    const rpId = resolveRpIdFromRequest(request);
+    const rpId = resolveRpIdFromRequest(request, { strictRequested: true });
 
     // Generate options for authentication (login)
     // For discoverable credentials (resident keys), we don't specify allowCredentials
@@ -220,7 +253,7 @@ exports.getPasskeyRegistrationOptions = onCall(async (request) => {
     uid;
 
   try {
-    const rpId = resolveRpIdFromRequest(request);
+    const rpId = resolveRpIdFromRequest(request, { strictRequested: true });
 
     // 1. Get existing passkeys to prevent re-registering the same device
     const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
@@ -284,11 +317,14 @@ exports.verifyPasskeyRegistration = onCall(async (request) => {
   }
 
   const { uid } = request.auth;
+  const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
   const { response } = request.data;
 
   if (!response) {
     throw new HttpsError('invalid-argument', 'Response data is missing');
   }
+
+  const rpIdFromRequest = resolveRpIdFromRequest(request);
 
   try {
     // 1. Retrieve the challenge
@@ -330,6 +366,14 @@ exports.verifyPasskeyRegistration = onCall(async (request) => {
       await db.collection('users').doc(uid).collection('passkeys').doc(credentialIdString).set(newPasskey);
       await challengeDoc.ref.update({ used: true });
 
+      await writePasskeyAuditLog({
+        action: 'passkey_register_success',
+        uid,
+        credentialIdHash: sha256Hex(credentialIdString),
+        origin,
+        rpId,
+      });
+
       logger.info("Passkey registered successfully", { uid, credentialID: credentialIdString });
 
       return { success: true };
@@ -337,7 +381,24 @@ exports.verifyPasskeyRegistration = onCall(async (request) => {
       throw new HttpsError('unauthenticated', 'Verification failed');
     }
   } catch (error) {
-    logger.error("Error verifying passkey registration", error);
+    const errorCode = typeof error?.code === 'string' ? error.code : 'internal';
+    const errorMessage = typeof error?.message === 'string' ? error.message : 'unknown_error';
+
+    await writePasskeyAuditLog({
+      action: 'passkey_register_failure',
+      uid,
+      origin,
+      rpId: rpIdFromRequest,
+    });
+
+    logger.error("Error verifying passkey registration", {
+      uid,
+      origin,
+      rpId: rpIdFromRequest,
+      errorCode,
+      errorMessage,
+      stack: typeof error?.stack === 'string' ? error.stack : null,
+    });
     throw new HttpsError('internal', 'Registration verification failed: ' + error.message);
   }
 });
@@ -395,6 +456,8 @@ exports.verifyPasskeyAndGetToken = onCall(async (request) => {
   logger.info("verifyPasskeyAndGetToken called", { data: request.data });
 
   const { response } = request.data;
+  const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
+  const rpIdFromRequest = resolveRpIdFromRequest(request);
 
   if (!response) {
     throw new HttpsError('invalid-argument', 'Response data is missing');
@@ -466,12 +529,149 @@ exports.verifyPasskeyAndGetToken = onCall(async (request) => {
       // 5. Mint custom token
       const customToken = await admin.auth().createCustomToken(userId);
 
+      await writePasskeyAuditLog({
+        action: 'passkey_auth_success',
+        uid: userId,
+        credentialIdHash: sha256Hex(String(credentialId || passkeyData?.id || '')),
+        origin,
+        rpId,
+      });
+
       return { customToken };
     } else {
       throw new HttpsError('unauthenticated', 'Verification failed');
     }
   } catch (error) {
-    logger.error("Error verifying passkey", error);
+    const errorCode = typeof error?.code === 'string' ? error.code : 'internal';
+    const errorMessage = typeof error?.message === 'string' ? error.message : 'unknown_error';
+
+    await writePasskeyAuditLog({
+      action: 'passkey_auth_failure',
+      uid: null,
+      origin,
+      rpId: rpIdFromRequest,
+    });
+
+    logger.error("Error verifying passkey", {
+      origin,
+      rpId: rpIdFromRequest,
+      errorCode,
+      errorMessage,
+      stack: typeof error?.stack === 'string' ? error.stack : null,
+    });
     throw new HttpsError('internal', 'Verification process failed: ' + error.message);
+  }
+});
+
+exports.listPasskeys = onCall(async (request) => {
+  const uid = getAuthUid(request);
+  const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
+  const rpId = resolveRpIdFromRequest(request);
+
+  try {
+    const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
+    const snapshot = await passkeysRef.select('createdAt', 'lastUsed', 'transports', 'label', 'deviceName').get();
+    const passkeys = snapshot.docs.map((doc) => {
+      const data = doc.data() || {};
+      const idString = toCredentialIdString(data.id) || doc.id;
+      const credentialIdHash = sha256Hex(idString);
+      return {
+        credentialIdHash,
+        createdAt: data.createdAt || null,
+        lastUsed: data.lastUsed || null,
+        transports: Array.isArray(data.transports) ? data.transports : [],
+        label: typeof data.label === 'string' ? data.label : null,
+        deviceName: typeof data.deviceName === 'string' ? data.deviceName : null,
+      };
+    });
+
+    await writePasskeyAuditLog({
+      action: 'passkey_list',
+      uid,
+      origin,
+      rpId,
+    });
+
+    return { passkeys };
+  } catch (error) {
+    logger.error("Error listing passkeys", error);
+    throw new HttpsError('internal', 'Failed to list passkeys');
+  }
+});
+
+exports.deletePasskey = onCall(async (request) => {
+  const uid = getAuthUid(request);
+  const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
+  const rpId = resolveRpIdFromRequest(request);
+
+  const credentialIdHashInput =
+    typeof request?.data?.credentialIdHash === 'string' && request.data.credentialIdHash.trim().length > 0
+      ? request.data.credentialIdHash.trim()
+      : null;
+  const credentialIdInput =
+    typeof request?.data?.credentialId === 'string' && request.data.credentialId.trim().length > 0
+      ? request.data.credentialId.trim()
+      : null;
+
+  if (!credentialIdInput && !credentialIdHashInput) {
+    throw new HttpsError('invalid-argument', 'credentialId or credentialIdHash is required');
+  }
+
+  try {
+    const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
+
+    if (credentialIdInput) {
+      const targetRef = passkeysRef.doc(credentialIdInput);
+      const targetDoc = await targetRef.get();
+      if (!targetDoc.exists) {
+        throw new HttpsError('not-found', 'Passkey not found');
+      }
+
+      const data = targetDoc.data() || {};
+      const idString = toCredentialIdString(data.id) || targetDoc.id;
+      const credentialIdHash = sha256Hex(idString);
+
+      await targetRef.delete();
+      await writePasskeyAuditLog({
+        action: 'passkey_delete',
+        uid,
+        credentialIdHash,
+        origin,
+        rpId,
+      });
+      return { success: true };
+    }
+
+    const snapshot = await passkeysRef.select('id').get();
+    const targetDoc = snapshot.docs.find((doc) => {
+      const data = doc.data() || {};
+      const idString = toCredentialIdString(data.id) || doc.id;
+      return sha256Hex(idString) === credentialIdHashInput;
+    });
+
+    if (!targetDoc) {
+      throw new HttpsError('not-found', 'Passkey not found');
+    }
+
+    const data = targetDoc.data() || {};
+    const idString = toCredentialIdString(data.id) || targetDoc.id;
+    const credentialIdHash = sha256Hex(idString);
+
+    await targetDoc.ref.delete();
+    await writePasskeyAuditLog({
+      action: 'passkey_delete',
+      uid,
+      credentialIdHash,
+      origin,
+      rpId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    logger.error("Error deleting passkey", error);
+    throw new HttpsError('internal', 'Failed to delete passkey');
   }
 });

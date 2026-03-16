@@ -5,6 +5,7 @@
 # Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs, auth_portal, lp_app
 
 APP_NAME=$1
+MODE_OVERRIDE=$2
 EXTRA_FLAGS=""
 START_MODE="--tunnel"
 
@@ -53,6 +54,25 @@ case $APP_NAME in
         exit 1
         ;;
 esac
+
+if [ -n "$MODE_OVERRIDE" ]; then
+    case $MODE_OVERRIDE in
+        "--tunnel" | "tunnel")
+            START_MODE="--tunnel"
+            ;;
+        "--lan" | "lan")
+            START_MODE="--lan"
+            ;;
+        "--localhost" | "localhost")
+            START_MODE="--localhost"
+            ;;
+        *)
+            echo "❌ Unknown start mode: $MODE_OVERRIDE"
+            echo "Usage: ./scripts/start_expo.sh <app_name> [--tunnel|--lan|--localhost]"
+            exit 1
+            ;;
+    esac
+fi
 
 echo "🚀 Starting $APP_NAME on port $PORT..."
 echo "📂 Directory: $APP_PATH"

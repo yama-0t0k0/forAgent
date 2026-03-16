@@ -14,7 +14,7 @@
 // - テスト: npx jest apps/lp_app/src/screens/__tests__/HomeScreen.test.js
 // - まとめて: npx jest
 import React from 'react';
-import { extractLpListItems, fetchLpContents } from '../HomeScreen';
+import { extractLpListItems, fetchLpContents, LP_FOOTER_LINKS, parseNoteMagazineRssItems } from '../HomeScreen';
 
 // Mock native modules to prevent "Invariant Violation: __fbBatchedBridgeConfig is not set"
 jest.mock('react-native-safe-area-context', () => {
@@ -54,6 +54,57 @@ jest.mock('firebase/functions', () => ({
 }));
 
 describe('HomeScreen helpers', () => {
+  describe('LP_FOOTER_LINKS', () => {
+    it('should include expected footer routes', () => {
+      expect(LP_FOOTER_LINKS).toEqual([
+        { label: '会社概要', routeName: 'CompanyOverview' },
+        { label: 'パーパス', routeName: 'Purpose' },
+        { label: '採用情報', routeName: 'RecruitmentInfo' },
+      ]);
+    });
+  });
+
+  describe('parseNoteMagazineRssItems', () => {
+    it('should parse titles, links, and thumbnails from RSS items', () => {
+      const rssText = `
+        <rss version="2.0">
+          <channel>
+            <item>
+              <title>記事A</title>
+              <media:thumbnail>https://example.com/a.png</media:thumbnail>
+              <link>https://note.com/example/n/a</link>
+              <guid>https://note.com/example/n/a</guid>
+            </item>
+            <item>
+              <title>記事B</title>
+              <link>https://note.com/example/n/b</link>
+              <guid>https://note.com/example/n/b</guid>
+            </item>
+          </channel>
+        </rss>
+      `;
+
+      expect(parseNoteMagazineRssItems(rssText, 10)).toEqual([
+        {
+          id: 'https://note.com/example/n/a',
+          title: '記事A',
+          thumbnailUrl: 'https://example.com/a.png',
+          isPremiumOnly: false,
+          url: 'https://note.com/example/n/a',
+          is_locked: false,
+        },
+        {
+          id: 'https://note.com/example/n/b',
+          title: '記事B',
+          thumbnailUrl: null,
+          isPremiumOnly: false,
+          url: 'https://note.com/example/n/b',
+          is_locked: false,
+        },
+      ]);
+    });
+  });
+
   // Note: Detailed data verification tests are skipped pending E2E verification with real data per user request.
   // These unit tests rely on mock data which is currently discouraged in favor of real integration tests.
   describe.skip('extractLpListItems (Data Transformation Logic)', () => {

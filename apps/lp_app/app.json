@@ -21,6 +21,8 @@
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use FaceID for secure authentication."
       },
       "associatedDomains": [
+        "webcredentials:latcoltd.net",
+        "webcredentials:www.latcoltd.net",
         "webcredentials:engineer-registration-lp.web.app",
         "webcredentials:engineer-registration-lp-dev.web.app"
       ]

@@ -19,6 +19,7 @@
 2.  **会員限定コンテンツ**: 特定の権限（ログイン済み、Premiumプラン等）を持つユーザーのみが閲覧できるエリアを設ける。
 3.  **認証統合**: 既存のFirebase Authentication基盤を利用し、シームレスにログイン・権限判定を行う。
 4.  **動的なUI切り替え**: 権限の有無に応じて、コンテンツの表示/非表示や「鍵マーク」の表示を切り替える。
+5.  **Latest News 連携**: Note マガジン（RSS）を連携し、Home 画面の「Latest News」に最新記事を表示する。
 
 ### 2.2 非機能要件
 1.  **セキュリティ**: microCMSのAPIキーをクライアントアプリに露出させない（サーバーサイド隠蔽）。
@@ -92,7 +93,7 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
 
 ### 4.2 Cloud Functions 設計
 
-アプリから直接 microCMS SDK を叩くのではなく、以下の Callable Function を実装する。
+アプリから直接 microCMS SDK や外部RSSを叩くのではなく、以下の HTTP Function（`onRequest`）を実装する。
 ※ 2026-03-04追記: `onCall` から `onRequest` (HTTP関数) へ変更。
 
 #### onRequestへの変更理由と効果
@@ -113,6 +114,15 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
     4.  **認可判定**:
         *   `is_premium_only` の場合、デコードしたトークンの `plan` を確認。
     5.  **データ返却**: JSON形式で返却。権限NGなら制限付きデータを返す。
+
+#### Note マガジン (RSS) 連携
+*   **Function Name**: `getNoteMagazineNews`
+*   **Trigger Type**: `onRequest` (HTTP Request)
+*   **Method**: `GET`
+*   **URL**: `https://<region>-<project-id>.cloudfunctions.net/getNoteMagazineNews`
+*   **Purpose**:
+    1.  Note 側 RSS（`https://note.com/lycaonpictus/m/m7f05093c60f0/rss`）を取得して整形し、Home の「Latest News」用のリストを返却する。
+    2.  Web（ブラウザ）から直接 RSS を取得すると CORS 制約で失敗しうるため、Functions でプロキシする。
 
 #### 変更理由と期待効果 (2026-03-04)
 *   **変更理由**:
@@ -215,6 +225,8 @@ export interface LpContent {
 - [x] **プレビューモードの実装 (Preview Mode)**
     - 管理者権限を持つユーザーのみ、microCMSの下書き状態（draftKey利用）のコンテンツをアプリ内で確認できる機能を実装する。
     - **機密性保護**: draftKey はクライアント側に露出させず、Cloud Functions 内でのみセキュアに管理する。
+- [x] **Latest News: Note マガジン連携**
+    - `getNoteMagazineNews`（HTTP Function）で RSS を取得・整形し、Home 画面の Latest News に表示する。
 - [x] **アナリティクス連携 (Analytics Integration)**
     - コンテンツごとの閲覧数、滞在時間、Premiumコンテンツへのアクセス試行数などを計測し、マーケティング施策に活用する。
 - [x] **エラー監視とオブザーバビリティ (Monitoring)**

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, functions } from '../features/firebase/config';
 import { httpsCallable } from 'firebase/functions';
@@ -31,6 +31,120 @@ const FALLBACK_ITEMS = [
     url: 'https://cloud.google.com/blog/ja',
   },
 ];
+
+const NOTE_MAGAZINE_RSS_URL = 'https://note.com/lycaonpictus/m/m7f05093c60f0/rss';
+const NOTE_NEWS_LIMIT = 3;
+
+const decodeXmlEntities = (input) => {
+  if (typeof input !== 'string') {
+    return '';
+  }
+
+  return input
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'");
+};
+
+const escapeRegExp = (tagName) => {
+  return tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const getXmlTagValue = (xml, tagName) => {
+  if (typeof xml !== 'string' || typeof tagName !== 'string' || tagName.length === 0) {
+    return null;
+  }
+
+  const safeTagName = escapeRegExp(tagName);
+  const regex = new RegExp(`<${safeTagName}[^>]*>([\\s\\S]*?)<\\/${safeTagName}>`, 'i');
+  const match = xml.match(regex);
+  if (!match) {
+    return null;
+  }
+
+  return decodeXmlEntities(match[1].trim());
+};
+
+export const parseNoteMagazineRssItems = (rssText, limit = NOTE_NEWS_LIMIT) => {
+  if (typeof rssText !== 'string' || rssText.length === 0) {
+    return [];
+  }
+
+  const itemMatches = [...rssText.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+
+  return itemMatches
+    .map((match) => match[1])
+    .map((itemXml) => {
+      const title = getXmlTagValue(itemXml, 'title') || '';
+      const link = getXmlTagValue(itemXml, 'link');
+      const guid = getXmlTagValue(itemXml, 'guid');
+      const thumbnailUrl = getXmlTagValue(itemXml, 'media:thumbnail');
+      const url = link || guid;
+
+      return {
+        id: url || guid || title,
+        title,
+        thumbnailUrl: thumbnailUrl || null,
+        isPremiumOnly: false,
+        url: url || undefined,
+        is_locked: false,
+      };
+    })
+    .filter((item) => typeof item.id === 'string' && item.id.length > 0 && typeof item.title === 'string' && item.title.length > 0)
+    .slice(0, typeof limit === 'number' && limit > 0 ? limit : NOTE_NEWS_LIMIT);
+};
+
+export const fetchNoteMagazineNews = async () => {
+  if (Platform.OS !== 'web') {
+    const response = await fetch(NOTE_MAGAZINE_RSS_URL, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const rssText = await response.text();
+    return parseNoteMagazineRssItems(rssText, NOTE_NEWS_LIMIT);
+  }
+
+  const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
+  const region = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
+
+  // Use emulator if configured
+  // const emulatorHost = process.env.EXPO_PUBLIC_FUNCTIONS_EMULATOR_HOST;
+  const emulatorHost = null; // Force production environment to access Functions
+
+  const baseUrl = emulatorHost
+    ? `http://${emulatorHost.split(':')[0]}:5001/${projectId}/${region}`
+    : `https://${region}-${projectId}.cloudfunctions.net`;
+
+  const url = `${baseUrl}/getNoteMagazineNews`;
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const idToken = await user.getIdToken();
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+  } catch (error) {
+    console.warn('Auth check failed:', error);
+  }
+
+  try {
+    const response = await fetch(url, { method: 'GET', headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return Array.isArray(result?.items) ? result.items : [];
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * @param {any} raw
@@ -134,6 +248,192 @@ export const fetchLpContents = async ({ draftKey, preview } = {}) => {
  */
 const trackEvent = (eventName, params) => {
   logCustomEvent(eventName, params);
+};
+
+export const LP_FOOTER_LINKS = [
+  { label: '会社概要', routeName: 'CompanyOverview' },
+  { label: 'パーパス', routeName: 'Purpose' },
+  { label: '採用情報', routeName: 'RecruitmentInfo' },
+];
+
+const InfoHeader = ({ title, navigation }) => {
+  return (
+    <View style={infoStyles.header}>
+      <TouchableOpacity
+        style={infoStyles.headerBackButton}
+        onPress={() => navigation.goBack()}
+        accessibilityRole="button"
+        accessibilityLabel="戻る"
+      >
+        <Text style={infoStyles.headerBackText}>←</Text>
+      </TouchableOpacity>
+      <Text style={infoStyles.headerTitle} accessibilityRole="header">
+        {title}
+      </Text>
+    </View>
+  );
+};
+
+const InfoCard = ({ title, children }) => {
+  return (
+    <View style={infoStyles.card}>
+      {typeof title === 'string' && title.length > 0 && (
+        <Text style={infoStyles.cardTitle}>{title}</Text>
+      )}
+      {children}
+    </View>
+  );
+};
+
+const InfoRow = ({ label, children }) => {
+  return (
+    <View style={infoStyles.row}>
+      <Text style={infoStyles.rowLabel}>{label}</Text>
+      <View style={infoStyles.rowValueContainer}>{children}</View>
+    </View>
+  );
+};
+
+const BottomMenu = ({ navigation }) => {
+  return (
+    <View style={infoStyles.bottomMenu}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Home')}
+        style={infoStyles.bottomMenuItem}
+        accessibilityRole="button"
+      >
+        <Text style={infoStyles.bottomMenuText}>トップページ</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('CompanyOverview')}
+        style={infoStyles.bottomMenuItem}
+        accessibilityRole="button"
+      >
+        <Text style={infoStyles.bottomMenuText}>会社概要</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Purpose')}
+        style={infoStyles.bottomMenuItem}
+        accessibilityRole="button"
+      >
+        <Text style={infoStyles.bottomMenuText}>パーパス</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('RecruitmentInfo')}
+        style={infoStyles.bottomMenuItem}
+        accessibilityRole="button"
+      >
+        <Text style={infoStyles.bottomMenuText}>採用情報</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+export const CompanyOverviewScreen = ({ navigation }) => {
+  return (
+    <SafeAreaView style={infoStyles.container}>
+      <InfoHeader title="会社概要" navigation={navigation} />
+      <ScrollView contentContainerStyle={infoStyles.scrollContent}>
+        <View style={infoStyles.hero}>
+          <View style={infoStyles.heroIconPlaceholder}>
+            <Text style={infoStyles.heroIconText}>LaT</Text>
+          </View>
+          <Text style={infoStyles.heroTitle}>株式会社LaT</Text>
+        </View>
+
+        <InfoCard title="会社概要">
+          <InfoRow label="会社名">
+            <Text style={infoStyles.rowValueText}>株式会社LaT</Text>
+          </InfoRow>
+          <InfoRow label="代表取締役CEO">
+            <Text style={infoStyles.rowValueText}>山川 真</Text>
+          </InfoRow>
+          <InfoRow label="所在地">
+            <Text style={infoStyles.rowValueText}>
+              〒160-0022 東京都新宿区{'\n'}
+              新宿2丁目12番13号 新宿アントレサロンビル2階
+            </Text>
+          </InfoRow>
+          <InfoRow label="設立">
+            <Text style={infoStyles.rowValueText}>2024年8月</Text>
+          </InfoRow>
+          <InfoRow label="事業内容">
+            <Text style={infoStyles.rowValueText}>
+              ・AI技術を活用したキャリアデベロップメントツールの提供{'\n'}
+              ・人材紹介事業（許可番号：13-ユ-317469）
+            </Text>
+          </InfoRow>
+          <InfoRow label="ウェブサイト">
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://latcoltd.net/')}
+              accessibilityRole="link"
+            >
+              <Text style={infoStyles.linkText}>https://latcoltd.net/</Text>
+            </TouchableOpacity>
+          </InfoRow>
+        </InfoCard>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export const PurposeScreen = ({ navigation }) => {
+  return (
+    <SafeAreaView style={infoStyles.container}>
+      <InfoHeader title="パーパス" navigation={navigation} />
+      <ScrollView contentContainerStyle={infoStyles.scrollContent}>
+        <Text style={infoStyles.largeTitle}>LaT のパーパス</Text>
+
+        <InfoCard>
+          <View style={infoStyles.centerIconRow}>
+            <View style={infoStyles.heroIconPlaceholderSmall}>
+              <Text style={infoStyles.heroIconTextSmall}>LaT</Text>
+            </View>
+          </View>
+          <Text style={infoStyles.purposeText}>
+            エンジニアのキャリア実現度を最大化することで、日本の技術革新を支え、社会の豊かさの底上げを図る
+          </Text>
+        </InfoCard>
+
+        <InfoCard title="ビジョン">
+          <Text style={infoStyles.paragraph}>
+            テクノロジーの力でエンジニアとテック企業の最適なマッチングを実現し、よりイノベーティブな社会づくりに貢献します。
+          </Text>
+        </InfoCard>
+
+        <InfoCard title="ミッション">
+          <Text style={infoStyles.paragraph}>
+            キャリアの可視化と継続的な成長支援を通じて、エンジニア一人ひとりが納得できる選択をできる環境を提供します。
+          </Text>
+        </InfoCard>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export const RecruitmentInfoScreen = ({ navigation }) => {
+  return (
+    <SafeAreaView style={infoStyles.container}>
+      <InfoHeader title="採用情報" navigation={navigation} />
+      <ScrollView contentContainerStyle={infoStyles.scrollContent}>
+        <View style={infoStyles.hero}>
+          <View style={infoStyles.heroIconPlaceholder}>
+            <Text style={infoStyles.heroIconText}>—</Text>
+          </View>
+        </View>
+
+        <InfoCard>
+          <Text style={infoStyles.recruitmentTitle}>現在採用は行なっておりません</Text>
+          <Text style={infoStyles.paragraph}>
+            採用を再開する際には、このページにてお知らせいたします。{'\n'}
+            ご興味をお持ちいただき、誠にありがとうございます。
+          </Text>
+        </InfoCard>
+
+        <BottomMenu navigation={navigation} />
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
 /**
@@ -261,20 +561,27 @@ const HomeScreen = (props) => {
       setError(null);
 
       try {
+        try {
+          const noteItems = await fetchNoteMagazineNews();
+          if (!isCanceled && noteItems.length > 0) {
+            setItems(noteItems);
+            return;
+          }
+        } catch (noteError) {
+          console.warn('Failed to fetch Note magazine news, falling back to microCMS:', noteError);
+        }
+
         const lpItems = await fetchLpContents({
           draftKey,
           preview: isPreviewEnabled
         });
+
         if (!isCanceled) {
-          if (lpItems.length > 0) {
-            setItems(lpItems);
-          } else {
-            setItems(FALLBACK_ITEMS);
-          }
+          setItems(lpItems.length > 0 ? lpItems : FALLBACK_ITEMS);
         }
       } catch (e) {
         if (!isCanceled) {
-          console.warn('Failed to fetch LP contents, using fallback:', e);
+          console.warn('Failed to fetch Note magazine and microCMS, using fallback:', e);
           setError(null);
           setItems(FALLBACK_ITEMS);
         }
@@ -541,9 +848,20 @@ const HomeScreen = (props) => {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')}>
-            <Text style={styles.footerLink}>プライバシーポリシー</Text>
-          </TouchableOpacity>
+          <View style={styles.footerLinks}>
+            {LP_FOOTER_LINKS.map((link) => (
+              <TouchableOpacity
+                key={link.routeName}
+                onPress={() => props.navigation.navigate(link.routeName)}
+                accessibilityRole="button"
+              >
+                <Text style={styles.footerLink}>{link.label}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')} accessibilityRole="button">
+              <Text style={styles.footerLink}>プライバシーポリシー</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.footerText}>© 2026 Career Dev Tool</Text>
         </View>
       </ScrollView>
@@ -816,10 +1134,14 @@ const styles = StyleSheet.create({
     borderTopColor: '#f0f0f0',
     backgroundColor: '#fff',
   },
+  footerLinks: {
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
   footerLink: {
     fontSize: 14,
     color: '#007AFF',
-    marginBottom: 12,
     fontWeight: '500',
   },
   footerText: {
@@ -849,6 +1171,174 @@ const styles = StyleSheet.create({
   repairButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+});
+
+const infoStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  header: {
+    height: 56,
+    backgroundColor: '#1976D2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerBackButton: {
+    position: 'absolute',
+    left: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  headerBackText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  hero: {
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 12,
+  },
+  heroIconPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1976D2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  heroIconText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1976D2',
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#222222',
+  },
+  largeTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#111111',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  centerIconRow: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  heroIconPlaceholderSmall: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1976D2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  heroIconTextSmall: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1976D2',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E6E6E6',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#222222',
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  rowLabel: {
+    width: 110,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#333333',
+  },
+  rowValueContainer: {
+    flex: 1,
+  },
+  rowValueText: {
+    fontSize: 14,
+    color: '#555555',
+    lineHeight: 20,
+  },
+  linkText: {
+    fontSize: 14,
+    color: '#1976D2',
+    fontWeight: '700',
+  },
+  purposeText: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#111111',
+    textAlign: 'center',
+    lineHeight: 34,
+  },
+  paragraph: {
+    fontSize: 14,
+    color: '#555555',
+    lineHeight: 22,
+  },
+  recruitmentTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#111111',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  bottomMenu: {
+    alignSelf: 'center',
+    width: '70%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E6E6E6',
+    overflow: 'hidden',
+  },
+  bottomMenuItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  bottomMenuText: {
+    fontSize: 14,
+    color: '#444444',
+    fontWeight: '600',
   },
 });
 
