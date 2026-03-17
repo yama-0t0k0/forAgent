@@ -9,9 +9,9 @@
    - **ステータス**: ✅ 完了
    - **内容**: `GenericBottomNav` を `shared/common_frontend/src/core/components` に作成し、各アプリ（Admin, Corporate, Individual）で継承・設定注入して利用する形に統一。
 
-2. **メニュー/設定画面の構成統一**
-   - **ステータス**: ✅ 完了
-   - **内容**: `GenericMenuScreen` (Shared) を正とし、各アプリは `CorporateMenuScreen`, `IndividualMenuScreen` を通じて設定データを渡すだけの構造に統一。
+2. **メニュー/設定画面の構成統一 (`AppMenuScreen`)**
+   - **ステータス**: ✅ 完了 (2026-03-11)
+   - **内容**: 全アプリ（Admin, Individual, Corporate, LP）で利用可能なユニバーサルメニューコンポーネント `AppMenuScreen` を作成。ロールベースのメニュー生成とパスキー管理を集約。以前の `IndividualMenuScreen`, `CorporateMenuScreen` を廃止し、コードの最小化を実現。
 
 3. **求人詳細表示の完全集約**
    - **ステータス**: ✅ 完了

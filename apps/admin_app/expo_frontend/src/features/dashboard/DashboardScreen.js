@@ -1,9 +1,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
-import { db } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
 // Models
@@ -22,6 +20,7 @@ import { extractSkills, getHighDensityHeatmapData, getCompanyName } from '@share
 import { DashboardIcon, NotificationIcon } from './components/common/DashboardHelpers';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 import { ScreenHeader } from '@shared/src/core/components/ScreenHeader';
+import { IconButton } from '@shared/src/core/components/IconButton';
 import { OverviewTab } from './components/tabs/OverviewTab';
 import { IndividualTab } from './components/tabs/IndividualTab';
 import { CompanyTab } from './components/tabs/CompanyTab';
@@ -31,8 +30,7 @@ import { DrillDownModal } from './components/modals/DrillDownModal';
 import { UserDetailModal } from './components/modals/UserDetailModal';
 import { JobDetailModal } from './components/modals/JobDetailModal';
 import { DASHBOARD_TABS, E2E_CONFIG } from '@core/constants';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import { ROUTES } from '@shared/src/core/constants/navigation';
 
 // ---------------------------
 // Constants & Config
@@ -56,6 +54,13 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const { data } = useContext(DataContext);
   const [activeTab, setActiveTab] = useState(DASHBOARD_TABS.DASHBOARD);
+
+  /**
+   * Opens the settings menu screen.
+   */
+  const handleOpenSettings = () => {
+    navigation.navigate(ROUTES.MENU);
+  };
 
   // Search States
   const [searchQueries, setSearchQueries] = useState({
@@ -150,7 +155,7 @@ export default function DashboardScreen() {
         }
 
         const userModel = await FirestoreDataService.fetchIndividualById(selectedUserId);
-        
+
         if (!userModel) {
           setSelectedUserError(`ユーザー（ID: ${selectedUserId}）が見つかりませんでした`);
           setSelectedUserLoading(false);
@@ -368,7 +373,19 @@ export default function DashboardScreen() {
       <ScreenHeader
         title='管理ダッシュボード'
         showBack={false}
-        rightAction={<NotificationIcon />}
+        rightContainerStyle={{ flex: 2 }}
+        rightAction={(
+          <View style={styles.headerRightActions}>
+            <IconButton
+              testID='settings_button'
+              name='settings-outline'
+              size={24}
+              onPress={handleOpenSettings}
+              style={{ marginRight: 8 }}
+            />
+            <NotificationIcon />
+          </View>
+        )}
       />
 
       {/* Tabs */}

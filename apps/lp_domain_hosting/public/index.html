@@ -1,0 +1,26 @@
+<!--
+  機能概要:
+  - Firebase Hosting（lp-domain / lp-domain-dev）で配信される静的サイトのトップページ
+  - 主目的は `/.well-known/*`（Apple App Site Association / Android assetlinks.json など）を同一ドメインで配信し、
+    パスキー（WebAuthn）やアプリ関連ドメイン連携（Associated Domains / Digital Asset Links）を成立させること
+  - LP本体（Expo/React Native Web のUI）とは別に、「ドメインに紐づく必須ファイルの配信口」を確保するために存在する
+
+  配置場所:
+  - apps/lp_domain_hosting/public/
+    - index.html（このファイル）
+    - .well-known/（AASA / assetlinks.json 等）
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LP Domain</title>
+  </head>
+  <body>
+    <main>
+      <h1>LP Domain</h1>
+      <p>This site serves .well-known files for Passkey / App Links.</p>
+    </main>
+  </body>
+</html>

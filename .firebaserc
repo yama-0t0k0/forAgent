@@ -5,6 +5,12 @@
       "hosting": {
         "admin-app": [
           "admin-app-site-d11f0"
+        ],
+        "lp-domain": [
+          "engineer-registration-lp"
+        ],
+        "lp-domain-dev": [
+          "engineer-registration-lp-dev"
         ]
       }
     }

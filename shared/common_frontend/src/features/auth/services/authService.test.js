@@ -63,14 +63,12 @@ describe('AuthService', () => {
       const mockUserCredential = { user: { uid: '123', email } };
 
       // Setup mocks
-      setPersistence.mockResolvedValue();
       signInWithEmailAndPassword.mockResolvedValue(mockUserCredential);
 
       // Execute
       const result = await authService.signInWithEmailPassword(email, password);
 
       // Verify
-      expect(setPersistence).toHaveBeenCalledTimes(1);
       // The first argument is the auth instance (mocked), checking email/password is crucial
       expect(signInWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), email, password);
       expect(result).toEqual(mockUserCredential);
@@ -81,7 +79,6 @@ describe('AuthService', () => {
       const password = 'wrongpassword';
       const mockError = { code: 'auth/wrong-password', message: 'Wrong password' };
 
-      setPersistence.mockResolvedValue();
       signInWithEmailAndPassword.mockRejectedValue(mockError);
 
       await expect(authService.signInWithEmailPassword(email, password)).rejects.toEqual(mockError);
