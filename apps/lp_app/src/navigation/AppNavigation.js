@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreen, { CompanyOverviewScreen, PurposeScreen, RecruitmentInfoScreen } from '../screens/HomeScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PasskeyLoginScreen from '../screens/PasskeyLoginScreen';
@@ -83,6 +83,21 @@ function AppNavigation() {
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CompanyOverview"
+          component={CompanyOverviewScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Purpose"
+          component={PurposeScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RecruitmentInfo"
+          component={RecruitmentInfoScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

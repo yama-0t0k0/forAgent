@@ -20,6 +20,11 @@ export const PasskeyManagementSection = () => {
     const [verificationStatus, setVerificationStatus] = useState(null); // 'success', 'error', null
     const [actionFeedback, setActionFeedback] = useState(null);
     const isWeb = Platform.OS === 'web';
+    const defaultPasskeyRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'engineer-registration-lp.web.app';
+    const desiredPasskeyRpId =
+        typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
+            ? process.env.EXPO_PUBLIC_PASSKEY_RP_ID.trim() || defaultPasskeyRpId
+            : defaultPasskeyRpId;
 
     const getWebRpId = () => {
         if (typeof window === 'undefined') return null;
@@ -175,7 +180,7 @@ export const PasskeyManagementSection = () => {
             const verifyRegistration = httpsCallable(functions, 'verifyPasskeyRegistration');
 
             // 1. Get options from server
-            const optionsResult = await getOptions();
+            const optionsResult = await getOptions({ rpId: desiredPasskeyRpId });
             const options = optionsResult.data;
 
             // 2. Create passkey on device
@@ -266,7 +271,7 @@ export const PasskeyManagementSection = () => {
                 return;
             }
 
-            const challengeResult = await getChallenge();
+            const challengeResult = await getChallenge({ rpId: desiredPasskeyRpId });
             const { challenge, rpId, allowCredentials } = challengeResult.data;
 
             // 2. Authenticate on device

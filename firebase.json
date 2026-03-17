@@ -90,6 +90,10 @@
                         "serviceId": "matching-functions",
                         "region": "asia-northeast1"
                     }
+                },
+                {
+                    "source": "/lp/**",
+                    "destination": "/lp/index.html"
                 }
             ]
         },
@@ -136,6 +140,10 @@
                         "serviceId": "matching-functions",
                         "region": "asia-northeast1"
                     }
+                },
+                {
+                    "source": "/lp/**",
+                    "destination": "/lp/index.html"
                 }
             ]
         }

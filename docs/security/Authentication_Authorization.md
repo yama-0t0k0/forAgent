@@ -506,9 +506,11 @@ microCMSのAPIキーをクライアント（アプリ）に持たせず、Cloud 
     *   会員登録時や管理操作時に、Cloud Functions 等でユーザーに Custom Claims（例: `plan: "premium"`, `role: "individual"`）を付与。
     *   ※ §3.1 の定義 (`role`, `plan`) に準拠。
 3.  **認可とデータ取得 (Secure Fetch)**:
-    *   アプリは microCMS を直接叩かず、Cloud Functions (Callable Function) を呼び出す。
-    *   Functions は `context.auth.token` (Custom Claims) を検証し、権限がある場合のみ環境変数に隠蔽された **microCMS API Key** を使用してデータを取得。
-    *   取得したJSONデータをアプリに返却する。
+    *   アプリは microCMS を直接叩かず、Cloud Functions (HTTP Function / `onRequest`) を `fetch` で呼び出す。
+    *   Functions は `Authorization: Bearer <ID_TOKEN>` が付与されていれば `verifyIdToken` で検証し、未付与ならゲストとして扱う。
+    *   microCMS 側のコンテンツ一覧は `getLpContent` が取得し、APIキーは Functions の環境変数で隠蔽する。
+    *   Latest News（Note マガジン）は `getNoteMagazineNews` が RSS を取得・整形して返却する（Web 側の CORS 制約回避のため）。
+    *   取得したデータ（JSON）をアプリに返却し、フロント側でリスト表示する。
 
 ### 8.3 採用理由 (Best Practice)
 

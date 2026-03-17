@@ -4,9 +4,19 @@ const admin = require("firebase-admin");
 const { createClient } = require("microcms-js-sdk");
 const crypto = require("crypto");
 const cors = require("cors");
-const { getPasskeyChallenge, verifyPasskeyAndGetToken } = require('./passkey');
+const {
+  getPasskeyChallenge,
+  verifyPasskeyAndGetToken,
+  getPasskeyRegistrationOptions,
+  verifyPasskeyRegistration,
+  repairAdminPermissions,
+  listPasskeys,
+  deletePasskey,
+} = require("./passkey");
 
 const corsHandler = cors({ origin: true });
+const NOTE_MAGAZINE_RSS_URL = "https://note.com/lycaonpictus/m/m7f05093c60f0/rss";
+const NOTE_NEWS_LIMIT = 3;
 
 // Initialize Firebase Admin SDK
 // FirestoreのデータベースIDを明示的に指定しない場合、デフォルトのデータベースが使用される
@@ -30,6 +40,67 @@ const client = createClient({
   serviceDomain: serviceDomain,
   apiKey: apiKey,
 });
+
+const decodeXmlEntities = (input) => {
+  if (typeof input !== "string") {
+    return "";
+  }
+
+  return input
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&apos;", "'");
+};
+
+const escapeRegExp = (tagName) => {
+  return tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const getXmlTagValue = (xml, tagName) => {
+  if (typeof xml !== "string" || typeof tagName !== "string" || tagName.length === 0) {
+    return null;
+  }
+
+  const safeTagName = escapeRegExp(tagName);
+  const regex = new RegExp(`<${safeTagName}[^>]*>([\\s\\S]*?)<\\/${safeTagName}>`, "i");
+  const match = xml.match(regex);
+  if (!match) {
+    return null;
+  }
+
+  return decodeXmlEntities(match[1].trim());
+};
+
+const parseNoteMagazineRssItems = (rssText, limit = NOTE_NEWS_LIMIT) => {
+  if (typeof rssText !== "string" || rssText.length === 0) {
+    return [];
+  }
+
+  const itemMatches = [...rssText.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+
+  return itemMatches
+    .map((match) => match[1])
+    .map((itemXml) => {
+      const title = getXmlTagValue(itemXml, "title") || "";
+      const link = getXmlTagValue(itemXml, "link");
+      const guid = getXmlTagValue(itemXml, "guid");
+      const thumbnailUrl = getXmlTagValue(itemXml, "media:thumbnail");
+      const url = link || guid;
+
+      return {
+        id: url || guid || title,
+        title,
+        thumbnailUrl: thumbnailUrl || null,
+        isPremiumOnly: false,
+        url: url || undefined,
+        is_locked: false,
+      };
+    })
+    .filter((item) => typeof item.id === "string" && item.id.length > 0 && typeof item.title === "string" && item.title.length > 0)
+    .slice(0, typeof limit === "number" && limit > 0 ? limit : NOTE_NEWS_LIMIT);
+};
 
 /**
  * Verify microCMS Webhook Signature
@@ -260,9 +331,34 @@ exports.getLpContent = onRequest(async (req, res) => {
   });
 });
 
+exports.getNoteMagazineNews = onRequest(async (req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== "GET") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    try {
+      const response = await fetch(NOTE_MAGAZINE_RSS_URL, { method: "GET" });
+      if (!response.ok) {
+        res.status(response.status).send(`Failed to fetch Note RSS: ${response.status}`);
+        return;
+      }
+
+      const rssText = await response.text();
+      const items = parseNoteMagazineRssItems(rssText, NOTE_NEWS_LIMIT);
+      res.status(200).json({ items });
+    } catch (error) {
+      logger.error("Error in getNoteMagazineNews", error);
+      res.status(500).send(`Internal Server Error: ${error.message}`);
+    }
+  });
+});
+
 exports.getPasskeyChallenge = getPasskeyChallenge;
 exports.verifyPasskeyAndGetToken = verifyPasskeyAndGetToken;
-const { getPasskeyRegistrationOptions, verifyPasskeyRegistration, repairAdminPermissions } = require('./passkey');
 exports.getPasskeyRegistrationOptions = getPasskeyRegistrationOptions;
 exports.verifyPasskeyRegistration = verifyPasskeyRegistration;
 exports.repairAdminPermissions = repairAdminPermissions;
+exports.listPasskeys = listPasskeys;
+exports.deletePasskey = deletePasskey;
