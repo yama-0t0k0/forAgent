@@ -35,6 +35,11 @@ const FALLBACK_ITEMS = [
 const NOTE_MAGAZINE_RSS_URL = 'https://note.com/lycaonpictus/m/m7f05093c60f0/rss';
 const NOTE_NEWS_LIMIT = 3;
 
+const PURPOSE_BINARY_SOURCE = '11100011 10000001 10101011 11100011 10000011 10110011 11100011 10000011 10101111 11100011 10000011 10001010 11100011 10000011 10100010 11100011 10000010 10101110 11100011 10000011 10101110 11100011 10000010 10101110 11100011 10000011 10000011 11100110 10101100 10101101 11100011 10000110 10101111 11100111 10011001 10101110 11100111 10011110 10101110 11100101 10101000 10100110 11100110 10011100 10100011 11100011 10000010 10010010 11100110 10011100 10000000 11100101 10100100 10100111 11100101 10001100 10010110 11100011 10000010 10011001 11100011 10000010 10001011 11100011 10000010 10101110 11100011 10000010 10100111 11100011 10000010 10100110 11100110 10010111 10100101 11100110 10011100 10101100 11100011 10000010 10001001 11100111 10011010 10000000 11100111 10011011 10010111 11100110 10011000 10100110 11100110 10010111 10110000 11100110 10011001 10110000 11100011 10000010 10010010 11100110 10011111 10101111 11100011 10000010 10001000 11101000 10101110 10101111 11100110 10011100 10101100 11100111 10010110 10101001 11100101 10010011 10100011 11100011 10000010 10011001 11100111 10010111 10001101 11100101 10001001 10010101 11100111 10010000 10010010 11100011 10000010 10001001 11100101 10101000 10010101 11100101 10101001 10101100 11100011 10000010 10001101 11100111 10011003 10001000 11100101 10011011 10111111 11100011 10000010 10001001';
+const PURPOSE_BINARY_WALLPAPER = Array.from({ length: 8 })
+  .fill(PURPOSE_BINARY_SOURCE)
+  .join('\n');
+
 const decodeXmlEntities = (input) => {
   if (typeof input !== 'string') {
     return '';
@@ -743,21 +748,17 @@ const HomeScreen = (props) => {
 
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>
-            エンジニアの未来を{'\n'}もっと自由に。
-          </Text>
-          <Text style={styles.heroSubtitle}>
-            スキルと経験を価値に変える{'\n'}新しいプラットフォーム
-          </Text>
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => {
-              trackEvent('click_cta_hero', { label: '無料で始める' });
-              console.log('CTA Clicked');
-            }}
-          >
-            <Text style={styles.ctaButtonText}>無料で始める</Text>
-          </TouchableOpacity>
+          <View style={styles.heroBinaryPattern} pointerEvents="none">
+            <Text style={styles.heroBinaryText}>{PURPOSE_BINARY_WALLPAPER}</Text>
+          </View>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroTitle}>
+              エンジニアの未来を{'\n'}もっと自由に。
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              スキルと経験をさらなる価値に変える{'\n'}完全招待制プラットフォーム
+            </Text>
+          </View>
         </View>
 
         {/* Features Section */}
@@ -921,8 +922,37 @@ const styles = StyleSheet.create({
   heroSection: {
     padding: 32,
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#bfe0ff',
+    position: 'relative',
+    overflow: 'hidden',
     marginBottom: 32,
+  },
+  heroBinaryPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 16,
+    opacity: 0.34,
+  },
+  heroBinaryText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 12,
+    lineHeight: 22,
+    letterSpacing: 1.2,
+    fontWeight: '300',
+    width: '100%',
+    fontFamily: Platform.select({
+      ios: 'Avenir Next',
+      android: 'sans-serif',
+      web: 'ui-rounded',
+      default: 'System',
+    }),
+  },
+  heroContent: {
+    width: '100%',
+    alignItems: 'center',
   },
   heroTitle: {
     fontSize: 32,
@@ -938,22 +968,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 32,
     lineHeight: 24,
-  },
-  ctaButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 30,
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  ctaButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   section: {
     paddingHorizontal: 20,

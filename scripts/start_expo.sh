@@ -41,7 +41,7 @@ case $APP_NAME in
         APP_PATH="apps/lp_app"
         PORT=8087
         EXTRA_FLAGS="$EXTRA_FLAGS --clear"
-        START_MODE="--lan"
+        START_MODE="--tunnel"
         ;;
     "shared")
         echo "❌ 'shared' is a library module and cannot be run directly."
@@ -50,7 +50,7 @@ case $APP_NAME in
     *)
         echo "❌ Unknown app name: $APP_NAME"
         echo "Usage: ./scripts/start_expo.sh <app_name>"
-        echo "Available apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs"
+        echo "Available apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs, auth_portal, lp_app"
         exit 1
         ;;
 esac
