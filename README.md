@@ -102,6 +102,8 @@
 
 ### 開発・運用
 - [開発基本情報 (dev_basicinfo.md)](docs/dev_basicinfo.md) - 起動方法、環境設定、ルール
+- [ホスティング全般 (Hosting.md)](docs/Hosting.md) - Firebase Hosting 構成、.well-known、カスタムドメイン運用
+- [CI/CD・ビルド/デプロイ (CICD&BuildDeploy.md)](docs/CICD&BuildDeploy.md) - 現状の自動化と、今後のあるべき姿（ギャップ/ロードマップ）
 - [プロジェクト構造詳細 (project_tree_structure.md)](docs/project_tree_structure.md)
 - [コーディング規約 (CodingConventions/)](docs/CodingConventions/)
 
