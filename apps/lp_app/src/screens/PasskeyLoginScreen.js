@@ -21,7 +21,7 @@ const PLATFORM_WEB = 'web';
 const TYPE_UNDEFINED = 'undefined';
 const TYPE_FUNCTION = 'function';
 
-const DEFAULT_PASSKEY_RP_ID_PROD = 'engineer-registration-lp.web.app';
+const DEFAULT_PASSKEY_RP_ID_PROD = 'latcoltd.net';
 const DEFAULT_PASSKEY_RP_ID_DEV = 'engineer-registration-lp-dev.web.app';
 const DEFAULT_PASSKEY_RP_ID = __DEV__ ? DEFAULT_PASSKEY_RP_ID_DEV : DEFAULT_PASSKEY_RP_ID_PROD;
 const DESIRED_PASSKEY_RP_ID = process.env.EXPO_PUBLIC_PASSKEY_RP_ID || DEFAULT_PASSKEY_RP_ID;

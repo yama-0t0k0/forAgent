@@ -11,7 +11,7 @@ if (admin.apps.length === 0) {
 
 const db = admin.firestore();
 
-const DEFAULT_RP_ID = "engineer-registration-lp.web.app";
+const DEFAULT_RP_ID = "latcoltd.net";
 const DEFAULT_ALLOWED_RP_IDS = [
   "latcoltd.net",
   "engineer-registration-lp.web.app",
