@@ -49,7 +49,7 @@
         },
         {
             "target": "lp-domain",
-            "public": "apps/lp_domain_hosting/public",
+            "public": "apps/lp_app/dist",
             "ignore": [
                 "firebase.json",
                 "**/.*",
@@ -90,6 +90,10 @@
                         "serviceId": "matching-functions",
                         "region": "asia-northeast1"
                     }
+                },
+                {
+                    "source": "**",
+                    "destination": "/index.html"
                 }
             ]
         },
