@@ -164,7 +164,7 @@ apps/
 ```
 
 ### 5.2 Firebaseプロジェクト
-*   **Project ID**: 既存の本番/開発プロジェクト (`engineer-registration-app`) を利用します。
+*   **Project ID**: `.firebaserc` の `projects.prod`（現状: `flutter-frontend-21d0a`）を利用します。
 *   **理由**: ユーザーデータベース (`users` collection) と認証情報 (Authentication) を共有し、LPから会員登録したユーザーがそのまま本体アプリを利用できるようにするため。
 
 ### 5.3 TypeScript型定義 (推奨)
@@ -255,11 +255,12 @@ export interface LpContent {
     - **Web**: `@firebase-web-authn/browser` の `signInWithPasskey(auth, functions)` を利用してログイン（実装済み）。
     - **Native**: `react-native-passkey` を用いたパスキー認証 → Cloud Functions で検証 → Firebase Auth へサインイン（Admin App にて動作確認済み）。
 - [x] **ロール別リダイレクト機能の実装**
-    - ログイン成功後、Custom Claims の `role` に基づき以下の通り遷移する。
+    - ログイン成功後、基本は Custom Claims の `role` に基づき以下の通り遷移する。
         - **Admin**: `admin_app` (Web)
         - **Corporate**: `corporate_user_app`
         - **Individual**: `individual_user_app`
     - `navigationHelper.js` にプラットフォーム（Web/Native）を考慮したリダイレクトロジックを集約。
+    - Claims 未付与/伝播遅延時は、遷移先決定に限りフォールバックを許容する（詳細: Authentication_Authorization.md §6.1）。
 - [x] **ログイン導線の整備**
     - ヘッダーに「ログイン」ボタンを配置し、デフォルトで **パスキーログイン画面** へ遷移させる。
     - 従来の Email / Password ログイン（管理者用含む）への導線は、パスキーログイン画面内のテキストリンク「Password でのログインはこちら」として配置。
@@ -368,7 +369,7 @@ npx expo start --dev-client --lan
 
 **(1) パスワード（Email/Password）でログイン**
 - 画面右上の「ログイン」→ パスキーログイン画面 → 「Password でのログインはこちら」からログイン画面へ遷移
-- 成功すると、ロール（`claims.role`）に応じて `redirectToApp(role)` が走る（デバッグ目的なら、端末から到達できるURLへ設定しておく）
+- 成功すると、ロール（原則 `claims.role`。未付与時はフォールバックあり）に応じて `redirectToApp(role)` が走る（デバッグ目的なら、端末から到達できるURLへ設定しておく）
 
 **(2) パスキー登録（＝切替）**
 - 「マイページ」または「アカウント設定 / セキュリティ」画面内に設けられた「パスキー管理セクション」へ移動。
@@ -492,7 +493,8 @@ npx expo start --dev-client --lan
    - `signInWithCustomToken(auth, customToken)` を実行。
    - クライアント側で `Auth` オブジェクトが更新される。
 5. **ロール取得とリダイレクト**
-   - `userCredential.user.getIdTokenResult()` から `claims.role` を取得。
+   - まず `userCredential.user.getIdTokenResult()` から `claims.role` を取得（必要に応じて `getIdToken(true)` で強制リフレッシュ）。
+   - Claims 未付与/伝播遅延時は、遷移先決定に限り `uid` 先頭文字（`A`/`B`/`C`）や `users/{uid}.role` 等のフォールバックを許容する（詳細: Authentication_Authorization.md §6.1）。
    - `redirectToApp(role)` により role別に遷移。
    
 **失敗時の扱い**

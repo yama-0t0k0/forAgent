@@ -14,7 +14,6 @@
 // - テスト: npx jest apps/lp_app/src/screens/__tests__/HomeScreen.test.js
 // - まとめて: npx jest
 import React from 'react';
-import { extractLpListItems, fetchLpContents, LP_FOOTER_LINKS, parseNoteMagazineRssItems } from '../HomeScreen';
 
 // Mock native modules to prevent "Invariant Violation: __fbBatchedBridgeConfig is not set"
 jest.mock('react-native-safe-area-context', () => {
@@ -52,6 +51,35 @@ jest.mock('firebase/functions', () => ({
   connectFunctionsEmulator: jest.fn(),
   httpsCallable: jest.fn(),
 }));
+
+jest.mock('firebase/firestore', () => ({
+  doc: jest.fn(),
+  getDoc: jest.fn(),
+}));
+
+jest.mock('react-native-passkey', () => ({
+  Passkey: {},
+}));
+
+jest.mock('../../features/firebase/config', () => ({
+  auth: { currentUser: null },
+  db: {},
+  functions: {},
+}));
+
+jest.mock('../../context/AuthContext', () => ({
+  useAuth: jest.fn(() => ({ user: null, role: null })),
+}));
+
+jest.mock('../../utils/navigationHelper', () => ({
+  redirectToApp: jest.fn(),
+}));
+
+jest.mock('../../features/analytics', () => ({
+  logCustomEvent: jest.fn(),
+}));
+
+const { extractLpListItems, fetchLpContents, LP_FOOTER_LINKS, parseNoteMagazineRssItems } = require('../HomeScreen');
 
 describe('HomeScreen helpers', () => {
   describe('LP_FOOTER_LINKS', () => {
