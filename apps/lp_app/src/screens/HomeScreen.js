@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth, functions } from '../features/firebase/config';
+import { auth, db, functions } from '../features/firebase/config';
 import { httpsCallable } from 'firebase/functions';
+import { doc, getDoc } from 'firebase/firestore';
 import { Passkey } from 'react-native-passkey';
 import { useAuth } from '../context/AuthContext';
 import { redirectToApp } from '../utils/navigationHelper';
@@ -455,6 +456,65 @@ const HomeScreen = (props) => {
   const [isPreviewEnabled, setIsPreviewEnabled] = useState(false);
   const navigation = props.navigation;
 
+  const ROLE_BY_ID_PREFIX = {
+    A: 'admin',
+    B: 'corporate',
+    C: 'individual',
+  };
+
+  const resolveRoleFromUserIdPrefix = (userId) => {
+    if (typeof userId !== 'string' || userId.trim().length === 0) {
+      return null;
+    }
+
+    const prefix = userId.trim().charAt(0).toUpperCase();
+    return ROLE_BY_ID_PREFIX[prefix] || null;
+  };
+
+  const extractUserIdCandidate = (data) => {
+    if (!data || typeof data !== 'object') {
+      return null;
+    }
+
+    const idCandidates = [
+      data.id,
+      data.userId,
+      data.companyId,
+      data.id_company,
+      data.id_individual,
+    ];
+
+    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
+  };
+
+  const getRoleFromFirestore = async (uid) => {
+    const userDocRef = doc(db, 'users', uid);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+      const data = userDocSnap.data();
+      if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+        return data.role.trim();
+      }
+
+      const userIdCandidate = extractUserIdCandidate(data);
+      return resolveRoleFromUserIdPrefix(userIdCandidate);
+    }
+
+    const legacyUserDocRef = doc(db, 'Users', uid);
+    const legacyUserDocSnap = await getDoc(legacyUserDocRef);
+    if (legacyUserDocSnap.exists()) {
+      const data = legacyUserDocSnap.data();
+      if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+        return data.role.trim();
+      }
+
+      const userIdCandidate = extractUserIdCandidate(data);
+      return resolveRoleFromUserIdPrefix(userIdCandidate);
+    }
+
+    return null;
+  };
+
   const handleOpenMyPage = async () => {
     if (!user) {
       return;
@@ -463,29 +523,30 @@ const HomeScreen = (props) => {
     try {
       let resolvedRole = role;
 
-      // Fallback: If no role in context/claims, check Firestore 'users' collection
-      // This duplicates logic in AuthContext/LoginScreen, but ensures robustness
       if (!resolvedRole) {
-        const idTokenResult = await user.getIdTokenResult(true);
-        resolvedRole = idTokenResult.claims.role;
+        try {
+          const idTokenResult = await user.getIdTokenResult(true);
+          resolvedRole = idTokenResult?.claims?.role || null;
+        } catch (tokenError) {
+          try {
+            resolvedRole = await getRoleFromFirestore(user.uid);
+          } catch (firestoreError) {
+            const errorCode = typeof tokenError?.code === 'string' ? tokenError.code : null;
+            if (errorCode === 'auth/network-request-failed') {
+              Alert.alert('通信エラー', '権限情報の取得に失敗しました。ネットワーク接続を確認して再試行してください。');
+              return;
+            }
+            throw tokenError;
+          }
+        }
       }
 
       if (!resolvedRole) {
-        // Firestore fallback (using db import if needed, or rely on AuthContext)
-        // Since we can't easily import db/getDoc here without adding imports, 
-        // and AuthContext should have handled it, we might just alert.
-        // But let's assume AuthContext eventually updates 'role'.
-        // If 'role' is still null here, AuthContext might still be loading or failed.
-
-        // Ideally, we should wait for AuthContext, but here we are in an event handler.
-        // Let's try to fetch from Firestore directly if we import db.
-        // For now, let's just use what we have and show a better error message if missing.
-        // Or... we can add the db import and check Firestore here too.
-
-        // Let's rely on the AuthContext being updated eventually.
-        // If user clicks too fast, it might fail.
-
-        console.warn('Role not found in context or claims.');
+        try {
+          resolvedRole = await getRoleFromFirestore(user.uid);
+        } catch (firestoreError) {
+          console.warn('Role not found in context/claims and Firestore fetch failed.');
+        }
       }
 
       if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
@@ -504,7 +565,7 @@ const HomeScreen = (props) => {
     if (!user) return;
 
     try {
-      const defaultRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'engineer-registration-lp.web.app';
+      const defaultRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'latcoltd.net';
       const rpId = process.env.EXPO_PUBLIC_PASSKEY_RP_ID || defaultRpId;
 
       // 1. Get registration options from backend
@@ -646,7 +707,7 @@ const HomeScreen = (props) => {
               setDraftKey(null);
               setIsPreviewEnabled(false);
             }}>
-              <Text style={styles.previewBannerClose}>終了</Text>
+              <Text style={styles.previewCloseText}>終了</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -719,6 +780,27 @@ const HomeScreen = (props) => {
                   return;
                 }
 
+                if (typeof role !== 'string' || role.length === 0) {
+                  Alert.alert('権限確認', '権限情報が取得できていません。再試行するか、ログアウトして再ログインしてください。', [
+                    {
+                      text: '再試行',
+                      onPress: () => {
+                        handleOpenMyPage();
+                      },
+                    },
+                    { text: 'キャンセル', style: 'cancel' },
+                    {
+                      text: 'ログアウト',
+                      style: 'destructive',
+                      onPress: () => {
+                        trackEvent('click_logout', { uid: user.uid });
+                        auth.signOut();
+                      },
+                    },
+                  ]);
+                  return;
+                }
+
                 trackEvent('click_mypage', { uid: user.uid });
                 handleOpenMyPage();
               }}
@@ -741,7 +823,7 @@ const HomeScreen = (props) => {
               }}
               delayLongPress={600}
             >
-              <Text style={styles.loginButtonText}>{user ? 'マイページ' : 'ログイン'}</Text>
+              <Text style={styles.loginButtonText}>{user ? (role ? 'マイページ' : '権限確認') : 'ログイン'}</Text>
             </TouchableOpacity>
           </View>
         </View>

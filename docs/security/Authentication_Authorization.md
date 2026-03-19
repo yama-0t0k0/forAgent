@@ -123,7 +123,8 @@ Expo環境下でのネイティブ機能利用（CNG: Continuous Native Generati
 
 > [!NOTE]
 > **`id_individual`（個人ユーザーID）をCustom Claimsに含めない理由**:
-> 個人ユーザーのIDは `request.auth.uid` として常に利用可能であるため、Claimsに重複して格納する必要がない。
+> 本プロジェクトでは、個人ユーザーID（例: `C202501010001`）を **Firebase Auth の UID として運用**しているため、個人IDは `request.auth.uid` として常に利用可能である。
+> このため、Claimsに重複して格納する必要がない（容量制約・伝播遅延の観点でも不利）。
 > 実際にFirestore Security Rulesでも `resource.data['id_individual_個人ID'] == request.auth.uid` の形式で直接比較している。
 
 **判定ロジック（Firestore Rules 例）**:
@@ -278,7 +279,11 @@ Adminアカウントは以下の構成で管理される。
 
 2.  **Authorization (権限管理)**:
     - **Custom Claims フル活用 (Global Scope)**: `role` や `companyId` などの基本権限は、Firestoreアクセスなしで Custom Claims から即座に判定する (§3.1準拠)。
-    - **UI向けフォールバック**: LPアプリ等の「遷移先決定」では、Claims未付与のケースに備え `users/{uid}.role` を参照するフォールバックを許容する（ただし、セキュリティルール上の根本権限は Custom Claims を正とする）。
+    - **UI向けフォールバック（遷移先決定のみ）**: LPアプリ等の「遷移先決定」では、Claims未付与/伝播遅延のケースに備え、以下の順序でフォールバックを許容する（ただし、セキュリティルール上の根本権限は Custom Claims を正とする）。
+        1. `user.getIdTokenResult().claims.role`（必要に応じて `user.getIdToken(true)` で強制リフレッシュ）
+        2. `uid` 先頭文字（`A`=`admin`, `B`=`corporate`, `C`=`individual`）※本プロジェクトのUID規約に依存
+        3. Firestore `users/{uid}.role`（互換: `Users/{uid}.role`）
+        4. それでも不明なら遷移せず、復旧導線（再試行/再ログイン）を提示する
     - **Context Data 遅延ロード (Context Scope)**: アルムナイ区分（Lv1〜Lv3）などの複雑なリレーション情報は、ログイン後の非同期処理として Firestore から取得する (§3.2準拠)。
 
 ### 6.1.1 開発・検証環境の固定（dev / prod 分離）

@@ -4,6 +4,49 @@ import { auth, db } from '../features/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
 const ROLE_ADMIN = 'admin';
+const ROLE_BY_ID_PREFIX = {
+    A: 'admin',
+    B: 'corporate',
+    C: 'individual',
+};
+
+const resolveRoleFromUserIdPrefix = (userId) => {
+    if (typeof userId !== 'string' || userId.trim().length === 0) {
+        return null;
+    }
+
+    const prefix = userId.trim().charAt(0).toUpperCase();
+    return ROLE_BY_ID_PREFIX[prefix] || null;
+};
+
+const extractUserIdCandidate = (data) => {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    const idCandidates = [
+        data.id,
+        data.userId,
+        data.companyId,
+        data.id_company,
+        data.id_individual,
+    ];
+
+    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
+};
+
+const resolveRoleFromFirestoreData = (data) => {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    if (typeof data.role === 'string' && data.role.trim().length > 0) {
+        return data.role.trim();
+    }
+
+    const userIdCandidate = extractUserIdCandidate(data);
+    return resolveRoleFromUserIdPrefix(userIdCandidate);
+};
 
 const AuthContext = createContext({
     user: null,
@@ -32,34 +75,50 @@ export const AuthProvider = ({ children }) => {
                 // Check for custom claims
                 try {
                     const idTokenResult = await currentUser.getIdTokenResult();
-                    let userRole = idTokenResult.claims.role || null;
+                    let userRole = idTokenResult?.claims?.role || null;
 
                     // Fallback: If no role in claims, check Firestore 'users' collection
                     if (!userRole) {
                         console.log('No role in claims, checking Firestore users collection...');
-                        const userDocRef = doc(db, 'users', currentUser.uid);
-                        const userDocSnap = await getDoc(userDocRef);
-                        
-                        // Try lowercase 'users' first, then Capitalized 'Users' (legacy/migration handling)
+                        let userDocData = null;
+
+                        const userDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
                         if (userDocSnap.exists()) {
-                            userRole = userDocSnap.data().role;
-                            console.log('Role found in Firestore (users):', userRole);
+                            userDocData = userDocSnap.data();
                         } else {
-                             const legacyUserDocRef = doc(db, 'Users', currentUser.uid);
-                             const legacyUserDocSnap = await getDoc(legacyUserDocRef);
-                             if (legacyUserDocSnap.exists()) {
-                                 userRole = legacyUserDocSnap.data().role;
-                                 console.log('Role found in Firestore (Users):', userRole);
-                             }
+                            const legacyUserDocSnap = await getDoc(doc(db, 'Users', currentUser.uid));
+                            if (legacyUserDocSnap.exists()) {
+                                userDocData = legacyUserDocSnap.data();
+                            }
                         }
+
+                        userRole = resolveRoleFromFirestoreData(userDocData);
                     }
 
                     setRole(userRole);
                     setIsAdmin(userRole === ROLE_ADMIN);
                 } catch (e) {
-                    console.error('Error fetching claims/role:', e);
-                    setRole(null);
-                    setIsAdmin(false);
+                    try {
+                        let userDocData = null;
+
+                        const userDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
+                        if (userDocSnap.exists()) {
+                            userDocData = userDocSnap.data();
+                        } else {
+                            const legacyUserDocSnap = await getDoc(doc(db, 'Users', currentUser.uid));
+                            if (legacyUserDocSnap.exists()) {
+                                userDocData = legacyUserDocSnap.data();
+                            }
+                        }
+
+                        const userRole = resolveRoleFromFirestoreData(userDocData);
+                        setRole(userRole);
+                        setIsAdmin(userRole === ROLE_ADMIN);
+                    } catch (firestoreError) {
+                        console.error('Error fetching claims/role:', e);
+                        setRole(null);
+                        setIsAdmin(false);
+                    }
                 }
             } else {
                 setRole(null);

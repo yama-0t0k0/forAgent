@@ -24,6 +24,58 @@ const ERROR_CODES = {
 };
 
 const PLATFORM_IOS = 'ios';
+const ROLE_BY_ID_PREFIX = {
+    A: 'admin',
+    B: 'corporate',
+    C: 'individual',
+};
+
+export const resolveRoleFromUserIdPrefix = (userId) => {
+    if (typeof userId !== 'string' || userId.trim().length === 0) {
+        return null;
+    }
+
+    const prefix = userId.trim().charAt(0).toUpperCase();
+    return ROLE_BY_ID_PREFIX[prefix] || null;
+};
+
+export const extractUserIdCandidate = (data) => {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    const idCandidates = [
+        data.id,
+        data.userId,
+        data.companyId,
+        data.id_company,
+        data.id_individual,
+    ];
+
+    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
+};
+
+const fetchUserDocData = async (uid) => {
+    try {
+        const userDocSnap = await getDoc(doc(db, 'users', uid));
+        if (userDocSnap.exists()) {
+            return userDocSnap.data();
+        }
+    } catch (e) {
+        console.error('[Login] Error fetching users doc:', e);
+    }
+
+    try {
+        const legacyUserDocSnap = await getDoc(doc(db, 'Users', uid));
+        if (legacyUserDocSnap.exists()) {
+            return legacyUserDocSnap.data();
+        }
+    } catch (e) {
+        console.error('[Login] Error fetching Users doc:', e);
+    }
+
+    return null;
+};
 
 /**
  * Login Screen Component
@@ -50,29 +102,44 @@ const LoginScreen = ({ navigation }) => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const idTokenResult = await userCredential.user.getIdTokenResult();
-            let role = idTokenResult.claims.role;
+            let role = idTokenResult?.claims?.role || null;
 
-            // Fallback: If no role in claims, check Firestore 'users' collection
+            if (!role) {
+                role = resolveRoleFromUserIdPrefix(userCredential.user.uid);
+                if (role) {
+                    console.log('[Login] Role resolved from uid prefix:', { uid: userCredential.user.uid, role });
+                }
+            }
+
+            // Fallback: If no role in claims/id prefix, check Firestore 'users' collection
             if (!role) {
                 console.log('[Login] No role in claims, checking Firestore users collection...');
-                try {
-                    const userDocRef = doc(db, 'users', userCredential.user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
+                const userDocData = await fetchUserDocData(userCredential.user.uid);
+                if (userDocData && typeof userDocData.role === 'string' && userDocData.role.length > 0) {
+                    role = userDocData.role;
+                    console.log('[Login] Role found in Firestore (users/Users):', role);
+                } else if (userDocData) {
+                    const userIdCandidate = extractUserIdCandidate(userDocData);
+                    role = resolveRoleFromUserIdPrefix(userIdCandidate);
+                    if (role) {
+                        console.log('[Login] Role resolved from userId prefix:', { userIdCandidate, role });
+                    }
+                }
+            }
 
-                    // Try lowercase 'users' first, then Capitalized 'Users' (legacy/migration handling)
-                    if (userDocSnap.exists()) {
-                        role = userDocSnap.data().role;
-                        console.log('[Login] Role found in Firestore (users):', role);
-                    } else {
-                        const legacyUserDocRef = doc(db, 'Users', userCredential.user.uid);
-                        const legacyUserDocSnap = await getDoc(legacyUserDocRef);
-                        if (legacyUserDocSnap.exists()) {
-                            role = legacyUserDocSnap.data().role;
-                            console.log('[Login] Role found in Firestore (Users):', role);
+            if (!role) {
+                try {
+                    const publicProfileSnap = await getDoc(doc(db, 'public_profile', userCredential.user.uid));
+                    if (publicProfileSnap.exists()) {
+                        const publicProfileData = publicProfileSnap.data();
+                        const userIdCandidate = extractUserIdCandidate(publicProfileData);
+                        role = resolveRoleFromUserIdPrefix(userIdCandidate);
+                        if (role) {
+                            console.log('[Login] Role resolved from public_profile userId prefix:', { userIdCandidate, role });
                         }
                     }
                 } catch (firestoreError) {
-                    console.error('[Login] Error fetching role from Firestore:', firestoreError);
+                    console.error('[Login] Error fetching public_profile:', firestoreError);
                 }
             }
             
@@ -85,32 +152,20 @@ const LoginScreen = ({ navigation }) => {
             });
             await logCustomEvent('login', { method: 'email', role: role || 'unknown' });
 
-            // Stay in LP App to register passkey or Redirect if role exists
-            console.log('[Login] Staying in app (navigation.goBack)');
-            
-            // If the role is found (in claims or Firestore fallback):
-            if (role) {
-                const url = getRedirectUrlForRole(role);
-                Alert.alert(
-                    'ログイン成功',
-                    `移動先: ${url || '不明'}\n管理画面に移動しますか？`,
-                    [
-                        {
-                            text: '開く',
-                            onPress: async () => {
-                                try {
-                                    await redirectToApp(role);
-                                } catch (openError) {
-                                    Alert.alert('エラー', openError?.message ? String(openError.message) : '');
-                                }
-                            },
-                        },
-                        { text: 'このまま戻る', style: 'cancel', onPress: () => navigation.goBack() },
-                    ],
-                );
-            } else {
-                 navigation.goBack();
+            if (!role) {
+                Alert.alert('ログイン成功', 'ログインには成功しましたが、ユーザー種別の取得に失敗しました。しばらく待ってから再試行してください。');
+                navigation.goBack();
+                return;
             }
+
+            const url = getRedirectUrlForRole(role);
+            if (!url) {
+                Alert.alert('ログイン成功', 'ログインには成功しましたが、遷移先が判定できませんでした。');
+                navigation.goBack();
+                return;
+            }
+
+            await redirectToApp(role);
         } catch (error) {
             console.error('Login failed:', error);
 

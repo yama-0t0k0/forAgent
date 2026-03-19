@@ -130,18 +130,31 @@ export class Company {
             name = flatName;
         }
 
+        const normalizeUrl = (value) => {
+            if (typeof value !== DATA_TYPE.STRING) {
+                return '';
+            }
+
+            const trimmed = value.trim();
+            if (trimmed.startsWith('`') && trimmed.endsWith('`') && trimmed.length >= 2) {
+                return trimmed.slice(1, -1).trim();
+            }
+
+            return trimmed;
+        };
+
         return new Company(
             id,
             String(name ?? flatName ?? ''),
             String(profile[Company.FIELDS.WEBSITE_URL] ?? data.websiteUrl ?? ''),
-            String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? ''),
+            String(profile[Company.FIELDS.BUSINESS_CONTENT] ?? data.businessContent ?? data.description ?? ''),
             String(profile[Company.FIELDS.ADDRESS] ?? profile[Company.FIELDS.ADDRESS_ALT1] ?? profile[Company.FIELDS.ADDRESS_ALT2] ?? data.address ?? ''),
             String(profile[Company.FIELDS.ESTABLISHMENT_DATE] ?? data.establishmentDate ?? ''),
             String(profile[Company.FIELDS.CAPITAL] ?? data.capital ?? ''),
             String(profile[Company.FIELDS.EMPLOYEE_COUNT] ?? data.employeeCount ?? ''),
             String(profile[Company.FIELDS.AVERAGE_ANNUAL_INCOME] ?? data.averageAnnualIncome ?? ''),
-            String(profile[Company.FIELDS.BACKGROUND_URL] ?? data.backgroundUrl ?? ''),
-            String(profile[Company.FIELDS.LOGO_URL] ?? data.logoUrl ?? ''),
+            normalizeUrl(profile[Company.FIELDS.BACKGROUND_URL] ?? data.backgroundUrl ?? ''),
+            normalizeUrl(profile[Company.FIELDS.LOGO_URL] ?? data.logoUrl ?? ''),
             appeal,
             payment,
             connection,

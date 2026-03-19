@@ -20,7 +20,7 @@ export const PasskeyManagementSection = () => {
     const [verificationStatus, setVerificationStatus] = useState(null); // 'success', 'error', null
     const [actionFeedback, setActionFeedback] = useState(null);
     const isWeb = Platform.OS === 'web';
-    const defaultPasskeyRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'engineer-registration-lp.web.app';
+    const defaultPasskeyRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'latcoltd.net';
     const desiredPasskeyRpId =
         typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
             ? process.env.EXPO_PUBLIC_PASSKEY_RP_ID.trim() || defaultPasskeyRpId
@@ -34,7 +34,9 @@ export const PasskeyManagementSection = () => {
                 : null;
         if (envRpId && envRpId.length > 0) return envRpId;
         const hostname = window.location?.hostname;
-        return typeof hostname === 'string' && hostname.length > 0 ? hostname : null;
+        if (typeof hostname !== 'string' || hostname.length === 0) return null;
+        if (hostname === 'www.latcoltd.net' || hostname.endsWith('.latcoltd.net')) return 'latcoltd.net';
+        return hostname;
     };
 
     const base64UrlToUint8Array = (base64url) => {
