@@ -105,7 +105,6 @@ export const GenericMenuScreen = ({
                                         itemIdx < group.items.length - 1 && styles.menuItemBorder
                                     ]}
                                     onPress={() => handlePress(item)}
-                                    hitSlop={null} // Disable default hitSlop for full-width row
                                 >
                                     <View style={styles.menuItemLeft}>
                                         <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />

@@ -197,11 +197,13 @@ const getClientDataJSONFromResponse = (response) => {
   return null;
 };
 
+const PASSKEY_FUNCTION_SECRETS = ["PASSKEY_RP_ID", "EXPECTED_ORIGINS"];
+
 /**
  * Generate authentication options for passkey login
  * Returns challenge and other options required by the client
  */
-exports.getPasskeyChallenge = onCall(async (request) => {
+exports.getPasskeyChallenge = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   logger.info("getPasskeyChallenge called", { data: request.data });
 
   try {
@@ -238,7 +240,7 @@ exports.getPasskeyChallenge = onCall(async (request) => {
  * Generate registration options for passkey registration
  * Returns challenge and other options required by the client for Passkey.create()
  */
-exports.getPasskeyRegistrationOptions = onCall(async (request) => {
+exports.getPasskeyRegistrationOptions = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   logger.info("getPasskeyRegistrationOptions called", { auth: request.auth });
 
   // Authentication check: Must be logged in to register a passkey
@@ -309,7 +311,7 @@ exports.getPasskeyRegistrationOptions = onCall(async (request) => {
 /**
  * Verify passkey registration response and save the public key
  */
-exports.verifyPasskeyRegistration = onCall(async (request) => {
+exports.verifyPasskeyRegistration = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   logger.info("verifyPasskeyRegistration called", { auth: request.auth });
 
   if (!request.auth) {
@@ -452,7 +454,7 @@ exports.repairAdminPermissions = onCall(async (request) => {
 /**
  * Verify passkey authentication response and mint a custom token
  */
-exports.verifyPasskeyAndGetToken = onCall(async (request) => {
+exports.verifyPasskeyAndGetToken = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   logger.info("verifyPasskeyAndGetToken called", { data: request.data });
 
   const { response } = request.data;
@@ -563,7 +565,7 @@ exports.verifyPasskeyAndGetToken = onCall(async (request) => {
   }
 });
 
-exports.listPasskeys = onCall(async (request) => {
+exports.listPasskeys = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   const uid = getAuthUid(request);
   const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
   const rpId = resolveRpIdFromRequest(request);
@@ -599,7 +601,7 @@ exports.listPasskeys = onCall(async (request) => {
   }
 });
 
-exports.deletePasskey = onCall(async (request) => {
+exports.deletePasskey = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (request) => {
   const uid = getAuthUid(request);
   const origin = getOriginFromHeaders(request?.rawRequest?.headers || request?.headers);
   const rpId = resolveRpIdFromRequest(request);

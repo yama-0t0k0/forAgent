@@ -10,6 +10,7 @@ import { authService } from '../auth/services/authService';
  * @property {Object} navigation - Navigation object
  * @property {boolean} [showBack=true] - Whether to show the back button
  * @property {React.ReactNode} [bottomNav] - Optional bottom navigation component
+ * @property {function(): Promise<void>} [onLogout] - Optional logout handler override
  */
 
 /**
@@ -22,11 +23,17 @@ export const AppMenuScreen = ({
     role,
     navigation,
     showBack = true,
-    bottomNav
+    bottomNav,
+    onLogout
 }) => {
 
     const handleLogout = async () => {
         try {
+            if (typeof onLogout === 'function') {
+                await onLogout();
+                return;
+            }
+
             await authService.logout();
         } catch (e) {
             Alert.alert('ログアウトに失敗しました', e?.message ? String(e.message) : '');

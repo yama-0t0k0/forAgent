@@ -10,11 +10,12 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { auth, functions } from '../features/firebase/config';
+import { auth, functions, db } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { Passkey } from 'react-native-passkey';
 import { httpsCallable } from 'firebase/functions';
 import { signInWithCustomToken } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { redirectToApp } from '../utils/navigationHelper';
 
 const PLATFORM_WEB = 'web';
@@ -25,6 +26,11 @@ const DEFAULT_PASSKEY_RP_ID_PROD = 'latcoltd.net';
 const DEFAULT_PASSKEY_RP_ID_DEV = 'engineer-registration-lp-dev.web.app';
 const DEFAULT_PASSKEY_RP_ID = __DEV__ ? DEFAULT_PASSKEY_RP_ID_DEV : DEFAULT_PASSKEY_RP_ID_PROD;
 const DESIRED_PASSKEY_RP_ID = process.env.EXPO_PUBLIC_PASSKEY_RP_ID || DEFAULT_PASSKEY_RP_ID;
+const ROLE_BY_ID_PREFIX = {
+  A: 'admin',
+  B: 'corporate',
+  C: 'individual',
+};
 
 // WebAuthn library for Web
 let webAuthn = null;
@@ -44,6 +50,43 @@ const PLATFORM_IOS = 'ios';
  */
 const PasskeyLoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
+
+  const resolveRoleFromUserIdPrefix = (userId) => {
+    if (typeof userId !== 'string' || userId.trim().length === 0) {
+      return null;
+    }
+
+    const prefix = userId.trim().charAt(0).toUpperCase();
+    return ROLE_BY_ID_PREFIX[prefix] || null;
+  };
+
+  const fetchRoleFromFirestore = async (uid) => {
+    try {
+      const userDocSnap = await getDoc(doc(db, 'users', uid));
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+          return data.role.trim();
+        }
+      }
+    } catch (e) {
+      console.error('[PasskeyLogin] Error fetching users doc:', e);
+    }
+
+    try {
+      const legacyUserDocSnap = await getDoc(doc(db, 'Users', uid));
+      if (legacyUserDocSnap.exists()) {
+        const data = legacyUserDocSnap.data();
+        if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+          return data.role.trim();
+        }
+      }
+    } catch (e) {
+      console.error('[PasskeyLogin] Error fetching Users doc:', e);
+    }
+
+    return null;
+  };
 
   /**
    * パスキー認証を実行
@@ -139,7 +182,15 @@ const PasskeyLoginScreen = ({ navigation }) => {
     
     // Get role from ID token
     const idTokenResult = await userCredential.user.getIdTokenResult();
-    const role = idTokenResult.claims.role;
+    let role = idTokenResult?.claims?.role || null;
+
+    if (!role) {
+      role = resolveRoleFromUserIdPrefix(userCredential.user.uid);
+    }
+
+    if (!role) {
+      role = await fetchRoleFromFirestore(userCredential.user.uid);
+    }
 
     await setAnalyticsUserProperties({ user_type: role || 'unknown' });
     await logCustomEvent('login', { method: 'passkey', role });

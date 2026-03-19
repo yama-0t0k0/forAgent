@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "prod": "flutter-frontend-21d0a"
+  },
   "targets": {
     "flutter-frontend-21d0a": {
       "hosting": {
