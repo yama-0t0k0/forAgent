@@ -448,7 +448,7 @@ export const RecruitmentInfoScreen = ({ navigation }) => {
  * @returns {React.JSX.Element}
  */
 const HomeScreen = (props) => {
-  const { user, isAdmin, role } = useAuth();
+  const { user, isAdmin, role, needsAdminRepair } = useAuth();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -550,7 +550,23 @@ const HomeScreen = (props) => {
       }
 
       if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
-        Alert.alert('エラー', 'ユーザー種別の取得に失敗しました。少し待ってから再試行するか、再ログインしてください。');
+        Alert.alert('権限確認', '権限情報が取得できていません。再試行するか、ログアウトして再ログインしてください。', [
+          {
+            text: '再試行',
+            onPress: () => {
+              handleOpenMyPage();
+            },
+          },
+          { text: 'キャンセル', style: 'cancel' },
+          {
+            text: 'ログアウト',
+            style: 'destructive',
+            onPress: () => {
+              trackEvent('click_logout', { uid: user.uid });
+              auth.signOut();
+            },
+          },
+        ]);
         return;
       }
 
@@ -712,8 +728,8 @@ const HomeScreen = (props) => {
           </View>
         )}
 
-        {/* Repair Permissions Section (Visible if logged in but NOT admin) */}
-        {user && !isAdmin && (
+        {/* Repair Permissions Section (Visible if admin uid but claims/role not verified) */}
+        {user && needsAdminRepair && (
           <View style={styles.repairContainer}>
             <Text style={styles.repairText}>管理者権限が確認できません。</Text>
             <TouchableOpacity
@@ -779,28 +795,6 @@ const HomeScreen = (props) => {
                   props.navigation.navigate('PasskeyLogin');
                   return;
                 }
-
-                if (typeof role !== 'string' || role.length === 0) {
-                  Alert.alert('権限確認', '権限情報が取得できていません。再試行するか、ログアウトして再ログインしてください。', [
-                    {
-                      text: '再試行',
-                      onPress: () => {
-                        handleOpenMyPage();
-                      },
-                    },
-                    { text: 'キャンセル', style: 'cancel' },
-                    {
-                      text: 'ログアウト',
-                      style: 'destructive',
-                      onPress: () => {
-                        trackEvent('click_logout', { uid: user.uid });
-                        auth.signOut();
-                      },
-                    },
-                  ]);
-                  return;
-                }
-
                 trackEvent('click_mypage', { uid: user.uid });
                 handleOpenMyPage();
               }}
@@ -823,7 +817,7 @@ const HomeScreen = (props) => {
               }}
               delayLongPress={600}
             >
-              <Text style={styles.loginButtonText}>{user ? (role ? 'マイページ' : '権限確認') : 'ログイン'}</Text>
+              <Text style={styles.loginButtonText}>{user ? 'マイページ' : 'ログイン'}</Text>
             </TouchableOpacity>
           </View>
         </View>
