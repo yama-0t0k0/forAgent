@@ -423,7 +423,7 @@ create_push_issue() {
 
     # Repository URL specified by user
     # ユーザー指定のリポジトリURL
-    export REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
+    export REPO_URL="https://github.com/yama-0t0k0/forAgent"
     
     # Export variables for node script
     # Nodeスクリプト用に変数をエクスポート

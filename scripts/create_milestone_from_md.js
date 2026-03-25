@@ -13,8 +13,9 @@ const { spawnSync } = require('child_process');
 const readline = require('readline');
 
 // --- Configuration ---
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO_OWNER = 'yama-0t0k0';
-const REPO_NAME = 'engineer-registration-app';
+const REPO_NAME = 'forAgent';
 
 // --- Helpers ---
 
