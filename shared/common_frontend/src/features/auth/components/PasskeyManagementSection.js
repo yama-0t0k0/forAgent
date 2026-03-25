@@ -14,6 +14,7 @@ import { THEME } from '@shared/src/core/theme/theme';
  * Intended to be embedded within profile/menu screens.
  */
 export const PasskeyManagementSection = () => {
+    const [passkeys, setPasskeys] = useState([]);
     const [isRegistered, setIsRegistered] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
@@ -65,7 +66,7 @@ export const PasskeyManagementSection = () => {
     }, []);
 
     /**
-     * Checks if the user has any registered passkeys in Firestore
+     * Fetches registered passkeys using the backend function
      */
     const checkPasskeyStatus = async () => {
         const user = auth.currentUser;
@@ -75,15 +76,51 @@ export const PasskeyManagementSection = () => {
         }
 
         try {
-            const passkeysRef = collection(db, 'users', user.uid, 'passkeys');
-            const q = query(passkeysRef, limit(1));
-            const snapshot = await getDocs(q);
-            setIsRegistered(!snapshot.empty);
+            const listPasskeys = httpsCallable(functions, 'listPasskeys');
+            const result = await listPasskeys();
+            const fetchedPasskeys = result?.data?.passkeys || [];
+            setPasskeys(fetchedPasskeys);
+            setIsRegistered(fetchedPasskeys.length > 0);
         } catch (error) {
             console.error('Error checking passkey status:', error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    /**
+     * Handles Passkey Deletion
+     */
+    const handleDeletePasskey = (credentialIdHash) => {
+        Alert.alert(
+            'パスキーの削除',
+            'このパスキーを削除してもよろしいですか？\n削除後、このデバイスでのみ使用可能な場合はログインできなくなります。',
+            [
+                { text: 'キャンセル', style: 'cancel' },
+                {
+                    text: '削除',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setIsActionLoading(true);
+                        setActionFeedback('パスキーを削除中...');
+                        try {
+                            const deletePasskey = httpsCallable(functions, 'deletePasskey');
+                            await deletePasskey({ credentialIdHash });
+                            Alert.alert('削除完了', 'パスキーを削除しました。');
+                            setActionFeedback('削除完了');
+                            await checkPasskeyStatus(); // Refresh the list
+                        } catch (error) {
+                            console.error('Passkey Deletion Error:', error);
+                            const message = error?.message ? String(error.message) : '';
+                            setActionFeedback(`削除失敗: ${message}`);
+                            Alert.alert('削除失敗', 'パスキーの削除中にエラーが発生しました。');
+                        } finally {
+                            setIsActionLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     /**
@@ -151,8 +188,8 @@ export const PasskeyManagementSection = () => {
                 await verifyRegistration({ response: responseJson });
 
                 Alert.alert('登録完了', 'パスキーを登録しました。次からパスキーでログインできます。');
-                setIsRegistered(true);
                 setActionFeedback('登録完了');
+                await checkPasskeyStatus();
             } catch (error) {
                 console.error('Passkey Registration Error:', error);
                 const code = error?.code ? String(error.code) : '';
@@ -192,8 +229,8 @@ export const PasskeyManagementSection = () => {
             await verifyRegistration({ response: registrationResponse });
 
             Alert.alert('登録完了', 'パスキーを登録しました。次からパスキーでログインできます。');
-            setIsRegistered(true);
             setActionFeedback('登録完了');
+            await checkPasskeyStatus();
         } catch (error) {
             console.error('Passkey Registration Error:', error);
             const code = error?.code ? String(error.code) : '';
@@ -270,6 +307,7 @@ export const PasskeyManagementSection = () => {
                 setVerificationStatus('success');
                 Alert.alert('検証成功', 'パスキーによる認証が正常に確認されました。');
                 setActionFeedback('検証成功');
+                await checkPasskeyStatus();
                 return;
             }
 
@@ -289,6 +327,7 @@ export const PasskeyManagementSection = () => {
             setVerificationStatus('success');
             Alert.alert('検証成功', 'パスキーによる認証が正常に確認されました。');
             setActionFeedback('検証成功');
+            await checkPasskeyStatus();
         } catch (error) {
             console.error('Passkey Verification Error:', error);
             setVerificationStatus('error');
@@ -355,6 +394,40 @@ export const PasskeyManagementSection = () => {
                             <Text style={styles.infoText}>
                                 このデバイスまたはアカウントにパスキーが登録されています。
                             </Text>
+
+                            {/* Passkeys List */}
+                            {passkeys.length > 0 && (
+                                <View style={styles.passkeyList}>
+                                    {passkeys.map((pk) => (
+                                        <View key={pk.credentialIdHash} style={styles.passkeyItem}>
+                                            <View style={styles.passkeyItemLeft}>
+                                                <Ionicons name="key" size={20} color={THEME.subText} style={styles.passkeyItemIcon} />
+                                                <View>
+                                                    <Text style={styles.passkeyItemLabel}>
+                                                        {pk.label || pk.deviceName || 'Unknown Device'}
+                                                    </Text>
+                                                    <Text style={styles.passkeyItemDate}>
+                                                        作成: {pk.createdAt ? new Date(pk.createdAt).toLocaleDateString() : '不明'}
+                                                    </Text>
+                                                    {pk.lastUsed && (
+                                                        <Text style={styles.passkeyItemDate}>
+                                                            最終利用: {new Date(pk.lastUsed).toLocaleDateString()}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                            </View>
+                                            <TouchableOpacity
+                                                style={styles.deleteButton}
+                                                onPress={() => handleDeletePasskey(pk.credentialIdHash)}
+                                                disabled={isActionLoading}
+                                            >
+                                                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+
                             <TouchableOpacity
                                 style={[styles.button, styles.secondaryButton]}
                                 onPress={handleVerify}
@@ -513,6 +586,42 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: THEME.subText,
         lineHeight: 16,
+    },
+    passkeyList: {
+        marginBottom: 16,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        padding: 8,
+    },
+    passkeyItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: THEME.cardBorder,
+    },
+    passkeyItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    passkeyItemIcon: {
+        marginRight: 12,
+    },
+    passkeyItemLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: THEME.text,
+        marginBottom: 2,
+    },
+    passkeyItemDate: {
+        fontSize: 11,
+        color: THEME.subText,
+    },
+    deleteButton: {
+        padding: 8,
     },
     loadingContainer: {
         padding: 20,

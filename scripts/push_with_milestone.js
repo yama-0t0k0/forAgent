@@ -27,9 +27,10 @@ const { spawnSync, execSync } = require('child_process');
 const readline = require('readline');
 
 // --- Configuration ---
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO_OWNER = 'yama-0t0k0';
 const REPO_NAME = 'engineer-registration-app';
-const TARGET_BRANCH = 'yama';
+const TARGET_BRANCH = 'Agent';
 const CI_SCRIPT = './scripts/local_ci.sh'; // パス調整
 
 // --- Helpers ---

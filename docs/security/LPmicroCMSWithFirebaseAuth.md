@@ -516,10 +516,10 @@ npx expo start --dev-client --lan
    - パスキーの共通化についての詳細は engineer-registration-app-yama/yama/reference_information_fordev/instructions/パスキー共通化方針.md を参考にすること。
 2.[ ] **Functions運用（Passkey管理 + 監査ログ）**
    - `listPasskeys` / `deletePasskey` を実装し、返却最小化・本人性・監査ログを担保する（Issue #475）。
-3.[ ] **UI（アカウント設定/セキュリティへ埋め込み）**
-   - 状態表示・登録・登録直後の検証・一覧・削除の導線をメニュー内に揃える（Issue #474）。
-4.[ ] **手動スモーク（実機）**
-   - 「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476）。
+3.[x] **UI（アカウント設定/セキュリティへ埋め込み）**
+   - 【対応完了】状態表示・登録・検証に加え、クラウド関数 (`listPasskeys`, `deletePasskey`) を呼び出しUI上でパスキーの一覧表示・削除機能を提供（Issue #474 完了）。
+4.[x] **手動スモーク（実機）**
+   - 【対応完了】「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476 完了）。
 5.[ ] **失敗時UX（復旧導線 + 計測）**
    - Passkey失敗時に行き止まりを作らず、Email/Passwordフォールバックと失敗分類・計測を整理する（Issue #477）。
 6.[ ] **自動E2E回帰（Email/Password）**
@@ -533,13 +533,9 @@ npx expo start --dev-client --lan
 
 ## 7. 推奨される次のタスク (Recommended Next Tasks)
 
-以下のタスクは、`getLpContent` 関数の本番運用に向けた推奨事項です（2026-03-04時点）。
+以下のタスクは、`getLpContent` 関数の本番運用に向けた推奨事項です。
 
-1.  **Firestore権限の付与（キャッシュ機能の有効化）**
-    *   **現状**: Functionsのサービスアカウント (`flutter-frontend-21d0a@appspot.gserviceaccount.com`) にFirestoreへのアクセス権限がないため、`PERMISSION_DENIED` エラーが発生し、キャッシュ機能が動作していません（microCMSへの直接フォールバックで機能自体は維持されています）。
-    *   **対応**: Google Cloud Consoleにて、上記サービスアカウントに対して `Cloud Datastore User` などの適切なロールを付与してください。これにより、microCMSへのAPIリクエスト数を削減し、レスポンス速度を向上させることができます。
-
-2.  **CORS設定の厳格化**
+1. **CORS設定の厳格化**
     *   **現状**: `getLpContent` 関数は `cors({ origin: true })` で設定されており、すべてのオリジンからのアクセスを許可しています。
     *   **対応**: 本番運用時は、セキュリティ向上のため、許可するオリジンを特定のドメイン（例: LPアプリのホスティングドメイン）に制限することを推奨します。
 

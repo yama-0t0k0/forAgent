@@ -13,7 +13,7 @@ set -e  # Exit on any error / エラー発生時に終了
 
 # Global variables / グローバル変数
 AUTO_MODE=true
-TARGET_BRANCH="yama"
+TARGET_BRANCH="Agent"
 AUTHORIZATION_EVIDENCE=""
 TARGET_MILESTONE=""
 
