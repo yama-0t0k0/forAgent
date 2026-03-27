@@ -29,3 +29,17 @@
 * **反省点・学び**:
   * モノレポ環境では環境変数の同期不足がリダイレクト失敗を招きやすいため、`.env` の一括確認が重要。
   * シミュレータのリセットによりビルド済みの Dev Client が消失するため、再ビルド手順をユーザーに明確に伝える必要がある。
+## [2026-03-27] UI Designer Agent PoC と Firestore セキュリティ検証の完遂
+* **Target Issue**: TBD (PoC検証)
+* **主要な人間のプロンプト**:
+  * 「UI Designer Agent の PoC を進めてほしい。一般人が Firestore に侵入できないか E2E テストするためのテスト画面を作成して確認してくれ。」
+  * 「侵入に成功したら攻撃内容とデータを表示し、失敗したらリスクなしと表示してスクショを撮って報告してくれ。」
+  * 「Agent ブランチから Main へマージし、また Agent ヘ戻ってきてくれ。」
+* **AIの判断と結果**:
+  * UI Designer Agent 向けの `SKILL.md` を作成し、デザイン美学とワークフロー（Google Stitch活用・PDM承認フロー）を定義。
+  * `tests/security_stub/index.html` という、Firebase SDK を直接叩くスタンドアロンな HTML テストツールをスクラッチで作成。これにより、アプリ本体のコードを汚さずにセキュリティ判定が可能に。
+  * ブラウザサブエージェント（Maestro相当）により、認証なしでの Read 試行および `role: admin` インジェクション攻撃をシミュレート。いずれも Firestore Security Rules により適切にブロックされることを実証。
+  * `githooks/merge_agent_into_main.sh` を新設し、Agent ブランチから main へのマージ、および Agent ブランチへの復帰を自動化。
+* **反省点・学び**:
+  * `safe_push.sh` の自動モード実行時に、GitHub Issue 作成用の各種引数（--prompt, --intent等）が不足していたため、GitHub 側へのトレーサビリティ投稿が漏れてしまった。今後は `safe_push.sh` の要件を厳守する。
+  * 初期キャプチャ時にターミナル部分が見切れていたため、再取得を行い証拠能力を高めた。
