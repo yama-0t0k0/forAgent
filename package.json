@@ -5,6 +5,7 @@
   "description": "Modular Monolith Monorepo for Career Dev Tool",
   "workspaces": [
     "apps/*/expo_frontend",
+    "apps/lp_app",
     "shared/*"
   ],
   "scripts": {
