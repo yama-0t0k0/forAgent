@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Test Stub | System Override</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --panel-bg: rgba(22, 27, 34, 0.8);
+      --text-main: #c9d1d9;
+      --accent: #2ea043;
+      --error: #f85149;
+      --warning: #d29922;
+      --border: #30363d;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(46, 160, 67, 0.3);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      background: var(--border);
+    }
+
+    .status-badge.authenticated { background: rgba(46, 160, 67, 0.2); border: 1px solid var(--accent); color: var(--accent); }
+    .status-badge.unauthenticated { background: rgba(248, 81, 73, 0.2); border: 1px solid var(--error); color: var(--error); }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: #8b949e;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: #010409;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.6rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--border);
+      color: var(--text-main);
+      border: 1px solid transparent;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button:hover:not(:disabled) {
+      background: #3c444d;
+      border-color: #8b949e;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: #3fb950;
+      box-shadow: 0 0 10px rgba(46, 160, 67, 0.4);
+    }
+
+    button.danger {
+      background: var(--error);
+      color: #ffffff;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .console-output {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .log-info { color: #58a6ff; }
+    .log-success { color: var(--accent); }
+    .log-error { color: var(--error); }
+    .log-warn { color: var(--warning); }
+
+    .flex-row { display: flex; gap: 1rem; align-items: flex-end; }
+    .flex-row > div { flex: 1; }
+  </style>
+
+  <!-- Firebase v10 SDK Modules via CDN -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 1. Firebase Configuration (extracted from environment)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs",
+      authDomain: "flutter-frontend-21d0a.firebaseapp.com",
+      projectId: "flutter-frontend-21d0a",
+      storageBucket: "flutter-frontend-21d0a.firebasestorage.app",
+      messagingSenderId: "511656353816",
+      appId: "1:511656353816:web:9d9e67fed63f081185236d",
+      measurementId: "G-6NGX7TWPNJ"
+    };
+
+    // 2. Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 3. UI Elements & State
+    const consoleOutput = document.getElementById('console');
+    const authStatus = document.getElementById('auth-status');
+    const loginBtn = document.getElementById('btn-login');
+    const logoutBtn = document.getElementById('btn-logout');
+    let currentUserUI = null;
+
+    // 4. Utility: Logger
+    function log(message, type = 'info') {
+      const now = new Date().toISOString().split('T')[1].slice(0, 12);
+      const span = document.createElement('span');
+      span.className = `log-${type}`;
+      span.innerText = `[${now}] ${message}\n`;
+      consoleOutput.appendChild(span);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // 5. Auth State Listener
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUserUI = user.uid;
+        authStatus.textContent = `Authenticated (${user.email})`;
+        authStatus.className = 'status-badge authenticated';
+        document.getElementById('target-uid').value = user.uid; // Auto-fill target UID
+        log(`Auth State: Logged in as ${user.uid}`, 'success');
+      } else {
+        currentUserUI = null;
+        authStatus.textContent = `Unauthenticated`;
+        authStatus.className = 'status-badge unauthenticated';
+        log(`Auth State: Logged out`, 'warn');
+      }
+    });
+
+    // 6. Action: Login
+    window.handleLogin = async () => {
+      const email = document.getElementById('email').value;
+      const pwd = document.getElementById('password').value;
+      if(!email || !pwd) return log('Please enter email and password', 'error');
+      
+      try {
+        log(`Attempting login for: ${email}...`);
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } catch (error) {
+        log(`Login Failed: ${error.message}`, 'error');
+      }
+    };
+
+    // 7. Action: Logout
+    window.handleLogout = async () => {
+      try {
+        await signOut(auth);
+        log('Successfully logged out.', 'success');
+      } catch (error) {
+        log(`Logout Failed: ${error.message}`, 'error');
+      }
+    };
+
+    // 8. Action: Test Read Access
+    window.testReadAccess = async () => {
+      const targetUid = document.getElementById('target-uid').value;
+      if(!targetUid) return log('Target UID required.', 'error');
+
+      log(`[TEST:READ] Attempting to read users/${targetUid}...`);
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          log(`Read Success: Data => ${JSON.stringify(docSnap.data())}`, 'success');
+        } else {
+          log(`Read Result: Document does not exist or was hidden by rules.`, 'warn');
+        }
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
+        } else {
+          log(`Read Error: ${error.message}`, 'error');
+        }
+      }
+    };
+
+    // 9. Action: Test Privilege Escalation (Role Update)
+    window.testPrivilegeEscalation = async () => {
+      const targetUid = document.getElementById('target-uid').value;
+      if(!targetUid) return log('Target UID required.', 'error');
+
+      log(`[TEST:WRITE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        await updateDoc(docRef, {
+          role: 'admin',
+          updatedAt: new Date().toISOString()
+        });
+        log(`Write Success: UI allowed privilege escalation! SECURITY VULNERABILITY DETECTED. (FAIL)`, 'error');
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Write Blocked: Security rules successfully prevented privilege escalation. (PASS)`, 'success');
+        } else {
+          log(`Write Error: ${error.message}`, 'error');
+        }
+      }
+    };
+
+    // Init log
+    log('System override terminal initialized. Ready for operations.');
+  </script>
+</head>
+<body>
+
+  <h1>Security Test Stub</h1>
+
+  <div class="container">
+    
+    <!-- Auth Panel -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>Session Manager</span>
+        <span id="auth-status" class="status-badge unauthenticated">Unauthenticated</span>
+      </div>
+      <div class="flex-row">
+        <div class="form-group">
+          <label for="email">Target Email</label>
+          <input type="text" id="email" placeholder="test@example.com">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••">
+        </div>
+      </div>
+      <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+        <button class="primary" onclick="window.handleLogin()">Authenticate Login</button>
+        <button onclick="window.handleLogout()">Terminate Session</button>
+      </div>
+    </div>
+
+    <!-- Execution Panel -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>Exploit Payloads</span>
+      </div>
+      <div class="form-group">
+        <label for="target-uid">Target Document UID (`users/{uid}`)</label>
+        <input type="text" id="target-uid" placeholder="Enter target user ID for attack">
+      </div>
+      <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <button onclick="window.testReadAccess()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg>
+          Execute Read (Fetch Data)
+        </button>
+        <button class="danger" onclick="window.testPrivilegeEscalation()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M12.636 1.864a4.5 4.5 0 0 0-6.364 0L1.773 6.364a4.5 4.5 0 0 0 0 6.364 4.5 4.5 0 0 0 6.364 0l4.499-4.5a4.5 4.5 0 0 0 0-6.364ZM8.868 2.925a3 3 0 0 1 4.243 0 3 3 0 0 1 0 4.242L8.613 11.667a3 3 0 0 1-4.243 0 3 3 0 0 1 0-4.243L8.868 2.925Z"/></svg>
+          Execute Attack (Inject `role: admin`)
+        </button>
+      </div>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="panel">
+      <div class="panel-title">System Terminal</div>
+      <div id="console" class="console-output"></div>
+    </div>
+
+  </div>
+</body>
+</html>
