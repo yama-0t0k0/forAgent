@@ -47,3 +47,17 @@
 * **反省点・学び**:
   * `safe_push.sh` の自動モード実行時に、GitHub Issue 作成用の各種引数（--prompt, --intent等）が不足していたため、GitHub 側へのトレーサビリティ投稿が漏れてしまった。今後は `safe_push.sh` の要件を厳守する。
   * 初期キャプチャ時にターミナル部分が見切れていたため、再取得を行い証拠能力を高めた。
+
+## [2026-03-29 01:15] Firestore セキュリティルールの脆弱性発見と修正
+* **Target Issue**: #6 (後述のsafe_push.shで自動作成)
+* **主要な人間のプロンプト**:
+  * 「今回作成したE2Eテストは、SQLインジェクション他さまざまなクラッキングや侵入手段にも対抗できるようなテストケースとなっているか？」
+  * 「githooks/safe_push.shしてくれ。」
+* **AIの判断と結果**:
+  * 高度な攻撃ペイロード（Lateral Movement、Schema Bypass、Unauthorized Deletion、Privilege Escalation）を `tests/security_stub/index.html` に実装。
+  * ブラウザサブエージェントによる実行で、**重大な脆弱性を発見**: `firestore.rules` にグローバルな `allow read, write: if true` ルールが残存しており、未認証ユーザーでも全コレクションにアクセス可能な状態であった。
+  * `firestore.rules` を修正: グローバル allow-all の削除、6箇所の `allow read: if true` を `allow read: if isAuthenticated()` に強化。
+  * Firestore Emulator 上で `verify_rules.mjs` を実行し、7つの攻撃ベクトル全てが `permission-denied` で遮断されることを確認（7/7 PASS）。
+* **反省点・学び**:
+  * 開発初期に導入した「全許可」ルールがそのまま残っていたのは危険。今後は開発用ルールと本番用ルールを明確に分離する仕組みが必要。
+  * エミュレータを使ったローカル検証がルール修正の即時フィードバックに非常に有効であることを確認。

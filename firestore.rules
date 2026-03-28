@@ -9,12 +9,7 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ----------------------------------------------------------------------------
-    // GLOBAL DEV PERMISSION (ALLOW EVERYTHING)
-    // ----------------------------------------------------------------------------
-    match /{document=**} {
-      allow read, write: if true;
-    }
+
 
     // ============================================================================
     // Helper Functions / ヘルパー関数
@@ -89,7 +84,7 @@ service cloud.firestore {
       // Users can read their own data. Admins can read all.
       // ユーザーは自分のデータを閲覧可能。管理者は全て閲覧可能。
       // TEMPORARY: Relaxed Read for Admin App to list users without Auth
-      allow read: if true;
+      allow read: if isAuthenticated();
       
       // Prevent users from making themselves admin or changing their role/companyId
       // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ
@@ -122,7 +117,7 @@ service cloud.firestore {
       // Readable by any authenticated user (Candidate, Company, Admin)
       // 認証済みユーザー (求職者、企業、管理者) であれば誰でも閲覧可能
       // TEMPORARY: for dev without auth
-      allow read: if true;
+      allow read: if isAuthenticated();
       
       // Writable only by the owner or Admin
       // 所有者本人または管理者のみ書き込み可能
@@ -163,7 +158,7 @@ service cloud.firestore {
       // Publicly readable for authenticated users (Job Seekers need to see company info)
       // 認証済みユーザーは閲覧可能 (求職者は企業情報を見る必要があるため)
       // TEMPORARY: for dev without auth
-      allow read: if true;
+      allow read: if isAuthenticated();
       
       // Writable by company members or Admin
       // その企業のメンバーまたは管理者のみ書き込み可能
@@ -195,12 +190,12 @@ service cloud.firestore {
     // 想定構造: /job_description/{companyId}/JD_Number/{jdId}
     match /job_description/{companyId} {
       // TEMPORARY: for dev without auth
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow write: if isCompanyMember(companyId) || isAdmin();
       
       match /JD_Number/{jdId} {
         // TEMPORARY: for dev without auth
-        allow read: if true;
+        allow read: if isAuthenticated();
         
         // Validation: title, description, salaryRange are required string fields
         allow create: if (isCompanyMember(companyId) || isAdmin())
@@ -224,7 +219,7 @@ service cloud.firestore {
       // Fields: id_individual_個人ID, id_company_法人ID
       // 求職者本人、該当企業、または管理者が閲覧可能
       // TEMPORARY: for dev without auth
-      allow read: if true;
+      allow read: if isAuthenticated();
       
       // Creation/Update: Allowed for authenticated users
       // Create: Must be the candidate applying OR the company scouting OR Admin

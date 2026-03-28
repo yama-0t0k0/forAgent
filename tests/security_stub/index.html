@@ -173,7 +173,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // 1. Firebase Configuration (extracted from environment)
     const firebaseConfig = {
@@ -190,6 +190,12 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Auto-connect to emulator if running locally
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      connectFirestoreEmulator(db, 'localhost', 8080);
+      console.log("Connected to Firestore Emulator (8080)");
+    }
 
     // 3. UI Elements & State
     const consoleOutput = document.getElementById('console');
@@ -278,7 +284,7 @@
       const targetUid = document.getElementById('target-uid').value;
       if(!targetUid) return log('Target UID required.', 'error');
 
-      log(`[TEST:WRITE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
+      log(`[ATTACK:PRIVILEGE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
       try {
         const docRef = doc(db, 'users', targetUid);
         await updateDoc(docRef, {
@@ -291,6 +297,65 @@
           log(`Write Blocked: Security rules successfully prevented privilege escalation. (PASS)`, 'success');
         } else {
           log(`Write Error: ${error.message}`, 'error');
+        }
+      }
+    };
+
+    // 10. Action: Test Lateral Movement (Read Other User's Private Info)
+    window.testLateralMovement = async () => {
+      const targetUid = document.getElementById('target-uid').value;
+      if(!targetUid) return log('Target UID required.', 'error');
+
+      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'private_info', targetUid);
+        const docSnap = await getDoc(docRef);
+        console.log(docSnap);
+        log(`Intrusion Success: Accessed private_info! Data => ${JSON.stringify(docSnap.data())}. (FAIL)`, 'error');
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Access Denied: Lateral movement blocked by security rules. (PASS)`, 'success');
+        } else {
+          log(`Error: ${error.message}`, 'error');
+        }
+      }
+    };
+
+    // 11. Action: Test Validation Bypass (Schema Injection)
+    window.testValidationBypass = async () => {
+      const targetUid = document.getElementById('target-uid').value;
+      if(!targetUid) return log('Target UID (Owner) required.', 'error');
+
+      log(`[ATTACK:SCHEMA] Attempting to inject non-string name { name: 12345 } into public_profile/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'public_profile', targetUid);
+        await updateDoc(docRef, {
+          name: 12345 // Rules expect string with size > 0
+        });
+        log(`Validation Bypass: Rules allowed non-string 'name'! (FAIL)`, 'error');
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Validation Success: Malformed data blocked by schema rules. (PASS)`, 'success');
+        } else {
+          log(`Error: ${error.message}`, 'error');
+        }
+      }
+    };
+
+    // 12. Action: Test Unauthorized Deletion
+    window.testUnauthorizedDelete = async () => {
+      const targetCompanyId = "any_company_id";
+      log(`[ATTACK:DELETION] Attempting to delete company/${targetCompanyId} without admin role...`, 'warn');
+      try {
+        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+        const docRef = doc(db, 'company', targetCompanyId);
+        await deleteDoc(docRef);
+        log(`Deletion Success: Unauthorized user deleted a company record! (FAIL)`, 'error');
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Deletion Blocked: Rules correctly restricted delete to Admin. (PASS)`, 'success');
+        } else {
+          log(`Error: ${error.message}`, 'error');
         }
       }
     };
@@ -338,12 +403,19 @@
       </div>
       <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
         <button onclick="window.testReadAccess()">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg>
-          Execute Read (Fetch Data)
+          Read User Record
         </button>
         <button class="danger" onclick="window.testPrivilegeEscalation()">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M12.636 1.864a4.5 4.5 0 0 0-6.364 0L1.773 6.364a4.5 4.5 0 0 0 0 6.364 4.5 4.5 0 0 0 6.364 0l4.499-4.5a4.5 4.5 0 0 0 0-6.364ZM8.868 2.925a3 3 0 0 1 4.243 0 3 3 0 0 1 0 4.242L8.613 11.667a3 3 0 0 1-4.243 0 3 3 0 0 1 0-4.243L8.868 2.925Z"/></svg>
-          Execute Attack (Inject `role: admin`)
+          Inject `role: admin`
+        </button>
+        <button class="danger" onclick="window.testLateralMovement()">
+          Lateral: Access Private Info
+        </button>
+        <button class="danger" onclick="window.testValidationBypass()">
+          Schema: Inject Non-String
+        </button>
+        <button class="danger" onclick="window.testUnauthorizedDelete()">
+          Delete Company Record
         </button>
       </div>
     </div>
