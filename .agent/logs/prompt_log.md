@@ -47,3 +47,30 @@
 * **反省点・学び**:
   * `safe_push.sh` の自動モード実行時に、GitHub Issue 作成用の各種引数（--prompt, --intent等）が不足していたため、GitHub 側へのトレーサビリティ投稿が漏れてしまった。今後は `safe_push.sh` の要件を厳守する。
   * 初期キャプチャ時にターミナル部分が見切れていたため、再取得を行い証拠能力を高めた。
+
+## [2026-03-29 01:15] Firestore セキュリティルールの脆弱性発見と修正
+* **Target Issue**: #6 (後述のsafe_push.shで自動作成)
+* **主要な人間のプロンプト**:
+  * 「今回作成したE2Eテストは、SQLインジェクション他さまざまなクラッキングや侵入手段にも対抗できるようなテストケースとなっているか？」
+  * 「githooks/safe_push.shしてくれ。」
+* **AIの判断と結果**:
+  * 高度な攻撃ペイロード（Lateral Movement、Schema Bypass、Unauthorized Deletion、Privilege Escalation）を `tests/security_stub/index.html` に実装。
+  * ブラウザサブエージェントによる実行で、**重大な脆弱性を発見**: `firestore.rules` にグローバルな `allow read, write: if true` ルールが残存しており、未認証ユーザーでも全コレクションにアクセス可能な状態であった。
+  * `firestore.rules` を修正: グローバル allow-all の削除、6箇所の `allow read: if true` を `allow read: if isAuthenticated()` に強化。
+  * Firestore Emulator 上で `verify_rules.mjs` を実行し、7つの攻撃ベクトル全てが `permission-denied` で遮断されることを確認（7/7 PASS）。
+* **反省点・学び**:
+  * 開発初期に導入した「全許可」ルールがそのまま残っていたのは危険。今後は開発用ルールと本番用ルールを明確に分離する仕組みが必要。
+  * エミュレータを使ったローカル検証がルール修正の即時フィードバックに非常に有効であることを確認。
+
+## [2026-03-29 01:33] PM Agent SKILL.md の構造的改善（マイルストーン・Issue作成漏れ防止）
+* **Target Issue**: TBD (本Pushで自動作成予定)
+* **主要な人間のプロンプト**:
+  * 「githooks/safe_push.shの実行を指示した際は、docsのドキュメントとマイルストーンの更新をし、次にPushとIssue作成をするフローになっているはずだ。しかし、docsのドキュメント更新はされているものの、マイルストーンとIssue作成はされていない。今後、これらを忘れないよう.agent/skills/pm_agent/SKILL.mdを改善してくれ。」
+* **AIの判断と結果**:
+  * 問題分析: 旧SKILL.mdのルール5〜7が一文の抽象的な記述であり、AIが具体的アクションに落とし込めずスキップしやすい構造だったことを特定。
+  * `safe_push.sh` のコード分析: `--milestone` 引数が省略されると `push_with_milestone.js` への委譲がスキップされ、マイルストーン連携なしのフローに分岐する仕様を確認。
+  * SKILL.md を Phase 1〜3 の3段階フローに再構成し、マイルストーン更新(Step 1-3)・Issue作成確認(Step 3-1)に🔴MUSTマーカーと具体的コマンド例を明記。
+  * Push完了チェックリスト（7項目）を導入。
+  * `docs/dev_postmortem.md` に恒久対策エントリを追記。
+* **反省点・学び**:
+  * 同じ問題（マイルストーン更新漏れ）が3月4日のポストモーテムで既に記録されていたにも関わらず再発した。ルールの「意図」だけでなく「手順」を具体化しないと、AIは繰り返し同じミスを犯す。
