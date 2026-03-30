@@ -33,10 +33,11 @@ service cloud.firestore {
       // Option A: Hybrid Approach
       // 1. Check Custom Claims first (High Performance)
       // 2. Fallback to Firestore 'users' collection (Compatibility)
-      return (request.auth.token.keys().hasAll(['role']) && request.auth.token.role == role)
+      return (isAuthenticated() && ('role' in request.auth.token) && request.auth.token.role == role)
              || (
-               exists(/databases/$(database)/documents/users/$(request.auth.uid))
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role
+               isAuthenticated()
+               && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == role
              );
     }
 
@@ -48,15 +49,15 @@ service cloud.firestore {
     // Check if the user is a member of the specific company
     // ユーザーが特定の企業のメンバーであるか確認 (Custom Claims 優先)
     function isCompanyMember(companyId) {
-      return (request.auth.token.keys().hasAll(['role', 'companyId']) 
+      return (isAuthenticated() && ('role' in request.auth.token) && ('companyId' in request.auth.token)
               && request.auth.token.role == 'corporate' 
               && request.auth.token.companyId == companyId)
              || (
                // Fallback: Check Firestore
                isAuthenticated() 
                && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'corporate' 
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'corporate' 
+               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '') == companyId
              );
     }
     
@@ -83,8 +84,7 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can read their own data. Admins can read all.
       // ユーザーは自分のデータを閲覧可能。管理者は全て閲覧可能。
-      // TEMPORARY: Relaxed Read for Admin App to list users without Auth
-      allow read: if isAuthenticated();
+      allow read: if isOwner(userId) || isAdmin();
       
       // Prevent users from making themselves admin or changing their role/companyId
       // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ

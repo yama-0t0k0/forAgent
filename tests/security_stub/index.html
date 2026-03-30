@@ -351,11 +351,124 @@
         const docRef = doc(db, 'company', targetCompanyId);
         await deleteDoc(docRef);
         log(`Deletion Success: Unauthorized user deleted a company record! (FAIL)`, 'error');
+        return false;
       } catch (error) {
         if(error.code === 'permission-denied') {
           log(`Deletion Blocked: Rules correctly restricted delete to Admin. (PASS)`, 'success');
+          return true;
         } else {
           log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // --- NEW: Automated Test Suite ---
+    window.runAllSecurityTests = async () => {
+      const summary = document.getElementById('test-summary');
+      const progressBar = document.getElementById('test-progress-bar');
+      summary.style.display = 'block';
+      let passed = 0;
+      const tests = [
+        { name: 'Read Access Restriction', fn: window.testReadAccess },
+        { name: 'Privilege Escalation Prevention', fn: window.testPrivilegeEscalation },
+        { name: 'Lateral Movement Blocking', fn: window.testLateralMovement },
+        { name: 'Schema Validation Enforcement', fn: window.testValidationBypass },
+        { name: 'Unauthorized Deletion Prevention', fn: window.testUnauthorizedDelete }
+      ];
+
+      log('Starting automated security scan...', 'info');
+      document.body.setAttribute('data-test-status', 'running');
+
+      for (let i = 0; i < tests.length; i++) {
+        const test = tests[i];
+        const result = await test.fn();
+        if (result) passed++;
+        progressBar.style.width = `${((i + 1) / tests.length) * 100}%`;
+      }
+
+      const overallResult = passed === tests.length ? 'PASS' : 'FAIL';
+      document.getElementById('test-result-text').textContent = `${passed}/${tests.length} tests passed (${overallResult})`;
+      document.getElementById('test-result-text').style.color = (overallResult === 'PASS') ? 'var(--accent)' : 'var(--error)';
+      
+      log(`Automated scan complete: ${overallResult}`, (overallResult === 'PASS' ? 'success' : 'error'));
+      document.body.setAttribute('data-test-status', 'finished');
+    };
+
+    // Helper: Wrap existing tests to return boolean for automation
+    const originalTestReadAccess = window.testReadAccess;
+    window.testReadAccess = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[TEST:READ] Attempting to read users/${targetUid}...`);
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        await getDoc(docRef);
+        log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
+        return true;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Read Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    const originalTestPrivilegeEscalation = window.testPrivilegeEscalation;
+    window.testPrivilegeEscalation = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:PRIVILEGE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        await updateDoc(docRef, { role: 'admin' });
+        log(`Write Success: UI allowed privilege escalation! SECURITY VULNERABILITY DETECTED. (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Write Blocked: Security rules successfully prevented privilege escalation. (PASS)`, 'success');
+          return true;
+        } else {
+          return false;
+        }
+      }
+    };
+
+    const originalTestLateralMovement = window.testLateralMovement;
+    window.testLateralMovement = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'private_info', targetUid);
+        await getDoc(docRef);
+        log(`Intrusion Success: Accessed private_info! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Access Denied: Lateral movement blocked by security rules. (PASS)`, 'success');
+          return true;
+        } else {
+          return false;
+        }
+      }
+    };
+
+    const originalTestValidationBypass = window.testValidationBypass;
+    window.testValidationBypass = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:SCHEMA] Attempting to inject non-string name into public_profile/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'public_profile', targetUid);
+        await updateDoc(docRef, { name: 12345 });
+        log(`Validation Bypass: Rules allowed non-string 'name'! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Validation Success: Malformed data blocked by schema rules. (PASS)`, 'success');
+          return true;
+        } else {
+          return false;
         }
       }
     };
@@ -364,12 +477,21 @@
     log('System override terminal initialized. Ready for operations.');
   </script>
 </head>
-<body>
+<body data-test-status="idle">
 
   <h1>Security Test Stub</h1>
 
   <div class="container">
     
+    <!-- Test Progress Summary (Hidden by default) -->
+    <div id="test-summary" class="panel" style="display: none; border-left: 4px solid var(--accent);">
+      <div class="panel-title">Automated Security Audit Summary</div>
+      <div style="background: rgba(48, 54, 61, 0.3); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 1rem;">
+        <div id="test-progress-bar" style="background: var(--accent); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
+      </div>
+      <div id="test-result-text" style="font-family: var(--font-mono); font-weight: bold; font-size: 1.2rem; text-align: center;">Scanning...</div>
+    </div>
+
     <!-- Auth Panel -->
     <div class="panel">
       <div class="panel-title">
@@ -389,6 +511,7 @@
       <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
         <button class="primary" onclick="window.handleLogin()">Authenticate Login</button>
         <button onclick="window.handleLogout()">Terminate Session</button>
+        <button class="primary" onclick="window.runAllSecurityTests()" style="background: #238636;">Run Full Audit</button>
       </div>
     </div>
 

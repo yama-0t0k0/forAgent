@@ -10,9 +10,9 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **実行日** | 202X-XX-XX |
-| **対象アプリ** | (例: Admin App / Individual App) |
-| **環境** | iOS Simulator / Android Emulator (Local / CI) |
-| **テストスイート** | run_e2e.sh (Full Coverage) |
+| **対象** | Admin App / Individual App / Corporate App / **Backend Security** |
+| **環境** | iOS Simulator / Android Emulator / Playwright Headless |
+| **テストスイート** | run_e2e.sh / **test:security:report** |
 | **最終結果** | 🟢 **PASS** / 🔴 **FAIL** |
 
 ### 📊 ステータス詳細
@@ -76,6 +76,30 @@ sequenceDiagram
 ### Case 02: [シナリオ名]
 
 ... (同様に記述)
+
+---
+
+## 🛡️ バックエンド・セキュリティ監査レポート (Security Audit Report)
+
+*(「Backend Security」を検証した際に記載してください。`npm run test:security:report` で生成されたスクリーンショットを貼り付けます)*
+
+### 監査結果サマリー
+- **検証日時**: 202X-XX-XX XX:XX
+- **セキュリティスタブ位置**: `tests/security_stub/index.html`
+- **エビデンス**: `tests/screenshots/security_report_XXXX.png`
+
+#### 📸 実行結果キャプチャ
+> [!NOTE]
+> ここに Playwright で自動取得された `tests/screenshots/` 内の最新画像を挿入してください。
+
+![Security Audit Result](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/screenshots/security_report_example.png)
+
+#### 🛡️ 検証済み攻撃ベクトル
+1.  **Read Access (IDOR)**: 他人のプライベートプロフィールの読み取り拒否 ✅
+2.  **Privilege Escalation**: 一般ユーザーによる admin フラグの書き換え拒否 ✅
+3.  **Lateral Movement**: 自分以外の `user_id` を持つドキュメントの作成拒否 ✅
+4.  **Schema Validation**: 不正なデータ型、必須フィールド欠落の書き込み拒否 ✅
+5.  **Unauthorized Deletion**: 所有者以外によるデータ削除の拒否 ✅
 
 ---
 
