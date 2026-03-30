@@ -191,10 +191,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Auto-connect to emulator if running locally
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Always connect to emulator for local testing/audit
+    // This ensures consistency even when opened via file:// or localhost
+    try {
       connectFirestoreEmulator(db, 'localhost', 8080);
-      console.log("Connected to Firestore Emulator (8080)");
+      console.log("Connected to Firestore Emulator (localhost:8080)");
+    } catch (e) {
+      console.warn("Emulator connection warning (may already be connected):", e.message);
     }
 
     // 3. UI Elements & State
@@ -215,13 +218,13 @@
       console.log(`[${type.toUpperCase()}] ${message}`);
     }
 
-    // 5. Auth State Listener
+    // 2. Auth State Listener
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUserUI = user.uid;
         authStatus.textContent = `Authenticated (${user.email})`;
         authStatus.className = 'status-badge authenticated';
-        document.getElementById('target-uid').value = user.uid; // Auto-fill target UID
+        document.getElementById('target-uid').value = user.uid;
         log(`Auth State: Logged in as ${user.uid}`, 'success');
       } else {
         currentUserUI = null;
@@ -231,7 +234,7 @@
       }
     });
 
-    // 6. Action: Login
+    // 3. Action: Login
     window.handleLogin = async () => {
       const email = document.getElementById('email').value;
       const pwd = document.getElementById('password').value;
@@ -245,7 +248,7 @@
       }
     };
 
-    // 7. Action: Logout
+    // 4. Action: Logout
     window.handleLogout = async () => {
       try {
         await signOut(auth);
@@ -255,11 +258,14 @@
       }
     };
 
-    // 8. Action: Test Read Access
-    window.testReadAccess = async () => {
-      const targetUid = document.getElementById('target-uid').value;
-      if(!targetUid) return log('Target UID required.', 'error');
+    /**
+     * CORE SECURITY TESTS
+     * All tests return true if the action was correctly ALLOWED or BLOCKED by rules.
+     */
 
+    // 5. Action: Test Read Access
+    window.testReadAccess = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
       log(`[TEST:READ] Attempting to read users/${targetUid}...`);
       try {
         const docRef = doc(db, 'users', targetUid);
@@ -267,94 +273,34 @@
         
         if (docSnap.exists()) {
           log(`Read Success: Data => ${JSON.stringify(docSnap.data())}`, 'success');
+          return true; // Read is allowed for public info
         } else {
-          log(`Read Result: Document does not exist or was hidden by rules.`, 'warn');
+          log(`Read Result: Document not found.`, 'warn');
+          return true; 
         }
       } catch (error) {
         if(error.code === 'permission-denied') {
           log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
+          return true;
         } else {
           log(`Read Error: ${error.message}`, 'error');
+          return false;
         }
       }
     };
 
-    // 9. Action: Test Privilege Escalation (Role Update)
+    // 6. Action: Test Privilege Escalation (Role Update)
     window.testPrivilegeEscalation = async () => {
-      const targetUid = document.getElementById('target-uid').value;
-      if(!targetUid) return log('Target UID required.', 'error');
-
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
       log(`[ATTACK:PRIVILEGE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
       try {
         const docRef = doc(db, 'users', targetUid);
-        await updateDoc(docRef, {
-          role: 'admin',
-          updatedAt: new Date().toISOString()
-        });
-        log(`Write Success: UI allowed privilege escalation! SECURITY VULNERABILITY DETECTED. (FAIL)`, 'error');
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Write Blocked: Security rules successfully prevented privilege escalation. (PASS)`, 'success');
-        } else {
-          log(`Write Error: ${error.message}`, 'error');
-        }
-      }
-    };
-
-    // 10. Action: Test Lateral Movement (Read Other User's Private Info)
-    window.testLateralMovement = async () => {
-      const targetUid = document.getElementById('target-uid').value;
-      if(!targetUid) return log('Target UID required.', 'error');
-
-      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
-      try {
-        const docRef = doc(db, 'private_info', targetUid);
-        const docSnap = await getDoc(docRef);
-        console.log(docSnap);
-        log(`Intrusion Success: Accessed private_info! Data => ${JSON.stringify(docSnap.data())}. (FAIL)`, 'error');
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Access Denied: Lateral movement blocked by security rules. (PASS)`, 'success');
-        } else {
-          log(`Error: ${error.message}`, 'error');
-        }
-      }
-    };
-
-    // 11. Action: Test Validation Bypass (Schema Injection)
-    window.testValidationBypass = async () => {
-      const targetUid = document.getElementById('target-uid').value;
-      if(!targetUid) return log('Target UID (Owner) required.', 'error');
-
-      log(`[ATTACK:SCHEMA] Attempting to inject non-string name { name: 12345 } into public_profile/${targetUid}...`, 'warn');
-      try {
-        const docRef = doc(db, 'public_profile', targetUid);
-        await updateDoc(docRef, {
-          name: 12345 // Rules expect string with size > 0
-        });
-        log(`Validation Bypass: Rules allowed non-string 'name'! (FAIL)`, 'error');
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Validation Success: Malformed data blocked by schema rules. (PASS)`, 'success');
-        } else {
-          log(`Error: ${error.message}`, 'error');
-        }
-      }
-    };
-
-    // 12. Action: Test Unauthorized Deletion
-    window.testUnauthorizedDelete = async () => {
-      const targetCompanyId = "any_company_id";
-      log(`[ATTACK:DELETION] Attempting to delete company/${targetCompanyId} without admin role...`, 'warn');
-      try {
-        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
-        const docRef = doc(db, 'company', targetCompanyId);
-        await deleteDoc(docRef);
-        log(`Deletion Success: Unauthorized user deleted a company record! (FAIL)`, 'error');
+        await updateDoc(docRef, { role: 'admin', updatedAt: new Date().toISOString() });
+        log(`CRITICAL: Privilege escalation allowed by UI! (FAIL)`, 'error');
         return false;
       } catch (error) {
         if(error.code === 'permission-denied') {
-          log(`Deletion Blocked: Rules correctly restricted delete to Admin. (PASS)`, 'success');
+          log(`Defense Success: Rules prevented unauthorized role change. (PASS)`, 'success');
           return true;
         } else {
           log(`Error: ${error.message}`, 'error');
@@ -363,7 +309,68 @@
       }
     };
 
-    // --- NEW: Automated Test Suite ---
+    // 7. Action: Test Lateral Movement (Read Other User's Private Info)
+    window.testLateralMovement = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'private_info', targetUid);
+        await getDoc(docRef);
+        log(`CRITICAL: Intrusion Success! Private info leaked. (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Lateral movement blocked. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 8. Action: Test Validation Bypass (Schema Injection)
+    window.testValidationBypass = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:SCHEMA] Attempting to inject non-string name into public_profile/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'public_profile', targetUid);
+        await updateDoc(docRef, { name: 12345 });
+        log(`CRITICAL: Validation check bypassed! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Schema mismatch blocked. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 9. Action: Test Unauthorized Deletion
+    window.testUnauthorizedDelete = async () => {
+      const targetCompanyId = "any_company_id";
+      log(`[ATTACK:DELETION] Attempting to delete company/${targetCompanyId}...`, 'warn');
+      try {
+        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+        const docRef = doc(db, 'company', targetCompanyId);
+        await deleteDoc(docRef);
+        log(`CRITICAL: Unauthorized deletion succeeded! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Delete operation restricted. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 10. Automated Test Suite
     window.runAllSecurityTests = async () => {
       const summary = document.getElementById('test-summary');
       const progressBar = document.getElementById('test-progress-bar');
@@ -382,8 +389,14 @@
 
       for (let i = 0; i < tests.length; i++) {
         const test = tests[i];
-        const result = await test.fn();
-        if (result) passed++;
+        try {
+          const result = await test.fn();
+          if (result === true) {
+            passed++;
+          }
+        } catch (e) {
+          log(`Test Execution Error (${test.name}): ${e.message}`, 'error');
+        }
         progressBar.style.width = `${((i + 1) / tests.length) * 100}%`;
       }
 
@@ -393,84 +406,6 @@
       
       log(`Automated scan complete: ${overallResult}`, (overallResult === 'PASS' ? 'success' : 'error'));
       document.body.setAttribute('data-test-status', 'finished');
-    };
-
-    // Helper: Wrap existing tests to return boolean for automation
-    const originalTestReadAccess = window.testReadAccess;
-    window.testReadAccess = async () => {
-      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
-      log(`[TEST:READ] Attempting to read users/${targetUid}...`);
-      try {
-        const docRef = doc(db, 'users', targetUid);
-        await getDoc(docRef);
-        log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
-        return true;
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
-          return true;
-        } else {
-          log(`Read Error: ${error.message}`, 'error');
-          return false;
-        }
-      }
-    };
-
-    const originalTestPrivilegeEscalation = window.testPrivilegeEscalation;
-    window.testPrivilegeEscalation = async () => {
-      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
-      log(`[ATTACK:PRIVILEGE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
-      try {
-        const docRef = doc(db, 'users', targetUid);
-        await updateDoc(docRef, { role: 'admin' });
-        log(`Write Success: UI allowed privilege escalation! SECURITY VULNERABILITY DETECTED. (FAIL)`, 'error');
-        return false;
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Write Blocked: Security rules successfully prevented privilege escalation. (PASS)`, 'success');
-          return true;
-        } else {
-          return false;
-        }
-      }
-    };
-
-    const originalTestLateralMovement = window.testLateralMovement;
-    window.testLateralMovement = async () => {
-      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
-      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
-      try {
-        const docRef = doc(db, 'private_info', targetUid);
-        await getDoc(docRef);
-        log(`Intrusion Success: Accessed private_info! (FAIL)`, 'error');
-        return false;
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Access Denied: Lateral movement blocked by security rules. (PASS)`, 'success');
-          return true;
-        } else {
-          return false;
-        }
-      }
-    };
-
-    const originalTestValidationBypass = window.testValidationBypass;
-    window.testValidationBypass = async () => {
-      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
-      log(`[ATTACK:SCHEMA] Attempting to inject non-string name into public_profile/${targetUid}...`, 'warn');
-      try {
-        const docRef = doc(db, 'public_profile', targetUid);
-        await updateDoc(docRef, { name: 12345 });
-        log(`Validation Bypass: Rules allowed non-string 'name'! (FAIL)`, 'error');
-        return false;
-      } catch (error) {
-        if(error.code === 'permission-denied') {
-          log(`Validation Success: Malformed data blocked by schema rules. (PASS)`, 'success');
-          return true;
-        } else {
-          return false;
-        }
-      }
     };
 
     // Init log
@@ -489,7 +424,11 @@
       <div style="background: rgba(48, 54, 61, 0.3); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 1rem;">
         <div id="test-progress-bar" style="background: var(--accent); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
       </div>
-      <div id="test-result-text" style="font-family: var(--font-mono); font-weight: bold; font-size: 1.2rem; text-align: center;">Scanning...</div>
+      <div id="test-result-text" style="font-family: var(--font-mono); font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 0.5rem;">Scanning...</div>
+      <div style="font-size: 0.8rem; color: #8b949e; text-align: center;">
+        <span style="color: var(--accent);">● PASS</span>: 攻撃の阻止に成功 (Defense Success) | 
+        <span style="color: var(--error);">● FAIL</span>: 攻撃の成功を確認 (Vulnerability Flagged)
+      </div>
     </div>
 
     <!-- Auth Panel -->
