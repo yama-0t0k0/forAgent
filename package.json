@@ -18,6 +18,7 @@
     "test": "jest",
     "test:rules": "npx firebase emulators:exec --only firestore 'npx jest -c jest.config.rules.js'",
     "test:security:report": "npx firebase emulators:exec --only firestore 'node tests/security_stub/verify_rules.mjs'",
+    "test:coverage:report": "node tests/verify_coverage.mjs",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },

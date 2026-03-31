@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SCREENSHOT_DIR = path.resolve(__dirname, '../screenshots');
+const SCREENSHOT_DIR = path.resolve(__dirname, '../screenshots/stub');
 const MAX_SCREENSHOTS = 10;
 const HTML_FILE = `file://${path.resolve(__dirname, 'index.html')}`;
 
@@ -58,7 +58,12 @@ async function runAudit() {
 
     // Rotate and save
     await rotateScreenshots();
-    const timestamp = Date.now();
+    const now = new Date();
+    const timestamp = now.getFullYear().toString() + 
+                      (now.getMonth() + 1).toString().padStart(2, '0') + 
+                      now.getDate().toString().padStart(2, '0') + 
+                      now.getHours().toString().padStart(2, '0') + 
+                      now.getMinutes().toString().padStart(2, '0');
     const screenshotPath = path.join(SCREENSHOT_DIR, `security_report_${timestamp}.png`);
     
     await page.screenshot({ path: screenshotPath, fullPage: true });

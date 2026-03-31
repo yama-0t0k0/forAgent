@@ -58,7 +58,7 @@
 - **Backend**: Firebase (Firestore, Auth, Storage), Pure Dart (server.dart)
 - **Infrastructure**: Google Cloud Run
 - **Documentation**: Markdown, Mermaid diagrams
-- **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management)
+- **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management), Security Audit/Coverage Reporting
 
 ---
 
