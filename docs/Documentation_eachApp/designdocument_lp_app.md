@@ -53,48 +53,46 @@ sequenceDiagram
 ## 4. リダイレクト・ハブ機能 (Redirection Hub)
 [navigationHelper.js](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/apps/lp_app/src/utils/navigationHelper.js) が各アプリへの遷移パスを管理します。
 
-### 管理パス
-| ロール | 遷移先アプリ (Custom Schema / URL) | 説明 |
-| :--- | :--- | :--- |
-| **admin** | `exp://...:8081` (dev) / admin-app schema | 管理者ダッシュボードへ |
-| **corporate** | `exp://...:8083` (dev) / corporate-app schema | 法人向け管理画面へ |
-| **individual** | `exp://...:8082` (dev) / individual-app schema | 個人マイページへ |
+### 🆕 Dev/Prod URL 自動切替方式
+`__DEV__` フラグにより開発時と本番時で遷移URLを自動的に切り替えます。
 
-### 🆕 開発者体験 (DX): 自動起動連携
+| ロール | 開発時 URL (HTTP localhost) | 本番時 URL (Custom Scheme) | ポート (`start_expo.sh` 準拠) |
+| :--- | :--- | :--- | :--- |
+| **admin** | `http://localhost:8081` | `admin-app://home` | 8081 |
+| **individual** | `http://localhost:8082` | `individual-app://home` | 8082 |
+| **corporate** | `http://localhost:8083` | `corporate-app://home` | 8083 |
+
+- **開発時**: `.env` の `EXPO_PUBLIC_*_APP_URL` で上書き可能（デフォルトは上記ポート）
+- **本番時**: 各アプリの `app.config.js` に設定された `scheme` に基づく Custom URL Scheme で遷移
+
+### 🆕 対象アプリ側のディープリンク受信
+各対象アプリの `App.js` に `Linking.getInitialURL()` / `Linking.addEventListener('url', ...)` を実装済み：
+
+| アプリ | scheme | Linking リスナー | 受信ログ |
+| :--- | :--- | :--- | :--- |
+| admin_app | `admin-app` | ✅ | `[DeepLink][admin_app]` |
+| corporate_user_app | `corporate-app` | ✅ | `[DeepLink][corporate_user_app]` |
+| individual_user_app | `individual-app` | ✅ | `[DeepLink][individual_user_app]` |
+
+### 開発者体験 (DX): 自動起動連携
 開発環境において、LPアプリからリダイレクトが発生した際、ターミナルで手動で `start_expo.sh` を叩く手間を省くため、**Dev Broker** と連携しています。
 - **Broker Location**: `scripts/dev_broker.mjs` (Port: 8090)
-- **挙動**: `navigationHelper.js` が遷移前にブローカーへ `GET /auto-start?app=...` をリクエストし、ブローカーがバックグランドで `scripts/start_expo.sh` を実行します。
+- **挙動**: `navigationHelper.js` が遷移前にブローカーへ `GET /start?app=...` をリクエストし、ブローカーがバックグランドで `scripts/start_expo.sh` を実行します。
+
+### 堅牢性の向上 (Robustness Fixes)
+Expo サーバーの起動遅延による「サーバー接続失敗」を防ぐため、以下の仕組みを導入しています。
+
+1. **Port Polling (`waitForPort`)**:
+   - `navigationHelper.js` 内で実装。
+   - 遷移先のポート（例: 8081）に対し、HTTP HEAD リクエストを最大 20 秒間（2秒おき）送信します。
+   - サーバーの応答（HTTP 200 OK）を確認してから `Linking.openURL` を実行します。
+2. **自動リトライ導線**:
+   - タイムアウト時はエラー画面を表示し、手動での再試行を促します。
 
 ## 5. コンテンツ・ニュース管理 (CMS & News)
-動的なコンテンツ管理のために、外部サービスを統合しています。
+動的なコンテンツ管理（microCMS）および外部ニュース（Note RSS）の詳細なアーキテクチャ、セキュリティ設計、データフローについては、以下の専用ドキュメントを参照してください。
 
-### データフロー
-```mermaid
-graph TD
-    subgraph External Services
-        MCMS["microCMS (Hero/Features/Contents)"]
-        Note["Note.com (News RSS)"]
-    end
-    
-    subgraph Firebase Cloud Functions
-        CF_MCMS["getMicroCMSContent"]
-        CF_Note["getNoteNews"]
-    end
-    
-    LP_App["LP App (ReactNative)"]
-    
-    MCMS --> CF_MCMS
-    Note --> CF_Note
-    
-    CF_MCMS -->|HTTPS Callable| LP_App
-    CF_Note -->|HTTPS Callable| LP_App
-    
-    subgraph UI Components
-        LP_App -->|Render| Hero["HeroSection"]
-        LP_App -->|Render| News["NewsTicker"]
-        LP_App -->|Render| Features["FeatureGrid"]
-    end
-```
+- **[microCMS連携・セキュリティ設計 (LPmicroCMSWithFirebaseAuth.md)](../security/LPmicroCMSWithFirebaseAuth.md)**
 
 ## 6. 画面構成 (Screen Structure)
 主要な画面と遷移関係は以下の通りです。
