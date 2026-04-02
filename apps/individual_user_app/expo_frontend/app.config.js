@@ -9,7 +9,8 @@ module.exports = ({ config }) => {
   return {
     ...config,
     name: "エンジニア個人マイページ",
-    slug: "my-expo-app",
+    slug: "individual-app",
+    scheme: "individual-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, View, ActivityIndicator } from 'react-native';
+import { StatusBar, View, ActivityIndicator, Linking } from 'react-native';
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
 
@@ -29,6 +29,29 @@ const Stack = createNativeStackNavigator();
 const CorporateRegistrationWrapper = () => {
     const [initialData, setInitialData] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Deep Link Listener: Handle incoming deep links from LP app
+    useEffect(() => {
+        const handleDeepLink = (event) => {
+            const url = event.url;
+            console.log(`[DeepLink][corporate_user_app] Received: ${url}`);
+            // TODO: Parse URL path/query for screen-specific navigation
+        };
+
+        // Cold Start: App was launched via a deep link URL
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                console.log(`[DeepLink][corporate_user_app] Initial URL: ${url}`);
+                handleDeepLink({ url });
+            }
+        }).catch((err) => {
+            console.warn('[DeepLink][corporate_user_app] getInitialURL error:', err);
+        });
+
+        // Warm Start: URL received while app is already running
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+        return () => subscription.remove();
+    }, []);
 
     useEffect(() => {
         /**

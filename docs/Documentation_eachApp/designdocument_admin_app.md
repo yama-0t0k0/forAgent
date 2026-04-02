@@ -31,6 +31,28 @@
   - §5.3: 管理者アカウント定義
   - §6: ログインアーキテクチャ設計（画面設計・シーケンス図）
 
+## 4. ディープリンク統合 (Deep Link Integration)
+LPアプリ等からのリダイレクトをスムーズに受け入れるための設計が導入されています。
+
+### 1. カスタム URL スキーム
+`app.config.js` にて以下のスキームが定義されています：
+- **scheme**: `admin-app`
+
+これにより、デバイス（シミュレータ含む）上で `admin-app://home` などのURLを開くと、本アプリが自動的に起動します。
+
+### 2. Linking リスナーの実装
+`App.js` にて、アプリが起動中（Warm Start）および終了状態（Cold Start）の両方でディープリンクを検知し、ナビゲーションやログ出力を行う仕組みを実装しています。
+
+- **Cold Start**: `Linking.getInitialURL()` で起動時のURLを取得。
+- **Warm Start**: `Linking.addEventListener('url', ...)` でバックグラウンド復帰時のURLを監視。
+- **ログ識別子**: `[DeepLink][admin_app]`
+
+### 3. LPアプリ（Redirection Hub）との連携
+開発環境において、LPアプリから本アプリへ遷移する際、以下の自動化ロジックが働きます：
+1. **ポート監視**: LPアプリの `navigationHelper.js` が、本アプリのポート（8081）をポーリング（`waitForPort`）します。
+2. **自動起動**: ポートが閉じている場合、開発用の `dev_broker.mjs` を通じて `start_expo.sh admin_app` がバックグラウンドで実行されます。
+3. **リダイレクト**: 本アプリの準備が整い次第、ディープリンクまたは HTTP URL により自動的に画面が切り替わります。
+
 ## データモデル原則 (Data Modeling)
 Admin Appは複数のドメインデータを統合して扱うため、生JSONではなく**共有モデルクラス**を使用してデータを正規化します。
 詳細は [CodingConventions_JS.md](../../CodingConventions_JS.md) を参照してください。
@@ -262,6 +284,9 @@ graph TD
   ```bash
   ./scripts/start_expo.sh admin_app
   ```
+- 接続URL（開発時デフォルト）:
+  - `exp://127.0.0.1:8081` (Localhost)
+  - `admin-app://` (Custom Scheme)
 
 ## 注意点・改善提案
 ### 1. ユーザー数推移グラフ (User Growth)

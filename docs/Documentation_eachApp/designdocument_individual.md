@@ -78,7 +78,28 @@ graph LR
   - ボトムナビゲーションを表示せず、テンプレートJSONに基づいた純粋な入力を可能にします。
   - データのフラット化（`User` モデルによる変換）の影響を受けないよう、孤立したコンポーネント群（`PureRecursiveField` 等）で構成されています。
 
-## 共有モジュール構成
+## 🆕 ディープリンク統合 (Deep Link Integration)
+本アプリは他のアプリ（LPアプリ等）からのリダイレクトをスムーズに受け入れるための設計が導入されています。
+
+### 1. カスタム URL スキーム
+`app.config.js` にて以下のスキームが定義されています：
+- **scheme**: `individual-app`
+
+これにより、デバイス（シミュレータ含む）上で `individual-app://home` などのURLを開くと、本アプリが自動的に起動します。
+
+### 2. Linking リスナーの実装
+`App.js` にて、アプリが起動中（Warm Start）および終了状態（Cold Start）の両方でディープリンクを検知し、ナビゲーションやログ出力を行う仕組みを実装しています。
+
+- **Cold Start**: `Linking.getInitialURL()` で起動時のURLを取得。
+- **Warm Start**: `Linking.addEventListener('url', ...)` でバックグラウンド復帰時のURLを監視。
+- **ログ識別子**: `[DeepLink][individual_user_app]`
+
+### 3. LPアプリ（Redirection Hub）との連携
+開発環境において、LPアプリから本アプリへ遷移する際、以下の自動化ロジックが働きます：
+1. **ポート監視**: LPアプリの `navigationHelper.js` が、本アプリのポート（8082）をポーリング（`waitForPort`）します。
+2. **自動起動**: ポートが閉じている場合、開発用の `dev_broker.mjs` を通じて `start_expo.sh individual_user_app` がバックグラウンドで実行されます。
+3. **リダイレクト**: 本アプリの準備が整い次第、ディープリンクまたは HTTP URL により自動的に画面が切り替わります。
+
 ```mermaid
 graph TD
     App["individual_user_app (Expo)"] --> Nav["AppNavigator (画面遷移)"]
@@ -126,8 +147,9 @@ graph TD
     ```bash
     EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
     ```
-- 接続URL（例）:
-  - exp://lm8s_7u-anonymous-8082.exp.direct
+- 接続URL（開発時デフォルト）:
+  - `exp://127.0.0.1:8082` (Localhost)
+  - `individual-app://` (Custom Scheme)
 
 ## データスキーマ（推奨フォーマット）
 ### 前提
