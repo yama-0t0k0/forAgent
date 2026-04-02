@@ -8,6 +8,7 @@ import { Passkey } from 'react-native-passkey';
 import { useAuth } from '../context/AuthContext';
 import { redirectToApp } from '../utils/navigationHelper';
 import { logCustomEvent } from '../features/analytics';
+import { resolveUserRole } from '../features/firebase/authUtils';
 
 /**
  * LP Home Screen
@@ -456,64 +457,6 @@ const HomeScreen = (props) => {
   const [isPreviewEnabled, setIsPreviewEnabled] = useState(false);
   const navigation = props.navigation;
 
-  const ROLE_BY_ID_PREFIX = {
-    A: 'admin',
-    B: 'corporate',
-    C: 'individual',
-  };
-
-  const resolveRoleFromUserIdPrefix = (userId) => {
-    if (typeof userId !== 'string' || userId.trim().length === 0) {
-      return null;
-    }
-
-    const prefix = userId.trim().charAt(0).toUpperCase();
-    return ROLE_BY_ID_PREFIX[prefix] || null;
-  };
-
-  const extractUserIdCandidate = (data) => {
-    if (!data || typeof data !== 'object') {
-      return null;
-    }
-
-    const idCandidates = [
-      data.id,
-      data.userId,
-      data.companyId,
-      data.id_company,
-      data.id_individual,
-    ];
-
-    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
-  };
-
-  const getRoleFromFirestore = async (uid) => {
-    const userDocRef = doc(db, 'users', uid);
-    const userDocSnap = await getDoc(userDocRef);
-    if (userDocSnap.exists()) {
-      const data = userDocSnap.data();
-      if (typeof data?.role === 'string' && data.role.trim().length > 0) {
-        return data.role.trim();
-      }
-
-      const userIdCandidate = extractUserIdCandidate(data);
-      return resolveRoleFromUserIdPrefix(userIdCandidate);
-    }
-
-    const legacyUserDocRef = doc(db, 'Users', uid);
-    const legacyUserDocSnap = await getDoc(legacyUserDocRef);
-    if (legacyUserDocSnap.exists()) {
-      const data = legacyUserDocSnap.data();
-      if (typeof data?.role === 'string' && data.role.trim().length > 0) {
-        return data.role.trim();
-      }
-
-      const userIdCandidate = extractUserIdCandidate(data);
-      return resolveRoleFromUserIdPrefix(userIdCandidate);
-    }
-
-    return null;
-  };
 
   const handleOpenMyPage = async () => {
     if (!user) {
@@ -524,30 +467,10 @@ const HomeScreen = (props) => {
       let resolvedRole = role;
 
       if (!resolvedRole) {
-        try {
-          const idTokenResult = await user.getIdTokenResult(true);
-          resolvedRole = idTokenResult?.claims?.role || null;
-        } catch (tokenError) {
-          try {
-            resolvedRole = await getRoleFromFirestore(user.uid);
-          } catch (firestoreError) {
-            const errorCode = typeof tokenError?.code === 'string' ? tokenError.code : null;
-            if (errorCode === 'auth/network-request-failed') {
-              Alert.alert('通信エラー', '権限情報の取得に失敗しました。ネットワーク接続を確認して再試行してください。');
-              return;
-            }
-            throw tokenError;
-          }
-        }
+        resolvedRole = await resolveUserRole(user, true); // Force refresh if not in context
       }
 
-      if (!resolvedRole) {
-        try {
-          resolvedRole = await getRoleFromFirestore(user.uid);
-        } catch (firestoreError) {
-          console.warn('Role not found in context/claims and Firestore fetch failed.');
-        }
-      }
+      console.log('[HomeScreen] handleOpenMyPage resolved role:', resolvedRole);
 
       if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
         Alert.alert('権限確認', '権限情報が取得できていません。再試行するか、ログアウトして再ログインしてください。', [

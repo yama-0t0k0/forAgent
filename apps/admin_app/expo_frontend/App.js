@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
+import { StatusBar, ActivityIndicator, View, StyleSheet, Alert, Linking } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -41,6 +41,29 @@ const AdminAppWrapper = () => {
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+
+  // Deep Link Listener: Handle incoming deep links from LP app
+  useEffect(() => {
+    const handleDeepLink = (event) => {
+      const url = event.url;
+      console.log(`[DeepLink][admin_app] Received: ${url}`);
+      // TODO: Parse URL path/query for screen-specific navigation
+    };
+
+    // Cold Start: App was launched via a deep link URL
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log(`[DeepLink][admin_app] Initial URL: ${url}`);
+        handleDeepLink({ url });
+      }
+    }).catch((err) => {
+      console.warn('[DeepLink][admin_app] getInitialURL error:', err);
+    });
+
+    // Warm Start: URL received while app is already running
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    return () => subscription.remove();
+  }, []);
 
   // Auto-Grant Admin Privileges in Dev Mode & Fetch Data
   useEffect(() => {

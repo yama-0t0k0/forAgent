@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "lpapp.app"
-               BlueprintName = "lpapp"
-               ReferencedContainer = "container:lpapp.xcodeproj">
+               BuildableName = "CareerDevTool.app"
+               BlueprintName = "CareerDevTool"
+               ReferencedContainer = "container:CareerDevTool.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "lpappTests.xctest"
-               BlueprintName = "lpappTests"
-               ReferencedContainer = "container:lpapp.xcodeproj">
+               BuildableName = "CareerDevToolTests.xctest"
+               BlueprintName = "CareerDevToolTests"
+               ReferencedContainer = "container:CareerDevTool.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "lpapp.app"
-            BlueprintName = "lpapp"
-            ReferencedContainer = "container:lpapp.xcodeproj">
+            BuildableName = "CareerDevTool.app"
+            BlueprintName = "CareerDevTool"
+            ReferencedContainer = "container:CareerDevTool.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "lpapp.app"
-            BlueprintName = "lpapp"
-            ReferencedContainer = "container:lpapp.xcodeproj">
+            BuildableName = "CareerDevTool.app"
+            BlueprintName = "CareerDevTool"
+            ReferencedContainer = "container:CareerDevTool.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

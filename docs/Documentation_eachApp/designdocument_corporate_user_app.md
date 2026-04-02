@@ -92,12 +92,35 @@ graph TD
 - 秘密情報のログ出力やリポジトリへのコミットは避ける
 - 開発/本番のプロジェクト切り替えは環境変数で管理
 
+## 🆕 11. ディープリンク統合 (Deep Link Integration)
+LPアプリ等からのリダイレクトをスムーズに受け入れるための設計が導入されています。
+
+### 1. カスタム URL スキーム
+`app.config.js` にて以下のスキームが定義されています：
+- **scheme**: `corporate-app`
+
+これにより、デバイス（シミュレータ含む）上で `corporate-app://home` などのURLを開くと、本アプリが自動的に起動します。
+
+### 2. Linking リスナーの実装
+`App.js` にて、アプリが起動中（Warm Start）および終了状態（Cold Start）の両方でディープリンクを検知し、ナビゲーションやログ出力を行う仕組みを実装しています。
+
+- **Cold Start**: `Linking.getInitialURL()` で起動時のURLを取得。
+- **Warm Start**: `Linking.addEventListener('url', ...)` でバックグラウンド復帰時のURLを監視。
+- **ログ識別子**: `[DeepLink][corporate_user_app]`
+
+### 3. LPアプリ（Redirection Hub）との連携
+開発環境において、LPアプリから本アプリへ遷移する際、以下の自動化ロジックが働きます：
+1. **ポート監視**: LPアプリの `navigationHelper.js` が、本アプリのポート（8083）をポーリング（`waitForPort`）します。
+2. **自動起動**: ポートが閉じている場合、開発用の `dev_broker.mjs` を通じて `start_expo.sh corporate_user_app` がバックグラウンドで実行されます。
+3. **リダイレクト**: 本アプリの準備が整い次第、ディープリンクまたは HTTP URL により自動的に画面が切り替わります。
+
 ## 起動方法（法人ユーザーアプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)
 - 実行例:
   - ./scripts/start_expo.sh corporate_user_app
-- 接続URL（例）:
-  - exp://lm8s_7u-anonymous-8083.exp.direct
+- 接続URL（開発時デフォルト）:
+  - `exp://127.0.0.1:8083` (Localhost)
+  - `corporate-app://` (Custom Scheme)
 
 ## データスキーマ（推奨フォーマット）
 ### 前提

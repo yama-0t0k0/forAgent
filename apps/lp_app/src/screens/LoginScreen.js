@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../features/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { getRedirectUrlForRole, redirectToApp } from '../utils/navigationHelper';
+import { resolveUserRole } from '../features/firebase/authUtils';
 
 const ERROR_CODES = {
     USER_NOT_FOUND: 'auth/user-not-found',
@@ -24,58 +24,6 @@ const ERROR_CODES = {
 };
 
 const PLATFORM_IOS = 'ios';
-const ROLE_BY_ID_PREFIX = {
-    A: 'admin',
-    B: 'corporate',
-    C: 'individual',
-};
-
-export const resolveRoleFromUserIdPrefix = (userId) => {
-    if (typeof userId !== 'string' || userId.trim().length === 0) {
-        return null;
-    }
-
-    const prefix = userId.trim().charAt(0).toUpperCase();
-    return ROLE_BY_ID_PREFIX[prefix] || null;
-};
-
-export const extractUserIdCandidate = (data) => {
-    if (!data || typeof data !== 'object') {
-        return null;
-    }
-
-    const idCandidates = [
-        data.id,
-        data.userId,
-        data.companyId,
-        data.id_company,
-        data.id_individual,
-    ];
-
-    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
-};
-
-const fetchUserDocData = async (uid) => {
-    try {
-        const userDocSnap = await getDoc(doc(db, 'users', uid));
-        if (userDocSnap.exists()) {
-            return userDocSnap.data();
-        }
-    } catch (e) {
-        console.error('[Login] Error fetching users doc:', e);
-    }
-
-    try {
-        const legacyUserDocSnap = await getDoc(doc(db, 'Users', uid));
-        if (legacyUserDocSnap.exists()) {
-            return legacyUserDocSnap.data();
-        }
-    } catch (e) {
-        console.error('[Login] Error fetching Users doc:', e);
-    }
-
-    return null;
-};
 
 /**
  * Login Screen Component
@@ -101,49 +49,9 @@ const LoginScreen = ({ navigation }) => {
         setIsLoading(true);
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const idTokenResult = await userCredential.user.getIdTokenResult();
-            let role = idTokenResult?.claims?.role || null;
-
-            if (!role) {
-                role = resolveRoleFromUserIdPrefix(userCredential.user.uid);
-                if (role) {
-                    console.log('[Login] Role resolved from uid prefix:', { uid: userCredential.user.uid, role });
-                }
-            }
-
-            // Fallback: If no role in claims/id prefix, check Firestore 'users' collection
-            if (!role) {
-                console.log('[Login] No role in claims, checking Firestore users collection...');
-                const userDocData = await fetchUserDocData(userCredential.user.uid);
-                if (userDocData && typeof userDocData.role === 'string' && userDocData.role.length > 0) {
-                    role = userDocData.role;
-                    console.log('[Login] Role found in Firestore (users/Users):', role);
-                } else if (userDocData) {
-                    const userIdCandidate = extractUserIdCandidate(userDocData);
-                    role = resolveRoleFromUserIdPrefix(userIdCandidate);
-                    if (role) {
-                        console.log('[Login] Role resolved from userId prefix:', { userIdCandidate, role });
-                    }
-                }
-            }
-
-            if (!role) {
-                try {
-                    const publicProfileSnap = await getDoc(doc(db, 'public_profile', userCredential.user.uid));
-                    if (publicProfileSnap.exists()) {
-                        const publicProfileData = publicProfileSnap.data();
-                        const userIdCandidate = extractUserIdCandidate(publicProfileData);
-                        role = resolveRoleFromUserIdPrefix(userIdCandidate);
-                        if (role) {
-                            console.log('[Login] Role resolved from public_profile userId prefix:', { userIdCandidate, role });
-                        }
-                    }
-                } catch (firestoreError) {
-                    console.error('[Login] Error fetching public_profile:', firestoreError);
-                }
-            }
+            const role = await resolveUserRole(userCredential.user);
             
-            console.log('[Login] Login successful, role:', role);
+            console.log('[Login] Login successful, resolved role:', role);
 
             // Analytics Tracking
             await setAnalyticsUser(userCredential.user.uid);

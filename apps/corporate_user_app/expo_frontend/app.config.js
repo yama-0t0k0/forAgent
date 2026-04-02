@@ -10,6 +10,7 @@ module.exports = ({ config }) => {
     ...config,
     name: "企業プロフィール登録",
     slug: "corporate-app",
+    scheme: "corporate-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",

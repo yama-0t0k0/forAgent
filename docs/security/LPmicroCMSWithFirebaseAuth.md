@@ -19,7 +19,7 @@
 2.  **会員限定コンテンツ**: 特定の権限（ログイン済み、Premiumプラン等）を持つユーザーのみが閲覧できるエリアを設ける。
 3.  **認証統合**: 既存のFirebase Authentication基盤を利用し、シームレスにログイン・権限判定を行う。
 4.  **動的なUI切り替え**: 権限の有無に応じて、コンテンツの表示/非表示や「鍵マーク」の表示を切り替える。
-5.  **Latest News 連携**: Note マガジン（RSS）を連携し、Home 画面の「Latest News」に最新記事を表示する。
+5.  **Latest News 連携**: Note マガジン（RSS）を唯一の正真なニュースソースとして連携し、Home 画面の「Latest News」に最新記事を動的に表示する。
 
 ### 2.2 非機能要件
 1.  **セキュリティ**: microCMSのAPIキーをクライアントアプリに露出させない（サーバーサイド隠蔽）。
@@ -115,14 +115,15 @@ Custom Claims には含めず、Cloud Functions 内で Firestore を参照して
         *   `is_premium_only` の場合、デコードしたトークンの `plan` を確認。
     5.  **データ返却**: JSON形式で返却。権限NGなら制限付きデータを返す。
 
-#### Note マガジン (RSS) 連携
+#### Latest News: Note マガジン (RSS) 連携
 *   **Function Name**: `getNoteMagazineNews`
 *   **Trigger Type**: `onRequest` (HTTP Request)
 *   **Method**: `GET`
 *   **URL**: `https://<region>-<project-id>.cloudfunctions.net/getNoteMagazineNews`
-*   **Purpose**:
-    1.  Note 側 RSS（`https://note.com/lycaonpictus/m/m7f05093c60f0/rss`）を取得して整形し、Home の「Latest News」用のリストを返却する。
-    2.  Web（ブラウザ）から直接 RSS を取得すると CORS 制約で失敗しうるため、Functions でプロキシする。
+*   **Architecture**:
+    1.  **疎結合なプロキシ**: Note 側の RSS（`https://note.com/lycaonpictus/m/m7f05093c60f0/rss`）を Cloud Functions で取得・パース。
+    2.  **CORS/セキュリティ**: ブラウザ/アプリからの直接取得による CORS 制約を回避すると同時に、APIキー等を介さない公開情報のセキュアな配信を実現。
+    3.  **データ変換**: RSS XML をアプリが扱いやすい JSON 形式（Title, Link, PubDate, Thumbnail）に変換して返却。
 
 #### 変更理由と期待効果 (2026-03-04)
 *   **変更理由**:
@@ -516,10 +517,10 @@ npx expo start --dev-client --lan
    - パスキーの共通化についての詳細は engineer-registration-app-yama/yama/reference_information_fordev/instructions/パスキー共通化方針.md を参考にすること。
 2.[ ] **Functions運用（Passkey管理 + 監査ログ）**
    - `listPasskeys` / `deletePasskey` を実装し、返却最小化・本人性・監査ログを担保する（Issue #475）。
-3.[ ] **UI（アカウント設定/セキュリティへ埋め込み）**
-   - 状態表示・登録・登録直後の検証・一覧・削除の導線をメニュー内に揃える（Issue #474）。
-4.[ ] **手動スモーク（実機）**
-   - 「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476）。
+3.[x] **UI（アカウント設定/セキュリティへ埋め込み）**
+   - 【対応完了】状態表示・登録・検証に加え、クラウド関数 (`listPasskeys`, `deletePasskey`) を呼び出しUI上でパスキーの一覧表示・削除機能を提供（Issue #474 完了）。
+4.[x] **手動スモーク（実機）**
+   - 【対応完了】「PW→登録→検証→ログアウト→Passkey→削除→PW」を実機で通し、監査ログまで含めて成功/失敗を記録する（Issue #476 完了）。
 5.[ ] **失敗時UX（復旧導線 + 計測）**
    - Passkey失敗時に行き止まりを作らず、Email/Passwordフォールバックと失敗分類・計測を整理する（Issue #477）。
 6.[ ] **自動E2E回帰（Email/Password）**
@@ -533,13 +534,9 @@ npx expo start --dev-client --lan
 
 ## 7. 推奨される次のタスク (Recommended Next Tasks)
 
-以下のタスクは、`getLpContent` 関数の本番運用に向けた推奨事項です（2026-03-04時点）。
+以下のタスクは、`getLpContent` 関数の本番運用に向けた推奨事項です。
 
-1.  **Firestore権限の付与（キャッシュ機能の有効化）**
-    *   **現状**: Functionsのサービスアカウント (`flutter-frontend-21d0a@appspot.gserviceaccount.com`) にFirestoreへのアクセス権限がないため、`PERMISSION_DENIED` エラーが発生し、キャッシュ機能が動作していません（microCMSへの直接フォールバックで機能自体は維持されています）。
-    *   **対応**: Google Cloud Consoleにて、上記サービスアカウントに対して `Cloud Datastore User` などの適切なロールを付与してください。これにより、microCMSへのAPIリクエスト数を削減し、レスポンス速度を向上させることができます。
-
-2.  **CORS設定の厳格化**
+1. **CORS設定の厳格化**
     *   **現状**: `getLpContent` 関数は `cors({ origin: true })` で設定されており、すべてのオリジンからのアクセスを許可しています。
     *   **対応**: 本番運用時は、セキュリティ向上のため、許可するオリジンを特定のドメイン（例: LPアプリのホスティングドメイン）に制限することを推奨します。
 

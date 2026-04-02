@@ -13,7 +13,7 @@ set -e  # Exit on any error / エラー発生時に終了
 
 # Global variables / グローバル変数
 AUTO_MODE=true
-TARGET_BRANCH="yama"
+TARGET_BRANCH="Agent"
 AUTHORIZATION_EVIDENCE=""
 TARGET_MILESTONE=""
 
@@ -423,7 +423,7 @@ create_push_issue() {
 
     # Repository URL specified by user
     # ユーザー指定のリポジトリURL
-    export REPO_URL="https://github.com/yama-0t0k0/engineer-registration-app"
+    export REPO_URL="https://github.com/yama-0t0k0/forAgent"
     
     # Export variables for node script
     # Nodeスクリプト用に変数をエクスポート

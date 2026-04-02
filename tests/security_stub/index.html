@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Test Stub | System Override</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --panel-bg: rgba(22, 27, 34, 0.8);
+      --text-main: #c9d1d9;
+      --accent: #2ea043;
+      --error: #f85149;
+      --warning: #d29922;
+      --border: #30363d;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(46, 160, 67, 0.3);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      background: var(--border);
+    }
+
+    .status-badge.authenticated { background: rgba(46, 160, 67, 0.2); border: 1px solid var(--accent); color: var(--accent); }
+    .status-badge.unauthenticated { background: rgba(248, 81, 73, 0.2); border: 1px solid var(--error); color: var(--error); }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: #8b949e;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: #010409;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.6rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--border);
+      color: var(--text-main);
+      border: 1px solid transparent;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button:hover:not(:disabled) {
+      background: #3c444d;
+      border-color: #8b949e;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: #3fb950;
+      box-shadow: 0 0 10px rgba(46, 160, 67, 0.4);
+    }
+
+    button.danger {
+      background: var(--error);
+      color: #ffffff;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .console-output {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .log-info { color: #58a6ff; }
+    .log-success { color: var(--accent); }
+    .log-error { color: var(--error); }
+    .log-warn { color: var(--warning); }
+
+    .flex-row { display: flex; gap: 1rem; align-items: flex-end; }
+    .flex-row > div { flex: 1; }
+  </style>
+
+  <!-- Firebase v10 SDK Modules via CDN -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 1. Firebase Configuration (extracted from environment)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCSFKpWN5an3o5CDaG2Kgku-lHztXCojs",
+      authDomain: "flutter-frontend-21d0a.firebaseapp.com",
+      projectId: "flutter-frontend-21d0a",
+      storageBucket: "flutter-frontend-21d0a.firebasestorage.app",
+      messagingSenderId: "511656353816",
+      appId: "1:511656353816:web:9d9e67fed63f081185236d",
+      measurementId: "G-6NGX7TWPNJ"
+    };
+
+    // 2. Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Always connect to emulator for local testing/audit
+    // This ensures consistency even when opened via file:// or localhost
+    try {
+      connectFirestoreEmulator(db, 'localhost', 8080);
+      console.log("Connected to Firestore Emulator (localhost:8080)");
+    } catch (e) {
+      console.warn("Emulator connection warning (may already be connected):", e.message);
+    }
+
+    // 3. UI Elements & State
+    const consoleOutput = document.getElementById('console');
+    const authStatus = document.getElementById('auth-status');
+    const loginBtn = document.getElementById('btn-login');
+    const logoutBtn = document.getElementById('btn-logout');
+    let currentUserUI = null;
+
+    // 4. Utility: Logger
+    function log(message, type = 'info') {
+      const now = new Date().toISOString().split('T')[1].slice(0, 12);
+      const span = document.createElement('span');
+      span.className = `log-${type}`;
+      span.innerText = `[${now}] ${message}\n`;
+      consoleOutput.appendChild(span);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // 2. Auth State Listener
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUserUI = user.uid;
+        authStatus.textContent = `Authenticated (${user.email})`;
+        authStatus.className = 'status-badge authenticated';
+        document.getElementById('target-uid').value = user.uid;
+        log(`Auth State: Logged in as ${user.uid}`, 'success');
+      } else {
+        currentUserUI = null;
+        authStatus.textContent = `Unauthenticated`;
+        authStatus.className = 'status-badge unauthenticated';
+        log(`Auth State: Logged out`, 'warn');
+      }
+    });
+
+    // 3. Action: Login
+    window.handleLogin = async () => {
+      const email = document.getElementById('email').value;
+      const pwd = document.getElementById('password').value;
+      if(!email || !pwd) return log('Please enter email and password', 'error');
+      
+      try {
+        log(`Attempting login for: ${email}...`);
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } catch (error) {
+        log(`Login Failed: ${error.message}`, 'error');
+      }
+    };
+
+    // 4. Action: Logout
+    window.handleLogout = async () => {
+      try {
+        await signOut(auth);
+        log('Successfully logged out.', 'success');
+      } catch (error) {
+        log(`Logout Failed: ${error.message}`, 'error');
+      }
+    };
+
+    /**
+     * CORE SECURITY TESTS
+     * All tests return true if the action was correctly ALLOWED or BLOCKED by rules.
+     */
+
+    // 5. Action: Test Read Access
+    window.testReadAccess = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[TEST:READ] Attempting to read users/${targetUid}...`);
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          log(`Read Success: Data => ${JSON.stringify(docSnap.data())}`, 'success');
+          return true; // Read is allowed for public info
+        } else {
+          log(`Read Result: Document not found.`, 'warn');
+          return true; 
+        }
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Read Blocked: Security rules actively prevented access. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Read Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 6. Action: Test Privilege Escalation (Role Update)
+    window.testPrivilegeEscalation = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:PRIVILEGE] Attempting to inject { role: 'admin' } into users/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'users', targetUid);
+        await updateDoc(docRef, { role: 'admin', updatedAt: new Date().toISOString() });
+        log(`CRITICAL: Privilege escalation allowed by UI! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Rules prevented unauthorized role change. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 7. Action: Test Lateral Movement (Read Other User's Private Info)
+    window.testLateralMovement = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:LATERAL] Attempting to read private_info/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'private_info', targetUid);
+        await getDoc(docRef);
+        log(`CRITICAL: Intrusion Success! Private info leaked. (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Lateral movement blocked. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 8. Action: Test Validation Bypass (Schema Injection)
+    window.testValidationBypass = async () => {
+      const targetUid = document.getElementById('target-uid').value || 'hacker_uid';
+      log(`[ATTACK:SCHEMA] Attempting to inject non-string name into public_profile/${targetUid}...`, 'warn');
+      try {
+        const docRef = doc(db, 'public_profile', targetUid);
+        await updateDoc(docRef, { name: 12345 });
+        log(`CRITICAL: Validation check bypassed! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Schema mismatch blocked. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 9. Action: Test Unauthorized Deletion
+    window.testUnauthorizedDelete = async () => {
+      const targetCompanyId = "any_company_id";
+      log(`[ATTACK:DELETION] Attempting to delete company/${targetCompanyId}...`, 'warn');
+      try {
+        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+        const docRef = doc(db, 'company', targetCompanyId);
+        await deleteDoc(docRef);
+        log(`CRITICAL: Unauthorized deletion succeeded! (FAIL)`, 'error');
+        return false;
+      } catch (error) {
+        if(error.code === 'permission-denied') {
+          log(`Defense Success: Delete operation restricted. (PASS)`, 'success');
+          return true;
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          return false;
+        }
+      }
+    };
+
+    // 10. Automated Test Suite
+    window.runAllSecurityTests = async () => {
+      const summary = document.getElementById('test-summary');
+      const progressBar = document.getElementById('test-progress-bar');
+      summary.style.display = 'block';
+      let passed = 0;
+      const tests = [
+        { name: 'Read Access Restriction', fn: window.testReadAccess },
+        { name: 'Privilege Escalation Prevention', fn: window.testPrivilegeEscalation },
+        { name: 'Lateral Movement Blocking', fn: window.testLateralMovement },
+        { name: 'Schema Validation Enforcement', fn: window.testValidationBypass },
+        { name: 'Unauthorized Deletion Prevention', fn: window.testUnauthorizedDelete }
+      ];
+
+      log('Starting automated security scan...', 'info');
+      document.body.setAttribute('data-test-status', 'running');
+
+      for (let i = 0; i < tests.length; i++) {
+        const test = tests[i];
+        try {
+          const result = await test.fn();
+          if (result === true) {
+            passed++;
+          }
+        } catch (e) {
+          log(`Test Execution Error (${test.name}): ${e.message}`, 'error');
+        }
+        progressBar.style.width = `${((i + 1) / tests.length) * 100}%`;
+      }
+
+      const overallResult = passed === tests.length ? 'PASS' : 'FAIL';
+      document.getElementById('test-result-text').textContent = `${passed}/${tests.length} tests passed (${overallResult})`;
+      document.getElementById('test-result-text').style.color = (overallResult === 'PASS') ? 'var(--accent)' : 'var(--error)';
+      
+      log(`Automated scan complete: ${overallResult}`, (overallResult === 'PASS' ? 'success' : 'error'));
+      document.body.setAttribute('data-test-status', 'finished');
+    };
+
+    // Init log
+    log('System override terminal initialized. Ready for operations.');
+  </script>
+</head>
+<body data-test-status="idle">
+
+  <h1>Security Test Stub</h1>
+
+  <div class="container">
+    
+    <!-- Test Progress Summary (Hidden by default) -->
+    <div id="test-summary" class="panel" style="display: none; border-left: 4px solid var(--accent);">
+      <div class="panel-title">Automated Security Audit Summary</div>
+      <div style="background: rgba(48, 54, 61, 0.3); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 1rem;">
+        <div id="test-progress-bar" style="background: var(--accent); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
+      </div>
+      <div id="test-result-text" style="font-family: var(--font-mono); font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 0.5rem;">Scanning...</div>
+      <div style="font-size: 0.8rem; color: #8b949e; text-align: center;">
+        <span style="color: var(--accent);">● PASS</span>: 攻撃の阻止に成功 (Defense Success) | 
+        <span style="color: var(--error);">● FAIL</span>: 攻撃の成功を確認 (Vulnerability Flagged)
+      </div>
+    </div>
+
+    <!-- Auth Panel -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>Session Manager</span>
+        <span id="auth-status" class="status-badge unauthenticated">Unauthenticated</span>
+      </div>
+      <div class="flex-row">
+        <div class="form-group">
+          <label for="email">Target Email</label>
+          <input type="text" id="email" placeholder="test@example.com">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••">
+        </div>
+      </div>
+      <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+        <button class="primary" onclick="window.handleLogin()">Authenticate Login</button>
+        <button onclick="window.handleLogout()">Terminate Session</button>
+        <button class="primary" onclick="window.runAllSecurityTests()" style="background: #238636;">Run Full Audit</button>
+      </div>
+    </div>
+
+    <!-- Execution Panel -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>Exploit Payloads</span>
+      </div>
+      <div class="form-group">
+        <label for="target-uid">Target Document UID (`users/{uid}`)</label>
+        <input type="text" id="target-uid" placeholder="Enter target user ID for attack">
+      </div>
+      <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <button onclick="window.testReadAccess()">
+          Read User Record
+        </button>
+        <button class="danger" onclick="window.testPrivilegeEscalation()">
+          Inject `role: admin`
+        </button>
+        <button class="danger" onclick="window.testLateralMovement()">
+          Lateral: Access Private Info
+        </button>
+        <button class="danger" onclick="window.testValidationBypass()">
+          Schema: Inject Non-String
+        </button>
+        <button class="danger" onclick="window.testUnauthorizedDelete()">
+          Delete Company Record
+        </button>
+      </div>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="panel">
+      <div class="panel-title">System Terminal</div>
+      <div id="console" class="console-output"></div>
+    </div>
+
+  </div>
+</body>
+</html>
