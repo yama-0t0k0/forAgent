@@ -10,9 +10,9 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **実行日** | 202X-XX-XX |
-| **対象** | Admin App / Individual App / Corporate App / **Backend Security** |
-| **環境** | iOS Simulator / Android Emulator / Playwright Headless |
-| **テストスイート** | run_e2e.sh / **test:security:report** |
+| **対象** | Auth Routing Flow / Admin App / Individual App / Corporate App / **Backend Security** |
+| **環境** | Web Browser / iOS Simulator / Android Emulator / Playwright Headless |
+| **テストスイート** | browser_subagent / run_e2e.sh / **test:security:report** |
 | **最終結果** | 🟢 **PASS** / 🔴 **FAIL** |
 
 ### 📊 ステータス詳細
