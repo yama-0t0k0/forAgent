@@ -18,6 +18,7 @@
 - **Phase 1 (現在)**:
     - フロントエンド: **Expo (React Native) + JavaScript**
     - バックエンド: **Firebase + Pure Dart**
+    - **マイルストーン**: E2E Auth Routing 検証完了 (Admin, Corporate, Individual 全ロールの自動遷移成功)
 - **Phase 2 (将来)**:
     - フロントエンドも **Flutter** へ移行し、全層を **Pure Dart** で統一。JavaScript を完全に排除します。
 

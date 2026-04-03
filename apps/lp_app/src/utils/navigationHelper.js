@@ -14,19 +14,25 @@ import { Platform, Linking, Alert } from 'react-native';
  *   - individual-app://home
  *   - corporate-app://home
  */
+const PLATFORM_WEB = 'web';
+
 const APP_URLS = __DEV__
   ? {
       admin: process.env.EXPO_PUBLIC_ADMIN_APP_URL || 'http://localhost:8081',
       individual: process.env.EXPO_PUBLIC_INDIVIDUAL_APP_URL || 'http://localhost:8082',
       corporate: process.env.EXPO_PUBLIC_CORPORATE_APP_URL || 'http://localhost:8083',
     }
+  : Platform.OS === PLATFORM_WEB
+  ? {
+      admin: process.env.EXPO_PUBLIC_PROD_WEB_ADMIN_URL || 'https://admin.lat-inc.com',
+      individual: process.env.EXPO_PUBLIC_PROD_WEB_INDIVIDUAL_URL || 'https://individual.lat-inc.com',
+      corporate: process.env.EXPO_PUBLIC_PROD_WEB_CORPORATE_URL || 'https://corporate.lat-inc.com',
+    }
   : {
       admin: 'admin-app://home',
       individual: 'individual-app://home',
       corporate: 'corporate-app://home',
     };
-
-const PLATFORM_WEB = 'web';
 
 export const getRedirectUrlForRole = (role) => {
   switch (role) {

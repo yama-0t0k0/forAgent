@@ -802,3 +802,30 @@ sequenceDiagram
 
 ---
 
+## 📅 実行概要 (Execution Summary: 2026-04-03 19:35)
+
+| 項目 | 内容 |
+| :--- | :--- |
+| **実行日** | 2026-04-03 19:35 |
+| **対象アプリ** | Auth Routing Flow (Admin / Corporate / Individual) |
+| **環境** | Web Browser (Localhost port 8087) |
+| **テストスイート** | Agent Browser (Browser Subagent) |
+| **最終結果** | 🟢 **PASS** |
+
+### 📊 ステータス詳細
+
+| メトリクス | 結果 |
+| :--- | :--- |
+| **全シナリオ数** | 3 ケース (全3ロール) |
+| **成功 (Passed)** | ✅ 3 |
+| **失敗 (Failed)** | ❌ 0 |
+| **成功率** | **100%** |
+| **総実行時間** | 7m 0s |
+
+#### 📸 実行結果（エビデンス）
+> [!NOTE]
+> 自動ブラウザテストにより、全3ロール（Admin: A999, Corporate: B00001, Individual: C000000000001）でのFirebaseログインと、それぞれ `8081` `8083` `8082` ポートへの適切なURLリダイレクト処理（Custom Claims の role 識別）の正確性が証明されました。
+
+![E2E Routing Role Testing - Webp Video](file:///Users/yamakawamakoto/.gemini/antigravity/brain/a5e70678-7d11-48fd-8a4b-fadbca5bb9ec/e2e_all_roles_1775244499645.webp)
+
+---

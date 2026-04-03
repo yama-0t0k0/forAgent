@@ -54,16 +54,19 @@ sequenceDiagram
 [navigationHelper.js](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/apps/lp_app/src/utils/navigationHelper.js) が各アプリへの遷移パスを管理します。
 
 ### 🆕 Dev/Prod URL 自動切替方式
-`__DEV__` フラグにより開発時と本番時で遷移URLを自動的に切り替えます。
+`__DEV__` フラグおよびプラットフォーム (`Platform.OS`) により、開発時とWeb/Native本番時で遷移URLを動的に切り替えます (`navigationHelper.js`)。
 
-| ロール | 開発時 URL (HTTP localhost) | 本番時 URL (Custom Scheme) | ポート (`start_expo.sh` 準拠) |
-| :--- | :--- | :--- | :--- |
-| **admin** | `http://localhost:8081` | `admin-app://home` | 8081 |
-| **individual** | `http://localhost:8082` | `individual-app://home` | 8082 |
-| **corporate** | `http://localhost:8083` | `corporate-app://home` | 8083 |
+| ロール | 開発時URL (`__DEV__=true`) | 本番時 URL: Web (`Platform.OS==='web'`) | 本番時 URL: iOS/Android (Custom Scheme) | ポート |
+| :--- | :--- | :--- | :--- | :--- |
+| **admin** | `http://localhost:8081` | `https://admin.lat-inc.com` | `admin-app://home` | 8081 |
+| **individual** | `http://localhost:8082` | `https://individual.lat-inc.com` | `individual-app://home` | 8082 |
+| **corporate** | `http://localhost:8083` | `https://corporate.lat-inc.com` | `corporate-app://home` | 8083 |
 
-- **開発時**: `.env` の `EXPO_PUBLIC_*_APP_URL` で上書き可能（デフォルトは上記ポート）
-- **本番時**: 各アプリの `app.config.js` に設定された `scheme` に基づく Custom URL Scheme で遷移
+#### 切り替え・上書きロジック
+- **開発時 (`__DEV__` ベース)**: `.env` の `EXPO_PUBLIC_*_APP_URL` で上書き可能（未指定時は上記 localhost ポート）。
+- **本番Web**: `.env` の `EXPO_PUBLIC_PROD_WEB_*_URL` によるフェデレーション。
+- **本番Native**: 各アプリの `app.config.js` に設定された `scheme` に基づく Custom URL Scheme で遷移。
+
 
 ### 🆕 対象アプリ側のディープリンク受信
 各対象アプリの `App.js` に `Linking.getInitialURL()` / `Linking.addEventListener('url', ...)` を実装済み：
