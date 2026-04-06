@@ -325,6 +325,6 @@ export default AdminAppWrapper;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: THEME.background,
   },
 });
