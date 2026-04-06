@@ -3,6 +3,7 @@ import { View, Alert } from 'react-native';
 import { GenericMenuScreen } from './GenericMenuScreen';
 import { PasskeyManagementSection } from '../auth/components/PasskeyManagementSection';
 import { authService } from '../auth/services/authService';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} AppMenuScreenProps
@@ -114,7 +115,7 @@ export const AppMenuScreen = ({
             items: [
                 { id: 'help', label: 'ヘルプ / お問合せ', icon: 'help-circle-outline' },
                 { id: 'terms', label: '利用規約', icon: 'document-text-outline' },
-                { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: '#EF4444' },
+                { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: THEME.error },
             ]
         });
 

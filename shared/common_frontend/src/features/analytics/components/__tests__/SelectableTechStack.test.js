@@ -41,14 +41,18 @@ jest.mock('@expo/vector-icons', () => ({
 // Mock THEME
 jest.mock('@shared/src/core/theme/theme', () => ({
   THEME: {
-    text: '#000',
-    subText: '#666',
-    primary: '#007AFF',
-    white: '#FFF',
-    border: '#CCC',
-    background: {
-      secondary: '#F0F0F0'
-    }
+    textPrimary: 'mock-text-primary',
+    textSecondary: 'mock-text-secondary',
+    primary: 'mock-primary',
+    textInverse: 'mock-text-inverse',
+    borderDefault: 'mock-border-default',
+    borderNeutral: 'mock-border-neutral',
+    background: 'mock-background',
+    surface: 'mock-surface',
+    surfaceInfo: 'mock-surface-info',
+    spacing: { xs: 4, sm: 8, md: 16 },
+    typography: { small: { fontSize: 12 }, micro: { fontSize: 10 } },
+    radius: { sm: 4, md: 8 },
   }
 }));
 

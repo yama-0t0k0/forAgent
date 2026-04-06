@@ -33,37 +33,37 @@ export const StatusRow = ({ label, valueObj }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-    paddingVertical: 8,
+    marginBottom: THEME.spacing.md,
+    paddingVertical: THEME.spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.cardBorder,
+    borderBottomColor: THEME.borderLight, // Using borderLight instead of cardBorder
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   label: {
-    fontSize: 14,
-    color: THEME.subText,
+    ...THEME.typography.bodySmall,
+    color: THEME.textSecondary,
     fontWeight: '500',
   },
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: THEME.spacing.sm + 2, // 10px equivalent
+    paddingVertical: THEME.spacing.xs,
+    borderRadius: THEME.radius.full,
     borderWidth: 1,
   },
   badgeSuccess: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#10B981',
+    backgroundColor: THEME.surfaceSuccess,
+    borderColor: THEME.success,
   },
   badgeNeutral: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#94A3B8',
+    backgroundColor: THEME.surfaceNeutral,
+    borderColor: THEME.borderNeutral,
   },
   badgeText: {
-    fontSize: 12,
+    ...THEME.typography.small,
     fontWeight: '600',
   },
-  textSuccess: { color: '#047857' },
-  textNeutral: { color: '#475569' },
+  textSuccess: { color: THEME.textSuccess },
+  textNeutral: { color: THEME.textNeutral },
 });

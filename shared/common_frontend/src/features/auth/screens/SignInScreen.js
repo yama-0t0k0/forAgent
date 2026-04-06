@@ -135,6 +135,7 @@ export const SignInScreen = () => {
                   loading={loading}
                   style={styles.mainButton}
                   textStyle={styles.mainButtonText}
+                  useGradient={true}
                 />
 
                 <View style={styles.dividerContainer}>
@@ -161,7 +162,7 @@ export const SignInScreen = () => {
                     value={email}
                     onChangeText={setEmail}
                     placeholder={'admin@example.com'}
-                    placeholderTextColor={THEME.subText}
+                    placeholderTextColor={THEME.textMuted}
                     autoCapitalize={'none'}
                     keyboardType={'email-address'}
                     testID={'email_input'}
@@ -175,7 +176,7 @@ export const SignInScreen = () => {
                     value={password}
                     onChangeText={setPassword}
                     placeholder={'••••••••'}
-                    placeholderTextColor={THEME.subText}
+                    placeholderTextColor={THEME.textMuted}
                     secureTextEntry
                     testID={'password_input'}
                   />
@@ -222,29 +223,25 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: THEME.text,
+    ...THEME.typography.headingLg,
+    color: THEME.textPrimary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: THEME.subText,
+    ...THEME.typography.body,
+    color: THEME.textSecondary,
   },
   card: {
-    backgroundColor: THEME.cardBg,
-    borderRadius: 16,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.lg,
     padding: 32,
-    shadowColor: THEME.shadow.md.shadowColor,
-    shadowOffset: THEME.shadow.md.shadowOffset,
-    shadowOpacity: THEME.shadow.md.shadowOpacity,
-    shadowRadius: THEME.shadow.md.shadowRadius,
-    elevation: THEME.shadow.md.elevation,
+    ...THEME.shadow.md,
     maxWidth: 480, // Limit width on large screens
     width: '100%',
     alignSelf: 'center',
     borderWidth: 1,
-    borderColor: THEME.cardBorder,
+    borderColor: THEME.borderDefault,
   },
   modeContainer: {
     width: '100%',
@@ -254,17 +251,18 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E0F2FE', // Light blue
+    backgroundColor: THEME.surfaceInfo,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
+    ...THEME.shadow.sm, // Subtle glow effect
   },
   iconText: {
     fontSize: 40,
   },
   instructionText: {
-    fontSize: 16,
-    color: THEME.text,
+    ...THEME.typography.body,
+    color: THEME.textPrimary,
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 24,
@@ -281,7 +279,7 @@ const styles = StyleSheet.create({
   secondaryButton: {
     width: '100%',
     borderWidth: 1,
-    borderColor: THEME.cardBorder,
+    borderColor: THEME.borderDefault,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -292,17 +290,16 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: THEME.cardBorder,
+    backgroundColor: THEME.borderDefault,
   },
   dividerText: {
     marginHorizontal: 16,
-    color: THEME.subText,
+    color: THEME.textSecondary,
     fontSize: 14,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: THEME.text,
+    ...THEME.typography.h2,
+    color: THEME.textPrimary,
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -311,20 +308,20 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 14,
+    ...THEME.typography.caption,
     fontWeight: '600',
-    color: THEME.text,
+    color: THEME.textPrimary,
     marginBottom: 8,
   },
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: THEME.cardBorder,
-    borderRadius: 8,
+    borderColor: THEME.borderDefault,
+    borderRadius: THEME.radius.md,
     paddingHorizontal: 16,
-    fontSize: 16,
-    backgroundColor: THEME.inputBg,
-    color: THEME.text,
+    ...THEME.typography.body,
+    backgroundColor: THEME.surfaceInput,
+    color: THEME.textPrimary,
   },
   backButton: {
     marginTop: 8,
@@ -332,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   backButtonText: {
-    color: THEME.subText,
+    color: THEME.textSecondary,
     fontSize: 14,
   },
 });

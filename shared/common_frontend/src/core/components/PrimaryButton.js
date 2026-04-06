@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { THEME } from '@shared/src/core/theme/theme';
 
 /**
@@ -12,7 +13,7 @@ import { THEME } from '@shared/src/core/theme/theme';
  * @param {Object} [props.style] - Additional styles for the button container
  * @param {Object} [props.textStyle] - Additional styles for the button text
  * @param {React.ReactNode} [props.children] - Custom content (overrides title)
- * @param {'standard'|'rounded'|'small'} [props.variant] - Button style variant
+ * @param {boolean} [props.useGradient] - Whether to use brand gradient background
  * @param {...Object} [props] - Other props passed to TouchableOpacity
  */
 export const PrimaryButton = ({
@@ -24,6 +25,7 @@ export const PrimaryButton = ({
     textStyle,
     children,
     variant = 'standard',
+    useGradient = false,
     ...props
 }) => {
     /**
@@ -54,6 +56,35 @@ export const PrimaryButton = ({
         }
     };
 
+    const gradientColors = [THEME.primary, THEME.secondary];
+
+    const content = loading ? (
+        <ActivityIndicator color={THEME.textInverse} size='small' />
+    ) : (
+        children || <Text style={[styles.text, getVariantTextStyle(), textStyle]}>{title}</Text>
+    );
+
+    if (useGradient && !disabled) {
+        return (
+            <TouchableOpacity
+                style={[styles.button, getVariantStyle(), disabled && styles.disabled, style, { backgroundColor: 'transparent', paddingVertical: 0, paddingHorizontal: 0 }]}
+                onPress={onPress}
+                disabled={disabled || loading}
+                testID='primary_button'
+                {...props}
+            >
+                <LinearGradient
+                    colors={gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.button, getVariantStyle(), { width: '100%' }]}
+                >
+                    {content}
+                </LinearGradient>
+            </TouchableOpacity>
+        );
+    }
+
     return (
         <TouchableOpacity
             style={[styles.button, getVariantStyle(), disabled && styles.disabled, style]}
@@ -62,41 +93,36 @@ export const PrimaryButton = ({
             testID='primary_button'
             {...props}
         >
-            {loading ? (
-                <ActivityIndicator color='#fff' size='small' />
-            ) : (
-                children || <Text style={[styles.text, getVariantTextStyle(), textStyle]}>{title}</Text>
-            )}
+            {content}
         </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: THEME.accent,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
+        backgroundColor: THEME.primary,
+        paddingVertical: THEME.spacing.md - 4, // 12px
+        paddingHorizontal: THEME.spacing.lg - 4, // 20px
+        borderRadius: THEME.radius.md,
         alignItems: 'center',
         justifyContent: 'center',
     },
     rounded: {
-        borderRadius: 22,
+        borderRadius: THEME.radius.pill,
     },
     small: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 20,
+        paddingVertical: THEME.spacing.xs + 1, // 5px
+        paddingHorizontal: THEME.spacing.sm + 2, // 10px
+        borderRadius: THEME.radius.pill,
     },
     disabled: {
         opacity: 0.6,
     },
     text: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
+        ...THEME.typography.button,
+        color: THEME.textInverse,
     },
     smallText: {
-        fontSize: 11,
+        fontSize: THEME.typography.micro.fontSize + 1, // 11px
     },
 });

@@ -53,7 +53,7 @@ export const TechStackView = ({ features, techStack }) => {
     const renderTechItem = (label, main, sub, iconName) => (
         <View style={styles.techItemContainer}>
             <View style={styles.techHeader}>
-                <Ionicons name={iconName} size={14} color={THEME.subText} style={{ marginRight: 4 }} />
+                <Ionicons name={iconName} size={14} color={THEME.textSecondary} style={{ marginRight: 4 }} />
                 <Text style={styles.techLabel}>{label}</Text>
             </View>
             <View style={styles.techBadgeContainer}>
@@ -120,7 +120,7 @@ export const TechStackView = ({ features, techStack }) => {
             <View style={[styles.sectionContainer, { marginBottom: 80 }]}>
                 <TouchableOpacity style={styles.accordionHeader} onPress={toggleFeatures}>
                     <Text style={styles.sectionTitle}>魅力/特徴</Text>
-                    <Ionicons name={isFeaturesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={THEME.text} />
+                    <Ionicons name={isFeaturesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={THEME.textPrimary} />
                 </TouchableOpacity>
 
                 {isFeaturesExpanded && (
@@ -132,9 +132,9 @@ export const TechStackView = ({ features, techStack }) => {
                                         <Ionicons
                                             name={value ? 'checkmark-circle' : 'close-circle'}
                                             size={18}
-                                            color={value ? THEME.success : THEME.subText}
+                                            color={value ? THEME.success : THEME.textSecondary}
                                         />
-                                        <Text style={[styles.featureText, !value && { color: THEME.subText }]}>{key}</Text>
+                                        <Text style={[styles.featureText, !value && { color: THEME.textSecondary }]}>{key}</Text>
                                     </View>
                                 );
                             }
@@ -164,13 +164,13 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '800',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 10,
     },
     subSectionTitle: {
         fontSize: 12,
         fontWeight: '700',
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 8,
         marginTop: 4,
     },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     },
     techLabel: {
         fontSize: 11,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         fontWeight: '600',
     },
     techBadgeContainer: {
@@ -206,21 +206,21 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     techBadgeMain: {
-        backgroundColor: '#F0F9FF',
-        borderColor: '#BAE6FD',
+        backgroundColor: THEME.surfaceInfo,
+        borderColor: THEME.chartLevel1,
     },
     techBadgeSub: {
-        backgroundColor: '#F8FAFC',
-        borderColor: '#E2E8F0',
+        backgroundColor: THEME.background,
+        borderColor: THEME.borderDefault,
     },
     techBadgeTextMain: {
         fontSize: 11,
-        color: '#0369A1',
+        color: THEME.chartLevel4,
         fontWeight: '700',
     },
     techBadgeTextSub: {
         fontSize: 10,
-        color: '#64748B',
+        color: THEME.textSecondary,
     },
     accordionHeader: {
         flexDirection: 'row',
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 5,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
         paddingBottom: 10,
         marginBottom: 10,
     },
@@ -243,19 +243,19 @@ const styles = StyleSheet.create({
     featureText: {
         marginLeft: 10,
         fontSize: 14,
-        color: THEME.text,
+        color: THEME.textPrimary,
     },
     featureNote: {
         marginTop: 10,
         padding: 10,
-        backgroundColor: '#F8FAFC',
-        borderRadius: 8,
+        backgroundColor: THEME.background,
+        borderRadius: THEME.radius.md,
         borderLeftWidth: 3,
-        borderLeftColor: THEME.accent,
+        borderLeftColor: THEME.primary,
     },
     featureNoteText: {
         fontSize: 13,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         lineHeight: 18,
     },
 });

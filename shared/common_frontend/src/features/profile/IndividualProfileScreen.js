@@ -118,14 +118,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <IconButton
                                             name='notifications-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -154,7 +154,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
-                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.accent} />
+                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.primary} />
                                                 <Text style={styles.labelYellow}>チャット</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -169,14 +169,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <IconButton
                                             name='notifications-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -242,14 +242,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     <View style={styles.heatmapHeader}>
                         <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                         <View style={styles.chatBotIconSmall}>
-                            <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
+                            <Ionicons name='chatbubble-outline' size={14} color={THEME.textPrimary} />
                         </View>
                     </View>
 
                     <HeatmapGrid containerWidth={containerWidth - 40} dataValues={heatmapValues} testID='skill_heatmap' />
 
                     <View style={styles.chatBotCallout} testID='chatbot_button'>
-                        <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
+                        <Ionicons name='chatbubble-ellipses' size={40} color={THEME.primary} />
                         <Text style={styles.labelYellow}>チャットボット</Text>
                     </View>
                 </View>
@@ -274,7 +274,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                         testID='career_detail_button'
                     >
                         <Text style={styles.centerButtonText}>経歴詳細</Text>
-                        <Ionicons name='create-outline' size={18} color='#FFF' style={{ marginTop: -2 }} />
+                        <Ionicons name='create-outline' size={18} color={THEME.textInverse} style={{ marginTop: -2 }} />
                     </TouchableOpacity>
                 </View>
             )}
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     },
     dataSourceText: {
         fontSize: 10,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginTop: 2,
     },
     scrollContent: {
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     miniResumeButtonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 11,
         fontWeight: 'bold',
     },
@@ -348,9 +348,9 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: '#FFF',
+        borderColor: THEME.surface,
         marginRight: 10,
-        backgroundColor: '#EEE',
+        backgroundColor: THEME.surfaceInput,
     },
     profileImage: {
         width: '100%',
@@ -359,34 +359,30 @@ const styles = StyleSheet.create({
     namePlate: {
         flex: 2,
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: THEME.surfaceElevated,
         borderRadius: 20,
         padding: 12,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
+        borderColor: THEME.borderDefault,
         minHeight: 100,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        ...THEME.shadow.sm,
         position: 'relative', // For absolute positioning of chatbot
     },
     nameText: {
         fontSize: 17,
         fontWeight: '800',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 2,
     },
     jobTitle: {
         fontSize: 11,
-        color: THEME.accent,
+        color: THEME.primary,
         fontWeight: 'bold',
         marginBottom: 2,
     },
     emailText: {
         fontSize: 9,
-        color: THEME.subText,
+        color: THEME.textSecondary,
     },
     badgeSection: {
         marginTop: -40, // Reduced pull-up to prevent clipping
@@ -398,7 +394,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     cardLabel: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 10,
         fontWeight: '800',
         marginBottom: 5,
@@ -417,7 +413,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 255, 255, 0.5)',
     },
     cardSkillName: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 10,
         fontWeight: '800',
         marginBottom: 2,
@@ -440,13 +436,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     heatmapTitle: {
-        color: THEME.text,
+        color: THEME.textPrimary,
         fontSize: 16,
         fontWeight: '800',
         marginRight: 8,
     },
     chatBotIconSmall: {
-        backgroundColor: THEME.cardBorder,
+        backgroundColor: THEME.borderDefault,
         padding: 3,
         borderRadius: 5,
     },
@@ -455,17 +451,13 @@ const styles = StyleSheet.create({
         bottom: -5,
         right: -5,
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.95)',
+        backgroundColor: THEME.surfaceElevated,
         padding: 5,
         borderRadius: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 5,
+        ...THEME.shadow.sm,
     },
     labelYellow: {
-        color: THEME.accent,
+        color: THEME.primary,
     },
     chatBotCallout: {
         position: 'absolute',
@@ -489,22 +481,18 @@ const styles = StyleSheet.create({
         zIndex: 101,
     },
     centerButton: {
-        backgroundColor: THEME.accent,
+        backgroundColor: THEME.primary,
         width: 60,
         height: 60,
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 6,
+        ...THEME.shadow.md,
         borderWidth: 3,
-        borderColor: '#FFF',
+        borderColor: THEME.surface,
     },
     centerButtonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 8,
         fontWeight: 'bold',
         marginBottom: 2,

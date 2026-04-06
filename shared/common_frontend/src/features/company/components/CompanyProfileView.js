@@ -43,12 +43,12 @@ const MenuView = ({ menuGroups, onMenuPress }) => {
                                 hitSlop={null}
                             >
                                 <View style={styles.menuItemLeft}>
-                                    <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
+                                    <Ionicons name={item.icon} size={22} color={item.color || THEME.textPrimary} />
                                     <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
                                         {item.label}
                                     </Text>
                                 </View>
-                                <Ionicons name='chevron-forward' size={18} color={THEME.subText} />
+                                <Ionicons name='chevron-forward' size={18} color={THEME.textSecondary} />
                             </IconButton>
                         ))}
                     </View>
@@ -172,14 +172,14 @@ export const CompanyProfileView = ({
                                 <IconButton
                                     name='notifications-outline'
                                     size={24}
-                                    color='#FFF'
+                                    color={THEME.textInverse}
                                     style={styles.headerIconButton}
                                     onPress={onNotificationPress}
                                 />
                                 <IconButton
                                     name='create-outline'
                                     size={24}
-                                    color='#FFF'
+                                    color={THEME.textInverse}
                                     style={styles.headerIconButton}
                                     onPress={onEditPress}
                                 />
@@ -202,19 +202,19 @@ export const CompanyProfileView = ({
                                     <IconButton
                                         name='globe-outline'
                                         size={16}
-                                        color={THEME.accent}
+                                        color={THEME.primary}
                                         style={styles.linkIcon}
                                     />
                                     <IconButton
                                         name='logo-github'
                                         size={16}
-                                        color={THEME.text}
+                                        color={THEME.textPrimary}
                                         style={styles.linkIcon}
                                     />
                                     <IconButton
                                         name='document-text-outline'
                                         size={16}
-                                        color={THEME.subText}
+                                        color={THEME.textSecondary}
                                         style={styles.linkIcon}
                                     />
                                 </View>
@@ -225,7 +225,7 @@ export const CompanyProfileView = ({
 
                 {/* Announcement Bar */}
                 <View style={styles.announcementBar}>
-                    <Ionicons name='information-circle-outline' size={20} color='#FFF' style={{ marginRight: 8 }} />
+                    <Ionicons name='information-circle-outline' size={20} color={THEME.textInverse} style={{ marginRight: 8 }} />
                     <Text style={styles.announcementText} numberOfLines={1}>
                         会社HPを参考に自動生成した簡易版です。
                     </Text>
@@ -324,9 +324,9 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: '#FFF',
+        borderColor: THEME.surface,
         marginRight: 10,
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
     },
     profileImage: {
         width: '100%',
@@ -335,24 +335,20 @@ const styles = StyleSheet.create({
     namePlate: {
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: THEME.surface,
         borderRadius: 15,
         padding: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        ...THEME.shadow.sm,
     },
     nameText: {
         fontSize: 15,
         fontWeight: '800',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 2,
     },
     industryText: {
         fontSize: 10,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 4,
         lineHeight: 14,
     },
@@ -365,7 +361,7 @@ const styles = StyleSheet.create({
         padding: 2,
     },
     announcementBar: {
-        backgroundColor: THEME.accent,
+        backgroundColor: THEME.primary,
         paddingVertical: 6,
         paddingHorizontal: 15,
         flexDirection: 'row',
@@ -373,7 +369,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     announcementText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 11,
         fontWeight: '600',
         flex: 1,
@@ -389,28 +385,18 @@ const styles = StyleSheet.create({
     menuGroupTitle: {
         fontSize: 14,
         fontWeight: '800',
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 8,
         marginLeft: 5,
         letterSpacing: 0.5,
     },
     menuGroupCard: {
-        backgroundColor: THEME.cardBg,
+        backgroundColor: THEME.surface,
         borderRadius: 16,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 10,
-            },
-            android: {
-                elevation: 3,
-            },
-        }),
+        borderColor: THEME.borderDefault,
+        ...THEME.shadow.md,
     },
     menuItem: {
         flexDirection: 'row',
@@ -421,7 +407,7 @@ const styles = StyleSheet.create({
     },
     menuItemBorder: {
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
         borderStyle: 'dashed',
     },
     menuItemLeft: {
@@ -431,7 +417,7 @@ const styles = StyleSheet.create({
     menuItemText: {
         fontSize: 15,
         fontWeight: '600',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginLeft: 12,
     },
     // Under Construction Styles
@@ -442,23 +428,23 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     ucTitle: {
-        color: THEME.text,
+        color: THEME.textPrimary,
         fontSize: 18,
         fontWeight: '800',
         marginBottom: 8,
     },
     ucSubtitle: {
-        color: THEME.subText,
+        color: THEME.textSecondary,
         fontSize: 14,
         fontWeight: '600',
     },
     // Bottom Nav Styles
     bottomNav: {
         flexDirection: 'row',
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
         height: 85,
         borderTopWidth: 1,
-        borderTopColor: THEME.cardBorder,
+        borderTopColor: THEME.borderDefault,
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingBottom: 20,

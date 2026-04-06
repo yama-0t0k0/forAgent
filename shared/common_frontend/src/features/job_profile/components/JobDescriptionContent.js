@@ -76,7 +76,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) 
                                 <IconButton
                                     name='create-outline'
                                     size={24}
-                                    color={THEME.text}
+                                    color={THEME.textPrimary}
                                     style={styles.editButton}
                                     onPress={onEdit}
                                 />
@@ -112,7 +112,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) 
                         <View style={styles.heatmapHeader}>
                             <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                             <View style={styles.chatBotIconSmall}>
-                                <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
+                                <Ionicons name='chatbubble-outline' size={14} color={THEME.textPrimary} />
                             </View>
                         </View>
 
@@ -122,7 +122,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) 
                         />
 
                         <View style={styles.chatBotCallout}>
-                            <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
+                            <Ionicons name='chatbubble-ellipses' size={40} color={THEME.primary} />
                             <Text style={styles.labelYellow}>AI分析</Text>
                         </View>
                     </View>
@@ -140,7 +140,7 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) 
                         onPress={onApply || (() => {})}
                     >
                         <Text style={styles.centerButtonText}>応募する</Text>
-                        <Ionicons name='paper-plane-outline' size={20} color='#FFF' style={{ marginTop: -2 }} />
+                        <Ionicons name='paper-plane-outline' size={20} color={THEME.textInverse} style={{ marginTop: -2 }} />
                     </PrimaryButton>
                 </View>
             </SafeAreaView>
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     },
     editButton: {
         padding: 8,
-        backgroundColor: '#E0F2FE', // Light blue background for visibility
+        backgroundColor: THEME.surfaceInfo, // Light blue background for visibility
         borderRadius: 20,
     },
     namePlateContainer: {
@@ -181,28 +181,24 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
         borderRadius: 20,
         paddingVertical: 20,
         paddingHorizontal: 15,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        borderColor: THEME.borderDefault,
+        ...THEME.shadow.sm,
     },
     positionLabel: {
         fontSize: 12,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 5,
         fontWeight: 'bold',
     },
     positionNameText: {
         fontSize: 20,
         fontWeight: '800',
-        color: THEME.text,
+        color: THEME.textPrimary,
         textAlign: 'center',
     },
     badgeSection: {
@@ -224,13 +220,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     heatmapTitle: {
-        color: THEME.text,
+        color: THEME.textPrimary,
         fontSize: 16,
         fontWeight: '800',
         marginRight: 8,
     },
     chatBotIconSmall: {
-        backgroundColor: THEME.cardBorder,
+        backgroundColor: THEME.borderDefault,
         padding: 3,
         borderRadius: 5,
     },
@@ -243,7 +239,7 @@ const styles = StyleSheet.create({
     labelYellow: {
         fontSize: 9,
         fontWeight: 'bold',
-        color: THEME.accent,
+        color: THEME.primary,
         marginTop: -2,
     },
     bottomButtonContainer: {
@@ -254,22 +250,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     centerButton: {
-        backgroundColor: THEME.accent,
+        backgroundColor: THEME.primary,
         width: 140,
         height: 44,
         borderRadius: 22,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: THEME.accent,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        ...THEME.shadow.sm,
         gap: 5,
     },
     centerButtonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 14,
         fontWeight: 'bold',
     },

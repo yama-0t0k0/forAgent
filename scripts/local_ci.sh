@@ -82,6 +82,15 @@ if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
         exit 1
     fi
 fi
+if [ -f "$PROJECT_ROOT/scripts/check_design_system.js" ]; then
+    echo "   🎨 Checking Design System Compliance..."
+    if node "$PROJECT_ROOT/scripts/check_design_system.js" "shared/common_frontend/src"; then
+        echo "   ✅ Design System Compliance Passed (Shared)"
+    else
+        echo "   ❌ Design System Compliance Failed (Shared)"
+        exit 1
+    fi
+fi
 
 if [ "$MODE" = "full" ]; then
     echo "   🔍 Running Unit Tests for Shared Frontend (Auth)..."
@@ -116,6 +125,10 @@ for app in "${APPS[@]}"; do
 
     if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
          run_stage "Coding Convention Check" "node $PROJECT_ROOT/scripts/check_coding_conventions.js src" "false"
+    fi
+
+    if [ -f "$PROJECT_ROOT/scripts/check_design_system.js" ]; then
+         run_stage "Design System Compliance Check" "node $PROJECT_ROOT/scripts/check_design_system.js src" "false"
     fi
 
     if [ "$MODE" = "full" ]; then

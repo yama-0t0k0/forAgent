@@ -37,10 +37,10 @@ const AccordionItem = ({ label, data, depth, path }) => {
   const isEmpty = Object.keys(data).length === 0;
 
   return (
-    <View style={[styles.card, { marginLeft: depth * 8, borderColor: depth === 0 ? THEME.accent : THEME.cardBorder }]}>
+    <View style={[styles.card, { marginLeft: depth * 8, borderColor: depth === 0 ? THEME.primary : THEME.borderDefault }]}>
       <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
+          <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.primary : THEME.secondary }]} />
           <Text style={styles.sectionTitle}>{label}</Text>
         </View>
         <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
@@ -151,7 +151,7 @@ export const PureRecursiveField = ({ data, depth = 0, path = [] }) => {
 const styles = StyleSheet.create({
   container: { width: '100%' },
   card: {
-    backgroundColor: THEME.cardBg,
+    backgroundColor: THEME.surface,
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
@@ -162,13 +162,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: THEME.surface,
   },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
   indicator: { width: 4, height: 16, borderRadius: 2, marginRight: 8 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: THEME.text },
-  chevron: { fontSize: 14, color: THEME.subText },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: THEME.textPrimary },
+  chevron: { fontSize: 14, color: THEME.textSecondary },
   content: { padding: 16 },
-  emptyText: { color: THEME.subText, fontStyle: 'italic' },
-  label: { fontSize: 14, color: THEME.subText, marginBottom: 6, fontWeight: '500' },
+  emptyText: { color: THEME.textSecondary, fontStyle: 'italic' },
+  label: { fontSize: 14, color: THEME.textSecondary, marginBottom: 6, fontWeight: '500' },
 });

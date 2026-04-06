@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
+import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
@@ -340,9 +341,9 @@ export default function DashboardScreen() {
   // Chart Data (Static for Overview)
   // ---------------------------
   const userGrowthData = [
-    { value: 77, label: '1月', frontColor: '#2196F3' },
-    { value: 155, label: '2月', frontColor: '#2196F3' },
-    { value: 232, label: '3月', frontColor: '#2196F3' }
+    { value: 77, label: '1月', frontColor: THEME.primary },
+    { value: 155, label: '2月', frontColor: THEME.primary },
+    { value: 232, label: '3月', frontColor: THEME.primary }
   ];
 
   const connectionTrendsData = [
@@ -392,7 +393,7 @@ export default function DashboardScreen() {
       <View style={styles.tabBar}>
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
-          const tintColor = isActive ? '#2196F3' : '#666';
+          const tintColor = isActive ? THEME.primary : THEME.textSecondary;
 
           return (
             <BottomNavItem

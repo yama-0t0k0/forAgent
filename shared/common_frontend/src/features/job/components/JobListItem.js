@@ -86,13 +86,13 @@ export const JobListItem = ({
                   style={{ marginRight: 6 }}
                   labelStyle={{ fontSize: 9, marginBottom: 3 }}
                   badgeStyle={{
-                    backgroundColor: 'rgba(236, 72, 153, 0.10)',
-                    borderColor: 'rgba(236, 72, 153, 0.3)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.10)',
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
                     borderWidth: 1,
                     borderRadius: 10,
                   }}
                   skillNameStyle={{
-                    color: '#BE185D',
+                    color: THEME.secondary,
                     fontSize: 8,
                     fontWeight: 'bold',
                     marginBottom: 0,
@@ -109,13 +109,13 @@ export const JobListItem = ({
                   style={{ marginRight: 6 }}
                   labelStyle={{ fontSize: 9, marginBottom: 3 }}
                   badgeStyle={{
-                    backgroundColor: 'rgba(14, 165, 233, 0.10)',
-                    borderColor: 'rgba(14, 165, 233, 0.3)',
+                    backgroundColor: THEME.surfaceInfo,
+                    borderColor: THEME.chartLevel1,
                     borderWidth: 1,
                     borderRadius: 10,
                   }}
                   skillNameStyle={{
-                    color: '#0369A1',
+                    color: THEME.textInfo,
                     fontSize: 8,
                     fontWeight: 'bold',
                     marginBottom: 0,
@@ -142,17 +142,13 @@ export const JobListItem = ({
 
 const styles = StyleSheet.create({
   glassListItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: THEME.surfaceElevated,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderColor: THEME.surface,
+    ...THEME.shadow.sm,
   },
   listItemHeader: {
     flexDirection: 'row',
@@ -163,17 +159,17 @@ const styles = StyleSheet.create({
   itemTitleModern: {
     fontSize: 17,
     fontWeight: '800',
-    color: THEME.text,
+    color: THEME.textPrimary,
     marginBottom: 2,
   },
   itemSubtitleModern: {
     fontSize: 12,
-    color: THEME.subText,
+    color: THEME.textSecondary,
     fontWeight: '500',
   },
   itemDetail: {
     fontSize: 12,
-    color: '#999',
+    color: THEME.textMuted,
   },
   skillScrollContainer: {
     paddingVertical: 4,
@@ -181,24 +177,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   matchBadge: {
-    backgroundColor: '#F0F9FF',
+    backgroundColor: THEME.surfaceInfo,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: THEME.chartLevel1,
     alignItems: 'center',
     minWidth: 50,
   },
   matchScoreText: {
     fontSize: 14,
     fontWeight: '900',
-    color: THEME.accent,
+    color: THEME.primary,
   },
   matchLabel: {
     fontSize: 7,
     fontWeight: 'bold',
-    color: THEME.accent,
+    color: THEME.primary,
     textTransform: 'uppercase',
   },
 });

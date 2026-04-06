@@ -107,12 +107,12 @@ export const GenericMenuScreen = ({
                                     onPress={() => handlePress(item)}
                                 >
                                     <View style={styles.menuItemLeft}>
-                                        <Ionicons name={item.icon} size={22} color={item.color || THEME.text} />
+                                        <Ionicons name={item.icon} size={22} color={item.color || THEME.textPrimary} />
                                         <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
                                             {String(item.label)}
                                         </Text>
                                     </View>
-                                    <Ionicons name={item.rightIcon || 'chevron-forward'} size={18} color={THEME.subText} />
+                                    <Ionicons name={item.rightIcon || 'chevron-forward'} size={18} color={THEME.textSecondary} />
                                 </IconButton>
                             ))}
                         </View>
@@ -129,12 +129,12 @@ export const GenericMenuScreen = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: THEME.background,
     },
     header: {
         backgroundColor: THEME.background,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
     },
     headerContent: {
         height: 60,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: '900',
-        color: THEME.text,
+        color: THEME.textPrimary,
     },
     scrollContent: {
         padding: 15,
@@ -160,17 +160,17 @@ const styles = StyleSheet.create({
     groupTitle: {
         fontSize: 14,
         fontWeight: '800',
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 8,
         marginLeft: 5,
         letterSpacing: 0.5,
     },
     groupCard: {
-        backgroundColor: THEME.cardBg,
+        backgroundColor: THEME.surface,
         borderRadius: 16,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
+        borderColor: THEME.borderDefault,
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     },
     menuItemBorder: {
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
         borderStyle: 'dashed',
     },
     menuItemLeft: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     menuItemText: {
         fontSize: 15,
         fontWeight: '600',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginLeft: 12,
     },
 });

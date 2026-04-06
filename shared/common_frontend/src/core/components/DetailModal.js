@@ -52,7 +52,7 @@ export const DetailModal = ({
                     <View style={styles.contentContainer}>
                         {loading && (
                             <View style={styles.centerContainer}>
-                                <ActivityIndicator size='large' color={THEME.accent} />
+                                <ActivityIndicator size='large' color={THEME.primary} />
                                 <Text style={styles.loadingText}>読み込み中...</Text>
                             </View>
                         )}
@@ -79,37 +79,33 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     detailWindow: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
+        backgroundColor: THEME.surface,
+        borderRadius: THEME.radius.lg,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
-        elevation: 10,
+        ...THEME.shadow.md,
         maxWidth: 800, // Max width for tablet/web
     },
     detailWindowHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 15,
+        padding: THEME.spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
-        backgroundColor: '#F8FAFC',
+        borderBottomColor: THEME.borderDefault,
+        backgroundColor: THEME.background,
     },
     detailWindowTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: THEME.text,
+        ...THEME.typography.h3,
+        color: THEME.textPrimary,
         flex: 1,
     },
     detailWindowClose: {
-        padding: 5,
-        marginLeft: 10,
+        padding: THEME.spacing.xs,
+        marginLeft: THEME.spacing.sm,
     },
     detailWindowCloseText: {
-        color: THEME.accent,
+        ...THEME.typography.button,
+        color: THEME.primary,
         fontWeight: 'bold',
     },
     contentContainer: {
@@ -123,11 +119,11 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     loadingText: {
-        marginTop: 10,
-        color: '#64748B',
+        marginTop: THEME.spacing.sm,
+        color: THEME.textSecondary,
     },
     errorText: {
-        color: '#EF4444',
+        color: THEME.textError,
         textAlign: 'center',
     },
 });

@@ -5,6 +5,20 @@
 **規則:**
 - 見出しのタイムスタンプは `[YYYY-MM-DD HH:MM]` 形式で記載し、1日に複数回のPushが発生しても順序とタイミングが明確になるようにします。
 
+## [2026-04-06 13:15] Design System Consolidation (Consolidating THEME and removing hex codes)
+* **Target Issue**: #22 (UI System Consolidation (DESIGN.md))
+* **主要な人間のプロンプト**:
+  * 「githooks/safe_push.shしてくれ。」
+* **AIの判断と結果**:
+  * `scripts/check_design_system.js` を実行し、`shared/common_frontend` および各アプリ内に残存していた 104 箇所のハードコードされたカラーコード（hex値）を検出。
+  * `PrimaryButton`, `SecondaryButton`, `SelectionFlowEditor`, `HeatmapGrid` 等の主要コンポーネントおよび画面において、これらを `THEME` オブジェクトのセマンティックトークン（`THEME.primary`, `THEME.textMuted` 等）へ一括置換。
+  * `FE_RefactoringPlan.md` を更新し、デザインシステムの一貫性確保を Phase 1.5 の完了タスクとして記録。
+* **反省点・学び**:
+  * デザインシステムの重要性は `DESIGN.md` で定義されているが、実装時の「慣れ」による hex 値の混入を防ぐため、CI パイプラインでの自動チェックが不可欠であることを再認識。
+  * 今後は `shared/common_frontend/src/core/theme/theme.js` を唯一の正解（Single Source of Truth）として、全エージェントが徹底して参照する体制を構築する。
+
+---
+
 ## [2026-04-04 04:50] E2E Auth Routing 検証の完遂と LP App リダイレクトの正常化
 * **Target Issue**: #4 (E2E Auth Routing Verification)
 * **主要な人間のプロンプト**:

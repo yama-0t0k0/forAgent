@@ -147,14 +147,14 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
             </HeaderWrapper>
 
             {/* Debug Info Area (API URL & Error) */}
-            <View style={{ padding: 4, backgroundColor: error ? '#ffebee' : '#e3f2fd', borderBottomWidth: 1, borderColor: '#eee' }}>
-                <Text style={{ fontSize: 10, color: '#333' }}>
+            <View style={{ padding: 4, backgroundColor: error ? THEME.surfaceError : THEME.surfaceInfo, borderBottomWidth: 1, borderColor: THEME.borderDefault }}>
+                <Text style={{ fontSize: 10, color: THEME.textPrimary }}>
                     API: {debugInfo?.apiUrl || 'Checking...'}
                 </Text>
-                <Text style={{ fontSize: 10, color: '#666' }}>
+                <Text style={{ fontSize: 10, color: THEME.textSecondary }}>
                      Last Updated: {debugInfo?.lastUpdated || 'Never'}
                 </Text>
-                {error && <Text style={{ fontSize: 10, color: 'red', fontWeight: 'bold' }}>Error: {error}</Text>}
+                {error && <Text style={{ fontSize: 10, color: THEME.error, fontWeight: 'bold' }}>Error: {error}</Text>}
             </View>
 
             {/* Main Tabs (Upper Level) */}
@@ -264,27 +264,23 @@ export const ConnectionScreen = ({ navigation, route, hideSafeArea }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: THEME.background },
     header: {
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
         alignItems: 'center',
         paddingVertical: 15
     },
-    headerTitle: { fontSize: 18, fontWeight: '900', color: THEME.text },
+    headerTitle: { fontSize: 18, fontWeight: '900', color: THEME.textPrimary },
 
     // Main Tab Styles
     mainTabBar: {
         flexDirection: 'row',
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        borderBottomColor: THEME.borderDefault,
+        ...THEME.shadow.sm,
         zIndex: 10,
     },
     mainTab: {
@@ -295,27 +291,27 @@ const styles = StyleSheet.create({
         borderBottomColor: 'transparent',
     },
     activeMainTab: {
-        borderBottomColor: THEME.accent,
+        borderBottomColor: THEME.primary,
     },
     mainTabText: {
         fontSize: 15,
-        color: '#94A3B8', // Lighter color for inactive
+        color: THEME.borderNeutral, // Lighter color for inactive
         fontWeight: '600',
     },
     activeMainTabText: {
-        color: THEME.accent,
+        color: THEME.primary,
         fontWeight: '800', // Bolder for active
     },
 
     // Sub Tab Styles
     subTabBarContainer: {
-        backgroundColor: '#F1F5F9',
+        backgroundColor: THEME.surfaceInput,
         paddingVertical: 10,
         paddingHorizontal: 15,
     },
     subTabBar: {
         flexDirection: 'row',
-        backgroundColor: '#E2E8F0', // Background for the pill container
+        backgroundColor: THEME.borderDefault, // Background for the pill container
         borderRadius: 25,
         padding: 4,
     },
@@ -327,23 +323,19 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     activeSubTab: {
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 1,
-        elevation: 2,
+        backgroundColor: THEME.surface,
+        ...THEME.shadow.sm,
     },
     subTabText: {
         fontSize: 13,
-        color: '#64748B',
+        color: THEME.textSecondary,
         fontWeight: '600',
     },
     activeSubTabText: {
-        color: THEME.text, // Darker text for readability on white bg
+        color: THEME.textPrimary, // Darker text for readability on white bg
         fontWeight: '800',
     },
 
     listContent: { padding: 15, paddingBottom: 100 },
-    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.subText },
+    emptyText: { textAlign: 'center', marginTop: 50, color: THEME.textSecondary },
 });

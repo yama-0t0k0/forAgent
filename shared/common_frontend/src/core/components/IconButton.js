@@ -21,7 +21,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 export const IconButton = ({ 
   name, 
   size = 24, 
-  color = THEME.text, 
+  color = THEME.textPrimary, 
   onPress, 
   style, 
   iconStyle,
