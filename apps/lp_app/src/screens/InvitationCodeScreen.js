@@ -12,7 +12,7 @@ import {
     Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { validateInvitationCode } from '../../../shared/common_frontend/src/features/registration/services/registrationService';
+import { validateInvitationCode } from '@shared/src/features/registration/services/registrationService';
 
 const { width } = Dimensions.get('window');
 
@@ -23,10 +23,12 @@ const { width } = Dimensions.get('window');
 const InvitationCodeScreen = ({ navigation }) => {
     const [code, setCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleVerify = async () => {
+        setErrorMessage('');
         if (code.length < 5) {
-            Alert.alert('入力エラー', '招待コードを入力してください。');
+            setErrorMessage('招待コードを入力してください。');
             return;
         }
 
@@ -39,10 +41,12 @@ const InvitationCodeScreen = ({ navigation }) => {
                     invitationInfo: result.invitationInfo 
                 });
             } else {
-                Alert.alert('不整合', '無効な招待コードです。');
+                // Use the message returned from the service
+                setErrorMessage(result.message || '無効な招待コードです。');
             }
         } catch (error) {
-            Alert.alert('エラー', '招待コードの検証に失敗しました。');
+            console.error('[UI] Verification error:', error);
+            setErrorMessage('招待コードの検証中に予期せぬエラーが発生しました。');
         } finally {
             setIsLoading(false);
         }
@@ -72,12 +76,21 @@ const InvitationCodeScreen = ({ navigation }) => {
                         placeholder="6桁〜7桁のコード"
                         placeholderTextColor="#666"
                         value={code}
-                        onChangeText={setCode}
+                        onChangeText={(text) => {
+                            setCode(text);
+                            if (errorMessage) setErrorMessage('');
+                        }}
                         autoCapitalize="characters"
                         maxLength={10}
                         selectionColor="#00E5FF"
                     />
                     <Text style={styles.hint}>※英数字の組み合わせ</Text>
+                    
+                    {errorMessage ? (
+                        <View style={styles.errorContainer}>
+                            <Text style={styles.errorText}>{errorMessage}</Text>
+                        </View>
+                    ) : null}
                 </View>
 
                 <TouchableOpacity
@@ -154,6 +167,20 @@ const styles = StyleSheet.create({
         color: '#555',
         textAlign: 'center',
         fontSize: 12,
+    },
+    errorContainer: {
+        marginTop: 15,
+        backgroundColor: 'rgba(255, 68, 68, 0.1)',
+        padding: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 68, 68, 0.3)',
+    },
+    errorText: {
+        color: '#FF4444',
+        textAlign: 'center',
+        fontSize: 14,
+        fontWeight: '500',
     },
     verifyButton: {
         backgroundColor: '#00E5FF',

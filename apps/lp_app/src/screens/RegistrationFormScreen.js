@@ -20,7 +20,7 @@ import {
     GithubAuthProvider, 
     signInWithPopup 
 } from 'firebase/auth';
-import { registerUser } from '../../../shared/common_frontend/src/features/registration/services/registrationService';
+import { registerUser } from '@shared/src/features/registration/services/registrationService';
 import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -126,7 +126,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             );
 
             if (result.success) {
-                Alert.alert('登録完了', 'アカウントの作成が完了しました。', [
+            Alert.alert('登録完了', 'アカウントの作成が完了しました。', [
                     { text: 'OK', onPress: () => navigation.navigate('Home', { registrationSuccess: true }) }
                 ]);
             }
@@ -136,7 +136,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             
             // Firebase Auth Errors
             if (error.code === 'auth/email-already-in-use') {
-                message = 'このメールアドレスは既に登録されています。ログイン画面からログインするか、別のメールアドレスをお試しください。';
+                message = 'このメールアドレスは既に登録されています。\nログイン画面からログインするか、別のメールアドレスをお試しください。';
             } else if (error.code === 'auth/invalid-email') {
                 message = 'メールアドレスの形式が正しくありません。';
             } else if (error.code === 'auth/weak-password') {
@@ -145,8 +145,8 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                 message = 'ネットワーク接続に失敗しました。通信環境を確認してください。';
             } 
             // Firestore / Generic Errors
-            else if (error.code === 'permission-denied') {
-                message = '権限エラーが発生しました。招待コードが無効な可能性があります。';
+            else if (error.code === 'permission-denied' || error.message?.includes('permission-denied')) {
+                message = 'セキュリティ権限エラーが発生しました。\n招待コードが正しく反映されていないか、通信に問題がある可能性があります。再度お試しください。';
             } else if (error.message) {
                 message = error.message;
             }

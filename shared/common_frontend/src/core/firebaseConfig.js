@@ -4,9 +4,9 @@
  */
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeFirestore, getFirestore } from 'firebase/firestore';
-import { initializeAuth, getAuth, browserLocalPersistence } from 'firebase/auth';
-import { getFunctions } from 'firebase/functions';
+import { initializeFirestore, getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { initializeAuth, getAuth, browserLocalPersistence, connectAuthEmulator } from 'firebase/auth';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { Platform } from 'react-native';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -66,5 +66,20 @@ try {
 
 const functionsRegion = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1';
 const functions = getFunctions(app, functionsRegion);
+
+
+// Connect to Emulators during development
+if (__DEV__) {
+  try {
+    // Note: use '10.0.2.2' for Android emulator if necessary, but 'localhost' works for web/iOS
+    const host = 'localhost';
+    connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
+    connectFirestoreEmulator(db, host, 8080);
+    connectFunctionsEmulator(functions, host, 5001);
+    console.log('🚀 [FirebaseConfig] Connected to Firebase Emulators');
+  } catch (e) {
+    console.log('ℹ️ [FirebaseConfig] Emulators already connected or connection failed');
+  }
+}
 
 export { db, auth, functions };

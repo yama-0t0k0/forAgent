@@ -138,8 +138,8 @@ service cloud.firestore {
     // ----------------------------------------------------------------------------
     match /private_info/{userId} {
       // Writable only by the owner or Admin
-      // 所有者本人または管理者のみ書き込み可能
-      allow write: if isOwner(userId) || isAdmin();
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       
       // Readable by:
       // 1. Owner (本人)
@@ -284,7 +284,14 @@ service cloud.firestore {
     match /invitationCodes/{code} {
       // 招待コードは、バリデーションのために未認証でも get のみ許可（一覧は禁止）
       allow get: if true;
-      allow list, write: if isAdmin();
+      
+      // 登録時にユーザー自身がコードを「使用済み」に更新することを許可
+      allow update: if request.auth != null 
+                    && resource.data.status == 'active'
+                    && request.resource.data.status == 'used'
+                    && request.resource.data.usedBy == request.auth.uid;
+
+      allow list, create, delete: if isAdmin();
     }
 
     // ----------------------------------------------------------------------------
@@ -293,9 +300,10 @@ service cloud.firestore {
     // ----------------------------------------------------------------------------
     match /profiles/{userId} {
       // 認証済みユーザーは基本プロフィールの閲覧が可能
-      allow read: if isAuthenticated();
+      allow read: if request.auth != null;
       // 本人または管理者のみ書き込み可能
-      allow write: if isOwner(userId) || isAdmin();
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if (request.auth != null && request.auth.uid == userId) || isAdmin();
     }
   }
 }
