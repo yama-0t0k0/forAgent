@@ -10,8 +10,18 @@ import {
     Platform,
     Animated,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { auth } from '../features/firebase/config';
+import { 
+    createUserWithEmailAndPassword, 
+    GoogleAuthProvider, 
+    GithubAuthProvider, 
+    signInWithPopup 
+} from 'firebase/auth';
+import { registerUser } from '../../../shared/common_frontend/src/features/registration/services/registrationService';
+import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +38,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
     // Step state
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
     
     // Animation
     const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -50,7 +61,12 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         { key: 'work_phone', label: '会社の電話番号', placeholder: '0312345678', type: 'phone' },
     ];
 
-    const steps = isCorporate ? corporateSteps : individualSteps;
+    // Add Password step if using email
+    const baseSteps = isCorporate ? corporateSteps : individualSteps;
+    const steps = authMethod === 'email' 
+        ? [...baseSteps, { key: 'password', label: 'ログイン用パスワードを設定してください', placeholder: '8文字以上', type: 'password' }]
+        : baseSteps;
+
     const currentStepConfig = steps[currentStep];
 
     const animateTransition = (callback) => {
@@ -67,17 +83,77 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         });
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         const val = formData[currentStepConfig.key];
-        if (!val || val.length < 2) {
-            return; // Simple validation
+        if (!val || val.length < (currentStepConfig.key === 'password' ? 8 : 2)) {
+            Alert.alert('入力エラー', `${currentStepConfig.label}を正しく入力してください。`);
+            return;
         }
 
         if (currentStep < steps.length - 1) {
             animateTransition(() => setCurrentStep(currentStep + 1));
         } else {
-            // Final submission (Phase 1: Mock Success)
-            navigation.navigate('Home', { registrationSuccess: true });
+            handleFinalSubmit();
+        }
+    };
+
+    const handleFinalSubmit = async () => {
+        setIsLoading(true);
+        try {
+            console.log('[Registration] Starting final submission...');
+
+            // 1. Authentication (if not already authenticated via Social)
+            let user = auth.currentUser;
+            
+            if (authMethod === 'email' && !user) {
+                const email = formData.email || formData.work_email;
+                const password = formData.password;
+                
+                console.log(`[Registration] Creating user with email: ${email}`);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                user = userCredential.user;
+            }
+
+            if (!user) {
+                throw new Error('認証に失敗しました。もう一度やり直してください。');
+            }
+
+            // 2. Firestore Sync (Profiles/PrivateInfo/InvitationCode)
+            const result = await registerUser(
+                formData, 
+                invitationInfo?.type || 'individual', 
+                invitationInfo?.code
+            );
+
+            if (result.success) {
+                Alert.alert('登録完了', 'アカウントの作成が完了しました。', [
+                    { text: 'OK', onPress: () => navigation.navigate('Home', { registrationSuccess: true }) }
+                ]);
+            }
+        } catch (error) {
+            console.error('[Registration] Submit Error:', error);
+            let message = '登録処理中にエラーが発生しました。';
+            
+            // Firebase Auth Errors
+            if (error.code === 'auth/email-already-in-use') {
+                message = 'このメールアドレスは既に登録されています。ログイン画面からログインするか、別のメールアドレスをお試しください。';
+            } else if (error.code === 'auth/invalid-email') {
+                message = 'メールアドレスの形式が正しくありません。';
+            } else if (error.code === 'auth/weak-password') {
+                message = 'パスワードが短すぎます。8文字以上で設定してください。';
+            } else if (error.code === 'auth/network-request-failed') {
+                message = 'ネットワーク接続に失敗しました。通信環境を確認してください。';
+            } 
+            // Firestore / Generic Errors
+            else if (error.code === 'permission-denied') {
+                message = '権限エラーが発生しました。招待コードが無効な可能性があります。';
+            } else if (error.message) {
+                message = error.message;
+            }
+
+            Alert.alert('登録エラー', message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -128,8 +204,9 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                         onChangeText={updateValue}
                         autoFocus={true}
                         selectionColor="#00E5FF"
-                        keyboardType={currentStepConfig.type === 'phone' ? 'phone-pad' : 'default'}
+                        keyboardType={currentStepConfig.type === 'phone' ? 'phone-pad' : (currentStepConfig.type === 'email' ? 'email-address' : 'default')}
                         autoCapitalize="none"
+                        secureTextEntry={currentStepConfig.type === 'password'}
                     />
                 </Animated.View>
 
@@ -140,11 +217,15 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                             !(formData[currentStepConfig.key]?.length >= 2) && styles.disabledButton
                         ]} 
                         onPress={handleNext}
-                        disabled={!(formData[currentStepConfig.key]?.length >= 2)}
+                        disabled={isLoading || !(formData[currentStepConfig.key]?.length >= (currentStepConfig.key === 'password' ? 8 : 2))}
                     >
-                        <Text style={styles.nextButtonText}>
-                            {currentStep === steps.length - 1 ? '登録を完了する' : '次へ進む'}
-                        </Text>
+                        {isLoading ? (
+                            <ActivityIndicator color="#000" />
+                        ) : (
+                            <Text style={styles.nextButtonText}>
+                                {currentStep === steps.length - 1 ? '登録を完了する' : '次へ進む'}
+                            </Text>
+                        )}
                     </TouchableOpacity>
                     <Text style={styles.footerHint}>送信した情報は厳重に管理されます。</Text>
                 </View>

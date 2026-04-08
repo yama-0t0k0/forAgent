@@ -5,6 +5,21 @@
 **規則:**
 - 見出しのタイムスタンプは `[YYYY-MM-DD HH:MM]` 形式で記載し、1日に複数回のPushが発生しても順序とタイミングが明確になるようにします。
 
+## [2026-04-08 14:40] 招待制新規登録フロー Phase 1（プロトタイピングとナビゲーションの統合）完了
+* **Target Issue**: #34 (招待制新規登録フローの Phase 1 実装)
+* **主要な人間のプロンプト**:
+  * 「招待制新規登録フローの Phase 1（プロトタイピングとナビゲーションの統合）が完了しました。作業の詳細は、こちらの 実装完了ウォークスルー にまとめています。とのことなので、githooks/safe_push.shしてくれ。Issueには実装完了ウォークスルーの内容を反映してくれ。」
+* **AIの判断と結果**:
+  * `InvitationCodeScreen`, `RegistrationMethodScreen`, `RegistrationFormScreen` を新規作成し、`RegistrationStack` として `AppNavigation` に統合。
+  * `PrivacyPolicyScreen` にスクロール検知ロジックを実装し、最下部到達前は「同意」ボタンを無効化する仕様を適用。
+  * `registrationService.js` を作成し、招待コード検証およびユーザープロファイル保存の基礎ロジックを実装。
+  * 全画面の遷移およびバリデーションロジックの導通を確認。
+* **反省点・学び**:
+  * デザインシステムトークンの適用が一部手動箇所で見られたが、Phase 1 ではプロトタイピングを優先。Phase 2 以降で本格的なリファクタリングを予定。
+  * 招待コードのサーバーサイド検証（Cloud Functions）は Phase 2 での対応とし、現状はクライアントサイドでの検証ロジックに留める。
+
+---
+
 ## [2026-04-06 13:15] Design System Consolidation (Consolidating THEME and removing hex codes)
 * **Target Issue**: #22 (UI System Consolidation (DESIGN.md))
 * **主要な人間のプロンプト**:
@@ -51,18 +66,4 @@
   * `safe_push.sh` 実行時の引数に詳細な E2E テストシナリオを組み込むことで、後続の検証フェーズ（管理者アプリへのポート 8081 遷移）へのトレーサビリティを強化。
 
 ---
-
-## [2026-04-08 10:52] 招待制新規登録フロー Phase 1（プロトタイピングとナビゲーションの統合）完了
-* **Target Issue**: #34 (招待制新規登録フローの Phase 1 実装)
-* **主要な人間のプロンプト**:
-  * 「招待制新規登録フローの Phase 1... が完了しました... githooks/safe_push.shしてくれ。」
-* **AIの判断と結果**:
-  * `InvitationCodeScreen`, `RegistrationMethodScreen`, `RegistrationFormScreen` を新規作成し、`lp_app` の `RegistrationStack` に統合。
-  * `PrivacyPolicyScreen` にスクロール検知ロジックを追加し、法的な同意要件を満たす実装に。
-  * `registrationService.js` を `shared/common_frontend` に追加し、フロントエンドと Firebase 間のデータフローを定義。
-  * `registration_flow_design.md` を更新し、実装済みの画面要件とデータスキーマを同期。
-* **反省点・学び**:
-  * モノレポ構造において、`shared` パッケージ内の新規サービス追加時は、インポートパスの解決を Metro Bundler で早期に検証する必要がある。
-  * 一問一答形式のフォーム（One-by-One Interaction）は UX 向上に寄与するが、UI デザインのブラッシュアップ（Phase 2）に向けて、テーマトークンの徹底的な適用が必要。
-
----
+<... rest of the log restored manually or via edit>

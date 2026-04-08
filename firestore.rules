@@ -276,5 +276,26 @@ service cloud.firestore {
       
       allow delete: if isAdmin();
     }
+
+    // ----------------------------------------------------------------------------
+    // 8. Invitation Codes (invitationCodes)
+    // 招待コード (invitationCodes)
+    // ----------------------------------------------------------------------------
+    match /invitationCodes/{code} {
+      // 招待コードは、バリデーションのために未認証でも get のみ許可（一覧は禁止）
+      allow get: if true;
+      allow list, write: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------------
+    // 9. Profiles (profiles) - New consolidated profile
+    // 新しいプロファイル情報 (profiles)
+    // ----------------------------------------------------------------------------
+    match /profiles/{userId} {
+      // 認証済みユーザーは基本プロフィールの閲覧が可能
+      allow read: if isAuthenticated();
+      // 本人または管理者のみ書き込み可能
+      allow write: if isOwner(userId) || isAdmin();
+    }
   }
 }

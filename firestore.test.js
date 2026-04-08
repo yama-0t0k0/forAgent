@@ -428,4 +428,67 @@ describe('Firestore Security Rules', () => {
       }));
     });
   });
+
+  // ============================================================================
+  // 8. Invitation Codes Tests (Phase 2)
+  // ============================================================================
+  describe('invitationCodes collection', () => {
+    const validCode = 'WELCOME2026';
+    const otherCode = 'OTHER_CODE';
+
+    beforeEach(async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const db = context.firestore();
+        await db.collection('invitationCodes').doc(validCode).set({
+          status: 'active',
+          type: 'individual',
+          expiresAt: new Date(Date.now() + 86400000)
+        });
+      });
+    });
+
+    it('should allow anyone (even unauthenticated) to get a specific code', async () => {
+      const db = testEnv.unauthenticatedContext().firestore();
+      await assertSucceeds(db.collection('invitationCodes').doc(validCode).get());
+    });
+
+    it('should deny listing codes (security by obscurity)', async () => {
+      const db = testEnv.unauthenticatedContext().firestore();
+      await assertFails(db.collection('invitationCodes').get());
+    });
+
+    it('should deny writing to codes for normal users', async () => {
+      const db = testEnv.authenticatedContext('user_123').firestore();
+      await assertFails(db.collection('invitationCodes').doc(otherCode).set({ status: 'active' }));
+    });
+
+    it('should deny updating codes for normal users (even if trying to use it - should be done via Cloud Functions or Admin)', async () => {
+      // Current rules only allow Admin to write. Users get error if they try direct write.
+      const db = testEnv.authenticatedContext('user_123').firestore();
+      await assertFails(db.collection('invitationCodes').doc(validCode).update({ status: 'used' }));
+    });
+  });
+
+  // ============================================================================
+  // 9. Profiles Tests (Phase 2)
+  // ============================================================================
+  describe('profiles collection', () => {
+    const userId = 'user_abc';
+    const hackerId = 'attacker_xyz';
+
+    it('should allow owner to create/update their profile', async () => {
+      const db = testEnv.authenticatedContext(userId).firestore();
+      await assertSucceeds(db.collection('profiles').doc(userId).set({
+        displayName: 'Test User',
+        role: 'individual'
+      }));
+    });
+
+    it('should deny others from writing to profile', async () => {
+      const db = testEnv.authenticatedContext(hackerId).firestore();
+      await assertFails(db.collection('profiles').doc(userId).set({
+        displayName: 'Hacked'
+      }));
+    });
+  });
 });

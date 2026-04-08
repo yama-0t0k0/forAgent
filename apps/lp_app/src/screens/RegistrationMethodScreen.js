@@ -5,8 +5,17 @@ import {
     StyleSheet,
     TouchableOpacity,
     Dimensions,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { auth } from '../features/firebase/config';
+import { 
+    GoogleAuthProvider, 
+    GithubAuthProvider, 
+    signInWithPopup, 
+    signInWithRedirect 
+} from 'firebase/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -17,14 +26,48 @@ const { width } = Dimensions.get('window');
  */
 const RegistrationMethodScreen = ({ navigation, route }) => {
     const { invitationInfo } = route.params || {};
+    const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleSelectMethod = (method) => {
-        // In Phase 1, we just navigate to the next form screen.
-        // We pass the selected method to the form screen.
-        navigation.navigate('RegistrationForm', { 
-            invitationInfo,
-            authMethod: method 
-        });
+    const handleSelectMethod = async (method) => {
+        if (method === 'email') {
+            navigation.navigate('RegistrationForm', { 
+                invitationInfo,
+                authMethod: method 
+            });
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            let provider;
+            if (method === 'google') {
+                provider = new GoogleAuthProvider();
+            } else if (method === 'github') {
+                provider = new GithubAuthProvider();
+            }
+
+            if (Platform.OS === 'web') {
+                const result = await signInWithPopup(auth, provider);
+                console.log(`[Method] Social Auth Success: ${result.user.email}`);
+                navigation.navigate('RegistrationForm', { 
+                    invitationInfo,
+                    authMethod: method 
+                });
+            } else {
+                // For Native: signInWithRedirect is the standard for Expo
+                // Note: Requires extra config in app.json for deep linking
+                Alert.alert(
+                    'Social Auth', 
+                    'Mobile環境でのSocial Loginには追加設定が必要です。Emailでの登録をお試しください。',
+                    [{ text: 'OK' }]
+                );
+            }
+        } catch (error) {
+            console.error('[Method] Auth Error:', error);
+            Alert.alert('認証エラー', '外部サービスとの連携に失敗しました。');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -85,10 +128,15 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        ※ Phase 1 では UI フローのみの実装となります。{"\n"}
-                        実際の認証連携は Phase 2 で本番化されます。
+                        登録を進めることで、利用規約および{"\n"}
+                        個人情報保護方針に同意したものとみなされます。
                     </Text>
                 </View>
+                {isLoading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color="#00E5FF" />
+                    </View>
+                )}
             </View>
         </SafeAreaView>
     );
@@ -222,6 +270,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         textAlign: 'center',
         lineHeight: 18,
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 

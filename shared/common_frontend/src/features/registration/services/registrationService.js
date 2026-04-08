@@ -1,9 +1,11 @@
 /**
- * Registration Service (Mock for Phase 1)
+ * Registration Service (Phase 2: Secure Integration)
  * 
- * Includes validation rules, invitation code verification, 
- * auto-save simulation, and registration mocks.
+ * Handles real Firestore & Auth integration for invitation validation
+ * and user enrollment.
  */
+import { db, auth } from '@shared/src/core/firebaseConfig';
+import { doc, getDoc, updateDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 
 export const VALIDATION_RULES = {
   // RFC 5322 compliant email regex
@@ -21,24 +23,43 @@ export const VALIDATION_RULES = {
 };
 
 /**
- * Validates the invitation code (Mock logic)
+ * Validates the invitation code against Firestore
  */
 export const validateInvitationCode = async (code) => {
-  console.log(`[Mock API] Validating code: ${code}`);
+  console.log(`[Service] Validating code: ${code}`);
   
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  // Mock valid codes:
-  // '111111' -> Individual
-  // '999999' -> Corporate
-  if (code === '111111') {
-    return { valid: true, type: 'individual' };
-  } else if (code === '999999') {
-    return { valid: true, type: 'corporate' };
+  try {
+    const docRef = doc(db, 'invitationCodes', code);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      return { isValid: false, message: '招待コードが見つかりません。' };
+    }
+    
+    const data = docSnap.data();
+    
+    // Check status
+    if (data.status !== 'active') {
+      return { isValid: false, message: 'この招待コードは既に使用されているか、無効です。' };
+    }
+    
+    // Check expiration
+    if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
+      return { isValid: false, message: '招待コードの有効期限が切れています。' };
+    }
+    
+    return { 
+      isValid: true, 
+      invitationInfo: {
+        code,
+        type: data.type,
+        issuerUid: data.issuerUid
+      } 
+    };
+  } catch (error) {
+    console.error('[Service] Error validating invitation code:', error);
+    return { isValid: false, message: 'サーバーとの通信に失敗しました。' };
   }
-  
-  return { valid: false, message: '招待コードが無効または期限切れです。' };
 };
 
 /**
@@ -53,18 +74,73 @@ export const autoSaveDraft = async (data) => {
 };
 
 /**
- * Mocks user registration step
+ * Finalizes user registration in Firestore after Authentication
  */
-export const registerUser = async (registrationData, codeType) => {
-  console.log(`[Mock API] Registering user as ${codeType}:`, registrationData);
-  
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  return { 
-    success: true, 
-    uid: 'mock-user-uid-' + Math.random().toString(36).substr(2, 9),
-    message: '登録が完了しました。' 
-  };
+export const registerUser = async (registrationData, codeType, invitationCode) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('認証が完了していません。再度ログインしてください。');
+  }
+
+  const uid = user.uid;
+  console.log(`[Service] Registering user ${uid} as ${codeType}`);
+
+  try {
+    // 1. Prepare Public Profile (non-sensitive)
+    const publicProfile = {
+      uid,
+      displayName: `${registrationData.family_name || ''} ${registrationData.first_name || ''}`.trim(),
+      name: {
+        family: registrationData.family_name || '',
+        first: registrationData.first_name || ''
+      },
+      name_eng: {
+        family: registrationData.family_name_eng || '',
+        first: registrationData.first_name_eng || ''
+      },
+      occupation: registrationData.occupation || '',
+      role: codeType || 'individual',
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    };
+
+    // 2. Prepare Private Info (PII)
+    const privateInfo = {
+      uid,
+      email: registrationData.email || user.email,
+      phone: registrationData.phone || '',
+      allowed_companies: [], // Initially empty
+      updatedAt: serverTimestamp(),
+    };
+
+    // 3. Perform atomic operations via runTransaction
+    await runTransaction(db, async (transaction) => {
+      const profileRef = doc(db, 'profiles', uid);
+      const privateInfoRef = doc(db, 'private_info', uid);
+      
+      transaction.set(profileRef, publicProfile);
+      transaction.set(privateInfoRef, privateInfo);
+
+      // 4. Update Invitation Code
+      if (invitationCode) {
+        const inviteRef = doc(db, 'invitationCodes', invitationCode);
+        transaction.update(inviteRef, {
+          status: 'used',
+          usedBy: uid,
+          usedAt: serverTimestamp(),
+        });
+      }
+    });
+
+    return { 
+      success: true, 
+      uid,
+      message: '登録が完了しました。' 
+    };
+  } catch (error) {
+    console.error('[Service] Error completing registration:', error);
+    throw error;
+  }
 };
 
 export default {
