@@ -703,7 +703,7 @@ const HomeScreen = (props) => {
               testID="register-button"
               onPress={() => {
                 trackEvent('click_register', { location: 'header' });
-                console.log('Navigate to Register');
+                props.navigation.navigate('InvitationCode');
               }}
             >
               <Text style={styles.registerButtonText}>新規登録</Text>
