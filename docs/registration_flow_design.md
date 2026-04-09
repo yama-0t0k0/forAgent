@@ -130,8 +130,9 @@ graph TD
 ### ローカルシミュレーターでの検証
 ローカル開発環境（Firestore エミュレータ）で新規登録フローをテストする際は、以下の招待コードを使用してください。
 
-- **正常系（登録成功）**: `IND003`
+- **正常系（登録成功）**: `INVITE2024`
 - **異常系（使用済みコード）**: `USED777`
+- **異常系（期限切れ）**: `EXPIRED00`
 
 > [!TIP]
-> その他のテスト用コードや初期データは `shared/common_frontend/src/features/registration/mocks/seed_invitation_codes.js` を参照してください。
+> テスト用コードの投入は `./scripts/seed_invitation_codes.js` を実行してください。

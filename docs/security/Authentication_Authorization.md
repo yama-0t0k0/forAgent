@@ -247,8 +247,8 @@ Adminアカウントは以下の構成で管理される。
 
 | # | Admin ID | Firebase Auth Email | UID (Generated) | displayName | 用途 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `a000` | `m.yamakawa@lat-inc.com` | `KPXa3AqE8QUUdHp9plpT9ubTOvv1` | M. Yamakawa | 主管理者 |
-| 2 | `a001` | `t.sameshima@lat-inc.com` | `aRm2vSYQv3ceXx3Qdnbx7HbaQSe2` | T. Sameshima | 副管理者 |
+| 1 | `A000` | `m.yamakawa@lat-inc.com` | `KPXa3AqE8QUUdHp9plpT9ubTOvv1` | M. Yamakawa | 主管理者 |
+| 2 | `A001` | `t.sameshima@lat-inc.com` | `aRm2vSYQv3ceXx3Qdnbx7HbaQSe2` | T. Sameshima | 副管理者 |
 
 > [!NOTE]
 > **作成手順**:
