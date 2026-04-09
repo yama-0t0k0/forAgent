@@ -118,6 +118,37 @@ function detectLabels(commitMessage, userPrompt) {
     return labels.join(',');
 }
 
+function getRepoSlug(repoUrl) {
+    if (!repoUrl) return '';
+    const trimmed = String(repoUrl).trim();
+    const match = trimmed.match(/github\.com\/([^\/]+)\/([^\/\s]+?)(?:\.git)?$/);
+    if (!match) return trimmed;
+    return `${match[1]}/${match[2]}`;
+}
+
+function getAvailableLabels(repoSlug) {
+    const repoArg = repoSlug ? `--repo "${repoSlug}"` : '';
+    const json = runCommandOutput(`gh label list ${repoArg} --limit 200 --json name`);
+    if (!json) return null;
+    try {
+        const items = JSON.parse(json);
+        return new Set(items.map(i => i.name).filter(Boolean));
+    } catch (e) {
+        return null;
+    }
+}
+
+function ensureFallbackLabelExists(repoSlug, fallbackLabel) {
+    if (!repoSlug || !fallbackLabel) return false;
+    const repoArg = `--repo "${repoSlug}"`;
+    try {
+        execSync(`gh label create "${fallbackLabel.replace(/"/g, '\\"')}" ${repoArg} --color "ededed" --description "どの分類にも該当しない場合のラベル"`, { stdio: 'ignore' });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 // --- Main Logic ---
 // --- メインロジック ---
 
@@ -204,6 +235,28 @@ function main() {
             console.log(`🏷️  Auto-detected labels: ${finalLabels}`);
         }
     }
+    
+    const fallbackLabel = 'その他';
+    const repoSlug = getRepoSlug(CONFIG.repoUrl);
+    const availableLabels = getAvailableLabels(repoSlug);
+    let labelsToApply = (finalLabels || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    if (labelsToApply.length === 0) labelsToApply = [fallbackLabel];
+    if (availableLabels) {
+        labelsToApply = labelsToApply.filter(l => availableLabels.has(l));
+        if (labelsToApply.length === 0) {
+            if (availableLabels.has(fallbackLabel)) {
+                labelsToApply = [fallbackLabel];
+            } else {
+                const first = Array.from(availableLabels)[0];
+                labelsToApply = first ? [first] : [fallbackLabel];
+            }
+        }
+    } else {
+        if (labelsToApply.length === 0) labelsToApply = [fallbackLabel];
+    }
 
     // 3. Construct Issue Body
     // 3. Issue本文の構築
@@ -282,35 +335,39 @@ ${recentContext}
         const tempBodyFile = `/tmp/issue_body_${Date.now()}.md`;
         fs.writeFileSync(tempBodyFile, issueBody);
         
-        const repoArg = CONFIG.repoUrl ? `--repo "${CONFIG.repoUrl}"` : '';
+        const repoArg = repoSlug ? `--repo "${repoSlug}"` : '';
         const milestoneArg = CONFIG.targetMilestone ? `--milestone "${CONFIG.targetMilestone}"` : '';
         const titleArg = `--title "${issueTitle.replace(/"/g, '\\"')}"`;
         const bodyArg = `--body-file "${tempBodyFile}"`;
 
         const createIssue = (labels) => {
-            const labelArg = labels ? `--label "${labels}"` : '';
-            const cmd = `gh issue create ${repoArg} ${titleArg} ${bodyArg} ${labelArg} ${milestoneArg}`;
+            const uniqueLabels = Array.from(new Set((labels || []).map(l => String(l).trim()).filter(Boolean)));
+            if (uniqueLabels.length === 0) throw new Error('No labels to apply');
+            const labelArgs = uniqueLabels.map(l => `--label "${l.replace(/"/g, '\\"')}"`).join(' ');
+            const cmd = `gh issue create ${repoArg} ${titleArg} ${bodyArg} ${labelArgs} ${milestoneArg}`;
             return execSync(cmd, { encoding: 'utf-8' }).trim();
         };
 
         try {
-            const issueUrl = createIssue(finalLabels);
+            const issueUrl = createIssue(labelsToApply);
             console.log(`✅ Issue created successfully: ${issueUrl}`);
             fs.unlinkSync(tempBodyFile);
             return;
         } catch (e) {
             const message = e?.message || String(e);
-            if (finalLabels && message.includes('could not add label')) {
-                console.warn(`⚠️ Failed to create issue with labels (${finalLabels}). Retrying without labels...`);
-                try {
-                    const issueUrl = createIssue('');
-                    console.log(`✅ Issue created successfully: ${issueUrl}`);
-                    fs.unlinkSync(tempBodyFile);
-                    return;
-                } catch (retryError) {
-                    console.error('❌ Failed to create issue:', retryError?.message || String(retryError));
-                    if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
-                    process.exit(1);
+            if (message.includes('could not add label')) {
+                const created = ensureFallbackLabelExists(repoSlug, fallbackLabel);
+                if (created) {
+                    try {
+                        const issueUrl = createIssue([fallbackLabel]);
+                        console.log(`✅ Issue created successfully: ${issueUrl}`);
+                        fs.unlinkSync(tempBodyFile);
+                        return;
+                    } catch (retryError) {
+                        console.error('❌ Failed to create issue:', retryError?.message || String(retryError));
+                        if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
+                        process.exit(1);
+                    }
                 }
             }
             console.error('❌ Failed to create issue:', message);
