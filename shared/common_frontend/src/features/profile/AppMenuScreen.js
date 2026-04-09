@@ -4,6 +4,8 @@ import { GenericMenuScreen } from './GenericMenuScreen';
 import { PasskeyManagementSection } from '../auth/components/PasskeyManagementSection';
 import { authService } from '../auth/services/authService';
 import { THEME } from '@shared/src/core/theme/theme';
+import { DataContext } from '@shared/src/core/state/DataContext';
+import { User } from '@shared/src/core/models/User';
 
 /**
  * @typedef {Object} AppMenuScreenProps
@@ -27,6 +29,10 @@ export const AppMenuScreen = ({
     bottomNav,
     onLogout
 }) => {
+    const { data } = React.useContext(DataContext);
+
+    // Initial hydration of user model
+    const user = data instanceof User ? data : User.fromFirestore(data?.uid || '', data);
 
     const handleLogout = async () => {
         try {
@@ -54,7 +60,7 @@ export const AppMenuScreen = ({
         }
 
         if (item.target) {
-            nav.navigate(item.target, { isEdit: true });
+            nav.navigate(item.target, { isEdit: true, ...(item.params || {}) });
             return;
         }
 
@@ -67,14 +73,30 @@ export const AppMenuScreen = ({
 
         // 1. Primary Settings Group
         if (role === 'individual') {
+            const individualItems = [
+                { id: 'profile', label: 'プロフィール編集', icon: 'person-outline', target: 'Registration' },
+                { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },
+            ];
+
+            // Add Corporate Registration option if eligible
+            // Note: In a real app, we would get the user model from state here
+            // For now, we assume the UI will be updated once the user model is fully hydrated
+            individualItems.push({ id: 'payment', label: '決済情報', icon: 'card-outline' });
+
             groups.push({
                 title: '個人設定',
-                items: [
-                    { id: 'profile', label: 'プロフィール編集', icon: 'person-outline', target: 'Registration' },
-                    { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },
-                    { id: 'payment', label: '決済情報', icon: 'card-outline' },
-                ]
+                items: individualItems
             });
+            
+            // 1.5 Hybrid/Corporate Transition (Added for #52)
+            if (user.canCreateCompany && !user.isCorporateMember()) {
+                groups.push({
+                    title: '法人サービス',
+                    items: [
+                       { id: 'corporate_reg', label: '法人アカウント作成', icon: 'business-outline', target: 'Registration', params: { type: 'corporate' } }
+                    ]
+                });
+            }
         } else if (role === 'corporate') {
             groups.push({
                 title: '法人設定',

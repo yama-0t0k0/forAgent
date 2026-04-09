@@ -27,20 +27,10 @@ const { width } = Dimensions.get('window');
  * - Minimalist & Premium Design.
  */
 const RegistrationFormScreen = ({ navigation, route }) => {
-    const { invitationInfo, authMethod } = route.params || {};
+    const { invitationInfo, authMethod, resumeData } = route.params || {};
     const isCorporate = invitationInfo?.type === 'corporate';
 
-    // Step state
-    const [currentStep, setCurrentStep] = useState(0);
-    const [formData, setFormData] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
-    
-    // Animation
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const slideAnim = useRef(new Animated.Value(0)).current;
-
-    // Define steps based on type
-    // Define steps
+    // Steps defined later, moved up for index calculation
     const individualSteps = [
         { key: 'family_name', label: '姓を教えてください', placeholder: '山田', type: 'text' },
         { key: 'first_name', label: '名を教えてください', placeholder: '太郎', type: 'text' },
@@ -58,18 +48,33 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         { key: 'work_phone', label: '会社の電話番号', placeholder: '0312345678', type: 'phone' },
     ];
 
-    // Password step conditionally
     const passwordStep = authMethod === 'email' 
         ? [{ key: 'password', label: 'ログイン用パスワードを設定してください', placeholder: '8文字以上', type: 'password' }]
         : [];
 
-    // Hybrid logic: If corporate, do BOTH. If individual, just individual.
     const steps = isCorporate 
         ? [...individualSteps, ...passwordStep, ...corporateSteps] 
         : [...individualSteps, ...passwordStep];
 
-    const isLastIndividualStep = currentStep === (individualSteps.length + passwordStep.length - 1);
+    // Determine initial step if resuming
+    const getInitialStep = () => {
+        if (!resumeData) return 0;
+        for (let i = 0; i < steps.length; i++) {
+            if (!resumeData[steps[i].key]) return i;
+        }
+        return steps.length - 1;
+    };
 
+    // Step state
+    const [currentStep, setCurrentStep] = useState(getInitialStep());
+    const [formData, setFormData] = useState(resumeData || {});
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Animation
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const slideAnim = useRef(new Animated.Value(0)).current;
+
+    const isLastIndividualStep = currentStep === (individualSteps.length + passwordStep.length - 1);
     const currentStepConfig = steps[currentStep];
 
     const animateTransition = (callback) => {
@@ -122,11 +127,23 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             // 2. Register as Individual first
             await registerUser(formData, 'individual', invitationInfo?.code);
             
-            console.log('[Registration] Individual phase complete. Moving to corporate.');
+            console.log('[Registration] Individual phase complete. Checking for drafts...');
+
+            // Verify if there is already a draft (though unlikely in transition)
+            const draft = await registrationService.getRegistrationDraft(user.uid);
+            if (draft) {
+                setFormData(prev => ({ ...prev, ...draft.formData }));
+            }
+
+            console.log('[Registration] Moving to corporate.');
             animateTransition(() => setCurrentStep(currentStep + 1));
         } catch (error) {
             console.error('[Registration] Transition Error:', error);
-            Alert.alert('エラー', 'プロフィールの保存に失敗しました。');
+            let message = '取得・保存中にエラーが発生しました。';
+            if (error.code === 'auth/email-already-in-use') {
+                message = 'このメールアドレスは既に使用されています。';
+            }
+            Alert.alert('エラー', message);
         } finally {
             setIsLoading(false);
         }

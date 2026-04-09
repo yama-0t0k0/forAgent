@@ -491,4 +491,58 @@ describe('Firestore Security Rules', () => {
       }));
     });
   });
+
+  // ============================================================================
+  // 10. Notifications Tests (Phase 3)
+  // ============================================================================
+  describe('notifications collection', () => {
+    const userId = 'user_notif';
+    const adminId = 'admin_notif';
+    const otherId = 'user_other';
+
+    beforeEach(async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection('users').doc(adminId).set({ role: 'admin' });
+        await context.firestore().collection('notifications').doc('n1').set({
+          uid: userId,
+          message: 'Hello'
+        });
+      });
+    });
+
+    it('should allow user to read their own notifications', async () => {
+      const db = testEnv.authenticatedContext(userId).firestore();
+      await assertSucceeds(db.collection('notifications').where('uid', '==', userId).get());
+    });
+
+    it('should deny user to read others notifications', async () => {
+      const db = testEnv.authenticatedContext(otherId).firestore();
+      await assertFails(db.collection('notifications').doc('n1').get());
+    });
+
+    it('should allow Admin to create notifications', async () => {
+      const db = testEnv.authenticatedContext(adminId, { role: 'admin' }).firestore();
+      await assertSucceeds(db.collection('notifications').add({ uid: otherId, message: 'Admin alert' }));
+    });
+  });
+
+  // ============================================================================
+  // 11. Registration Drafts Tests (Phase 3)
+  // ============================================================================
+  describe('registration_drafts collection', () => {
+    const userId = 'user_draft';
+    const otherId = 'user_stolen';
+
+    it('should allow owner to read/write their own draft', async () => {
+      const db = testEnv.authenticatedContext(userId).firestore();
+      await assertSucceeds(db.collection('registration_drafts').doc(userId).set({ step: 1 }));
+      await assertSucceeds(db.collection('registration_drafts').doc(userId).get());
+    });
+
+    it('should deny others to read/write a draft', async () => {
+      const db = testEnv.authenticatedContext(otherId).firestore();
+      await assertFails(db.collection('registration_drafts').doc(userId).get());
+      await assertFails(db.collection('registration_drafts').doc(userId).set({ step: 9 }));
+    });
+  });
 });

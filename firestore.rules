@@ -30,15 +30,11 @@ service cloud.firestore {
     // Check if the user has a specific role (stored in their user profile)
     // ユーザーが特定のロールを持っているか確認 (Custom Claims 優先、未設定時は users コレクション参照)
     function hasRole(role) {
-      // Option A: Hybrid Approach
-      // 1. Check Custom Claims first (High Performance)
-      // 2. Fallback to Firestore 'users' collection (Compatibility)
-      return (isAuthenticated() && ('role' in request.auth.token) && request.auth.token.role == role)
-             || (
-               isAuthenticated()
-               && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == role
-             );
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == role) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == role)
+      );
     }
 
     // 管理者ロールかどうかを確認
@@ -49,16 +45,13 @@ service cloud.firestore {
     // Check if the user is a member of the specific company
     // ユーザーが特定の企業のメンバーであるか確認 (Custom Claims 優先)
     function isCompanyMember(companyId) {
-      return (isAuthenticated() && ('role' in request.auth.token) && ('companyId' in request.auth.token)
-              && request.auth.token.role == 'corporate' 
-              && request.auth.token.companyId == companyId)
-             || (
-               // Fallback: Check Firestore
-               isAuthenticated() 
-               && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'corporate' 
-               && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '') == companyId
-             );
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == 'corporate' && 
+         'companyId' in request.auth.token && request.auth.token.companyId == companyId) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'corporate' &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '') == companyId)
+      );
     }
     
     // Check if the requesting company user is allowed to view the private info
@@ -66,11 +59,11 @@ service cloud.firestore {
     // リクエスト元の企業ユーザーが個人情報を閲覧する権限を持っているか確認
     // これはターゲットドキュメント内の 'allowed_companies' 配列フィールドに依存します
     function isMatched(allowedCompanies) {
-       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-       return isAuthenticated()
-              && userDoc != null
-              && userDoc.data.role == 'corporate'
-              && (userDoc.data.companyId in allowedCompanies);
+       return isAuthenticated() && 
+              exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'corporate' &&
+              ('companyId' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId in allowedCompanies);
     }
 
     // ============================================================================
@@ -141,7 +134,7 @@ service cloud.firestore {
       // 3. Matched Company (via allowed_companies field) - マッチングした企業 ('allowed_companies' フィールド経由)
       allow read: if isOwner(userId) 
                   || isAdmin()
-                  || ('allowed_companies' in resource.data && isMatched(resource.data.allowed_companies));
+                  || (resource.data != null && 'allowed_companies' in resource.data && isMatched(resource.data.allowed_companies));
     }
 
     // ----------------------------------------------------------------------------
@@ -158,6 +151,7 @@ service cloud.firestore {
       // その企業のメンバーまたは管理者のみ書き込み可能
       // Validation: 'name' is required and must be a non-empty string
       allow create: if (isCompanyMember(companyId) || isAdmin())
+                    && 'name' in request.resource.data 
                     && request.resource.data.name is string 
                     && request.resource.data.name.size() > 0;
                     

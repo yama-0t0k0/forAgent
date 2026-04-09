@@ -35,19 +35,19 @@ export const validateInvitationCode = async (code) => {
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
-      return { isValid: false, message: '招待コードが見つかりません。' };
+      return { isValid: false, errorCode: 'INVALID', message: '招待コードが見つかりません。' };
     }
     
     const data = docSnap.data();
     
     // Check status
     if (data.status !== 'active') {
-      return { isValid: false, message: 'この招待コードは既に使用されているか、無効です。' };
+      return { isValid: false, errorCode: 'USED', message: 'この招待コードは既に使用されているか、無効です。' };
     }
     
     // Check expiration
     if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
-      return { isValid: false, message: '招待コードの有効期限が切れています。' };
+      return { isValid: false, errorCode: 'EXPIRED', message: '招待コードの有効期限が切れています。' };
     }
     
     return { 
@@ -248,9 +248,26 @@ export const registerUser = async (registrationData, codeType, invitationCode) =
     await runTransaction(db, async (transaction) => {
       const profileRef = doc(db, 'profiles', uid);
       const privateInfoRef = doc(db, 'private_info', uid);
+      const userRef = doc(db, 'users', uid);
       
-      transaction.set(profileRef, publicProfile);
+      const finalRole = codeType === 'corporate' ? 'corporate-alpha' : (codeType || 'individual');
+
+      // Update Public Profile
+      transaction.set(profileRef, {
+        ...publicProfile,
+        role: finalRole
+      });
+
+      // Update Private Info
       transaction.set(privateInfoRef, privateInfo);
+
+      // Update Users (RBAC Source)
+      transaction.set(userRef, {
+        uid,
+        role: finalRole,
+        canCreateCompany: false,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
 
       // 4. Update Invitation Code
       if (invitationCode) {

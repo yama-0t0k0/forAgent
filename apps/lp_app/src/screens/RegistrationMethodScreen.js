@@ -17,6 +17,8 @@ import {
     signInWithRedirect 
 } from 'firebase/auth';
 
+import registrationService from '@shared/src/features/registration/services/registrationService';
+
 const { width } = Dimensions.get('window');
 
 /**
@@ -49,10 +51,35 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
             if (Platform.OS === 'web') {
                 const result = await signInWithPopup(auth, provider);
                 console.log(`[Method] Social Auth Success: ${result.user.email}`);
-                navigation.navigate('RegistrationForm', { 
-                    invitationInfo,
-                    authMethod: method 
-                });
+                
+                // Check for draft
+                const draft = await registrationService.getRegistrationDraft(result.user.uid);
+                if (draft) {
+                    Alert.alert(
+                        '登録の再開',
+                        '以前の登録データが見つかりました。中断した場所から再開しますか？',
+                        [
+                            { 
+                                text: '最初から', 
+                                style: 'cancel',
+                                onPress: () => navigation.navigate('RegistrationForm', { invitationInfo, authMethod: method })
+                            },
+                            { 
+                                text: '再開する', 
+                                onPress: () => navigation.navigate('RegistrationForm', { 
+                                    invitationInfo, 
+                                    authMethod: method,
+                                    resumeData: draft.formData
+                                })
+                            }
+                        ]
+                    );
+                } else {
+                    navigation.navigate('RegistrationForm', { 
+                        invitationInfo,
+                        authMethod: method 
+                    });
+                }
             } else {
                 // For Native: signInWithRedirect is the standard for Expo
                 // Note: Requires extra config in app.json for deep linking

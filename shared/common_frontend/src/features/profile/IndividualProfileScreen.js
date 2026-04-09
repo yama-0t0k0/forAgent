@@ -94,13 +94,13 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     // Check for registration drafts if eligible
     useEffect(() => {
         const checkDraft = async () => {
-            if (isCurrentUser && user.canCreateCompany) {
+            if (isCurrentUser && user.canCreateCompany && !user.isCorporateMember()) {
                 const draft = await registrationService.getRegistrationDraft(user.uid);
                 setRegistrationDraft(draft);
             }
         };
         checkDraft();
-    }, [isCurrentUser, user.canCreateCompany, user.uid]);
+    }, [isCurrentUser, user.canCreateCompany, user.uid, user.role, user.allowedCompanies]);
 
     /**
      * Navigates to the registration/edit screen.
@@ -296,7 +296,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             {/* 7. Center Overlay Button (e.g. 'Career Detail' or 'Chat') */}
             {showBottomNav && (
                 <View style={[styles.bottomNavCenterOverlay, { gap: 15 }]} pointerEvents='box-none'>
-                    {user.canCreateCompany && (
+                    {user.canCreateCompany && !user.isCorporateMember() && (
                         <TouchableOpacity
                             style={[styles.centerButton, { backgroundColor: THEME.success }]}
                             onPress={() => navigation.navigate(ROUTES.REGISTRATION, { type: 'corporate' })}

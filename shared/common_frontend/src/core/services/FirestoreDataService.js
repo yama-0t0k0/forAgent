@@ -126,7 +126,7 @@ export const FirestoreDataService = {
 
     /**
      * Fetches a single individual by ID.
-     * Combines public_profile and private_info.
+     * Combines public_profile, private_info, and users (rbac) collections.
      * @param {string} id - The individual ID.
      * @returns {Promise<User|null>}
      */
@@ -136,21 +136,37 @@ export const FirestoreDataService = {
         
         if (!publicData) return null;
 
-        // Fetch Private Info (handle permission denied gracefully)
+        // Fetch Private Info and Users (rbac) in parallel
         let privateData = null;
+        let userData = null;
+
         try {
-             const snap = await getDoc(doc(db, 'private_info', id));
-             if (snap.exists()) {
-                 privateData = { id: snap.id, ...snap.data() };
+             const [privateSnap, userSnap] = await Promise.all([
+                 getDoc(doc(db, 'private_info', id)),
+                 getDoc(doc(db, 'users', id))
+             ]);
+
+             if (privateSnap.exists()) {
+                 privateData = { id: privateSnap.id, ...privateSnap.data() };
+             }
+             if (userSnap.exists()) {
+                 userData = { id: userSnap.id, ...userSnap.data() };
              }
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
             if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
-                console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
+                console.warn('[FirestoreDataService] fetchIndividualById: Supplemental data fetch failed:', e);
             }
         }
         
-        return User.fromPublicPrivate(id, publicData, privateData);
+        // Merge order: public < private < user (users doc has highest authority for role/permissions)
+        const combinedData = {
+            ...(publicData || {}),
+            ...(privateData || {}),
+            ...(userData || {})
+        };
+
+        return User.fromFirestore(id, combinedData);
     },
 
     /**
