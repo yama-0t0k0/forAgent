@@ -91,19 +91,13 @@ service cloud.firestore {
       // + Data Validation: role must be valid, companyId required for corporate
       allow create: if isOwner(userId) 
                     && (
-                      // Standard creation: Role must not be admin (unless dev grant used), must be valid
-                      (
-                        (!('role' in request.resource.data) || request.resource.data.role != 'admin')
-                        && ('role' in request.resource.data && request.resource.data.role in ['individual', 'corporate'])
-                        && (request.resource.data.role != 'corporate' || ('companyId' in request.resource.data && request.resource.data.companyId is string))
-                      )
-                      // Dev Mode Exception: Allow creating admin if dev_admin_grant flag is present
-                      || (request.resource.data.dev_admin_grant == 'allow_local_dev')
+                      // Standard creation: Role must not be admin, must be valid
+                      (!('role' in request.resource.data) || request.resource.data.role != 'admin')
+                      && ('role' in request.resource.data && request.resource.data.role in ['individual', 'corporate'])
+                      && (request.resource.data.role != 'corporate' || ('companyId' in request.resource.data && request.resource.data.companyId is string))
                     );
                     
       allow update: if isAdmin() 
-                    // Development Auto-Admin Grant (Allows developers to promote themselves in Dev mode)
-                    || (isOwner(userId) && request.resource.data.dev_admin_grant == 'allow_local_dev')
                     || (isOwner(userId) 
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
                         && (!('companyId' in request.resource.data) || request.resource.data.companyId == resource.data.companyId));

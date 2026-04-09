@@ -68,18 +68,21 @@ const functionsRegion = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'us-central1
 const functions = getFunctions(app, functionsRegion);
 
 
-// Connect to Emulators during development
-if (__DEV__) {
+// Connect to Emulators during development if explicitly requested
+const useEmulator = process.env.EXPO_PUBLIC_USE_EMULATOR === 'true';
+if (__DEV__ && useEmulator) {
   try {
     // Note: use '10.0.2.2' for Android emulator if necessary, but 'localhost' works for web/iOS
     const host = 'localhost';
     connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
     connectFirestoreEmulator(db, host, 8080);
     connectFunctionsEmulator(functions, host, 5001);
-    console.log('🚀 [FirebaseConfig] Connected to Firebase Emulators');
+    console.log('🧪 [FirebaseConfig] Connected to Firebase Emulators');
   } catch (e) {
     console.log('ℹ️ [FirebaseConfig] Emulators already connected or connection failed');
   }
+} else if (__DEV__) {
+  console.log('🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)');
 }
 
 export { db, auth, functions };
