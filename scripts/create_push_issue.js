@@ -282,31 +282,41 @@ ${recentContext}
         const tempBodyFile = `/tmp/issue_body_${Date.now()}.md`;
         fs.writeFileSync(tempBodyFile, issueBody);
         
+        const repoArg = CONFIG.repoUrl ? `--repo "${CONFIG.repoUrl}"` : '';
+        const milestoneArg = CONFIG.targetMilestone ? `--milestone "${CONFIG.targetMilestone}"` : '';
+        const titleArg = `--title "${issueTitle.replace(/"/g, '\\"')}"`;
+        const bodyArg = `--body-file "${tempBodyFile}"`;
+
+        const createIssue = (labels) => {
+            const labelArg = labels ? `--label "${labels}"` : '';
+            const cmd = `gh issue create ${repoArg} ${titleArg} ${bodyArg} ${labelArg} ${milestoneArg}`;
+            return execSync(cmd, { encoding: 'utf-8' }).trim();
+        };
+
         try {
-            const repoArg = CONFIG.repoUrl ? `--repo "${CONFIG.repoUrl}"` : '';
-            const labelArg = finalLabels ? `--label "${finalLabels.split(',').join('","')}"` : '';
-            const milestoneArg = CONFIG.targetMilestone ? `--milestone "${CONFIG.targetMilestone}"` : '';
-            
-            // gh issue create
-            const cmd = `gh issue create ${repoArg} --title "${issueTitle.replace(/"/g, '\\"')}" --body-file "${tempBodyFile}" ${labelArg} ${milestoneArg}`;
-            
-            // Execute
-            // We use execSync with inherited stdio to let gh interact if needed (though we provide all args)
-            // But here we want to capture the URL.
-            // ghが必要に応じて対話できるように、継承されたstdioでexecSyncを使用する（ただし、すべての引数を提供している）
-            // しかし、ここではURLをキャプチャしたい。
-            const issueUrl = execSync(cmd, { encoding: 'utf-8' }).trim();
+            const issueUrl = createIssue(finalLabels);
             console.log(`✅ Issue created successfully: ${issueUrl}`);
-            
-            // Cleanup
-        // クリーンアップ
-        fs.unlinkSync(tempBodyFile);
-        
-    } catch (e) {
-        console.error('❌ Failed to create issue:', e.message);
-        if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
-        process.exit(1);
-    }
+            fs.unlinkSync(tempBodyFile);
+            return;
+        } catch (e) {
+            const message = e?.message || String(e);
+            if (finalLabels && message.includes('could not add label')) {
+                console.warn(`⚠️ Failed to create issue with labels (${finalLabels}). Retrying without labels...`);
+                try {
+                    const issueUrl = createIssue('');
+                    console.log(`✅ Issue created successfully: ${issueUrl}`);
+                    fs.unlinkSync(tempBodyFile);
+                    return;
+                } catch (retryError) {
+                    console.error('❌ Failed to create issue:', retryError?.message || String(retryError));
+                    if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
+                    process.exit(1);
+                }
+            }
+            console.error('❌ Failed to create issue:', message);
+            if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
+            process.exit(1);
+        }
 }
 
 main();
