@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
@@ -365,6 +365,30 @@ export default function DashboardScreen() {
    */
   const resolveCompanyName = (id) => getCompanyName(id, data?.corporate);
 
+  /**
+   * Performs a global search by email if local results are not found.
+   * @param {string} email - The email to search for.
+   */
+  const handleGlobalSearch = async (email) => {
+    if (!email) return;
+    try {
+      setSelectedUserLoading(true);
+      const user = await FirestoreDataService.fetchIndividualByEmail(email);
+      if (user) {
+        setSelectedUserId(user.id);
+        setSelectedUserDoc(user);
+        setSelectedUserCache(prev => ({ ...prev, [user.id]: user }));
+      } else {
+        Alert.alert('検索結果', `メールアドレス "${email}" に一致するユーザーは見つかりませんでした。`);
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('エラー', '検索中にエラーが発生しました。');
+    } finally {
+      setSelectedUserLoading(false);
+    }
+  };
+
   // ---------------------------
   // Render
   // ---------------------------
@@ -433,6 +457,7 @@ export default function DashboardScreen() {
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
             onUserPress={(item) => setSelectedUserId(item.id)}
+            onGlobalSearch={handleGlobalSearch}
           />
         )}
         {activeTab === DASHBOARD_TABS.COMPANY && (

@@ -12,6 +12,9 @@ import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+import { grantCorporatePermission } from '@shared/src/features/registration/services/registrationService';
+import { THEME } from '@shared/src/core/theme/theme';
+import { Alert, TouchableOpacity } from 'react-native';
 // Fix import path for JobDescriptionScreen using relative path to avoid alias issues
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
@@ -55,6 +58,54 @@ const UserDetailContent = ({ userId, userDoc }) => {
   const currentRoute = stack[stack.length - 1];
 
   if (!currentRoute) return null;
+
+  /**
+   * Handles granting the corporate registration permission.
+   */
+  const handleGrantPermission = async () => {
+    try {
+      Alert.alert('確認', 'このユーザーに法人アカウントの作成権限を付与しますか？', [
+        { text: 'キャンセル', style: 'cancel' },
+        { 
+          text: '付与する', 
+          onPress: async () => {
+             const result = await grantCorporatePermission(userId);
+             if (result.success) {
+               Alert.alert('完了', '権限を付与しました。ユーザーに通知が送信されます。');
+               // Refresh local user state if needed (or rely on next refresh)
+             }
+          }
+        }
+      ]);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('エラー', '権限付与に失敗しました。');
+    }
+  };
+
+  /**
+   * Renders the administrative controls for the user.
+   */
+  const renderAdminControls = () => {
+    // Only show if not already a corporate member and doesn't have the flag
+    if (userDoc.isCorporateMember && userDoc.isCorporateMember()) return null;
+    if (userDoc.canCreateCompany) return (
+       <View style={{ padding: 15, backgroundColor: THEME.surfaceNeutral, borderBottomWidth: 1, borderBottomColor: THEME.borderDefault }}>
+         <Text style={{ color: THEME.textSecondary, fontSize: 12 }}>※ このユーザーは既に法人登録権限を持っています</Text>
+       </View>
+    );
+
+    return (
+      <View style={{ padding: 15, backgroundColor: THEME.surface, borderBottomWidth: 1, borderBottomColor: THEME.borderDefault }}>
+        <TouchableOpacity 
+          style={{ backgroundColor: THEME.success, padding: 12, borderRadius: 8, alignItems: 'center' }}
+          onPress={handleGrantPermission}
+        >
+          <Text style={{ color: THEME.textInverse, fontWeight: 'bold' }}>法人登録権限 (canCreateCompany) を付与する</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   /**
    * Custom save logic for Admin App to handle split data (public_profile + private_info).
@@ -120,6 +171,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
     <DataProvider initialData={userDoc}>
       <NavigationContext.Provider value={navigation}>
         <GestureHandlerRootView style={{ flex: 1 }}>
+          {renderAdminControls()}
           {renderScreen()}
         </GestureHandlerRootView>
       </NavigationContext.Provider>
@@ -148,41 +200,16 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
   const enhancedUserDoc = useMemo(() => {
     if (!userDoc) return null;
 
-    // Create a new object to avoid mutating the original model if it's reused elsewhere
-    // If userDoc is a class instance, we might lose prototype methods if we strictly spread it,
-    // but DataProvider treats `initialData` as the state root.
-    // IndividualProfileScreen treats the context root as the user object.
-
-    // We want to preserve the User model instance nature if possible for the 'user part',
-    // but we also need to attach 'jd' and 'users' properties to it.
-    // Since JavaScript objects are dynamic, we can try to attach them directly if it's extensible,
-    // or create a shallow clone that inherits the prototype.
-
-    // However, explicit object spread is safer for React state immutability.
-    // Let's rely on the fact that existing code likely accesses properties, not methods heavily,
-    // OR that DataContext.js handles prototype preservation in `updateValue`.
-
-    // But here we are setting `initialData`.
-
-    // Let's try to clone efficiently:
-    const base = userDoc.rawData ? userDoc : { ...userDoc };
-    // Note: If userDoc is a class, spreading it `{...userDoc}` usually gets own properties. 
-    // If getters are on prototype, they might be lost if we just object-spread.
-    // BUT the simplest approach that usually works in this codebase (seeing other usages) is object extension.
-
-    // Ideally:
-    // const enhanced = Object.create(Object.getPrototypeOf(userDoc));
-    // Object.assign(enhanced, userDoc);
-    // enhanced.jd = adminData?.jd || [];
-    // enhanced.users = adminData?.users || [];
-
-    // Simpler approach for now (assumed sufficient based on codebase):
-    return {
-      ...userDoc,
+    // Preserve the User model prototype methods (like isCorporateMember)
+    // while attaching additional lists required for child components.
+    const enhanced = Object.create(Object.getPrototypeOf(userDoc));
+    Object.assign(enhanced, userDoc, {
       jd: adminData?.jd || [],
       users: adminData?.users || [],
-      fmjs: adminData?.fmjs || [] // Also pass FMJS just in case
-    };
+      fmjs: adminData?.fmjs || []
+    });
+
+    return enhanced;
   }, [userDoc, adminData]);
 
   return (
