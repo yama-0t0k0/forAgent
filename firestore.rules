@@ -299,5 +299,22 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update, delete: if (request.auth != null && request.auth.uid == userId) || isAdmin();
     }
+    // ----------------------------------------------------------------------------
+    // 10. Notifications (notifications)
+    // 通知 (notifications)
+    // ----------------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.uid == request.auth.uid);
+    }
+
+    // ----------------------------------------------------------------------------
+    // 11. Registration Drafts (registration_drafts)
+    // 下書き保存 (registration_drafts)
+    // ----------------------------------------------------------------------------
+    match /registration_drafts/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
   }
 }

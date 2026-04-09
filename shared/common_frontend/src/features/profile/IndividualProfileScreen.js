@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import registrationService from '@shared/src/features/registration/services/registrationService';
 import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
@@ -70,6 +71,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
     const [heatmapValues, setHeatmapValues] = useState(null);
+    const [registrationDraft, setRegistrationDraft] = useState(null);
 
     const [containerWidth, setContainerWidth] = useState(width);
 
@@ -88,6 +90,17 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             setHeatmapValues(values);
         }
     }, [userDoc, heatmapValues]);
+
+    // Check for registration drafts if eligible
+    useEffect(() => {
+        const checkDraft = async () => {
+            if (isCurrentUser && user.canCreateCompany) {
+                const draft = await registrationService.getRegistrationDraft(user.uid);
+                setRegistrationDraft(draft);
+            }
+        };
+        checkDraft();
+    }, [isCurrentUser, user.canCreateCompany, user.uid]);
 
     /**
      * Navigates to the registration/edit screen.
@@ -218,6 +231,21 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
                 <View style={styles.badgeSection} testID='skill_badge_section'>
+                    {/* Hybrid Onboarding Banner */}
+                    {registrationDraft && (
+                        <TouchableOpacity 
+                            style={styles.draftBanner}
+                            onPress={() => navigation.navigate(ROUTES.REGISTRATION, { 
+                                type: 'corporate', 
+                                resumeData: registrationDraft.formData 
+                            })}
+                        >
+                            <Ionicons name="time-outline" size={20} color={THEME.textInverse} />
+                            <Text style={styles.draftBannerText}>法人登録を再開する</Text>
+                            <Ionicons name="chevron-forward" size={16} color={THEME.textInverse} />
+                        </TouchableOpacity>
+                    )}
+
                     <View style={styles.tradingCardRow}>
                         {['コアスキル', 'サブスキル1', 'サブスキル2'].map((label, index) => {
                             const skills = ['サーバサイド', 'iOS', 'AWS'];
@@ -267,7 +295,18 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
             {/* 7. Center Overlay Button (e.g. 'Career Detail' or 'Chat') */}
             {showBottomNav && (
-                <View style={styles.bottomNavCenterOverlay} pointerEvents='box-none'>
+                <View style={[styles.bottomNavCenterOverlay, { gap: 15 }]} pointerEvents='box-none'>
+                    {user.canCreateCompany && (
+                        <TouchableOpacity
+                            style={[styles.centerButton, { backgroundColor: THEME.success }]}
+                            onPress={() => navigation.navigate(ROUTES.REGISTRATION, { type: 'corporate' })}
+                            testID='corporate_registration_button'
+                        >
+                            <Text style={styles.centerButtonText}>法人登録</Text>
+                            <Ionicons name='business-outline' size={18} color={THEME.textInverse} style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    )}
+
                     <TouchableOpacity
                         style={styles.centerButton}
                         onPress={() => navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc })}
@@ -477,8 +516,27 @@ const styles = StyleSheet.create({
         bottom: 30, // Adjust to overlap BottomNav correctly
         left: 0,
         right: 0,
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
         zIndex: 101,
+    },
+    draftBanner: {
+        backgroundColor: THEME.primary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 12,
+        marginBottom: 15,
+        gap: 10,
+        ...THEME.shadow.md,
+    },
+    draftBannerText: {
+        flex: 1,
+        color: THEME.textInverse,
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     centerButton: {
         backgroundColor: THEME.primary,

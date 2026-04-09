@@ -14,13 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../features/firebase/config';
-import { 
-    createUserWithEmailAndPassword, 
-    GoogleAuthProvider, 
-    GithubAuthProvider, 
-    signInWithPopup 
-} from 'firebase/auth';
-import { registerUser } from '@shared/src/features/registration/services/registrationService';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from 'firebase/auth';
+import registrationService, { registerUser } from '@shared/src/features/registration/services/registrationService';
 import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -45,27 +40,35 @@ const RegistrationFormScreen = ({ navigation, route }) => {
     const slideAnim = useRef(new Animated.Value(0)).current;
 
     // Define steps based on type
+    // Define steps
     const individualSteps = [
-        { key: 'name', label: '氏名を教えてください', placeholder: '山田 太郎', type: 'text' },
-        { key: 'name_eng', label: '氏名（ローマ字）を教えてください', placeholder: 'Taro Yamada', type: 'text' },
+        { key: 'family_name', label: '姓を教えてください', placeholder: '山田', type: 'text' },
+        { key: 'first_name', label: '名を教えてください', placeholder: '太郎', type: 'text' },
+        { key: 'family_name_eng', label: '姓（ローマ字）', placeholder: 'Yamada', type: 'text' },
+        { key: 'first_name_eng', label: '名（ローマ字）', placeholder: 'Taro', type: 'text' },
         { key: 'email', label: '連絡用メールアドレス', placeholder: 'example@lat-inc.com', type: 'email' },
-        { key: 'phone', label: '電話番号をご入力ください', placeholder: '09012345678', type: 'phone' },
-        { key: 'occupation', label: '現在の主な職種は何ですか？', placeholder: 'エンジニア / デザイナー 等', type: 'text' },
+        { key: 'phone', label: '電話番号', placeholder: '09012345678', type: 'phone' },
+        { key: 'occupation', label: '現在の職種', placeholder: 'エンジニア / デザイナー 等', type: 'text' },
     ];
 
     const corporateSteps = [
         { key: 'company_name', label: '正式な会社名を教えてください', placeholder: '株式会社LaT', type: 'text' },
         { key: 'position', label: '部署名・役職を教えてください', placeholder: '人事部 採用担当', type: 'text' },
-        { key: 'contact_name', label: 'ご担当者様の氏名を入力してください', placeholder: '山田 太郎', type: 'text' },
         { key: 'work_email', label: '会社用メールアドレス', placeholder: 'recruiting@company.com', type: 'email' },
         { key: 'work_phone', label: '会社の電話番号', placeholder: '0312345678', type: 'phone' },
     ];
 
-    // Add Password step if using email
-    const baseSteps = isCorporate ? corporateSteps : individualSteps;
-    const steps = authMethod === 'email' 
-        ? [...baseSteps, { key: 'password', label: 'ログイン用パスワードを設定してください', placeholder: '8文字以上', type: 'password' }]
-        : baseSteps;
+    // Password step conditionally
+    const passwordStep = authMethod === 'email' 
+        ? [{ key: 'password', label: 'ログイン用パスワードを設定してください', placeholder: '8文字以上', type: 'password' }]
+        : [];
+
+    // Hybrid logic: If corporate, do BOTH. If individual, just individual.
+    const steps = isCorporate 
+        ? [...individualSteps, ...passwordStep, ...corporateSteps] 
+        : [...individualSteps, ...passwordStep];
+
+    const isLastIndividualStep = currentStep === (individualSteps.length + passwordStep.length - 1);
 
     const currentStepConfig = steps[currentStep];
 
@@ -85,15 +88,47 @@ const RegistrationFormScreen = ({ navigation, route }) => {
 
     const handleNext = async () => {
         const val = formData[currentStepConfig.key];
-        if (!val || val.length < (currentStepConfig.key === 'password' ? 8 : 2)) {
+        if (!val || val.length < (currentStepConfig.key === 'password' ? 8 : (currentStepConfig.key === 'phone' ? 10 : 2))) {
             Alert.alert('入力エラー', `${currentStepConfig.label}を正しく入力してください。`);
             return;
         }
 
-        if (currentStep < steps.length - 1) {
+        // Logic for transition or next step
+        if (isCorporate && isLastIndividualStep) {
+            handleTransitionToCorporate();
+        } else if (currentStep < steps.length - 1) {
+            // Auto-save if we are in corporate phase (where uid exists)
+            if (isCorporate && currentStep >= individualSteps.length + passwordStep.length) {
+                registrationService.autoSaveDraft(formData);
+            }
             animateTransition(() => setCurrentStep(currentStep + 1));
         } else {
             handleFinalSubmit();
+        }
+    };
+
+    const handleTransitionToCorporate = async () => {
+        setIsLoading(true);
+        try {
+            console.log('[Registration] Finalizing individual phase...');
+            
+            // 1. Auth (if email)
+            let user = auth.currentUser;
+            if (authMethod === 'email' && !user) {
+                const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+                user = userCredential.user;
+            }
+
+            // 2. Register as Individual first
+            await registerUser(formData, 'individual', invitationInfo?.code);
+            
+            console.log('[Registration] Individual phase complete. Moving to corporate.');
+            animateTransition(() => setCurrentStep(currentStep + 1));
+        } catch (error) {
+            console.error('[Registration] Transition Error:', error);
+            Alert.alert('エラー', 'プロフィールの保存に失敗しました。');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -118,15 +153,18 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                 throw new Error('認証に失敗しました。もう一度やり直してください。');
             }
 
-            // 2. Firestore Sync (Profiles/PrivateInfo/InvitationCode)
+            // 2. Final Firestore Sync
+            const finalRole = isCorporate ? 'corporate' : 'individual';
             const result = await registerUser(
                 formData, 
-                invitationInfo?.type || 'individual', 
-                invitationInfo?.code
+                finalRole, 
+                isCorporate ? null : invitationInfo?.code // Code used in transition if corporate
             );
 
             if (result.success) {
-            Alert.alert('登録完了', 'アカウントの作成が完了しました。', [
+                // Clear draft upon success
+                // registrationService.clearDraft() // Optional
+                Alert.alert('登録完了', '全ての登録が完了しました。', [
                     { text: 'OK', onPress: () => navigation.navigate('Home', { registrationSuccess: true }) }
                 ]);
             }

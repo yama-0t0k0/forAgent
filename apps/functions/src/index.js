@@ -15,6 +15,7 @@ const {
 } = require("./passkey");
 const { checkRateLimit } = require("./rateLimiter");
 const { resetUsageStats } = require("./resetUsageStats");
+const { onUserCreated } = require("./auth");
 
 const corsHandler = cors({ origin: true });
 const NOTE_MAGAZINE_RSS_URL = "https://note.com/lycaonpictus/m/m7f05093c60f0/rss";
@@ -387,3 +388,4 @@ exports.repairAdminPermissions = repairAdminPermissions;
 exports.listPasskeys = listPasskeys;
 exports.deletePasskey = deletePasskey;
 exports.resetUsageStats = resetUsageStats;
+exports.onUserCreated = onUserCreated;

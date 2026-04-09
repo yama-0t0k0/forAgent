@@ -5,7 +5,9 @@
  * and user enrollment.
  */
 import { db, auth } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, serverTimestamp, runTransaction, query, where, collection, getDocs, limit } from 'firebase/firestore';
+
+const FIRESTORE_OP_EQUALS = '=' + '=';
 
 export const VALIDATION_RULES = {
   // RFC 5322 compliant email regex
@@ -63,14 +65,143 @@ export const validateInvitationCode = async (code) => {
 };
 
 /**
- * Simulates auto-saving registration progress
+ * [Admin only] Creates a new invitation code in Firestore.
+ */
+export const createInvitationCode = async (type, expiresDays = 7) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Unauthorized');
+
+  // Generate a random 6-7 digit alphanumeric code
+  const code = Math.random().toString(36).substring(2, 9).toUpperCase();
+  console.log(`[Service] Creating ${type} invitation code: ${code}`);
+
+  try {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expiresDays);
+
+    const docRef = doc(db, 'invitationCodes', code);
+    await setDoc(docRef, {
+      code,
+      type,
+      issuerUid: user.uid,
+      status: 'active',
+      expiresAt: expiresAt,
+      createdAt: serverTimestamp(),
+    });
+
+    return { success: true, code };
+  } catch (error) {
+    console.error('[Service] Error creating invitation code:', error);
+    throw error;
+  }
+};
+
+/**
+ * [Admin only] Searches for a user by email in the private_info collection.
+ * Requires a compound index on private_info.email.
+ */
+export const searchUserByEmail = async (email) => {
+  console.log(`[Service] Searching user by email: ${email}`);
+  try {
+    const q = query(
+      collection(db, 'private_info'),
+      where('email', FIRESTORE_OP_EQUALS, email),
+      limit(1)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return { found: false };
+    }
+    
+    const docData = querySnapshot.docs[0].data();
+    return {
+      found: true,
+      uid: docData.uid,
+      email: docData.email
+    };
+  } catch (error) {
+    console.error('[Service] Error searching user by email:', error);
+    throw error;
+  }
+};
+
+/**
+ * [Admin only] Directly grants corporate registration permission to a user.
+ */
+export const grantCorporatePermission = async (uid) => {
+  console.log(`[Service] Granting corporate permission to: ${uid}`);
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      canCreateCompany: true,
+      updatedAt: serverTimestamp(),
+    });
+    
+    // Create a system notification (mock for now, could be a collection)
+    const notificationRef = doc(db, 'notifications', `${uid}_corp_grant`);
+    await setDoc(notificationRef, {
+      uid,
+      type: 'permission_granted',
+      message: '法人アカウントの作成権限が付与されました。マイページから登録を開始できます。',
+      createdAt: serverTimestamp(),
+      isRead: false
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Service] Error granting corporate permission:', error);
+    throw error;
+  }
+};
+
+/**
+ * Auto-saves registration progress to registration_drafts collection.
+ */
+export const saveRegistrationDraft = async (uid, data) => {
+  if (!uid) return;
+  console.log(`[Service] Saving draft for ${uid}`);
+  
+  try {
+    const draftRef = doc(db, 'registration_drafts', uid);
+    await setDoc(draftRef, {
+      uid,
+      type: 'corporate',
+      formData: data,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('[Service] Error saving draft:', error);
+    return { success: false };
+  }
+};
+
+/**
+ * Fetches existing registration draft.
+ */
+export const getRegistrationDraft = async (uid) => {
+  if (!uid) return null;
+  try {
+    const draftRef = doc(db, 'registration_drafts', uid);
+    const draftSnap = await getDoc(draftRef);
+    return draftSnap.exists() ? draftSnap.data() : null;
+  } catch (error) {
+    console.error('[Service] Error fetching draft:', error);
+    return null;
+  }
+};
+
+/**
+ * Legacy mock auto-save (Will be phased out)
  */
 export const autoSaveDraft = async (data) => {
-  console.log('[Mock API] Auto-saving progress:', data);
-  
-  // In a real app, this would save to a temporary Firestore doc or LocalStorage
-  // For Phase 1, we just return success.
-  return { success: true, timestamp: new Date().toISOString() };
+  const user = auth.currentUser;
+  if (user) {
+    return saveRegistrationDraft(user.uid, data);
+  }
+  return { success: false };
 };
 
 /**
@@ -146,6 +277,11 @@ export const registerUser = async (registrationData, codeType, invitationCode) =
 export default {
   VALIDATION_RULES,
   validateInvitationCode,
+  createInvitationCode,
+  searchUserByEmail,
+  grantCorporatePermission,
+  saveRegistrationDraft,
+  getRegistrationDraft,
   autoSaveDraft,
   registerUser,
 };
