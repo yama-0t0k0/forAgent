@@ -4,6 +4,7 @@ import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { EngineerListItem } from '@shared/src/features/engineer/components/EngineerListItem';
 import { styles } from '@features/dashboard/dashboardStyles';
+import { THEME } from '@shared/src/core/theme/theme';
 
 export const IndividualTab = ({
   searchQuery,
@@ -28,7 +29,7 @@ export const IndividualTab = ({
           </Text>
           <GenericSearchBar
             // Re-using GenericSearchBar's styling or just a button
-            placeholder="メールアドレスで検索"
+            placeholder='メールアドレスで検索'
             searchQuery={searchQuery}
             setSearchQuery={() => {}} // Read-only in this context
             hideFilters={true}
@@ -48,37 +49,39 @@ export const IndividualTab = ({
 
   return (
     <View style={styles.tabContent}>
-    <GenericSearchBar
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      placeholder='名前、住所、学校名、IDなどで検索'
-      quickFilters={[
-        { label: '今月登録', value: 'this_month' },
-        { label: 'エンジニア', value: 'engineer' }
-      ]}
-      onApplyFilter={(val) => console.log('Filter:', val)}
-      style={styles.searchContainer}
-    />
-      data={filteredUsers}
-      ListEmptyComponent={renderEmpty()}
-      renderItem={({ item }) => {
-        // Handle both Model and raw object
-        const rawItem = item.rawData || item;
-        const skills = extractSkills(item); // extractSkills now handles User model
-        const heatmapInfo = getHighDensityHeatmapData(rawItem);
+      <GenericSearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        placeholder='名前、住所、学校名、IDなどで検索'
+        quickFilters={[
+          { label: '今月登録', value: 'this_month' },
+          { label: 'エンジニア', value: 'engineer' }
+        ]}
+        onApplyFilter={(val) => console.log('Filter:', val)}
+        style={styles.searchContainer}
+      />
 
-        return (
-          <EngineerListItem
-            engineer={item}
-            skills={skills}
-            heatmapData={heatmapInfo}
-            onPress={() => onUserPress(item)}
-            testID='engineer_item'
-            showMatchScore={false}
-          />
-        );
-      }}
-      contentContainerStyle={styles.listContainer}
-    />
-  </View>
-);
+      <GenericDataList
+        data={filteredUsers}
+        ListEmptyComponent={renderEmpty()}
+        renderItem={({ item }) => {
+          const rawItem = item.rawData || item;
+          const skills = extractSkills(item);
+          const heatmapInfo = getHighDensityHeatmapData(rawItem);
+
+          return (
+            <EngineerListItem
+              engineer={item}
+              skills={skills}
+              heatmapData={heatmapInfo}
+              onPress={() => onUserPress(item)}
+              testID='engineer_item'
+              showMatchScore={false}
+            />
+          );
+        }}
+        contentContainerStyle={styles.listContainer}
+      />
+    </View>
+  );
+};

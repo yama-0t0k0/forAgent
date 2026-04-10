@@ -193,8 +193,8 @@ export default function DashboardScreen() {
     // if (users.length === 0) { ... }
 
     return users.filter(u => {
-      // Use rawData for nested fields not fully mapped in User model yet
-      const basicInfo = u.rawData['基本情報'] || {};
+      const rawData = u?.rawData || u || {};
+      const basicInfo = rawData['基本情報'] || rawData.basicInfo || {};
       const address = basicInfo['住所'] || {};
       const education = basicInfo['学歴詳細'] || {};
 
@@ -204,7 +204,7 @@ export default function DashboardScreen() {
         u.familyNameKanji,
         u.email,
         // Fallback checks for raw data
-        u.rawData.name,
+        rawData.name,
         basicInfo['姓'],
         basicInfo['名'],
         basicInfo['メールアドレス'],
@@ -213,7 +213,7 @@ export default function DashboardScreen() {
       ].filter(Boolean).join(' ').toLowerCase();
 
       return searchableText.includes(query);
-    }).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0)); // Newest first
+    }).sort((a, b) => ((b?.rawData?.createdAt || 0) - (a?.rawData?.createdAt || 0))); // Newest first
   }, [data?.users, searchQueries.individual]);
 
   // Company Tab Data

@@ -42,12 +42,14 @@ export class User {
         this.skillsExperience = skillsExperience || {};
         /** @type {Object.<string, any>} */
         this.aspirations = aspirations || {};
+        /** @type {Object.<string, any>} */
+        this.rawData = rawData || {};
         /** @type {string} */
-        this.role = rawData.role || 'individual';
+        this.role = this.rawData.role || 'individual';
         /** @type {string[]} */
-        this.allowedCompanies = rawData.allowed_companies || [];
+        this.allowedCompanies = this.rawData.allowed_companies || [];
         /** @type {boolean} */
-        this.canCreateCompany = canCreateCompany || !!rawData.canCreateCompany;
+        this.canCreateCompany = canCreateCompany || !!this.rawData.canCreateCompany;
     }
 
     /**
