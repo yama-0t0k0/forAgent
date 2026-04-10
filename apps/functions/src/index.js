@@ -13,6 +13,9 @@ const {
   listPasskeys,
   deletePasskey,
 } = require("./passkey");
+const { checkRateLimit } = require("./rateLimiter");
+const { resetUsageStats } = require("./resetUsageStats");
+const { onUserCreated } = require("./auth");
 
 const corsHandler = cors({ origin: true });
 const NOTE_MAGAZINE_RSS_URL = "https://note.com/lycaonpictus/m/m7f05093c60f0/rss";
@@ -135,7 +138,13 @@ const verifySignature = (signature, body) => {
  * - 署名を検証し、キャッシュを無効化（削除）する
  */
 exports.onContentUpdate = onRequest(async (req, res) => {
-  logger.info("onContentUpdate called", { structuredData: true });
+  // 1. Rate Limit Check
+  try {
+    await checkRateLimit("onContentUpdate");
+  } catch (e) {
+    res.status(429).send(e.message);
+    return;
+  }
 
   // 1. Validate Method
   if (req.method !== "POST") {
@@ -212,6 +221,14 @@ exports.helloWorld = onRequest((request, response) => {
 exports.getLpContent = onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     logger.info("getLpContent called", { structuredData: true });
+
+    // 0. Rate Limit Check
+    try {
+      await checkRateLimit("getLpContent");
+    } catch (e) {
+      res.status(429).send(e.message);
+      return;
+    }
 
     // 1. 認証チェック
     // onRequestの場合、req.authは自動的にセットされないため、
@@ -333,6 +350,14 @@ exports.getLpContent = onRequest(async (req, res) => {
 
 exports.getNoteMagazineNews = onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
+    // 0. Rate Limit Check
+    try {
+      await checkRateLimit("getNoteMagazineNews");
+    } catch (e) {
+      res.status(429).send(e.message);
+      return;
+    }
+
     if (req.method !== "GET") {
       res.status(405).send("Method Not Allowed");
       return;
@@ -362,3 +387,5 @@ exports.verifyPasskeyRegistration = verifyPasskeyRegistration;
 exports.repairAdminPermissions = repairAdminPermissions;
 exports.listPasskeys = listPasskeys;
 exports.deletePasskey = deletePasskey;
+exports.resetUsageStats = resetUsageStats;
+exports.onUserCreated = onUserCreated;

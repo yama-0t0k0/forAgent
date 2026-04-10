@@ -32,7 +32,7 @@ export const AppShell = ({
                 <StatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} />
                 {isLoading ? (
                     <View style={styles.loadingOverlay} testID='loading_indicator'>
-                        <ActivityIndicator size='large' color={THEME.accent} />
+                        <ActivityIndicator size='large' color={THEME.primary} />
                     </View>
                 ) : (
                     children

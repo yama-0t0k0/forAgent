@@ -359,7 +359,7 @@ export const PasskeyManagementSection = () => {
                         <Ionicons
                             name={isRegistered ? 'key' : 'key-outline'}
                             size={20}
-                            color={isRegistered ? '#10B981' : THEME.subText}
+                            color={isRegistered ? THEME.success : THEME.textSecondary}
                         />
                         <Text style={styles.statusLabel}>ステータス</Text>
                     </View>
@@ -379,10 +379,10 @@ export const PasskeyManagementSection = () => {
                                 disabled={isActionLoading}
                             >
                                 {isActionLoading ? (
-                                    <ActivityIndicator color="#FFF" />
+                                    <ActivityIndicator color={THEME.textInverse} />
                                 ) : (
                                     <>
-                                        <Ionicons name="finger-print-outline" size={20} color="#FFF" style={styles.buttonIcon} />
+                                        <Ionicons name="finger-print-outline" size={20} color={THEME.textInverse} style={styles.buttonIcon} />
                                         <Text style={styles.buttonText}>🔑 パスキーを登録する</Text>
                                     </>
                                 )}
@@ -401,7 +401,7 @@ export const PasskeyManagementSection = () => {
                                     {passkeys.map((pk) => (
                                         <View key={pk.credentialIdHash} style={styles.passkeyItem}>
                                             <View style={styles.passkeyItemLeft}>
-                                                <Ionicons name="key" size={20} color={THEME.subText} style={styles.passkeyItemIcon} />
+                                                <Ionicons name="key" size={20} color={THEME.textSecondary} style={styles.passkeyItemIcon} />
                                                 <View>
                                                     <Text style={styles.passkeyItemLabel}>
                                                         {pk.label || pk.deviceName || 'Unknown Device'}
@@ -421,7 +421,7 @@ export const PasskeyManagementSection = () => {
                                                 onPress={() => handleDeletePasskey(pk.credentialIdHash)}
                                                 disabled={isActionLoading}
                                             >
-                                                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                                                <Ionicons name="trash-outline" size={20} color={THEME.error} />
                                             </TouchableOpacity>
                                         </View>
                                     ))}
@@ -440,10 +440,10 @@ export const PasskeyManagementSection = () => {
                                         <Ionicons
                                             name={verificationStatus === 'success' ? 'checkmark-circle' : 'shield-checkmark-outline'}
                                             size={20}
-                                            color={verificationStatus === 'success' ? '#10B981' : THEME.primary}
+                                            color={verificationStatus === 'success' ? THEME.success : THEME.primary}
                                             style={styles.buttonIcon}
                                         />
-                                        <Text style={[styles.secondaryButtonText, verificationStatus === 'success' && { color: '#10B981' }]}>
+                                        <Text style={[styles.secondaryButtonText, verificationStatus === 'success' && { color: THEME.success }]}>
                                             {verificationStatus === 'success' ? '検証済み' : '今すぐパスキーログインを試す（検証）'}
                                         </Text>
                                     </>
@@ -473,28 +473,18 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '800',
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 8,
         marginLeft: 5,
         letterSpacing: 0.5,
     },
     card: {
-        backgroundColor: THEME.cardBg,
-        borderRadius: 16,
+        backgroundColor: THEME.surface,
+        borderRadius: THEME.radius.lg,
         padding: 16,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 10,
-            },
-            android: {
-                elevation: 3,
-            },
-        }),
+        borderColor: THEME.borderDefault,
+        ...THEME.shadow.md,
     },
     statusRow: {
         flexDirection: 'row',
@@ -509,7 +499,7 @@ const styles = StyleSheet.create({
     statusLabel: {
         fontSize: 15,
         fontWeight: '600',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginLeft: 8,
     },
     badge: {
@@ -518,27 +508,27 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     badgeRegistered: {
-        backgroundColor: '#D1FAE5',
+        backgroundColor: THEME.surfaceSuccess,
     },
     badgeUnregistered: {
-        backgroundColor: '#F1F5F9',
+        backgroundColor: THEME.surfaceNeutral,
     },
     badgeText: {
         fontSize: 12,
         fontWeight: '700',
     },
     badgeTextRegistered: {
-        color: '#059669',
+        color: THEME.textSuccess,
     },
     badgeTextUnregistered: {
-        color: '#64748B',
+        color: THEME.textSecondary,
     },
     actionContainer: {
         marginTop: 4,
     },
     infoText: {
         fontSize: 13,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginBottom: 16,
         lineHeight: 18,
     },
@@ -555,7 +545,7 @@ const styles = StyleSheet.create({
         // Vibrant primary color
     },
     secondaryButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: THEME.surface,
         borderWidth: 1,
         borderColor: THEME.primary,
     },
@@ -563,7 +553,7 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     buttonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 15,
         fontWeight: '700',
     },
@@ -578,19 +568,19 @@ const styles = StyleSheet.create({
     },
     reRegisterLinkText: {
         fontSize: 13,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         textDecorationLine: 'underline',
     },
     actionFeedbackText: {
         marginTop: 10,
         fontSize: 12,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         lineHeight: 16,
     },
     passkeyList: {
         marginBottom: 16,
-        backgroundColor: '#F8FAFC',
-        borderRadius: 12,
+        backgroundColor: THEME.background,
+        borderRadius: THEME.radius.md,
         padding: 8,
     },
     passkeyItem: {
@@ -600,7 +590,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 8,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
     },
     passkeyItemLeft: {
         flexDirection: 'row',
@@ -613,12 +603,12 @@ const styles = StyleSheet.create({
     passkeyItemLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 2,
     },
     passkeyItemDate: {
         fontSize: 11,
-        color: THEME.subText,
+        color: THEME.textSecondary,
     },
     deleteButton: {
         padding: 8,

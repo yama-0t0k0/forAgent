@@ -41,10 +41,10 @@ export const GenericBottomNav = ({ tabs, activeTab, onTabPress }) => {
                     >
                         {isActive ? (
                             <View style={styles.activeIconContainer}>
-                                <Ionicons name={tab.activeIcon || tab.icon.replace('-outline', '')} size={24} color={THEME.background} />
+                                <Ionicons name={tab.activeIcon || tab.icon.replace('-outline', '')} size={24} color={THEME.textInverse} />
                             </View>
                         ) : (
-                            <Ionicons name={tab.icon} size={26} color={THEME.subText} />
+                            <Ionicons name={tab.icon} size={26} color={THEME.textSecondary} />
                         )}
                         <Text style={isActive ? styles.navTextActive : styles.navText}>{tab.label}</Text>
                     </TouchableOpacity>
@@ -57,10 +57,10 @@ export const GenericBottomNav = ({ tabs, activeTab, onTabPress }) => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        backgroundColor: THEME.cardBg,
+        backgroundColor: THEME.surface,
         height: 75,
         borderTopWidth: 1,
-        borderTopColor: THEME.cardBorder,
+        borderTopColor: THEME.borderDefault,
         alignItems: 'center',
         justifyContent: 'space-around',
         paddingBottom: 15,
@@ -75,19 +75,19 @@ const styles = StyleSheet.create({
     activeIconContainer: {
         width: 38,
         height: 38,
-        backgroundColor: THEME.accent,
-        borderRadius: 10,
+        backgroundColor: THEME.primary,
+        borderRadius: THEME.radius.md,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 3,
     },
     navText: {
-        color: THEME.subText,
+        color: THEME.textSecondary,
         fontSize: 10,
         marginTop: 2,
     },
     navTextActive: {
-        color: THEME.accent,
+        color: THEME.primary,
         fontSize: 10,
         fontWeight: '800',
         marginTop: 2,

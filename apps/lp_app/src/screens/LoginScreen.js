@@ -16,6 +16,7 @@ import { auth } from '../features/firebase/config';
 import { logCustomEvent, setAnalyticsUser, setAnalyticsUserProperties } from '../features/analytics';
 import { getRedirectUrlForRole, redirectToApp } from '../utils/navigationHelper';
 import { resolveUserRole } from '../features/firebase/authUtils';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const ERROR_CODES = {
     USER_NOT_FOUND: 'auth/user-not-found',
@@ -122,7 +123,7 @@ const LoginScreen = ({ navigation }) => {
                             autoCapitalize='none'
                             keyboardType='email-address'
                             autoComplete='email'
-                            placeholderTextColor='#999'
+                            placeholderTextColor={THEME.textMuted}
                         />
                     </View>
 
@@ -135,7 +136,7 @@ const LoginScreen = ({ navigation }) => {
                             onChangeText={setPassword}
                             secureTextEntry
                             autoComplete='password'
-                            placeholderTextColor='#999'
+                            placeholderTextColor={THEME.textMuted}
                         />
                     </View>
 
@@ -145,7 +146,7 @@ const LoginScreen = ({ navigation }) => {
                         disabled={isLoading}
                     >
                         {isLoading ? (
-                            <ActivityIndicator color='#fff' />
+                            <ActivityIndicator color={THEME.textInverse} />
                         ) : (
                             <Text style={styles.loginButtonText}>ログイン</Text>
                         )}
@@ -165,18 +166,18 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: THEME.background,
     },
     content: {
         flex: 1,
         paddingHorizontal: 24,
     },
     backButton: {
-        marginTop: 16,
+        marginTop: 16, 
         paddingVertical: 8,
     },
     backButtonText: {
-        color: '#007AFF',
+        color: THEME.primary,
         fontSize: 16,
         fontWeight: '500',
     },
@@ -187,12 +188,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#333',
+        color: THEME.textPrimary,
         marginBottom: 12,
     },
     subtitle: {
         fontSize: 16,
-        color: '#666',
+        color: THEME.textSecondary,
         lineHeight: 24,
     },
     form: {
@@ -204,37 +205,37 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#333',
+        color: THEME.textPrimary,
     },
     input: {
         height: 50,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: THEME.borderDefault,
         borderRadius: 8,
         paddingHorizontal: 16,
         fontSize: 16,
-        color: '#333',
-        backgroundColor: '#f9f9f9',
+        color: THEME.textPrimary,
+        backgroundColor: THEME.surfaceInput,
     },
     loginButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: THEME.primary,
         height: 54,
         borderRadius: 27,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 16,
-        shadowColor: '#007AFF',
+        shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 5,
     },
     loginButtonDisabled: {
-        backgroundColor: '#ccc',
+        backgroundColor: THEME.borderLight,
         shadowOpacity: 0,
     },
     loginButtonText: {
-        color: '#fff',
+        color: THEME.textInverse,
         fontSize: 18,
         fontWeight: 'bold',
     },
@@ -245,8 +246,8 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 12,
-        color: '#999',
-        textAlign: 'center',
+        color: THEME.textMuted,
+        textAlign: 'center', 
         lineHeight: 18,
     },
 });

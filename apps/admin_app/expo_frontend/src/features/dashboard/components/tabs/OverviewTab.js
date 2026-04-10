@@ -4,6 +4,7 @@ import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import { StatusBadge } from '@shared/src/core/components/StatusBadge';
 import { PrimaryButton } from '@shared/src/core/components/PrimaryButton';
 import { IconButton } from '@shared/src/core/components/IconButton';
+import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '@features/dashboard/dashboardStyles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -54,11 +55,11 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
           <View style={{ alignItems: 'center', marginVertical: 10 }}>
             <PieChart
               data={[
-                { value: 20, color: '#4CAF50' }, // 大変満足
-                { value: 30, color: '#8BC34A' }, // 満足
-                { value: 20, color: '#FFEB3B' }, // 普通
-                { value: 10, color: '#FF9800' }, // 不満
-                { value: 5, color: '#F44336' }, // 大変不満
+                { value: 20, color: THEME.success }, // 大変満足
+                { value: 30, color: THEME.chartLevel1 }, // 満足
+                { value: 20, color: THEME.warning }, // 普通
+                { value: 10, color: THEME.chartLevel3 }, // 不満
+                { value: 5, color: THEME.error }, // 大変不満
               ]}
               donut
               radius={45}
@@ -67,15 +68,15 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
           </View>
           <View style={styles.legendContainer}>
             <View style={styles.legendRow}>
-              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#4CAF50' }]} /><Text style={styles.legendText}>大変満足</Text></View>
-              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#8BC34A' }]} /><Text style={styles.legendText}>満足</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: THEME.success }]} /><Text style={styles.legendText}>大変満足</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: THEME.chartLevel1 }]} /><Text style={styles.legendText}>満足</Text></View>
             </View>
             <View style={styles.legendRow}>
-              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#FFEB3B' }]} /><Text style={styles.legendText}>普通</Text></View>
-              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#FF9800' }]} /><Text style={styles.legendText}>不満</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: THEME.warning }]} /><Text style={styles.legendText}>普通</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: THEME.chartLevel3 }]} /><Text style={styles.legendText}>不満</Text></View>
             </View>
             <View style={styles.legendRow}>
-              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: '#F44336' }]} /><Text style={styles.legendText}>大変不満</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: THEME.error }]} /><Text style={styles.legendText}>大変不満</Text></View>
             </View>
           </View>
         </View>
@@ -119,13 +120,13 @@ export const OverviewTab = ({ selectionFlowData, userGrowthData, connectionTrend
         </View>
         <LineChart
           data={connectionTrendsData}
-          color='#FF9800'
+          color={THEME.chartLevel3}
           thickness={3}
           yAxisThickness={0}
           xAxisThickness={0}
           height={150}
           hideDataPoints={false}
-          dataPointsColor='#FF9800'
+          dataPointsColor={THEME.chartLevel3}
         />
       </View>
     </ScrollView>

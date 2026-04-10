@@ -36,6 +36,8 @@ yarn-error.*
 .env*.local
 .env
 
+# Service Account Keys (Security)
+*serviceAccountKey*.json
 scripts/migration/serviceAccountKey.json
 scripts/migration/serviceAccountKey*.json
 

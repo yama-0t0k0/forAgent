@@ -24,6 +24,7 @@ import { HeatmapMapper } from '@shared/src/features/analytics/utils/HeatmapMappe
 import { THEME } from '@shared/src/core/theme/theme';
 import { HeatmapGeometry } from '@shared/src/features/analytics/utils/HeatmapGeometry';
 import { db } from '@shared/src/core/firebaseConfig';
+import { HEATMAP_COLORS } from '../constants/heatmap';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -61,11 +62,11 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
    */
   const getColor = (value) => {
     // 値に応じて段階的に色を変化させる（灰→淡→濃）
-    if (value === 0) return '#E2E8F0';
-    if (value <= 0.2) return '#BAE6FD';
-    if (value <= 0.5) return '#7DD3FC';
-    if (value <= 0.8) return THEME.accent;
-    return '#0369A1';
+    if (value === 0) return HEATMAP_COLORS.LEVEL_0;
+    if (value <= 0.2) return HEATMAP_COLORS.LEVEL_1;
+    if (value <= 0.5) return HEATMAP_COLORS.LEVEL_2;
+    if (value <= 0.8) return HEATMAP_COLORS.LEVEL_3;
+    return HEATMAP_COLORS.LEVEL_4;
   };
 
   /**
@@ -129,11 +130,11 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
               height: standardTileSize,
               backgroundColor: getColor(item.value),
               margin: 1,
-              borderRadius: 4, // Match HeatmapGrid
-              borderWidth: selectedTile?.id === item.id ? 2 : 0,
-              borderColor: '#334155',
-              zIndex: 1
-            }}
+                borderRadius: THEME.radius.sm,
+                borderWidth: selectedTile?.id === item.id ? 2 : 0,
+                borderColor: HEATMAP_COLORS.BORDER,
+                zIndex: 1
+              }}
             onPress={(e) => {
               e.stopPropagation(); // Prevent list item press
               handlePress(item, i);
@@ -177,19 +178,16 @@ export const MiniHeatmap = ({ data, rows, cols }) => {
 
 const styles = StyleSheet.create({
   tooltip: {
-    backgroundColor: '#1E293B',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: THEME.textPrimary,
+    ...THEME.shadow.md,
     elevation: 5,
   },
   tooltipTitle: {
-    color: '#F1F5F9',
+    color: THEME.surfaceInput,
     fontWeight: 'bold',
   },
   tooltipText: {
-    color: '#CBD5E1',
+    color: THEME.textSecondary,
   },
   tooltipArrow: {
     position: 'absolute',
@@ -205,11 +203,11 @@ const styles = StyleSheet.create({
   arrowUp: {
     top: -6,
     borderBottomWidth: 6,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: THEME.textPrimary,
   },
   arrowDown: {
     bottom: -6,
     borderTopWidth: 6,
-    borderTopColor: '#1E293B',
+    borderTopColor: THEME.textPrimary,
   },
 });

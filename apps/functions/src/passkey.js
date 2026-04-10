@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const crypto = require("crypto");
 const logger = require("firebase-functions/logger");
 const { generateAuthenticationOptions, verifyAuthenticationResponse, generateRegistrationOptions, verifyRegistrationResponse } = require('@simplewebauthn/server');
+const { checkRateLimit } = require("./rateLimiter");
 
 // Initialize admin if not already initialized
 if (admin.apps.length === 0) {
@@ -207,6 +208,7 @@ exports.getPasskeyChallenge = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, asyn
   logger.info("getPasskeyChallenge called", { data: request.data });
 
   try {
+    await checkRateLimit("getPasskeyChallenge");
     const rpId = resolveRpIdFromRequest(request, { strictRequested: true });
 
     // Generate options for authentication (login)
@@ -255,6 +257,7 @@ exports.getPasskeyRegistrationOptions = onCall({ secrets: PASSKEY_FUNCTION_SECRE
     uid;
 
   try {
+    await checkRateLimit("getPasskeyRegistrationOptions");
     const rpId = resolveRpIdFromRequest(request, { strictRequested: true });
 
     // 1. Get existing passkeys to prevent re-registering the same device
@@ -329,6 +332,7 @@ exports.verifyPasskeyRegistration = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }
   const rpIdFromRequest = resolveRpIdFromRequest(request);
 
   try {
+    await checkRateLimit("verifyPasskeyRegistration");
     // 1. Retrieve the challenge
     const clientDataJSON = getClientDataJSONFromResponse(response);
     const clientData = decodeBase64OrBase64UrlToJson(clientDataJSON);
@@ -420,6 +424,7 @@ exports.repairAdminPermissions = onCall(async (request) => {
   const oldUid = 'KPXa3AqE8QUUdHp9plpT9ubTOvv1'; // The old UID provided by the user
 
   try {
+    await checkRateLimit("repairAdminPermissions");
     // 1. Set Custom Claim
     await admin.auth().setCustomUserClaims(uid, { role: 'admin' });
     logger.info("Set admin claim for user", { uid });
@@ -466,6 +471,7 @@ exports.verifyPasskeyAndGetToken = onCall({ secrets: PASSKEY_FUNCTION_SECRETS },
   }
 
   try {
+    await checkRateLimit("verifyPasskeyAndGetToken");
     const credentialId = response.id;
 
     // 1. Find the user/credential
@@ -571,6 +577,7 @@ exports.listPasskeys = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (requ
   const rpId = resolveRpIdFromRequest(request);
 
   try {
+    await checkRateLimit("listPasskeys");
     const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
     const snapshot = await passkeysRef.select('createdAt', 'lastUsed', 'transports', 'label', 'deviceName').get();
     const passkeys = snapshot.docs.map((doc) => {
@@ -620,6 +627,7 @@ exports.deletePasskey = onCall({ secrets: PASSKEY_FUNCTION_SECRETS }, async (req
   }
 
   try {
+    await checkRateLimit("deletePasskey");
     const passkeysRef = db.collection('users').doc(uid).collection('passkeys');
 
     if (credentialIdInput) {

@@ -27,8 +27,8 @@ export const SwitchRow = ({ label, value, path }) => {
     <View style={styles.switchContainer}>
       <Text style={styles.label}>{label}</Text>
       <Switch
-        trackColor={{ false: '#CBD5E1', true: THEME.accent }}
-        thumbColor={'#FFFFFF'}
+        trackColor={{ false: THEME.borderDefault, true: THEME.primary }}
+        thumbColor={THEME.textInverse}
         onValueChange={(newValue) => updateValue(path, newValue)}
         value={!!value}
       />
@@ -41,14 +41,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: THEME.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.cardBorder,
+    borderBottomColor: THEME.borderDefault,
   },
   label: {
-    fontSize: 14,
-    color: THEME.subText,
-    marginBottom: 6,
+    ...THEME.typography.bodySmall,
+    color: THEME.textSecondary,
+    marginBottom: THEME.spacing.xs,
     fontWeight: '500',
   },
 });

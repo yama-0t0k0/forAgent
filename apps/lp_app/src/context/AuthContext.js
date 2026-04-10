@@ -71,30 +71,37 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            console.log('🔄 [AuthContext] onAuthStateChanged started', { uid: currentUser?.uid });
             setUser(currentUser);
 
             if (currentUser) {
                 const roleFromUidPrefix = resolveRoleFromUserIdPrefix(currentUser.uid);
+                console.log('🔄 [AuthContext] Role from UID prefix:', roleFromUidPrefix);
                 let roleFromToken = null;
                 let roleFromFirestore = null;
                 let tokenError = null;
                 let firestoreError = null;
 
                 try {
+                    console.log('🔄 [AuthContext] Fetching ID token results...');
                     const idTokenResult = await currentUser.getIdTokenResult(true);
                     roleFromToken = idTokenResult?.claims?.role || null;
+                    console.log('🔄 [AuthContext] Role from token claims:', roleFromToken);
                 } catch (e) {
                     tokenError = e;
+                    console.error('❌ [AuthContext] ID Token Result error:', e);
                 }
 
                 if (!roleFromToken) {
                     try {
+                        console.log('🔄 [AuthContext] Fetching user doc from Firestore...');
                         let userDocData = null;
 
                         const userDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
                         if (userDocSnap.exists()) {
                             userDocData = userDocSnap.data();
                         } else {
+                            console.log('🔄 [AuthContext] Doc not found in users/, checking Users/ (legacy)...');
                             const legacyUserDocSnap = await getDoc(doc(db, 'Users', currentUser.uid));
                             if (legacyUserDocSnap.exists()) {
                                 userDocData = legacyUserDocSnap.data();
@@ -102,14 +109,17 @@ export const AuthProvider = ({ children }) => {
                         }
 
                         roleFromFirestore = resolveRoleFromFirestoreData(userDocData);
+                        console.log('🔄 [AuthContext] Role from Firestore data:', roleFromFirestore);
                     } catch (e) {
                         firestoreError = e;
+                        console.error('❌ [AuthContext] Firestore error:', e);
                     }
                 }
 
                 const resolvedRole = roleFromToken || roleFromFirestore || roleFromUidPrefix;
                 const adminVerified = roleFromToken === ROLE_ADMIN || roleFromFirestore === ROLE_ADMIN;
 
+                console.log('✅ [AuthContext] Final Resolved Role:', resolvedRole);
                 setRole(resolvedRole);
                 setIsAdmin(resolvedRole === ROLE_ADMIN);
                 setNeedsAdminRepair(roleFromUidPrefix === ROLE_ADMIN && !adminVerified);
@@ -120,7 +130,7 @@ export const AuthProvider = ({ children }) => {
                     const firestoreErrorCode = typeof firestoreError?.code === 'string' ? firestoreError.code : null;
                     const firestoreErrorMessage = typeof firestoreError?.message === 'string' ? firestoreError.message : null;
 
-                    console.warn('[Auth] Failed to resolve role', {
+                    console.warn('⚠️ [AuthContext] Failed to resolve role', {
                         uid: currentUser.uid,
                         tokenErrorCode,
                         tokenErrorMessage,
@@ -129,13 +139,14 @@ export const AuthProvider = ({ children }) => {
                     });
                 }
             } else {
+                console.log('👤 [AuthContext] No user logged in.');
                 setRole(null);
                 setIsAdmin(false);
                 setNeedsAdminRepair(false);
             }
 
             setIsLoading(false);
-            console.log('Auth state changed:', currentUser ? `Logged in as ${currentUser.email}` : 'Logged out');
+            console.log('🏁 [AuthContext] Auth state change complete. isLoading=false');
         });
 
         return () => unsubscribe();

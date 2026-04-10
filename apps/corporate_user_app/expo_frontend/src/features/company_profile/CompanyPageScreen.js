@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
+import { THEME } from '@shared/src/core/theme/theme';
 import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 import { CompanyProfileView } from '@shared/src/features/company/components/CompanyProfileView';
 
@@ -40,7 +41,7 @@ export const CompanyPageScreen = () => {
             items: [
                 { id: 'help', label: 'ヘルプ / お問合せ', icon: 'help-circle-outline' },
                 { id: 'terms', label: '利用規約', icon: 'document-text-outline' },
-                { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: '#EF4444' },
+                { id: 'logout', label: 'ログアウト', icon: 'log-out-outline', color: THEME.error },
             ]
         }
     ];

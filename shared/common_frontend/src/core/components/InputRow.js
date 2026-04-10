@@ -83,7 +83,7 @@ export const InputRow = ({ label, value, path }) => {
         style={styles.textInput}
         value={String(value)}
         onChangeText={handleTextChange}
-        placeholderTextColor={THEME.subText}
+        placeholderTextColor={THEME.textMuted}
         keyboardType={isZipCode ? 'numeric' : 'default'}
         maxLength={isZipCode ? ZIP_CODE_CONFIG.LENGTH : undefined}
       />
@@ -93,20 +93,20 @@ export const InputRow = ({ label, value, path }) => {
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: THEME.spacing.md,
   },
   label: {
-    fontSize: 14,
-    color: THEME.subText,
-    marginBottom: 6,
+    ...THEME.typography.bodySmall,
+    color: THEME.textSecondary,
+    marginBottom: THEME.spacing.xs,
     fontWeight: '500',
   },
   textInput: {
-    backgroundColor: THEME.inputBg,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: THEME.text,
+    backgroundColor: THEME.surfaceInput,
+    borderRadius: THEME.radius.md,
+    padding: THEME.spacing.md * 0.75, // 12px
+    fontSize: THEME.typography.body.fontSize,
+    color: THEME.textPrimary,
     borderWidth: 1,
     borderColor: 'transparent',
   },

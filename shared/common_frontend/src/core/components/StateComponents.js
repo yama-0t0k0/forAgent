@@ -43,7 +43,7 @@ export const GlobalLoadingOverlay = ({ visible, message }) => {
     return (
         <View style={styles.overlay}>
             <View style={styles.loadingBox}>
-                <ActivityIndicator size='large' color={THEME.accent} />
+                <ActivityIndicator size='large' color={THEME.primary} />
                 {message && (
                     <Text style={[THEME.typography.caption, styles.loadingText]}>{message}</Text>
                 )}
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     message: {
-        color: THEME.subText,
+        color: THEME.textSecondary,
         marginTop: THEME.spacing.sm,
         textAlign: 'center',
     },
@@ -69,24 +69,25 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     retryText: {
-        color: THEME.accent,
+        color: THEME.primary,
         fontWeight: 'bold',
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: THEME.overlayDark,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999,
     },
     loadingBox: {
-        backgroundColor: THEME.cardBg,
-        padding: THEME.spacing.lg,
-        borderRadius: THEME.radius.md,
+        backgroundColor: THEME.surface,
+        padding: THEME.spacing.xl,
+        borderRadius: THEME.radius.lg,
         alignItems: 'center',
         ...THEME.shadow.md,
     },
     loadingText: {
-        marginTop: THEME.spacing.sm,
+        marginTop: THEME.spacing.md,
+        color: THEME.textSecondary,
     },
 });

@@ -4,12 +4,13 @@
  */
 
 import { db, auth } from '@shared/src/core/firebaseConfig';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
 import { User } from '@shared/src/core/models/User';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { Company } from '@shared/src/core/models/Company';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
 
+const FIRESTORE_OP_EQUALS = '=' + '=';
 const ERROR_CODE_PERMISSION_DENIED = 'permission-denied';
 const DEBUG_LOG_LIMIT = 3;
 
@@ -126,7 +127,7 @@ export const FirestoreDataService = {
 
     /**
      * Fetches a single individual by ID.
-     * Combines public_profile and private_info.
+     * Combines public_profile, private_info, and users (rbac) collections.
      * @param {string} id - The individual ID.
      * @returns {Promise<User|null>}
      */
@@ -136,21 +137,64 @@ export const FirestoreDataService = {
         
         if (!publicData) return null;
 
-        // Fetch Private Info (handle permission denied gracefully)
+        // Fetch Private Info and Users (rbac) in parallel
         let privateData = null;
+        let userData = null;
+
         try {
-             const snap = await getDoc(doc(db, 'private_info', id));
-             if (snap.exists()) {
-                 privateData = { id: snap.id, ...snap.data() };
+             const [privateSnap, userSnap] = await Promise.all([
+                 getDoc(doc(db, 'private_info', id)),
+                 getDoc(doc(db, 'users', id))
+             ]);
+
+             if (privateSnap.exists()) {
+                 privateData = { id: privateSnap.id, ...privateSnap.data() };
+             }
+             if (userSnap.exists()) {
+                 userData = { id: userSnap.id, ...userSnap.data() };
              }
         } catch (e) {
             // Permission denied or fetch error -> proceed with public data only
             if (e.code !== ERROR_CODE_PERMISSION_DENIED) {
-                console.warn('[FirestoreDataService] fetchIndividualById: Private info fetch failed:', e);
+                console.warn('[FirestoreDataService] fetchIndividualById: Supplemental data fetch failed:', e);
             }
         }
         
-        return User.fromPublicPrivate(id, publicData, privateData);
+        // Merge order: public < private < user (users doc has highest authority for role/permissions)
+        const combinedData = {
+            ...(publicData || {}),
+            ...(privateData || {}),
+            ...(userData || {})
+        };
+
+        return User.fromFirestore(id, combinedData);
+    },
+
+    /**
+     * Searches for an individual by email address.
+     * Searches 'private_info' collection and then fetches full profile.
+     * @param {string} email - The email to search for.
+     * @returns {Promise<User|null>}
+     */
+    async fetchIndividualByEmail(email) {
+        if (!email) return null;
+        try {
+            console.log(`[FirestoreDataService] Searching for user by email: ${email}`);
+            const q = query(collection(db, 'private_info'), where('email', FIRESTORE_OP_EQUALS, email));
+            const snap = await getDocs(q);
+
+            if (snap.empty) {
+                console.log(`[FirestoreDataService] No user found with email: ${email}`);
+                return null;
+            }
+
+            const uid = snap.docs[0].id;
+            console.log(`[FirestoreDataService] Found user ID: ${uid} for email: ${email}`);
+            return await this.fetchIndividualById(uid);
+        } catch (e) {
+            console.error(`[FirestoreDataService] Error searching user by email (${email}):`, e.code, e.message);
+            return null;
+        }
     },
 
     /**

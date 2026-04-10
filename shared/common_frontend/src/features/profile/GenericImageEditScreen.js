@@ -209,10 +209,10 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '900',
-        color: THEME.text,
+        color: THEME.textPrimary,
     },
     saveButton: {
-        backgroundColor: THEME.accent,
+        backgroundColor: THEME.primary,
         paddingVertical: 8,
         paddingHorizontal: 20,
         borderRadius: 20,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
         backgroundColor: THEME.success,
     },
     saveButtonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontWeight: '800',
         fontSize: 14,
     },
@@ -235,17 +235,17 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '800',
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 10,
     },
     input: {
-        backgroundColor: THEME.cardBg,
+        backgroundColor: THEME.surface,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
+        borderColor: THEME.borderDefault,
         borderRadius: 12,
         padding: 12,
         fontSize: 14,
-        color: THEME.text,
+        color: THEME.textPrimary,
         marginBottom: 15,
     },
     bgPreviewContainer: {
@@ -254,8 +254,8 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        backgroundColor: '#F3F4F6',
+        borderColor: THEME.borderDefault,
+        backgroundColor: THEME.surfaceInput,
     },
     bgPreview: {
         width: '100%',
@@ -267,8 +267,8 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: THEME.cardBorder,
-        backgroundColor: '#F3F4F6',
+        borderColor: THEME.borderDefault,
+        backgroundColor: THEME.surfaceInput,
     },
     profilePreview: {
         width: '100%',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     placeholderText: {
         marginTop: 5,
         fontSize: 12,
-        color: THEME.subText,
+        color: THEME.textSecondary,
         fontWeight: '600',
     },
 });

@@ -24,7 +24,7 @@ fi
 if [ -n "$1" ]; then
     APPS=("$1")
 else
-    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app" "lp_app")
 fi
 
 echo "🚀 Starting Local CI/CD Pipeline..."
@@ -82,6 +82,15 @@ if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
         exit 1
     fi
 fi
+if [ -f "$PROJECT_ROOT/scripts/check_design_system.js" ]; then
+    echo "   🎨 Checking Design System Compliance..."
+    if node "$PROJECT_ROOT/scripts/check_design_system.js" "shared/common_frontend/src"; then
+        echo "   ✅ Design System Compliance Passed (Shared)"
+    else
+        echo "   ❌ Design System Compliance Failed (Shared)"
+        exit 1
+    fi
+fi
 
 if [ "$MODE" = "full" ]; then
     echo "   🔍 Running Unit Tests for Shared Frontend (Auth)..."
@@ -97,7 +106,13 @@ fi
 
 # --- Iterate over Apps ---
 for app in "${APPS[@]}"; do
-    APP_DIR="apps/$app/expo_frontend"
+    # Multi-path support: apps/$app/expo_frontend or apps/$app
+    if [ -d "apps/$app/expo_frontend" ]; then
+        APP_DIR="apps/$app/expo_frontend"
+    else
+        APP_DIR="apps/$app"
+    fi
+
     echo ""
     echo "🔍 Processing App: $app"
     echo "   Path: $APP_DIR"
@@ -116,6 +131,10 @@ for app in "${APPS[@]}"; do
 
     if [ -f "$PROJECT_ROOT/scripts/check_coding_conventions.js" ]; then
          run_stage "Coding Convention Check" "node $PROJECT_ROOT/scripts/check_coding_conventions.js src" "false"
+    fi
+
+    if [ -f "$PROJECT_ROOT/scripts/check_design_system.js" ]; then
+         run_stage "Design System Compliance Check" "node $PROJECT_ROOT/scripts/check_design_system.js src" "false"
     fi
 
     if [ "$MODE" = "full" ]; then

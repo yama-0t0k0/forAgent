@@ -27,10 +27,10 @@ export const BottomNavItem = ({
   onPress,
   style,
   textStyle,
-  activeColor = THEME.text,
-  inactiveColor = THEME.subText,
-  activeIconColor = THEME.background,
-  activeContainerColor = THEME.text,
+  activeColor = THEME.textPrimary,
+  inactiveColor = THEME.textSecondary,
+  activeIconColor = THEME.textInverse,
+  activeContainerColor = THEME.primary,
   ...props
 }) => {
   /**
@@ -85,14 +85,14 @@ const styles = StyleSheet.create({
   activeIconContainer: {
     width: 40,
     height: 28,
-    borderRadius: 14,
+    borderRadius: THEME.radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 2,
+    marginBottom: THEME.spacing.xs / 2,
   },
   navText: {
     fontSize: 10,
-    marginTop: 2,
+    marginTop: THEME.spacing.xs / 2,
   },
   navTextActive: {
     fontWeight: 'bold',

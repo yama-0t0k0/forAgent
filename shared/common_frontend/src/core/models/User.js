@@ -16,11 +16,14 @@ export class User {
      * @param {string} backgroundImageUrl - Background Image URL
      * @param {Object.<string, any>} skillsExperience - Skills and Experience data
      * @param {Object.<string, any>} aspirations - Aspirations/Goals data
-     * @param {Object.<string, any>} rawData - Original Firestore data (kept for compatibility/heatmap calculation)
+     * @param {Object.<string, any>} rawData - Original Firestore data
+     * @param {boolean} [canCreateCompany=false] - Permission to create a company
      */
-    constructor(id, firstNameEn, familyNameEn, firstNameKanji, familyNameKanji, email, profileImageUrl, backgroundImageUrl, skillsExperience = {}, aspirations = {}, rawData = {}) {
+    constructor(id, firstNameEn, familyNameEn, firstNameKanji, familyNameKanji, email, profileImageUrl, backgroundImageUrl, skillsExperience = {}, aspirations = {}, rawData = {}, canCreateCompany = false) {
         /** @type {string} */
         this.id = id || '';
+        /** @type {string} */
+        this.uid = id || ''; // Alias for compatibility
         /** @type {string} */
         this.firstNameEn = firstNameEn || '';
         /** @type {string} */
@@ -41,6 +44,20 @@ export class User {
         this.aspirations = aspirations || {};
         /** @type {Object.<string, any>} */
         this.rawData = rawData || {};
+        /** @type {string} */
+        this.role = this.rawData.role || 'individual';
+        /** @type {string[]} */
+        this.allowedCompanies = this.rawData.allowed_companies || [];
+        /** @type {boolean} */
+        this.canCreateCompany = canCreateCompany || !!this.rawData.canCreateCompany;
+    }
+
+    /**
+     * Checks if the user is a corporate member (has any corporate role or is linked to a company).
+     * @returns {boolean}
+     */
+    isCorporateMember() {
+        return this.role.startsWith('corporate') || this.allowedCompanies.length > 0;
     }
 
     /**

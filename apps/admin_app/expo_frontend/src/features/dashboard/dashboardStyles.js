@@ -4,426 +4,541 @@ import { THEME } from '@shared/src/core/theme/theme';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: THEME.background, paddingTop: 50 },
-  header: { paddingHorizontal: 20, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: THEME.text },
-  headerRightActions: { flexDirection: 'row', alignItems: 'center' },
-  headerIconButton: { padding: 5, marginRight: 2 },
-  notificationContainer: { position: 'relative', padding: 5 },
-  badge: { position: 'absolute', top: 0, right: 0, backgroundColor: 'red', borderRadius: 10, width: 18, height: 18, justifyContent: 'center', alignItems: 'center' },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
+// Admin App Specific Nuance: Use app.admin.background for utilitarian feel
+const ADMIN_THEME = THEME.app.admin;
 
-  // Tab Bar
-  tabBar: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.8)', marginHorizontal: 20, borderRadius: 16, padding: 4, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
-  tabItem: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, justifyContent: 'center' },
-  activeTabItem: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, justifyContent: 'center' },
-  tabText: { fontSize: 13, color: THEME.subText, fontWeight: '600' },
-  activeTabText: { color: THEME.accent, fontWeight: 'bold', fontSize: 13 },
+export const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: ADMIN_THEME.background, 
+    paddingTop: THEME.spacing.xxl 
+  },
+  header: { 
+    paddingHorizontal: THEME.spacing.md, 
+    marginBottom: THEME.spacing.sm, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+  },
+  headerTitle: { 
+    ...THEME.typography.h1, 
+    color: THEME.textPrimary 
+  },
+  headerRightActions: { flexDirection: 'row', alignItems: 'center' },
+  headerIconButton: { padding: THEME.spacing.xs, marginRight: THEME.spacing.xs },
+  notificationContainer: { position: 'relative', padding: THEME.spacing.xs },
+  badge: { 
+    position: 'absolute', 
+    top: 0, 
+    right: 0, 
+    backgroundColor: THEME.error, 
+    borderRadius: THEME.radius.full, 
+    width: 18, 
+    height: 18, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  badgeText: { 
+    color: THEME.textInverse, 
+    ...THEME.typography.micro, 
+    fontWeight: 'bold' 
+  },
+
+  // Tab Bar (Business tool look: consistent spacing)
+  tabBar: { 
+    flexDirection: 'row', 
+    backgroundColor: THEME.surfaceElevated, 
+    marginHorizontal: THEME.spacing.md, 
+    borderRadius: THEME.radius.lg, 
+    padding: THEME.spacing.xs, 
+    ...THEME.shadow.sm 
+  },
+  tabItem: { 
+    flex: 1, 
+    paddingVertical: THEME.spacing.sm, 
+    alignItems: 'center', 
+    borderRadius: THEME.radius.md, 
+    justifyContent: 'center' 
+  },
+  activeTabItem: { 
+    backgroundColor: THEME.surface, 
+    ...THEME.shadow.sm, 
+    flex: 1, 
+    paddingVertical: THEME.spacing.sm, 
+    alignItems: 'center', 
+    borderRadius: THEME.radius.md, 
+    justifyContent: 'center' 
+  },
+  tabText: { 
+    ...THEME.typography.button, 
+    color: THEME.textSecondary 
+  },
+  activeTabText: { 
+    color: ADMIN_THEME.primary, 
+    fontWeight: 'bold', 
+    ...THEME.typography.button 
+  },
 
   contentArea: { flex: 1 },
-  tabContent: { flex: 1, padding: 20 },
+  tabContent: { flex: 1, padding: THEME.spacing.md },
 
   // New Dashboard Styles
-  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
-  displayBadge: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  displayBadgeText: { color: THEME.accent, fontSize: 12, fontWeight: 'bold' },
+  sectionHeaderRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: THEME.spacing.sm, 
+    marginTop: THEME.spacing.sm 
+  },
+  sectionTitle: { 
+    ...THEME.typography.h3, 
+    color: THEME.textPrimary 
+  },
+  displayBadge: { 
+    backgroundColor: THEME.surfaceInfo, 
+    paddingHorizontal: THEME.spacing.sm,
+    paddingVertical: THEME.spacing.xs, 
+    borderRadius: THEME.radius.lg 
+  },
+  displayBadgeText: { 
+    color: THEME.primary, 
+    ...THEME.typography.micro, 
+    fontWeight: 'bold' 
+  },
 
   // Search
-  searchContainer: { marginBottom: 20 },
+  searchContainer: { marginBottom: THEME.spacing.md },
   searchInput: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: THEME.text,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.md,
+    paddingHorizontal: THEME.spacing.md, 
+    paddingVertical: THEME.spacing.sm, 
+    ...THEME.typography.bodySmall,
+    color: THEME.textPrimary,
+    ...THEME.shadow.sm,
     borderWidth: 1,
-    borderColor: '#F1F5F9'
+    borderColor: THEME.borderDefault
   },
-  quickFilterContainer: { flexDirection: 'row', marginTop: 12 },
+  quickFilterContainer: { flexDirection: 'row', marginTop: THEME.spacing.sm },
   quickFilterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    marginRight: 10,
+    paddingHorizontal: THEME.spacing.md,
+    paddingVertical: THEME.spacing.sm,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.pill,
+    marginRight: THEME.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: THEME.borderDefault
   },
-  quickFilterText: { fontSize: 12, color: THEME.subText, fontWeight: '600' },
+  quickFilterText: { 
+    ...THEME.typography.small, 
+    color: THEME.textSecondary, 
+    fontWeight: '600' 
+  },
 
-  // List Item (Legacy)
+  // List Item (Consistent with Business UI)
   listItem: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: THEME.surface,
+    padding: THEME.spacing.md,
+    borderRadius: THEME.radius.md,
+    marginBottom: THEME.spacing.sm,
+    ...THEME.shadow.sm,
   },
-  itemTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  itemSubtitle: { fontSize: 12, color: '#666', marginBottom: 4 },
-  itemDetail: { fontSize: 12, color: '#999' },
-  statusBadge: { marginTop: 8, fontSize: 12, color: '#2196F3', fontWeight: 'bold' },
+  itemTitle: { 
+    ...THEME.typography.body, 
+    fontWeight: 'bold', 
+    color: THEME.textPrimary, 
+    marginBottom: 2 
+  },
+  itemSubtitle: { 
+    ...THEME.typography.small, 
+    color: THEME.textSecondary, 
+    marginBottom: 2 
+  },
+  itemDetail: { 
+    ...THEME.typography.micro, 
+    color: THEME.textMuted 
+  },
+  statusBadge: { 
+    marginTop: THEME.spacing.xs, 
+    ...THEME.typography.small, 
+    color: THEME.primary, 
+    fontWeight: 'bold' 
+  },
 
-  // Glass List Item (Modern)
+  // Modern List Item (Glass used sparingly for highlights)
   glassListItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: THEME.surfaceElevated,
+    borderRadius: THEME.radius.lg,
+    padding: THEME.spacing.md,
+    marginBottom: THEME.spacing.md,
     borderWidth: 1,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderColor: THEME.borderLight,
+    ...THEME.shadow.sm,
   },
   listItemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: THEME.spacing.sm,
   },
   itemTitleModern: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: THEME.text,
+    ...THEME.typography.h3,
+    color: THEME.textPrimary,
     marginBottom: 2,
   },
   itemSubtitleModern: {
-    fontSize: 12,
-    color: THEME.subText,
+    ...THEME.typography.small,
+    color: THEME.textSecondary,
     fontWeight: '500',
   },
   statusBadgeModern: {
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: THEME.surfaceInfo,
+    paddingHorizontal: THEME.spacing.sm,
+    paddingVertical: THEME.spacing.xs,
+    borderRadius: THEME.radius.sm,
   },
   statusTextModern: {
-    color: THEME.accent,
-    fontSize: 11,
+    color: THEME.primary,
+    ...THEME.typography.micro,
     fontWeight: '700',
   },
   skillScrollContainer: {
-    paddingVertical: 4,
-    paddingLeft: 10,
+    paddingVertical: THEME.spacing.xs, 
+    paddingLeft: THEME.spacing.sm,
     alignItems: 'flex-start',
   },
 
-  // Other components
-  flowContainer: { marginBottom: 20 },
+  // Cards
+  flowContainer: { marginBottom: THEME.spacing.md },
   whiteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.lg,
+    padding: THEME.spacing.md,
     minWidth: 100,
-    marginRight: 10,
+    marginRight: THEME.spacing.sm,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    ...THEME.shadow.sm,
   },
-  cardCount: { fontSize: 24, fontWeight: 'bold', color: THEME.text, marginBottom: 4 },
-  unitText: { fontSize: 12, color: THEME.subText, fontWeight: 'normal' },
-  cardLabel: { fontSize: 12, color: THEME.subText, marginBottom: 4 },
-  cardRate: { fontSize: 11, color: THEME.success, fontWeight: 'bold' },
-  arrowContainer: { justifyContent: 'center', marginRight: 10 },
-  arrow: { color: '#CBD5E1', fontSize: 20 },
+  cardCount: { 
+    ...THEME.typography.h2, 
+    color: THEME.textPrimary, 
+    marginBottom: 4 
+  },
+  unitText: { 
+    ...THEME.typography.micro, 
+    color: THEME.textSecondary, 
+    fontWeight: 'normal' 
+  },
+  cardLabel: { 
+    ...THEME.typography.small, 
+    color: THEME.textSecondary, 
+    marginBottom: 4 
+  },
+  cardRate: { 
+    ...THEME.typography.micro, 
+    color: THEME.success, 
+    fontWeight: 'bold' 
+  },
+  arrowContainer: { justifyContent: 'center', marginRight: THEME.spacing.sm },
+  arrow: { 
+    color: THEME.borderNeutral, 
+    ...THEME.typography.h3 
+  },
 
-  rowContainer: { flexDirection: 'row', marginBottom: 20 },
-  halfCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
-  fullCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
-  cardTitle: { fontSize: 15, fontWeight: 'bold', color: THEME.text, marginBottom: 15 },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  rowContainer: { flexDirection: 'row', marginBottom: THEME.spacing.md },
+  halfCard: { 
+    flex: 1, 
+    backgroundColor: THEME.surface, 
+    borderRadius: THEME.radius.lg, 
+    padding: THEME.spacing.md, 
+    ...THEME.shadow.sm 
+  },
+  fullCard: { 
+    backgroundColor: THEME.surface, 
+    borderRadius: THEME.radius.lg, 
+    padding: THEME.spacing.md, 
+    marginBottom: THEME.spacing.md, 
+    ...THEME.shadow.sm 
+  },
+  cardTitle: { 
+    ...THEME.typography.h3, 
+    color: THEME.textPrimary, 
+    marginBottom: THEME.spacing.md 
+  },
 
-  segmentControl: { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 2 },
-  segmentActive: { backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
-  segmentInactive: { paddingHorizontal: 12, paddingVertical: 4 },
-  segmentTextActive: { fontSize: 11, fontWeight: 'bold', color: THEME.text },
-  segmentTextInactive: { fontSize: 11, color: THEME.subText },
+  segmentControl: { 
+    flexDirection: 'row', 
+    backgroundColor: THEME.surfaceInput, 
+    borderRadius: THEME.radius.sm, 
+    padding: 2 
+  },
+  segmentActive: { 
+    backgroundColor: THEME.surface, 
+    paddingHorizontal: THEME.spacing.sm, 
+    paddingVertical: 4, 
+    borderRadius: THEME.radius.sm - 2, 
+    ...THEME.shadow.sm 
+  },
+  segmentInactive: { 
+    paddingHorizontal: THEME.spacing.sm, 
+    paddingVertical: 4 
+  },
+  segmentTextActive: { 
+    ...THEME.typography.micro, 
+    fontWeight: 'bold', 
+    color: THEME.textPrimary 
+  },
+  segmentTextInactive: { 
+    ...THEME.typography.micro, 
+    color: THEME.textSecondary 
+  },
 
-  legendContainer: { marginTop: 10 },
-  legendRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 4 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 6 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
-  legendText: { fontSize: 10, color: THEME.subText },
-
-  listContainer: { paddingBottom: 20 },
-  emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
+  listContainer: { paddingBottom: THEME.spacing.xxl },
+  emptyText: { 
+    textAlign: 'center', 
+    color: THEME.textMuted, 
+    marginTop: THEME.spacing.md, 
+    ...THEME.typography.bodySmall 
+  },
 
   // Modal
-  modalContainer: { flex: 1, backgroundColor: '#F8FAFC', paddingTop: 20 },
-  modalHeader: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#fff' },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text },
-  closeButton: { padding: 8 },
-  closeButtonText: { color: THEME.accent, fontWeight: 'bold' },
+  modalContainer: { 
+    flex: 1, 
+    backgroundColor: ADMIN_THEME.background, 
+    paddingTop: THEME.spacing.lg 
+  },
+  modalHeader: { 
+    padding: THEME.spacing.md, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    borderBottomWidth: 1, 
+    borderBottomColor: THEME.borderDefault, 
+    backgroundColor: THEME.surface 
+  },
+  modalTitle: { 
+    ...THEME.typography.h3, 
+    color: THEME.textPrimary 
+  },
+  closeButton: { padding: THEME.spacing.sm },
+  closeButtonText: { 
+    color: THEME.primary, 
+    fontWeight: 'bold' 
+  },
 
-  // User Detail
-  detailHeader: { marginBottom: 20, alignItems: 'center' },
-  detailName: { fontSize: 22, fontWeight: 'bold', color: THEME.text, marginBottom: 4 },
-  detailId: { fontSize: 14, color: THEME.subText, marginBottom: 2 },
-  detailInfo: { fontSize: 14, color: THEME.subText },
-  skillListContainer: { marginTop: 10 },
-  skillGroup: { marginBottom: 15 },
-  skillGroupTitle: { fontSize: 14, fontWeight: 'bold', color: THEME.text, marginBottom: 8 },
+  // User Detail (Nuance: More utilitarian than Personal app profile)
+  detailHeader: { 
+    marginBottom: THEME.spacing.md, 
+    alignItems: 'center' 
+  },
+  detailName: { 
+    ...THEME.typography.h2, 
+    color: THEME.textPrimary, 
+    marginBottom: 4 
+  },
+  detailId: { 
+    ...THEME.typography.small, 
+    color: THEME.textSecondary, 
+    marginBottom: 2 
+  },
+  detailInfo: { 
+    ...THEME.typography.small, 
+    color: THEME.textSecondary 
+  },
+  skillListContainer: { marginTop: THEME.spacing.md },
+  skillGroup: { marginBottom: THEME.spacing.md },
+  skillGroupTitle: { 
+    ...THEME.typography.button, 
+    color: THEME.textPrimary, 
+    marginBottom: THEME.spacing.sm 
+  },
   skillBadges: { flexDirection: 'row', flexWrap: 'wrap' },
-  skillBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8, marginBottom: 8, borderWidth: 1 },
-  skillBadgeText: { fontSize: 12, fontWeight: '600' },
+  skillBadge: { 
+    paddingHorizontal: THEME.spacing.sm, 
+    paddingVertical: THEME.spacing.xs, 
+    borderRadius: THEME.radius.pill, 
+    marginRight: THEME.spacing.xs, 
+    marginBottom: THEME.spacing.xs, 
+    borderWidth: 1, 
+    borderColor: THEME.borderDefault 
+  },
+  skillBadgeText: { 
+    ...THEME.typography.micro, 
+    fontWeight: '600' 
+  },
 
   // Tooltip Styles
   tooltip: {
     position: 'absolute',
-    backgroundColor: 'rgba(30, 41, 59, 0.95)',
-    padding: 10,
-    borderRadius: 8,
-    zIndex: 100,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  tooltipArrow: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderBottomWidth: 6,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'rgba(30, 41, 59, 0.95)',
-  },
-  arrowUp: {
-    top: -6,
-    transform: [{ rotate: '0deg' }],
-  },
-  arrowDown: {
-    bottom: -6,
-    transform: [{ rotate: '180deg' }],
+    backgroundColor: THEME.overlayDark, 
+    padding: THEME.spacing.sm, 
+    borderRadius: THEME.radius.md, 
+    zIndex: 100, 
+    ...THEME.shadow.md,
   },
   tooltipTitle: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: THEME.textInverse,
+    ...THEME.typography.small, 
+    fontWeight: 'bold', 
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: 'center', 
   },
   separator: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    height: 1, 
+    backgroundColor: THEME.overlayLight, 
     marginVertical: 4,
   },
   tooltipText: {
-    color: '#bae6fd',
-    fontSize: 12,
+    color: THEME.chartLevel1,
+    ...THEME.typography.small, 
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'center', 
   },
   tooltipSubText: {
-    color: '#94a3b8',
-    fontSize: 10,
-    textAlign: 'center',
+    color: THEME.textMuted,
+    ...THEME.typography.micro,
+    textAlign: 'center', 
     marginTop: 2,
   },
 
   detailOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(2, 6, 23, 0.45)',
+    backgroundColor: THEME.overlayDark,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: THEME.spacing.md,
   },
   detailWindow: {
     width: SCREEN_WIDTH * 0.9,
     height: SCREEN_HEIGHT * 0.85,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    // Note: removed overflow: 'hidden' to ensure no clipping of interactive elements
+    backgroundColor: ADMIN_THEME.background,
+    borderRadius: THEME.radius.lg,
   },
   detailWindowHeader: {
     height: 54,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    paddingHorizontal: 14,
+    borderBottomColor: THEME.borderDefault,
+    paddingHorizontal: THEME.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  detailWindowTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: THEME.text,
+  detailWindowTitle: { 
+    ...THEME.typography.button, 
+    color: THEME.textPrimary 
   },
   detailWindowClose: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#E0F2FE',
+    paddingHorizontal: THEME.spacing.sm,
+    paddingVertical: THEME.spacing.xs,
+    borderRadius: THEME.radius.sm,
+    backgroundColor: THEME.surfaceInfo,
   },
   detailWindowCloseText: {
-    color: THEME.accent,
+    color: THEME.primary,
     fontWeight: '800',
-    fontSize: 12,
-  },
-  detailWindowLoading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  detailWindowLoadingText: {
-    color: THEME.subText,
-    fontWeight: '600',
-  },
-  detailWindowErrorText: {
-    color: '#B91C1C',
-    fontWeight: '700',
-    textAlign: 'center',
+    ...THEME.typography.micro,
   },
   detailWindowScrollContent: {
-    paddingBottom: 24,
+    paddingBottom: THEME.spacing.lg,
   },
   detailHero: {
     width: '100%',
     height: SCREEN_HEIGHT * 0.8 * 0.32,
-    backgroundColor: '#0F172A',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-  },
-  detailHeroImage: {
-    opacity: 0.92,
-  },
-  detailHeroTopRow: {
-    position: 'absolute',
-    top: 12,
-    left: 14,
-    right: 14,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    backgroundColor: THEME.textPrimary,
+    justifyContent: 'flex-end', 
+    paddingHorizontal: THEME.spacing.sm,
+    paddingBottom: THEME.spacing.sm,
   },
   detailHeroId: {
-    color: '#fff',
-    fontSize: 11,
+    color: THEME.textInverse,
+    ...THEME.typography.micro, 
     fontWeight: '700',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  detailHeroProfileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: THEME.overlayDark,
+    paddingHorizontal: THEME.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: THEME.radius.full,
   },
   detailPhotoContainer: {
     width: 84,
     height: 84,
-    borderRadius: 14,
-    overflow: 'hidden',
+    borderRadius: THEME.radius.md,
+    overflow: 'hidden', 
     borderWidth: 2,
-    borderColor: '#fff',
-    backgroundColor: '#EEE',
-    marginRight: 10,
-  },
-  detailProfileImage: {
-    width: '100%',
-    height: '100%',
+    borderColor: THEME.surface,
+    backgroundColor: THEME.surfaceInput,
+    marginRight: THEME.spacing.sm,
   },
   detailNamePlate: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    borderRadius: 16,
-    padding: 12,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.lg,
+    padding: THEME.spacing.sm,
     borderWidth: 1,
-    borderColor: THEME.cardBorder,
+    borderColor: THEME.borderDefault,
+    ...THEME.shadow.sm,
   },
   detailNameText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: THEME.text,
+    ...THEME.typography.h3,
+    color: THEME.textPrimary,
     marginBottom: 2,
   },
   detailJobTitle: {
-    fontSize: 11,
-    color: THEME.accent,
+    ...THEME.typography.small,
+    color: THEME.primary,
     fontWeight: '800',
     marginBottom: 2,
   },
   detailEmailText: {
-    fontSize: 10,
-    color: THEME.subText,
+    ...THEME.typography.micro, 
+    color: THEME.textSecondary,
   },
   detailSourceText: {
-    fontSize: 10,
-    color: THEME.subText,
+    ...THEME.typography.micro, 
+    color: THEME.textMuted,
     marginTop: 4,
   },
   detailBadgeSection: {
-    marginTop: -18,
-    paddingHorizontal: 14,
+    marginTop: -18, 
+    paddingHorizontal: THEME.spacing.sm,
   },
   detailBadgeRow: {
-    width: SCREEN_WIDTH * 0.8 - 28,
+    width: SCREEN_WIDTH * 0.8 - 28, 
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   detailCardLabel: {
-    color: '#fff',
-    fontSize: 10,
+    color: THEME.textInverse,
+    ...THEME.typography.micro, 
     fontWeight: '800',
     marginBottom: 5,
-    textShadowColor: 'rgba(0, 0, 0, 0.35)',
+    textShadowColor: THEME.shadowColor,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   detailGlassBadge: {
     width: '100%',
     aspectRatio: 1.1,
-    borderRadius: 14,
+    borderRadius: THEME.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(186, 230, 253, 0.75)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: THEME.surfaceInfo, // Subtle admin blue highlight
+    borderWidth: 1,
+    borderColor: THEME.borderLight,
   },
   detailCardSkillName: {
-    color: '#fff',
-    fontSize: 10,
+    color: THEME.textPrimary, 
+    ...THEME.typography.micro, 
     fontWeight: '900',
-    textAlign: 'center',
+    textAlign: 'center', 
     paddingHorizontal: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   detailHeatmapSection: {
-    paddingHorizontal: 14,
-    paddingTop: 16,
+    paddingHorizontal: THEME.spacing.sm, 
+    paddingTop: THEME.spacing.md, 
   },
   detailHeatmapTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: THEME.text,
+    ...THEME.typography.button, 
+    color: THEME.textPrimary,
   },
 });

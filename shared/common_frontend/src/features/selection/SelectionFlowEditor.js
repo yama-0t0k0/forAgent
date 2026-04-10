@@ -164,18 +164,18 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => updatePhase(phase.id, { lane: phase.lane === SELECTION_LANE.PRIMARY ? SELECTION_LANE.SECONDARY : SELECTION_LANE.PRIMARY })}>
-                                    <Ionicons name='swap-horizontal' size={16} color='#666' />
+                                    <Ionicons name='swap-horizontal' size={16} color={THEME.textMuted} />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => deletePhase(phase.id)}>
-                                    <Ionicons name='trash' size={16} color='red' />
+                                    <Ionicons name='trash' size={16} color={THEME.error} />
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.reorderRow}>
                                 <TouchableOpacity onPress={() => movePhase(index, -1)}>
-                                    <Ionicons name='arrow-up' size={18} color='#007bff' />
+                                    <Ionicons name='arrow-up' size={18} color={THEME.primary} />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => movePhase(index, 1)}>
-                                    <Ionicons name='arrow-down' size={18} color='#007bff' />
+                                    <Ionicons name='arrow-down' size={18} color={THEME.primary} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -187,7 +187,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                             </Text>
                             {phase.status === SELECTION_STATUS.COMPLETED && (
                                 <View style={styles.checkMark}>
-                                    <Ionicons name='checkmark-circle' size={16} color='green' />
+                                    <Ionicons name='checkmark-circle' size={16} color={THEME.success} />
                                 </View>
                             )}
                         </>
@@ -220,7 +220,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                     {phases.filter(p => true).map((p, i) => p.lane === SELECTION_LANE.PRIMARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
                         <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.PRIMARY)}>
-                            <Ionicons name='add-circle' size={32} color='#007bff' />
+                            <Ionicons name='add-circle' size={32} color={THEME.primary} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -230,7 +230,7 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
                     {phases.map((p, i) => p.lane === SELECTION_LANE.SECONDARY ? renderBox(p, i) : <View key={`spacer-${p.id}`} style={styles.spacer} />)}
                     {isEditing && (
                         <TouchableOpacity style={styles.addButton} onPress={() => addPhase(SELECTION_LANE.SECONDARY)}>
-                            <Ionicons name='add-circle' size={32} color='#ff9800' />
+                            <Ionicons name='add-circle' size={32} color={THEME.secondary} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -241,30 +241,29 @@ const SelectionFlowEditor = ({ initialData, onSave }) => {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 20,
-        padding: 10,
-        backgroundColor: '#f9f9f9',
-        borderRadius: 12,
+        marginTop: THEME.spacing.lg,
+        padding: THEME.spacing.sm,
+        backgroundColor: THEME.background,
+        borderRadius: THEME.radius.lg,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: THEME.spacing.md,
     },
     title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
+        ...THEME.typography.h3,
+        color: THEME.textPrimary,
     },
     editButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: THEME.primary || '#007bff',
-        borderRadius: 6,
+        paddingHorizontal: THEME.spacing.sm,
+        paddingVertical: THEME.spacing.xs,
+        backgroundColor: THEME.primary,
+        borderRadius: THEME.radius.sm,
     },
     editButtonText: {
-        color: '#fff',
+        color: THEME.textInverse,
         fontSize: 12,
         fontWeight: 'bold',
     },
@@ -277,69 +276,70 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     laneTitle: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 10,
+        ...THEME.typography.caption,
+        color: THEME.textSecondary,
+        marginBottom: THEME.spacing.sm,
         fontWeight: '600',
     },
     boxWrapper: {
         width: '90%',
-        marginBottom: 10,
+        marginBottom: THEME.spacing.sm,
         alignItems: 'center',
+    },
+    lane2Wrapper: {
+        // Additional styling for lane 2 wrappers if needed
     },
     box: {
         width: '100%',
-        padding: 10,
-        borderRadius: 8,
+        padding: THEME.spacing.sm,
+        borderRadius: THEME.radius.md,
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 50,
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        backgroundColor: THEME.surface,
+        ...THEME.shadow.sm,
     },
     boxCompleted: {
-        borderColor: '#4caf50',
+        borderColor: THEME.success,
         borderLeftWidth: 4,
     },
     boxPending: {
-        borderColor: '#ddd',
+        borderColor: THEME.borderDefault,
     },
     boxIrregular: {
-        borderColor: '#ff9800',
-        borderWidth: 2,
+        borderColor: THEME.secondary,
+        borderWidth: 1.5,
         borderStyle: 'dashed',
     },
     boxLabel: {
-        fontSize: 12,
+        ...THEME.typography.bodySmall,
+        color: THEME.textPrimary,
         fontWeight: '600',
         textAlign: 'center',
     },
     boxInput: {
-        fontSize: 12,
+        ...THEME.typography.bodySmall,
+        color: THEME.textPrimary,
         fontWeight: '600',
         textAlign: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: THEME.borderDefault,
         width: '100%',
-        marginBottom: 4,
+        marginBottom: THEME.spacing.xs,
     },
     dateTextLabel: {
-        fontSize: 10,
-        color: '#888',
+        ...THEME.typography.micro,
+        color: THEME.textSecondary,
         marginTop: 4,
     },
     dateText: {
-        fontSize: 10,
-        color: '#007bff',
+        ...THEME.typography.micro,
+        color: THEME.primary,
         textDecorationLine: 'underline',
     },
     todayText: {
-        color: 'red',
+        color: THEME.error,
         fontWeight: 'bold',
     },
     checkMark: {
@@ -355,22 +355,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         width: '100%',
-        marginTop: 4,
+        marginTop: THEME.spacing.xs,
     },
     reorderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '60%',
-        marginTop: 8,
+        marginTop: THEME.spacing.sm,
         borderTopWidth: 1,
-        borderTopColor: '#eee',
-        paddingTop: 4,
+        borderTopColor: THEME.borderLight,
+        paddingTop: THEME.spacing.xs,
     },
     addButton: {
-        marginTop: 10,
+        marginTop: THEME.spacing.sm,
     },
     spacer: {
-        height: 60, // Match boxWrapper height roughly
+        height: 60,
         width: '100%',
     },
 });

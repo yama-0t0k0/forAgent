@@ -3,11 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 
 const VARIANTS = {
-    default: { bg: '#E0F2FE', text: THEME.accent },
-    success: { bg: '#D1FAE5', text: THEME.success },
-    warning: { bg: '#FEF3C7', text: '#D97706' },
-    error: { bg: '#FEE2E2', text: '#EF4444' },
-    neutral: { bg: '#F1F5F9', text: THEME.subText },
+    default: { bg: THEME.surfaceInfo, text: THEME.textInfo },
+    success: { bg: THEME.surfaceSuccess, text: THEME.textSuccess },
+    warning: { bg: THEME.surfaceWarning, text: THEME.textWarning },
+    error: { bg: THEME.surfaceError, text: THEME.textError },
+    neutral: { bg: THEME.surfaceNeutral, text: THEME.textNeutral },
 };
 
 /**
@@ -29,13 +29,13 @@ export const StatusBadge = ({ status, variant = 'default', style, textStyle }) =
 
 const styles = StyleSheet.create({
     badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 8,
+        paddingHorizontal: THEME.spacing.sm + 2, // 10px equivalent, but following grid
+        paddingVertical: THEME.spacing.xs,
+        borderRadius: THEME.radius.md,
         alignSelf: 'flex-start',
     },
     text: {
-        fontSize: 11,
+        ...THEME.typography.micro, // Assuming micro is small enough
         fontWeight: '700',
     },
 });

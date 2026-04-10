@@ -67,33 +67,32 @@ export const SecondaryButton = ({
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#fff',
+        backgroundColor: THEME.surface,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
+        borderColor: THEME.borderDefault,
+        paddingVertical: THEME.spacing.md - 4, // 12px
+        paddingHorizontal: THEME.spacing.lg - 4, // 20px
+        borderRadius: THEME.radius.md,
         alignItems: 'center',
         justifyContent: 'center',
     },
     rounded: {
-        borderRadius: 22,
+        borderRadius: THEME.radius.pill,
     },
     small: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 20,
+        paddingVertical: THEME.spacing.xs + 1, // 5px
+        paddingHorizontal: THEME.spacing.sm + 2, // 10px
+        borderRadius: THEME.radius.pill,
     },
     disabled: {
         opacity: 0.6,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: THEME.surfaceNeutral,
     },
     text: {
-        color: THEME.subText,
-        fontWeight: '600',
-        fontSize: 14,
+        ...THEME.typography.button,
+        color: THEME.textSecondary,
     },
     smallText: {
-        fontSize: 11,
+        fontSize: THEME.typography.micro.fontSize + 1, // 11px
     },
 });

@@ -92,7 +92,7 @@ export const SelectableTechStackList = ({
                                     <Ionicons 
                                         name={item.icon} 
                                         size={18} 
-                                        color={isSelected ? THEME.primary : THEME.subText} 
+                                        color={isSelected ? THEME.primary : THEME.textSecondary} 
                                         style={styles.icon}
                                     />
                                 )}
@@ -115,7 +115,7 @@ export const SelectableTechStackList = ({
                             isSelected ? styles.checkboxSelected : styles.checkboxUnselected
                         ]}>
                             {isSelected && (
-                                <Ionicons name='checkmark' size={14} color={THEME.white} />
+                                <Ionicons name='checkmark' size={14} color={THEME.textInverse} />
                             )}
                         </View>
                     </TouchableOpacity>
@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.border || '#E2E8F0',
-        backgroundColor: THEME.white || '#FFFFFF',
+        borderBottomColor: THEME.borderDefault,
+        backgroundColor: THEME.surface,
     },
     itemSelected: {
-        backgroundColor: '#F0F9FF', // Very light blue
+        backgroundColor: THEME.surfaceInfo,
     },
     contentContainer: {
         flex: 1,
@@ -157,15 +157,15 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '500',
-        color: THEME.text || '#1E293B',
+        color: THEME.textPrimary,
     },
     labelSelected: {
-        color: THEME.primary || '#0369A1',
+        color: THEME.primary,
         fontWeight: '600',
     },
     description: {
         fontSize: 12,
-        color: THEME.subText || '#64748B',
+        color: THEME.textSecondary,
         marginTop: 2,
     },
     checkbox: {
@@ -177,11 +177,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     checkboxUnselected: {
-        borderColor: THEME.subText || '#94A3B8',
+        borderColor: THEME.borderNeutral,
         backgroundColor: 'transparent',
     },
     checkboxSelected: {
-        borderColor: THEME.primary || '#0369A1',
-        backgroundColor: THEME.primary || '#0369A1',
+        borderColor: THEME.primary,
+        backgroundColor: THEME.primary,
     },
 });

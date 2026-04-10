@@ -65,7 +65,7 @@ export const DatePickerInput = ({ label, valueObj, path }) => {
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       <TouchableOpacity onPress={() => setShow(true)} style={[styles.textInput, { justifyContent: 'center' }]}>
-        <Text style={{ color: THEME.text }}>
+        <Text style={{ color: THEME.textPrimary }}>
           {`${safeYear}年 ${safeMonth + 1}月 ${safeDay}日`}
         </Text>
       </TouchableOpacity>
@@ -83,14 +83,19 @@ export const DatePickerInput = ({ label, valueObj, path }) => {
 };
 
 const styles = StyleSheet.create({
-  inputContainer: { marginBottom: 16 },
-  label: { fontSize: 14, color: THEME.subText, marginBottom: 6, fontWeight: '500' },
+  inputContainer: { marginBottom: THEME.spacing.md },
+  label: { 
+    ...THEME.typography.caption, 
+    color: THEME.textSecondary, 
+    marginBottom: THEME.spacing.xs, 
+    fontWeight: '500' 
+  },
   textInput: {
-    backgroundColor: THEME.inputBg,
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: THEME.surfaceVariant,
+    borderRadius: THEME.radius.md,
+    padding: THEME.spacing.md,
     fontSize: 16,
-    color: THEME.text,
+    color: THEME.textPrimary,
     borderWidth: 1,
     borderColor: 'transparent',
   },

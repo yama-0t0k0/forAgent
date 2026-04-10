@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useContext } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DataProvider, DataContext } from '@shared/src/core/state/DataContext';
@@ -12,6 +12,9 @@ import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
+import { grantCorporatePermission } from '@shared/src/features/registration/services/registrationService';
+import { THEME } from '@shared/src/core/theme/theme';
+import { Alert, TouchableOpacity } from 'react-native';
 // Fix import path for JobDescriptionScreen using relative path to avoid alias issues
 import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { DetailModal } from '@shared/src/core/components/DetailModal';
@@ -20,10 +23,6 @@ const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json')
 
 /**
  * Inner content component for UserDetailModal to manage internal navigation.
- * @param {Object} props
- * @param {string} props.userId - The user ID.
- * @param {Object} props.userDoc - The user document data.
- * @returns {JSX.Element|null} The rendered screen or null.
  */
 const UserDetailContent = ({ userId, userDoc }) => {
   const [stack, setStack] = useState([]);
@@ -32,10 +31,6 @@ const UserDetailContent = ({ userId, userDoc }) => {
     setStack([{ name: 'MyPage', params: { userId, userDoc, hideSafeArea: true } }]);
   }, [userId, userDoc]);
 
-  /**
-   * Custom navigation object mimicking React Navigation.
-   * @type {Object}
-   */
   const navigation = useMemo(() => ({
     navigate: (name, params) => {
       setStack(prev => [...prev, { name, params }]);
@@ -56,28 +51,52 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
   if (!currentRoute) return null;
 
-  /**
-   * Custom save logic for Admin App to handle split data (public_profile + private_info).
-   * @param {Object} db - Firestore instance
-   * @param {string} id - Document ID
-   * @param {Object} data - Full user data
-   */
+  const handleGrantPermission = async () => {
+    try {
+      Alert.alert('確認', 'このユーザーに法人アカウントの作成権限を付与しますか？', [
+        { text: 'キャンセル', style: 'cancel' },
+        { 
+          text: '付与する', 
+          onPress: async () => {
+             const result = await grantCorporatePermission(userId);
+             if (result.success) {
+               Alert.alert('完了', '権限を付与しました。ユーザーに通知が送信されます。');
+             }
+          }
+        }
+      ]);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('エラー', '権限付与に失敗しました。');
+    }
+  };
+
+  const renderAdminControls = () => {
+    if (userDoc.isCorporateMember && userDoc.isCorporateMember()) return null;
+    if (userDoc.canCreateCompany) return (
+       <View style={styles.adminBannerWarning}>
+         <Text style={styles.adminBannerText}>※ このユーザーは既に法人登録権限を持っています</Text>
+       </View>
+    );
+
+    return (
+      <View style={styles.adminBannerAction}>
+        <TouchableOpacity 
+          style={styles.grantButton}
+          onPress={handleGrantPermission}
+        >
+          <Text style={styles.grantButtonText}>法人登録権限 (canCreateCompany) を付与する</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const handleAdminUserSave = async (db, id, data) => {
-    // 1. Split data
     const { publicData, privateData } = User.splitData(data);
-
-    // 2. Save public profile
     await setDoc(doc(db, 'public_profile', id), publicData);
-
-    // 3. Save private info (Admin has permission to write to private_info)
-    // Use merge: true to preserve allowed_companies and other fields
     await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
   };
 
-  /**
-   * Renders the current screen based on the stack state.
-   * @returns {JSX.Element} The screen component.
-   */
   const renderScreen = () => {
     const props = {
       route: currentRoute,
@@ -104,7 +123,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
           <GenericRegistrationScreen
             {...props}
             title='エンジニア個人登録'
-            collectionName='public_profile' // Use public_profile for ID generation check
+            collectionName='public_profile'
             idField='id_individual'
             idPrefixChar='C'
             orderTemplate={ENGINEER_TEMPLATE}
@@ -120,6 +139,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
     <DataProvider initialData={userDoc}>
       <NavigationContext.Provider value={navigation}>
         <GestureHandlerRootView style={{ flex: 1 }}>
+          {renderAdminControls()}
           {renderScreen()}
         </GestureHandlerRootView>
       </NavigationContext.Provider>
@@ -127,62 +147,21 @@ const UserDetailContent = ({ userId, userDoc }) => {
   );
 };
 
-
-
 /**
  * Modal component for displaying detailed user information with internal navigation.
- * @param {Object} props
- * @param {boolean} props.visible - Whether the modal is visible.
- * @param {Function} props.onClose - Callback to close the modal.
- * @param {boolean} props.loading - Loading state.
- * @param {Object} props.error - Error object.
- * @param {Object} props.userDoc - The user document data.
- * @param {string} props.userId - The user ID.
- * @returns {JSX.Element} The rendered modal.
  */
 export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => {
-  // Access global Admin Data (contains all JDs, Users, etc.)
   const { data: adminData } = React.useContext(DataContext);
 
-  // Merge the selected User Doc with the global lists required for matching features
   const enhancedUserDoc = useMemo(() => {
     if (!userDoc) return null;
-
-    // Create a new object to avoid mutating the original model if it's reused elsewhere
-    // If userDoc is a class instance, we might lose prototype methods if we strictly spread it,
-    // but DataProvider treats `initialData` as the state root.
-    // IndividualProfileScreen treats the context root as the user object.
-
-    // We want to preserve the User model instance nature if possible for the 'user part',
-    // but we also need to attach 'jd' and 'users' properties to it.
-    // Since JavaScript objects are dynamic, we can try to attach them directly if it's extensible,
-    // or create a shallow clone that inherits the prototype.
-
-    // However, explicit object spread is safer for React state immutability.
-    // Let's rely on the fact that existing code likely accesses properties, not methods heavily,
-    // OR that DataContext.js handles prototype preservation in `updateValue`.
-
-    // But here we are setting `initialData`.
-
-    // Let's try to clone efficiently:
-    const base = userDoc.rawData ? userDoc : { ...userDoc };
-    // Note: If userDoc is a class, spreading it `{...userDoc}` usually gets own properties. 
-    // If getters are on prototype, they might be lost if we just object-spread.
-    // BUT the simplest approach that usually works in this codebase (seeing other usages) is object extension.
-
-    // Ideally:
-    // const enhanced = Object.create(Object.getPrototypeOf(userDoc));
-    // Object.assign(enhanced, userDoc);
-    // enhanced.jd = adminData?.jd || [];
-    // enhanced.users = adminData?.users || [];
-
-    // Simpler approach for now (assumed sufficient based on codebase):
-    return {
-      ...userDoc,
+    const enhanced = Object.create(Object.getPrototypeOf(userDoc));
+    Object.assign(enhanced, userDoc, { 
       jd: adminData?.jd || [],
       users: adminData?.users || [],
-      fmjs: adminData?.fmjs || [] // Also pass FMJS just in case
-    };
+      fmjs: adminData?.fmjs || []
+    });
+    return enhanced;
   }, [userDoc, adminData]);
 
   return (
@@ -201,3 +180,33 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
     </DetailModal>
   );
 };
+
+const styles = StyleSheet.create({
+  adminBannerWarning: {
+    padding: THEME.spacing.md,
+    backgroundColor: THEME.surfaceNeutral,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.borderDefault,
+  },
+  adminBannerText: {
+    ...THEME.typography.small,
+    color: THEME.textSecondary,
+  },
+  adminBannerAction: {
+    padding: THEME.spacing.md,
+    backgroundColor: THEME.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.borderDefault,
+  },
+  grantButton: {
+    backgroundColor: THEME.success,
+    padding: THEME.spacing.md,
+    borderRadius: THEME.radius.md,
+    alignItems: 'center',
+  },
+  grantButtonText: {
+    color: THEME.textInverse,
+    fontWeight: 'bold',
+    ...THEME.typography.bodySmall,
+  }
+});
