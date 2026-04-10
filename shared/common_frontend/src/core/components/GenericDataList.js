@@ -1,5 +1,6 @@
 import React from 'react';
 import { FlatList, Text, View, StyleSheet } from 'react-native';
+import { THEME } from '@shared/src/core/theme/theme';
 
 /**
  * @typedef {Object} GenericDataListProps
@@ -50,14 +51,14 @@ export const GenericDataList = ({
 
 const styles = StyleSheet.create({
   listContainer: {
-    paddingBottom: 20,
+    paddingBottom: THEME.spacing.xl,
   },
   emptyContainer: {
-    padding: 20,
+    padding: THEME.spacing.xl,
     alignItems: 'center',
   },
   emptyText: {
-    color: '#64748B',
-    fontSize: 14,
+    ...THEME.typography.body,
+    color: THEME.textSecondary,
   },
 });

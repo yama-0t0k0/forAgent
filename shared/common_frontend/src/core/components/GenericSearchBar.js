@@ -43,7 +43,7 @@ export const GenericSearchBar = ({
       placeholder={placeholder}
       value={searchQuery}
       onChangeText={setSearchQuery}
-      placeholderTextColor='#94A3B8'
+      placeholderTextColor={THEME.textMuted}
     />
     {quickFilters.length > 0 && (
       <ScrollView
@@ -82,41 +82,41 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
+    backgroundColor: THEME.surfaceInput,
+    borderRadius: THEME.radius.lg,
+    paddingHorizontal: THEME.spacing.md,
+    paddingVertical: THEME.spacing.md * 0.75, // 12px
+    fontSize: THEME.typography.bodySmall.fontSize,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    color: '#1E293B',
-    marginBottom: 12,
+    borderColor: THEME.borderLight,
+    color: THEME.textPrimary,
+    marginBottom: THEME.spacing.md * 0.75, // 12px
   },
   filterContainer: {
     flexDirection: 'row',
   },
   filterContentContainer: {
-    paddingRight: 16,
+    paddingRight: THEME.spacing.md,
   },
   filterChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
+    backgroundColor: THEME.surfaceMuted,
+    paddingHorizontal: THEME.spacing.sm + 4, // 12px
+    paddingVertical: THEME.spacing.xs + 2, // 6px
+    borderRadius: THEME.radius.pill,
+    marginRight: THEME.spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: THEME.borderLight,
   },
   activeFilterChip: {
-    backgroundColor: THEME?.primary || '#0EA5E9',
-    borderColor: THEME?.primary || '#0EA5E9',
+    backgroundColor: THEME.primary,
+    borderColor: THEME.primary,
   },
   filterText: {
-    fontSize: 12,
-    color: '#475569',
+    ...THEME.typography.small,
+    color: THEME.textNeutral,
   },
   activeFilterText: {
-    color: '#FFFFFF',
+    color: THEME.textInverse,
     fontWeight: 'bold',
   },
 });

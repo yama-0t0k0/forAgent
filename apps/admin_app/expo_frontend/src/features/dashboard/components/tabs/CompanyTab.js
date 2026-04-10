@@ -4,7 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { GenericSearchBar } from '@shared/src/core/components/GenericSearchBar';
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { CompanyListItem } from '@shared/src/features/company/components/CompanyListItem';
+import { IssueInvitationModal } from '../modals/IssueInvitationModal';
 import { styles } from '@features/dashboard/dashboardStyles';
+import { THEME } from '@shared/src/core/theme/theme';
+import { TouchableOpacity } from 'react-native';
 
 /**
  * Tab component for displaying and filtering the list of companies.
@@ -16,6 +19,7 @@ import { styles } from '@features/dashboard/dashboardStyles';
  */
 export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) => {
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = React.useState(false);
 
   /**
    * Handles the press event on a company item.
@@ -28,6 +32,16 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
 
   return (
     <View style={styles.tabContent}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>登録企業一覧</Text>
+        <TouchableOpacity 
+          style={styles.displayBadge} 
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.displayBadgeText}>+ 法人招待・権限付与</Text>
+        </TouchableOpacity>
+      </View>
+
       <GenericSearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -49,6 +63,11 @@ export const CompanyTab = ({ searchQuery, setSearchQuery, filteredCompanies }) =
           />
         )}
         contentContainerStyle={styles.listContainer}
+      />
+
+      <IssueInvitationModal 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} 
       />
     </View>
   );

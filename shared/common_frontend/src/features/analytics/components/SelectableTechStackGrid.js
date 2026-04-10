@@ -92,7 +92,7 @@ export const SelectableTechStackGrid = ({
                             <Ionicons 
                                 name={item.icon} 
                                 size={14} 
-                                color={isSelected ? THEME.primary : THEME.subText} 
+                                color={isSelected ? THEME.primary : THEME.textSecondary} 
                                 style={styles.icon}
                             />
                         )}
@@ -132,22 +132,22 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     badgeUnselected: {
-        backgroundColor: THEME.background?.secondary || '#F8FAFC',
-        borderColor: THEME.border || '#E2E8F0',
+        backgroundColor: THEME.background,
+        borderColor: THEME.borderDefault,
     },
     badgeSelected: {
-        backgroundColor: '#E0F2FE', // Light Blue
-        borderColor: THEME.primary || '#0369A1',
+        backgroundColor: THEME.surfaceInfo,
+        borderColor: THEME.primary,
     },
     label: {
         fontSize: 13,
         fontWeight: '500',
     },
     labelUnselected: {
-        color: THEME.subText || '#64748B',
+        color: THEME.textSecondary,
     },
     labelSelected: {
-        color: THEME.primary || '#0369A1',
+        color: THEME.primary,
         fontWeight: '600',
     },
     icon: {

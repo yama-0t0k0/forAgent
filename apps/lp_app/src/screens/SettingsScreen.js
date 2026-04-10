@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppMenuScreen } from '../../../../shared/common_frontend/src/features/profile/AppMenuScreen';
+import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { auth } from '../features/firebase/config';
 
 /**

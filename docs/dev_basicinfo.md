@@ -217,6 +217,22 @@ EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
 > [!NOTE]
 > **Expo のポート確認プロンプト**（例: `Port 8081 is running ...` / `Use port 8082 instead?`）が出た場合は `no` を選択し、起動中のアプリを止めた上で `start_expo.sh` 経由で起動し直してください（ポート割当は本表と `scripts/start_expo.sh` を正とします）。
 
+### 🔥 Firebase 開発環境の方針
+
+当プロジェクトでは、開発中も可能な限り**本番（実プロジェクト）のFirebase**を使用することを基本方針としています。
+
+- **デフォルト動作**: 
+  - `firebaseConfig.js` は、実プロジェクトのFirebase APIキーを使用して接続します。
+  - これにより、Expo Go（実機/トンネルモード）でのログイン導線を常に確保します。
+- **Firebase エミュレータの利用**:
+  - セキュリティルールの破壊的変更の検証や、データクリアを伴うテスト（E2E）を行う場合は、エミュレータを使用します。
+  - `.env` に `EXPO_PUBLIC_USE_EMULATOR=true` を設定してアプリを起動すると、エミュレータに接続されます。
+- **セキュリティ監査テスト**:
+  - `npm run test:security:report` は**常にエミュレータ上**で実行されます。これにより、実データを危険にさらすことなくペネトレーションテストが可能です。
+
+> [!CAUTION]
+> **実データの保護**: 実プロジェクトに接続して開発を行う際は、誤って本番用データ（ID規約外のデータ）を削除・改ざんしないよう十分に注意してください。詳細は [テスト用ダミーユーザーID規約](./QA&test/test.md#🆔-4-テスト用ダミーユーザーid規約) を参照してください。
+
 ### 🔑 環境変数の管理 (.env)
 全アプリは同一の Firestore プロジェクトを参照するため、共通の `.env` 設定が必要です。
 `apps/individual_user_app/expo_frontend/.env` をマスターとし、各アプリの `expo_frontend/` 直下に複製して配置することを標準手順とします。

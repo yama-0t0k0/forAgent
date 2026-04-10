@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Rect, Path } from 'react-native-svg';
+import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '@features/dashboard/dashboardStyles';
 import { MOCK_DATA } from '@core/constants';
 
@@ -28,8 +29,8 @@ export const DashboardIcon = ({ color }) => (
 export const NotificationIcon = () => (
   <View style={styles.notificationContainer}>
     <Svg width='28' height='28' viewBox='0 0 24 24' fill='none'>
-       <Path d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9' stroke='#333' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
-       <Path d='M13.73 21a2 2 0 0 1-3.46 0' stroke='#333' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+       <Path d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9' stroke={THEME.textPrimary} strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+       <Path d='M13.73 21a2 2 0 0 1-3.46 0' stroke={THEME.textPrimary} strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
     </Svg>
     <View style={styles.badge}>
       <Text style={styles.badgeText}>{MOCK_DATA.NOTIFICATION_COUNT}</Text>

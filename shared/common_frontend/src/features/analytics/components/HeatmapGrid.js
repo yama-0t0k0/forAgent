@@ -139,7 +139,7 @@ export const HeatmapGrid = ({
               width: tileSize,
               height: tileSize,
               borderWidth: selectedTile?.id === item.id ? 2 : 0,
-              borderColor: '#334155', // slate-700
+              borderColor: HEATMAP_COLORS.BORDER,
             }
           ]}
           onLayout={(e) => {
@@ -199,20 +199,17 @@ const styles = StyleSheet.create({
   },
   heatmapTile: {
     margin: 2,
-    borderRadius: 4,
+    borderRadius: THEME.radius.sm,
     opacity: 0.85,
   },
   tooltip: {
     position: 'absolute',
-    backgroundColor: 'rgba(30, 41, 59, 0.95)', // Slate-800
-    padding: 10,
-    borderRadius: 8,
-    zIndex: 2000, // Ensure it's above everything else (increased)
+    backgroundColor: THEME.textPrimary + 'F2', // 0.95 opacity
+    padding: THEME.spacing.sm + 2,
+    borderRadius: THEME.radius.md,
+    zIndex: 2000,
     elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    ...THEME.shadow.md,
   },
   tooltipArrow: {
     position: 'absolute',
@@ -225,7 +222,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 6, // for arrowUp
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderBottomColor: 'rgba(30, 41, 59, 0.95)',
+    borderBottomColor: THEME.textPrimary + 'F2',
   },
   arrowUp: {
     top: -6,
@@ -236,26 +233,26 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '180deg' }],
   },
   tooltipTitle: {
-    color: '#fff',
-    fontSize: 12,
+    color: THEME.textInverse,
+    fontSize: THEME.typography.small.fontSize,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: THEME.spacing.xs,
     textAlign: 'center',
   },
   separator: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginVertical: 4,
+    backgroundColor: THEME.overlayLight,
+    marginVertical: THEME.spacing.xs,
   },
   tooltipText: {
-    color: '#bae6fd', // Sky-200
-    fontSize: 12,
+    color: THEME.chartLevel1,
+    fontSize: THEME.typography.small.fontSize,
     fontWeight: '600',
     textAlign: 'center',
   },
   tooltipSubText: {
-    color: '#94a3b8', // Slate-400
-    fontSize: 10,
+    color: THEME.textSecondary,
+    fontSize: THEME.typography.micro.fontSize,
     textAlign: 'center',
     marginTop: 2,
   }

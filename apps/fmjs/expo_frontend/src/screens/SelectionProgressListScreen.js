@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.surface,
   },
   title: {
     fontSize: 24,
@@ -299,14 +299,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: THEME.borderDefault,
     paddingVertical: 12,
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: THEME.background,
     borderBottomWidth: 2,
-    borderBottomColor: '#ddd',
+    borderBottomColor: THEME.borderDefault,
   },
   cell: {
     fontSize: 10,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   link: {
-    color: '#007bff',
+    color: THEME.primary,
     textDecorationLine: 'underline',
   },
   centered: {
@@ -333,14 +333,14 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     marginTop: 20,
-    color: '#666',
+    color: THEME.textSecondary,
   },
   // Modal Styles
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: THEME.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: THEME.borderDefault,
   },
   tabItem: {
     flex: 1,
@@ -350,21 +350,21 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTabItem: {
-    borderBottomColor: THEME.primary || '#007bff',
-    backgroundColor: '#fff',
+    borderBottomColor: THEME.primary,
+    backgroundColor: THEME.surface,
   },
   tabText: {
     fontSize: 13,
-    color: '#666',
+    color: THEME.textSecondary,
     fontWeight: '500',
   },
   activeTabText: {
-    color: THEME.primary || '#007bff',
+    color: THEME.primary,
     fontWeight: 'bold',
   },
   modalBody: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.surface,
   },
   detailSection: {
     marginBottom: 10,
@@ -373,16 +373,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: THEME.textPrimary,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: THEME.borderDefault,
   },
   sectionSubTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#444',
+    color: THEME.textSecondary,
   },
   infoRow: {
     flexDirection: 'row',
@@ -392,27 +392,27 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 14,
     marginBottom: 8,
-    color: '#555',
+    color: THEME.textSecondary,
     lineHeight: 20,
   },
   label: {
     fontWeight: '600',
-    color: '#222',
+    color: THEME.textPrimary,
   },
   // Feedback Styles
   feedbackContainer: {
-    backgroundColor: '#fcfcfc',
+    backgroundColor: THEME.background,
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#ddd',
+    borderColor: THEME.borderDefault,
   },
   feedbackHeader: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#007bff',
-    backgroundColor: '#e7f1ff',
+    color: THEME.primary,
+    backgroundColor: THEME.surfaceInfo,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   phaseTitle: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#333',
+    color: THEME.textPrimary,
     marginBottom: 6,
     textDecorationLine: 'underline',
   },
@@ -433,33 +433,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingLeft: 8,
     borderLeftWidth: 2,
-    borderLeftColor: '#eee',
+    borderLeftColor: THEME.borderLight,
   },
   feedbackTypeTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: THEME.textSecondary,
     marginBottom: 2,
   },
   feedbackText: {
     fontSize: 13,
-    color: '#444',
+    color: THEME.textSecondary,
     marginBottom: 2,
   },
   // Survey Styles
   surveyPeriod: {
     marginBottom: 20,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: THEME.background,
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: THEME.primary || '#007bff',
+    borderLeftColor: THEME.primary,
   },
   surveyPeriodTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: THEME.primary || '#007bff',
+    color: THEME.primary,
   },
   surveyCategory: {
     marginBottom: 12,
@@ -468,23 +468,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#444',
+    color: THEME.textSecondary,
   },
   surveyQuestion: {
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: THEME.borderDefault,
     paddingBottom: 6,
   },
   questionText: {
     fontSize: 13,
-    color: '#333',
+    color: THEME.textPrimary,
     marginBottom: 4,
   },
   answerText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#007bff',
+    color: THEME.primary,
   },
 });
 

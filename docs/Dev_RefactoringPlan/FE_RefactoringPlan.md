@@ -63,7 +63,11 @@
 - **目的**: 「マジックナンバー」を排除し、デザインの一貫性を担保。
 - **内容**: `shared/theme.js` にフォントサイズ (`h1`, `h2`, `body`...) と余白定数 (`sm: 8`, `md: 16`...) を追加。
 
-### 3. ステート表示 (Empty / Error / Loading) の共通化
+### 3. デザインシステムの徹底とハードコード排除 (Consolidation)
+- **ステータス**: ✅ 完了 (2026-04-06)
+- **内容**: `scripts/check_design_system.js` により検出された 104 箇所のハードコードされた色値を、`THEME` トークンへ一括置換。`shared/common_frontend` 配下の全コンポーネントおよび各アプリの画面におけるデザインの一貫性を強制。
+
+### 4. ステート表示 (Empty / Error / Loading) の共通化
 - **目的**: 状態に応じた標準的なUIフィードバックを全アプリで一貫させる。
 - **内容**: `EmptyState.js`, `ErrorState.js`, `GlobalLoadingOverlay.js` の作成と適用。
 

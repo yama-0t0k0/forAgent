@@ -60,10 +60,10 @@ export const ConnectionLevelSelector = ({ value, path }) => {
             onPress={() => handleSelect(level)}
             style={[
               styles.levelButton,
-              { backgroundColor: currentLevel === level ? THEME.accent : '#E2E8F0' }
+              { backgroundColor: currentLevel === level ? THEME.primary : THEME.borderDefault }
             ]}
           >
-            <Text style={{ color: currentLevel === level ? '#FFF' : THEME.text, fontWeight: 'bold' }}>
+            <Text style={{ color: currentLevel === level ? THEME.textInverse : THEME.textPrimary, fontWeight: 'bold' }}>
               {level}
             </Text>
           </TouchableOpacity>
@@ -77,8 +77,8 @@ export const ConnectionLevelSelector = ({ value, path }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'flex-start', gap: 12, marginBottom: 8 },
+  container: { marginBottom: THEME.spacing.md },
+  buttonRow: { flexDirection: 'row', justifyContent: 'flex-start', gap: THEME.spacing.sm, marginBottom: THEME.spacing.sm },
   levelButton: {
     width: 40,
     height: 40,
@@ -86,6 +86,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  descriptionBox: { backgroundColor: THEME.inputBg, padding: 8, borderRadius: 6 },
-  descriptionText: { color: THEME.text, fontSize: 12 },
+  descriptionBox: { backgroundColor: THEME.surfaceInput, padding: THEME.spacing.sm, borderRadius: THEME.radius.sm },
+  descriptionText: { color: THEME.textPrimary, fontSize: THEME.typography.small.fontSize },
 });

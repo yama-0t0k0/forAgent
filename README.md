@@ -18,6 +18,7 @@
 - **Phase 1 (現在)**:
     - フロントエンド: **Expo (React Native) + JavaScript**
     - バックエンド: **Firebase + Pure Dart**
+    - **マイルストーン**: E2E Auth Routing 検証完了 (Admin, Corporate, Individual 全ロールの自動遷移成功)
 - **Phase 2 (将来)**:
     - フロントエンドも **Flutter** へ移行し、全層を **Pure Dart** で統一。JavaScript を完全に排除します。
 
@@ -34,6 +35,7 @@
 | **Corporate App** | 企業向け：自社分析・候補者管理・採用ダッシュボード | `8083` |
 | **Job Description** | 求人票の作成・編集・構造化管理サービス | `8084` |
 | **FMJS** | 選考進捗・手数料計算・入社後成功（Survey）管理 | `8085` |
+| **LP App** | **[Redirection Hub]** 集客・ブランド・各アプリへの遷移ゲート | `8087` |
 
 ---
 

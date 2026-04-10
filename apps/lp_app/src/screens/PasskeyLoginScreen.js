@@ -17,6 +17,7 @@ import { httpsCallable } from 'firebase/functions';
 import { signInWithCustomToken } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { redirectToApp } from '../utils/navigationHelper';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const PLATFORM_WEB = 'web';
 const TYPE_UNDEFINED = 'undefined';
@@ -225,7 +226,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color='#fff' />
+              <ActivityIndicator color={THEME.textInverse} />
             ) : (
               <Text style={styles.loginButtonText}>✨ パスキーでログイン</Text>
             )}
@@ -246,7 +247,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.background,
   },
   content: {
     flex: 1,
@@ -257,8 +258,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   backButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
+    fontSize: 16, 
+    color: THEME.primary,
   },
   header: {
     marginTop: 12,
@@ -268,12 +269,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111',
+    color: THEME.textPrimary,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
-    color: '#555',
+    color: THEME.textSecondary,
   },
   form: {
     marginTop: 16,
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
   loginButton: {
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: THEME.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#fff',
+    color: THEME.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -298,20 +299,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   passwordLinkText: {
-    color: '#007AFF',
+    color: THEME.primary,
     fontSize: 14,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    justifyContent: 'center',
+    backgroundColor: THEME.overlayLight,
+    justifyContent: 'center', 
     alignItems: 'center',
     zIndex: 1000,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#333',
+    color: THEME.textPrimary,
   },
 });
 

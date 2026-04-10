@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
+import { THEME } from '@shared/src/core/theme/theme';
 import { useRoute } from '@react-navigation/native';
 import { DataProvider } from '@shared/src/core/state/DataContext';
 import { CompanyPageScreen } from '@corporate_app/src/features/company_profile/CompanyPageScreen';
@@ -86,7 +87,7 @@ export const CompanyDetailScreen = () => {
   if (loading && !companyData) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' color='#0000ff' />
+        <ActivityIndicator size='large' color={THEME.primary} />
       </View>
     );
   }

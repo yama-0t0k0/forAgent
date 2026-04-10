@@ -43,7 +43,7 @@ export const ScreenHeader = ({
                         onPress={handleBack}
                         style={styles.backButton}
                     >
-                        <Ionicons name='chevron-back' size={24} color={THEME.text} />
+                        <Ionicons name='chevron-back' size={24} color={THEME.textPrimary} />
                     </IconButton>
                 )}
             </View>
@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: THEME.spacing.md,
-        backgroundColor: THEME.cardBg,
+        backgroundColor: THEME.surface,
         borderBottomWidth: 1,
-        borderBottomColor: THEME.cardBorder,
+        borderBottomColor: THEME.borderDefault,
     },
     leftContainer: {
         flex: 1,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     title: {
-        color: THEME.text,
+        color: THEME.textPrimary,
     },
     titleWrapper: {
         flexDirection: 'row',

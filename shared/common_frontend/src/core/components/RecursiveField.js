@@ -46,10 +46,10 @@ const AccordionItem = ({ label, data, depth, path, orderTemplate }) => {
   const isEmpty = Object.keys(data).length === 0;
 
   return (
-    <View style={[styles.card, { marginLeft: depth * 8, borderColor: depth === 0 ? THEME.accent : THEME.cardBorder }]}>
+    <View style={[styles.card, { marginLeft: depth * THEME.spacing.sm, borderColor: depth === 0 ? THEME.primary : THEME.borderDefault }]}>
       <TouchableOpacity onPress={toggleExpand} activeOpacity={0.7} style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.accent : THEME.secondaryAccent }]} />
+          <View style={[styles.indicator, { backgroundColor: depth === 0 ? THEME.primary : THEME.secondary }]} />
           <Text style={styles.sectionTitle}>{String(label)}</Text>
         </View>
         <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
@@ -139,7 +139,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isSkillLevelObj) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md, marginBottom: THEME.spacing.md }}>
               <Text style={styles.label}>{String(key)}</Text>
               <SkillSelector value={value} path={currentPath} />
             </View>
@@ -148,7 +148,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isSingleSelectGroup) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 16 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md, marginBottom: THEME.spacing.lg }}>
               <Text style={styles.label}>{String(key)}</Text>
               <SingleSelectGroup value={value} path={currentPath} />
             </View>
@@ -157,7 +157,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isConnectionLevelObj) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md, marginBottom: THEME.spacing.md }}>
               <Text style={styles.label}>{String(key)}</Text>
               <ConnectionLevelSelector value={value} path={currentPath} />
             </View>
@@ -166,7 +166,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isMonthYearPicker) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md }}>
               <MonthYearPickerInput label={key} valueObj={value} path={currentPath} />
             </View>
           );
@@ -174,7 +174,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isDatePicker) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md }}>
               <DatePickerInput label={key} valueObj={value} path={currentPath} />
             </View>
           );
@@ -182,7 +182,7 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
         if (isReadOnlyStatus) {
           return (
-            <View key={key} style={{ marginLeft: depth * 12 }}>
+            <View key={key} style={{ marginLeft: depth * THEME.spacing.md }}>
               <StatusRow label={key} valueObj={value} />
             </View>
           );
@@ -204,24 +204,24 @@ export const RecursiveField = ({ data, depth = 0, path = [], orderTemplate = nul
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: THEME.cardBg,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: THEME.surface,
+    borderRadius: THEME.radius.md,
+    marginBottom: THEME.spacing.md,
     borderWidth: 1,
     overflow: 'hidden',
   },
   header: {
-    padding: 16,
+    padding: THEME.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: THEME.background,
   },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
-  indicator: { width: 4, height: 16, borderRadius: 2, marginRight: 8 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: THEME.text },
-  chevron: { fontSize: 14, color: THEME.subText },
-  content: { padding: 16 },
-  emptyText: { color: THEME.subText, fontStyle: 'italic' },
-  label: { fontSize: 14, color: THEME.subText, marginBottom: 6, fontWeight: '500' },
+  indicator: { width: 4, height: 16, borderRadius: THEME.radius.sm / 2, marginRight: THEME.spacing.sm },
+  sectionTitle: { ...THEME.typography.body, fontWeight: '700', color: THEME.textPrimary },
+  chevron: { fontSize: 14, color: THEME.textSecondary },
+  content: { padding: THEME.spacing.md },
+  emptyText: { ...THEME.typography.bodySmall, color: THEME.textSecondary, fontStyle: 'italic' },
+  label: { ...THEME.typography.bodySmall, color: THEME.textSecondary, marginBottom: THEME.spacing.xs, fontWeight: '500' },
 });

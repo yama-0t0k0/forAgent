@@ -103,78 +103,8 @@ const AdminAppWrapper = () => {
 
       if (user) {
         try {
-          // 1. Check & Grant Admin Role
-          if (__DEV__) {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userDocRef);
-
-            let isUserAdmin = false;
-
-            if (userSnap.exists()) {
-              const userData = userSnap.data();
-              if (userData.role !== 'admin') {
-                console.log('🔧 [Dev Mode] Auto-granting Admin privileges...');
-                await setDoc(userDocRef, {
-                  role: 'admin',
-                  dev_admin_grant: 'allow_local_dev',
-                  updatedAt: new Date().toISOString()
-                }, { merge: true });
-                console.log('✅ [Dev Mode] Admin privileges granted.');
-
-                // Force token refresh to pick up new claims immediately
-                await user.getIdToken(true);
-              }
-              isUserAdmin = true;
-            } else {
-              // Create new user doc for Anon/New user with Admin privileges
-              console.log('🆕 [Dev Mode] Creating new user doc with Admin privileges...');
-              try {
-                await setDoc(userDocRef, {
-                  role: 'admin',
-                  dev_admin_grant: 'allow_local_dev',
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
-                });
-                console.log('✅ [Dev Mode] New Admin user created.');
-                await user.getIdToken(true);
-                isUserAdmin = true;
-              } catch (createErr) {
-                console.error('❌ [Dev Mode] Failed to create Admin user:', createErr);
-              }
-            }
-
-            // Auto-Migration: FeeMgmtAndJobStatDB -> selection_progress
-            if (isUserAdmin) {
-              try {
-                const selColRef = collection(db, 'selection_progress');
-                const selSnap = await getDocs(selColRef);
-
-                if (selSnap.empty) {
-                  console.log('📦 [Dev Mode] selection_progress is empty. Migrating from FeeMgmtAndJobStatDB...');
-                  DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[MIGRATE]|START|From FeeMgmtAndJobStatDB`);
-
-                  const sourceSnap = await getDocs(collection(db, 'FeeMgmtAndJobStatDB'));
-
-                  if (!sourceSnap.empty) {
-                    const migrationPromises = sourceSnap.docs.map(docSnap =>
-                      setDoc(doc(db, 'selection_progress', docSnap.id), docSnap.data())
-                    );
-                    await Promise.all(migrationPromises);
-                    const msg = `✅ [Dev Mode] Migrated ${sourceSnap.size} documents.`;
-                    console.log(msg);
-                    DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[MIGRATE]|SUCCESS|${sourceSnap.size} docs`);
-                  } else {
-                    const msg = '⚠️ [Dev Mode] FeeMgmtAndJobStatDB is also empty.';
-                    console.log(msg);
-                    DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[MIGRATE]|EMPTY|Source is empty`);
-                  }
-                }
-              } catch (migErr) {
-                console.error('❌ [Dev Mode] Migration failed:', migErr);
-                DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[MIGRATE]|ERROR|${migErr.message}`);
-              }
-            }
-          }
+          // Admin check and migration logic removed for production-ready dev environment.
+          // Admin roles must be assigned via Custom Claims (setCustomUserClaims).
 
           // 2. Fetch Data (Only after Auth is confirmed)
           console.log('🔄 Authenticated. Fetching all data...');
@@ -325,6 +255,6 @@ export default AdminAppWrapper;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: THEME.background,
   },
 });

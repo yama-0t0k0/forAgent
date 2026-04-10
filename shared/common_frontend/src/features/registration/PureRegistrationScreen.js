@@ -201,16 +201,16 @@ export const PureRegistrationScreen = ({
           onPress={handleSave}
           disabled={saveStatus === 'saving'}
         >
-          {saveStatus === 'saving' ? <ActivityIndicator size='small' color='#FFF' /> : (
+          {saveStatus === 'saving' ? <ActivityIndicator size='small' color={THEME.textInverse} /> : (
             <Text style={styles.saveButtonText}>{saveStatus === 'success' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</Text>
           )}
         </TouchableOpacity>
       </View>
       <Tab.Navigator
         screenOptions={{
-          tabBarStyle: { backgroundColor: THEME.background, elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: THEME.cardBorder },
-          tabBarLabelStyle: { color: THEME.text, fontWeight: '600', fontSize: 13, textTransform: 'none' },
-          tabBarIndicatorStyle: { backgroundColor: THEME.accent, height: 3 },
+          tabBarStyle: { backgroundColor: THEME.background, elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: THEME.borderDefault },
+          tabBarLabelStyle: { color: THEME.textPrimary, fontWeight: '600', fontSize: 13, textTransform: 'none' },
+          tabBarIndicatorStyle: { backgroundColor: THEME.primary, height: 3 },
           tabBarScrollEnabled: true,
           tabBarItemStyle: { width: 'auto', minWidth: 100, paddingHorizontal: 16 },
         }}
@@ -242,15 +242,15 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: THEME.background,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.cardBorder,
+    borderBottomColor: THEME.borderDefault,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  appTitle: { color: THEME.text, fontSize: 18, fontWeight: '800' },
-  appSubtitle: { color: THEME.subText, fontSize: 12, marginTop: 2 },
-  saveButton: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: THEME.accent, borderRadius: 6 },
+  appTitle: { color: THEME.textPrimary, fontSize: 18, fontWeight: '800' },
+  appSubtitle: { color: THEME.textSecondary, fontSize: 12, marginTop: 2 },
+  saveButton: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: THEME.primary, borderRadius: 6 },
   saveButtonSuccess: { backgroundColor: THEME.success },
-  saveButtonError: { backgroundColor: '#EF4444' },
-  saveButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  saveButtonError: { backgroundColor: THEME.error },
+  saveButtonText: { color: THEME.textInverse, fontWeight: '700', fontSize: 14 },
 });

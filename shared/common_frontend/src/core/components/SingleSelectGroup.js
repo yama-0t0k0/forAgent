@@ -134,8 +134,8 @@ export const SingleSelectGroup = ({ value, path }) => {
           <View key={key} style={styles.switchContainer}>
             <Text style={styles.label}>{key}</Text>
             <Switch
-              trackColor={{ false: THEME.cardBorder, true: THEME.accent }}
-              thumbColor={'#FFFFFF'}
+              trackColor={{ false: THEME.borderDefault, true: THEME.primary }}
+              thumbColor={THEME.textInverse}
               onValueChange={() => handleToggle(key)}
               value={!!value[key]}
             />
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: THEME.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.cardBorder,
+    borderBottomColor: THEME.borderDefault,
   },
   label: {
-    fontSize: 14,
-    color: THEME.subText,
-    marginBottom: 6,
+    ...THEME.typography.bodySmall,
+    color: THEME.textSecondary,
+    marginBottom: THEME.spacing.xs,
     fontWeight: '500',
   },
 });

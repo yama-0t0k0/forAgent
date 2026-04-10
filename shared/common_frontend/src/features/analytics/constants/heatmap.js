@@ -18,13 +18,15 @@ export const HEATMAP_THRESHOLDS = {
     LEVEL_1: 0
 };
 
+import { THEME } from '@shared/src/core/theme/theme';
+
 export const HEATMAP_COLORS = {
-    LEVEL_0: '#E2E8F0',
-    LEVEL_1: '#BAE6FD',
-    LEVEL_2: '#7DD3FC',
-    LEVEL_3: '#0EA5E9', // THEME.accent is usually close to this, but defining explicit color for consistency
-    LEVEL_4: '#0369A1',
-    BORDER: '#334155'
+    LEVEL_0: THEME.chartLevel0,
+    LEVEL_1: THEME.chartLevel1,
+    LEVEL_2: THEME.chartLevel2,
+    LEVEL_3: THEME.chartLevel3,
+    LEVEL_4: THEME.chartLevel4,
+    BORDER: THEME.textNeutral
 };
 
 export const ASPIRATION_WEIGHTS = {

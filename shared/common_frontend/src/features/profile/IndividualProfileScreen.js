@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import registrationService from '@shared/src/features/registration/services/registrationService';
 import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapCalculator';
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
@@ -70,6 +71,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
     const [heatmapValues, setHeatmapValues] = useState(null);
+    const [registrationDraft, setRegistrationDraft] = useState(null);
 
     const [containerWidth, setContainerWidth] = useState(width);
 
@@ -88,6 +90,17 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             setHeatmapValues(values);
         }
     }, [userDoc, heatmapValues]);
+
+    // Check for registration drafts if eligible
+    useEffect(() => {
+        const checkDraft = async () => {
+            if (isCurrentUser && user.canCreateCompany && !user.isCorporateMember()) {
+                const draft = await registrationService.getRegistrationDraft(user.uid);
+                setRegistrationDraft(draft);
+            }
+        };
+        checkDraft();
+    }, [isCurrentUser, user.canCreateCompany, user.uid, user.role, user.allowedCompanies]);
 
     /**
      * Navigates to the registration/edit screen.
@@ -118,14 +131,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <IconButton
                                             name='notifications-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -154,7 +167,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                                             {/* Relocated Chatbot button */}
                                             <TouchableOpacity style={styles.chatBotCalloutOverlap}>
-                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.accent} />
+                                                <Ionicons name='chatbubble-ellipses' size={30} color={THEME.primary} />
                                                 <Text style={styles.labelYellow}>チャット</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -169,14 +182,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                         <IconButton
                                             name='notifications-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
                                             size={24}
-                                            color='#FFF'
+                                            color={THEME.textInverse}
                                             style={styles.headerIconButton}
                                             onPress={() => navigation.navigate(ROUTES.IMAGE_EDIT, { userDoc })}
                                         />
@@ -218,6 +231,21 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
                 {/* 4. Glassmorphism Badges (Moved up, fully transparent) */}
                 <View style={styles.badgeSection} testID='skill_badge_section'>
+                    {/* Hybrid Onboarding Banner */}
+                    {registrationDraft && (
+                        <TouchableOpacity 
+                            style={styles.draftBanner}
+                            onPress={() => navigation.navigate(ROUTES.REGISTRATION, { 
+                                type: 'corporate', 
+                                resumeData: registrationDraft.formData 
+                            })}
+                        >
+                            <Ionicons name="time-outline" size={20} color={THEME.textInverse} />
+                            <Text style={styles.draftBannerText}>法人登録を再開する</Text>
+                            <Ionicons name="chevron-forward" size={16} color={THEME.textInverse} />
+                        </TouchableOpacity>
+                    )}
+
                     <View style={styles.tradingCardRow}>
                         {['コアスキル', 'サブスキル1', 'サブスキル2'].map((label, index) => {
                             const skills = ['サーバサイド', 'iOS', 'AWS'];
@@ -242,14 +270,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     <View style={styles.heatmapHeader}>
                         <Text style={styles.heatmapTitle}>スキル・志向ヒートマップ</Text>
                         <View style={styles.chatBotIconSmall}>
-                            <Ionicons name='chatbubble-outline' size={14} color={THEME.text} />
+                            <Ionicons name='chatbubble-outline' size={14} color={THEME.textPrimary} />
                         </View>
                     </View>
 
                     <HeatmapGrid containerWidth={containerWidth - 40} dataValues={heatmapValues} testID='skill_heatmap' />
 
                     <View style={styles.chatBotCallout} testID='chatbot_button'>
-                        <Ionicons name='chatbubble-ellipses' size={40} color={THEME.accent} />
+                        <Ionicons name='chatbubble-ellipses' size={40} color={THEME.primary} />
                         <Text style={styles.labelYellow}>チャットボット</Text>
                     </View>
                 </View>
@@ -267,14 +295,25 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
             {/* 7. Center Overlay Button (e.g. 'Career Detail' or 'Chat') */}
             {showBottomNav && (
-                <View style={styles.bottomNavCenterOverlay} pointerEvents='box-none'>
+                <View style={[styles.bottomNavCenterOverlay, { gap: 15 }]} pointerEvents='box-none'>
+                    {user.canCreateCompany && !user.isCorporateMember() && (
+                        <TouchableOpacity
+                            style={[styles.centerButton, { backgroundColor: THEME.success }]}
+                            onPress={() => navigation.navigate(ROUTES.REGISTRATION, { type: 'corporate' })}
+                            testID='corporate_registration_button'
+                        >
+                            <Text style={styles.centerButtonText}>法人登録</Text>
+                            <Ionicons name='business-outline' size={18} color={THEME.textInverse} style={{ marginTop: -2 }} />
+                        </TouchableOpacity>
+                    )}
+
                     <TouchableOpacity
                         style={styles.centerButton}
                         onPress={() => navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc })}
                         testID='career_detail_button'
                     >
                         <Text style={styles.centerButtonText}>経歴詳細</Text>
-                        <Ionicons name='create-outline' size={18} color='#FFF' style={{ marginTop: -2 }} />
+                        <Ionicons name='create-outline' size={18} color={THEME.textInverse} style={{ marginTop: -2 }} />
                     </TouchableOpacity>
                 </View>
             )}
@@ -288,69 +327,69 @@ const styles = StyleSheet.create({
         backgroundColor: THEME.background,
     },
     dataSourceText: {
-        fontSize: 10,
-        color: THEME.subText,
-        marginTop: 2,
+        ...THEME.typography.micro,
+        color: THEME.textSecondary,
+        marginTop: THEME.spacing.xs,
     },
     scrollContent: {
-        paddingBottom: 150, // Space for fixed footer
+        paddingBottom: 150,
         flexGrow: 1,
     },
     headerBackground: {
         width: '100%',
-        height: height * 0.35, // 1/3 height as requested
+        height: height * 0.35,
         justifyContent: 'flex-start',
     },
     headerSafeArea: {
         flex: 1,
     },
     topProfileContainer: {
-        paddingHorizontal: 15,
-        paddingTop: 5,
+        paddingHorizontal: THEME.spacing.md,
+        paddingTop: THEME.spacing.xs,
         width: '100%',
     },
     headerActionContainer: {
         flexDirection: 'row',
-        alignSelf: 'flex-end',
-        gap: 10,
+        alignSelf: 'flex-end', 
+        gap: THEME.spacing.sm,
     },
     headerIconButton: {
-        marginBottom: 2,
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        borderRadius: 15,
-        padding: 4,
+        marginBottom: THEME.spacing.xs,
+        backgroundColor: THEME.surfaceGlass,
+        borderRadius: THEME.radius.full,
+        padding: THEME.spacing.xs,
     },
     profileActionRow: {
-        marginBottom: 5,
-        flexDirection: 'row',
+        marginBottom: THEME.spacing.xs,
+        flexDirection: 'row', 
         justifyContent: 'flex-end',
         width: '100%',
     },
     miniResumeButton: {
         backgroundColor: THEME.success,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 20,
+        paddingVertical: THEME.spacing.xs,
+        paddingHorizontal: THEME.spacing.sm,
+        borderRadius: THEME.radius.pill,
     },
     miniResumeButtonText: {
-        color: '#FFF',
-        fontSize: 11,
+        color: THEME.textInverse,
+        ...THEME.typography.small, 
         fontWeight: 'bold',
     },
     profileRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'center', 
         width: '100%',
     },
     photoContainer: {
         flex: 1,
         aspectRatio: 1,
-        borderRadius: 15,
+        borderRadius: THEME.radius.lg,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: '#FFF',
-        marginRight: 10,
-        backgroundColor: '#EEE',
+        borderColor: THEME.surface,
+        marginRight: THEME.spacing.sm,
+        backgroundColor: THEME.surfaceInput,
     },
     profileImage: {
         width: '100%',
@@ -359,113 +398,103 @@ const styles = StyleSheet.create({
     namePlate: {
         flex: 2,
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: 20,
-        padding: 12,
+        backgroundColor: THEME.surfaceElevated,
+        borderRadius: THEME.radius.lg,
+        padding: THEME.spacing.md,
         borderWidth: 1,
-        borderColor: THEME.cardBorder,
+        borderColor: THEME.borderDefault,
         minHeight: 100,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        position: 'relative', // For absolute positioning of chatbot
+        ...THEME.shadow.sm,
+        position: 'relative',
     },
     nameText: {
-        fontSize: 17,
-        fontWeight: '800',
-        color: THEME.text,
+        ...THEME.typography.h3,
+        color: THEME.textPrimary,
         marginBottom: 2,
     },
     jobTitle: {
-        fontSize: 11,
-        color: THEME.accent,
+        ...THEME.typography.small,
+        color: THEME.primary,
         fontWeight: 'bold',
         marginBottom: 2,
     },
     emailText: {
-        fontSize: 9,
-        color: THEME.subText,
+        ...THEME.typography.micro,
+        color: THEME.textSecondary,
     },
     badgeSection: {
-        marginTop: -40, // Reduced pull-up to prevent clipping
-        paddingHorizontal: 10,
-        marginBottom: 10,
+        marginTop: -40,
+        paddingHorizontal: THEME.spacing.sm,
+        marginBottom: THEME.spacing.sm,
     },
     tradingCardRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
     cardLabel: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: '800',
-        marginBottom: 5,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        color: THEME.textInverse,
+        ...THEME.typography.micro,
+        fontWeight: '800', 
+        marginBottom: THEME.spacing.xs,
+        textShadowColor: THEME.shadowColor,
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3
     },
     glassBadge: {
         width: '100%',
         aspectRatio: 1.1,
-        borderRadius: 15,
+        borderRadius: THEME.radius.lg,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(186, 230, 253, 0.75)', // Light blue semi-transparent
+        backgroundColor: THEME.chartLevel1,
         borderWidth: 1.5,
-        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderColor: THEME.borderGlass,
     },
     cardSkillName: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: '800',
+        color: THEME.textInverse,
+        ...THEME.typography.micro,
+        fontWeight: '800', 
         marginBottom: 2,
         textAlign: 'center',
         paddingHorizontal: 4,
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowColor: THEME.shadowColor,
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
     heatmapSection: {
-        paddingHorizontal: 15,
+        paddingHorizontal: THEME.spacing.md,
         justifyContent: 'flex-start',
-        marginTop: 10,
-        zIndex: 10, // Ensure tooltips show above other elements
+        marginTop: THEME.spacing.md,
+        zIndex: 10,
     },
     heatmapHeader: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'center', 
         alignSelf: 'flex-start',
-        marginBottom: 10,
+        marginBottom: THEME.spacing.sm,
     },
     heatmapTitle: {
-        color: THEME.text,
-        fontSize: 16,
-        fontWeight: '800',
-        marginRight: 8,
+        color: THEME.textPrimary,
+        ...THEME.typography.h3,
+        marginRight: THEME.spacing.sm,
     },
     chatBotIconSmall: {
-        backgroundColor: THEME.cardBorder,
+        backgroundColor: THEME.borderDefault, 
         padding: 3,
-        borderRadius: 5,
+        borderRadius: THEME.radius.sm,
     },
     chatBotCalloutOverlap: {
         position: 'absolute',
         bottom: -5,
         right: -5,
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        padding: 5,
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 5,
+        backgroundColor: THEME.surfaceElevated,
+        padding: THEME.spacing.xs,
+        borderRadius: THEME.radius.lg,
+        ...THEME.shadow.sm,
     },
     labelYellow: {
-        color: THEME.accent,
+        color: THEME.primary,
     },
     chatBotCallout: {
         position: 'absolute',
@@ -482,30 +511,45 @@ const styles = StyleSheet.create({
     },
     bottomNavCenterOverlay: {
         position: 'absolute',
-        bottom: 30, // Adjust to overlap BottomNav correctly
+        bottom: 30,
         left: 0,
         right: 0,
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
         zIndex: 101,
     },
+    draftBanner: {
+        backgroundColor: THEME.primary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: THEME.spacing.sm,
+        paddingHorizontal: THEME.spacing.md,
+        borderRadius: THEME.radius.lg,
+        marginBottom: THEME.spacing.md,
+        gap: THEME.spacing.sm,
+        ...THEME.shadow.md,
+    },
+    draftBannerText: {
+        flex: 1,
+        color: THEME.textInverse,
+        fontWeight: 'bold',
+        ...THEME.typography.bodySmall,
+    },
     centerButton: {
-        backgroundColor: THEME.accent,
+        backgroundColor: THEME.primary,
         width: 60,
         height: 60,
-        borderRadius: 30,
+        borderRadius: THEME.radius.full,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 6,
+        ...THEME.shadow.md,
         borderWidth: 3,
-        borderColor: '#FFF',
+        borderColor: THEME.surface,
     },
     centerButtonText: {
-        color: '#FFF',
-        fontSize: 8,
+        color: THEME.textInverse,
+        ...THEME.typography.micro,
         fontWeight: 'bold',
         marginBottom: 2,
     }

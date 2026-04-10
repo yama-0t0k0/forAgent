@@ -52,7 +52,7 @@ export const GlassCard = ({
           <Ionicons
             name={iconName}
             size={18}
-            color={THEME.accent}
+            color={THEME.primary}
           />
         )}
       </View>
@@ -65,31 +65,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardLabel: {
-    color: THEME.subText,
-    fontSize: 10,
-    fontWeight: '800',
-    marginBottom: 5,
+    ...THEME.typography.micro,
+    color: THEME.textSecondary,
+    marginBottom: THEME.spacing.xs,
   },
   glassBadge: {
     width: '100%',
     aspectRatio: 1.1,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
+    backgroundColor: THEME.surfaceElevated,
+    borderRadius: THEME.radius.lg,
     borderWidth: 1,
-    borderColor: '#E0F2FE',
+    borderColor: THEME.surfaceInfo,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    ...THEME.shadow.sm,
   },
   cardSkillName: {
-    fontSize: 11,
+    ...THEME.typography.micro,
     fontWeight: 'bold',
-    color: '#0284C7',
-    marginBottom: 4,
+    color: THEME.textPrimary,
+    marginBottom: THEME.spacing.xs,
     textAlign: 'center',
   },
 });

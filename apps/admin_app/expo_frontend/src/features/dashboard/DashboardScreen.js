@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
+import { THEME } from '@shared/src/core/theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { FirestoreDataService } from '@shared/src/core/services/FirestoreDataService';
@@ -192,8 +193,8 @@ export default function DashboardScreen() {
     // if (users.length === 0) { ... }
 
     return users.filter(u => {
-      // Use rawData for nested fields not fully mapped in User model yet
-      const basicInfo = u.rawData['基本情報'] || {};
+      const rawData = u?.rawData || u || {};
+      const basicInfo = rawData['基本情報'] || rawData.basicInfo || {};
       const address = basicInfo['住所'] || {};
       const education = basicInfo['学歴詳細'] || {};
 
@@ -203,7 +204,7 @@ export default function DashboardScreen() {
         u.familyNameKanji,
         u.email,
         // Fallback checks for raw data
-        u.rawData.name,
+        rawData.name,
         basicInfo['姓'],
         basicInfo['名'],
         basicInfo['メールアドレス'],
@@ -212,7 +213,7 @@ export default function DashboardScreen() {
       ].filter(Boolean).join(' ').toLowerCase();
 
       return searchableText.includes(query);
-    }).sort((a, b) => (b.rawData.createdAt || 0) - (a.rawData.createdAt || 0)); // Newest first
+    }).sort((a, b) => ((b?.rawData?.createdAt || 0) - (a?.rawData?.createdAt || 0))); // Newest first
   }, [data?.users, searchQueries.individual]);
 
   // Company Tab Data
@@ -340,9 +341,9 @@ export default function DashboardScreen() {
   // Chart Data (Static for Overview)
   // ---------------------------
   const userGrowthData = [
-    { value: 77, label: '1月', frontColor: '#2196F3' },
-    { value: 155, label: '2月', frontColor: '#2196F3' },
-    { value: 232, label: '3月', frontColor: '#2196F3' }
+    { value: 77, label: '1月', frontColor: THEME.primary },
+    { value: 155, label: '2月', frontColor: THEME.primary },
+    { value: 232, label: '3月', frontColor: THEME.primary }
   ];
 
   const connectionTrendsData = [
@@ -363,6 +364,30 @@ export default function DashboardScreen() {
    * @returns {string} The company name.
    */
   const resolveCompanyName = (id) => getCompanyName(id, data?.corporate);
+
+  /**
+   * Performs a global search by email if local results are not found.
+   * @param {string} email - The email to search for.
+   */
+  const handleGlobalSearch = async (email) => {
+    if (!email) return;
+    try {
+      setSelectedUserLoading(true);
+      const user = await FirestoreDataService.fetchIndividualByEmail(email);
+      if (user) {
+        setSelectedUserId(user.id);
+        setSelectedUserDoc(user);
+        setSelectedUserCache(prev => ({ ...prev, [user.id]: user }));
+      } else {
+        Alert.alert('検索結果', `メールアドレス "${email}" に一致するユーザーは見つかりませんでした。`);
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('エラー', '検索中にエラーが発生しました。');
+    } finally {
+      setSelectedUserLoading(false);
+    }
+  };
 
   // ---------------------------
   // Render
@@ -392,7 +417,7 @@ export default function DashboardScreen() {
       <View style={styles.tabBar}>
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
-          const tintColor = isActive ? '#2196F3' : '#666';
+          const tintColor = isActive ? THEME.primary : THEME.textSecondary;
 
           return (
             <BottomNavItem
@@ -432,6 +457,7 @@ export default function DashboardScreen() {
             extractSkills={extractSkills}
             getHighDensityHeatmapData={getHighDensityHeatmapData}
             onUserPress={(item) => setSelectedUserId(item.id)}
+            onGlobalSearch={handleGlobalSearch}
           />
         )}
         {activeTab === DASHBOARD_TABS.COMPANY && (

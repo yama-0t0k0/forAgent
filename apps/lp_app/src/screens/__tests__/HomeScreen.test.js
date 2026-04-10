@@ -61,21 +61,21 @@ jest.mock('react-native-passkey', () => ({
   Passkey: {},
 }));
 
-jest.mock('../../features/firebase/config', () => ({
+jest.mock('@features/firebase/config', () => ({
   auth: { currentUser: null },
   db: {},
   functions: {},
 }));
 
-jest.mock('../../context/AuthContext', () => ({
+jest.mock('src/context/AuthContext', () => ({
   useAuth: jest.fn(() => ({ user: null, role: null })),
 }));
 
-jest.mock('../../utils/navigationHelper', () => ({
+jest.mock('src/utils/navigationHelper', () => ({
   redirectToApp: jest.fn(),
 }));
 
-jest.mock('../../features/analytics', () => ({
+jest.mock('@features/analytics', () => ({
   logCustomEvent: jest.fn(),
 }));
 
