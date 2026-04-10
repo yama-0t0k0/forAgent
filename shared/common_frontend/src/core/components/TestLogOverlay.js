@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { FirestoreLogger } from '../utils/FirestoreLogger';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const MAX_LOGS = 5;
 
@@ -51,14 +52,14 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(0,0,0,0.01)', // Almost transparent
+        backgroundColor: THEME.surfaceInvisible,
         zIndex: 9999,
         maxHeight: 100,
         overflow: 'hidden',
     },
     logText: {
-        fontSize: 8, // Small but detectable size
-        color: 'rgba(255, 0, 0, 0.05)', // Very faint red, technically visible
+        fontSize: 8,
+        color: THEME.surfaceInvisible,
         width: '100%',
     },
 });

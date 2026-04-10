@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -191,24 +192,24 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: THEME.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    borderBottomColor: THEME.borderLight,
   },
   backButton: {
     marginRight: 16,
   },
   backButtonText: {
-    color: '#999',
+    color: THEME.textMuted,
     fontSize: 16,
   },
   headerTitle: {
-    color: '#FFF',
+    color: THEME.textInverse,
     fontSize: 20,
     fontWeight: '800',
   },
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   instruction: {
-    color: '#666',
+    color: THEME.textSecondary,
     fontSize: 13,
     marginBottom: 20,
     textAlign: 'center',
@@ -225,11 +226,11 @@ const styles = StyleSheet.create({
   },
   policyWrapper: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: THEME.surfaceElevated,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#333',
-    overflow: 'hidden',
+    borderColor: THEME.borderDefault,
+    overflow: 'hidden', 
   },
   policyScrollView: {
     flex: 1,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   policyHeading: {
-    color: '#FFF',
+    color: THEME.textInverse,
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 28,
@@ -246,51 +247,51 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   policySection: {
-    color: '#00E5FF',
+    color: THEME.primary,
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 32,
     marginBottom: 12,
   },
   policySubSection: {
-    color: '#FFF',
+    color: THEME.textInverse,
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 6,
   },
   policyParagraph: {
-    color: '#CCC',
+    color: THEME.textSecondary,
     fontSize: 14,
     lineHeight: 24,
   },
   footer: {
     padding: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 30,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: THEME.background,
   },
   agreeButton: {
-    backgroundColor: '#00E5FF',
+    backgroundColor: THEME.primary,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#00E5FF',
+    shadowColor: THEME.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
   agreeButtonDisabled: {
-    backgroundColor: '#333',
+    backgroundColor: THEME.borderDefault,
     shadowOpacity: 0,
   },
   agreeButtonText: {
-    color: '#000',
+    color: THEME.textPrimary,
     fontSize: 18,
     fontWeight: 'bold',
   },
   agreeButtonTextDisabled: {
-    color: '#777',
+    color: THEME.textMuted,
   },
 });
 

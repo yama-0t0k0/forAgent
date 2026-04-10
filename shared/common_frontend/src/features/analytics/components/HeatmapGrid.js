@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: THEME.overlayLight,
     marginVertical: THEME.spacing.xs,
   },
   tooltipText: {

@@ -1,45 +1,50 @@
 /**
  * Design System Compliance Checker
  * 
- * This script scans the codebase for hardcoded color values (hex codes)
- * and ensures that UI code uses the semantic tokens from THEME instead.
- * 
- * Usage: node scripts/check_design_system.js [path_to_scan]
+ * Scans the codebase for hardcoded color values (Hex, RGBA, Named Colors)
+ * to ensure adherence to the semantic theme tokens defined in THEME.
  */
 const fs = require('fs');
 const path = require('path');
 
 const TARGET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 const IGNORED_FILES = ['theme.js', 'DESIGN.md', 'check_design_system.js'];
-const IGNORED_DIRS = ['node_modules', '.git', '.expo', 'dist', 'build'];
+const IGNORED_DIRS = ['node_modules', '.git', '.expo', 'dist', 'build', 'tests/security_stub'];
 
-// Regex to match hex colors: # followed by 3 or 6 hex digits
-// We exclude matches inside strings that look like URLs or other non-UI values if needed,
-// but for now, we'll flag all hex codes.
+// 1. Hex Colors: # followed by 3 or 6 hex digits
 const HEX_COLOR_REGEX = /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b/g;
 
-// Some hex codes might be allowed (e.g., in theme definition or specific low-level mocks)
-// but generally we want to discourage them.
-const ALLOWED_HEX_CODES = [
-  '#000', '#000000', '#fff', '#ffffff' // Pure black/white might be okay in some contexts, but even then tokens are better.
+// 2. RGBA Colors: rgba?(...)
+const RGBA_COLOR_REGEX = /rgba?\([\d\s,.]+\)/g;
+
+// 3. Named Colors (as string literals in style objects)
+// We look for common CSS color names used as values like: color: 'red'
+const NAMED_COLORS = [
+  'red', 'blue', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'gray', 'grey', 'slate', 'zinc', 'neutral'
+];
+const NAMED_COLOR_REGEX = new RegExp(`['"](${NAMED_COLORS.join('|')})['"]`, 'gi');
+
+// Pure colors and semantic variant names that are allowed as string literals
+const ALLOWED_COLORS = [
+  '#fff', '#ffffff', '#000', '#000000', 
+  'transparent', 'white', 'black', 
+  'neutral', 'primary', 'secondary', 'success', 'warning', 'error', 'info', 'accent'
 ].map(c => c.toLowerCase());
 
 let totalViolations = 0;
+let filesWithViolations = 0;
 
 function scanDir(dir) {
   const files = fs.readdirSync(dir);
-
   for (const file of files) {
     const fullPath = path.join(dir, file);
     const stats = fs.statSync(fullPath);
-
     if (stats.isDirectory()) {
       if (IGNORED_DIRS.includes(file)) continue;
       scanDir(fullPath);
     } else if (stats.isFile()) {
       if (!TARGET_EXTENSIONS.includes(path.extname(file))) continue;
       if (IGNORED_FILES.includes(file)) continue;
-
       checkFile(fullPath);
     }
   }
@@ -48,50 +53,68 @@ function scanDir(dir) {
 function checkFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
-  let fileViolations = 0;
+  let fileViolations = [];
 
   lines.forEach((line, index) => {
-    // Basic comment skipping
+    // Skip comments
     if (line.trim().startsWith('//') || line.trim().startsWith('*')) return;
 
-    const matches = line.match(HEX_COLOR_REGEX);
-    if (matches) {
-      matches.forEach(match => {
-        // If it's a legitimate violation (not in a comment or allowed list)
-        if (!ALLOWED_HEX_CODES.includes(match.toLowerCase())) {
-          console.log(`❌ ${filePath}:${index + 1} - Hardcoded color found: ${match}`);
-          fileViolations++;
-          totalViolations++;
+    // Check Hex
+    const hexMatches = line.match(HEX_COLOR_REGEX);
+    if (hexMatches) {
+      hexMatches.forEach(match => {
+        if (!ALLOWED_COLORS.includes(match.toLowerCase())) {
+          fileViolations.push({ line: index + 1, value: match, type: 'Hex' });
+        }
+      });
+    }
+
+    // Check RGBA
+    const rgbaMatches = line.match(RGBA_COLOR_REGEX);
+    if (rgbaMatches) {
+      rgbaMatches.forEach(match => {
+        fileViolations.push({ line: index + 1, value: match, type: 'RGBA' });
+      });
+    }
+
+    // Check Named Colors
+    const namedMatches = line.match(NAMED_COLOR_REGEX);
+    if (namedMatches) {
+      namedMatches.forEach(match => {
+        const colorName = match.replace(/['"]/g, '');
+        if (!ALLOWED_COLORS.includes(colorName.toLowerCase())) {
+          fileViolations.push({ line: index + 1, value: match, type: 'Named' });
         }
       });
     }
   });
 
-  if (fileViolations > 0) {
-    // console.log(`   Found ${fileViolations} violations in ${filePath}`);
+  if (fileViolations.length > 0) {
+    filesWithViolations++;
+    console.log(`\n📄 ${path.relative(process.cwd(), filePath)}:`);
+    fileViolations.forEach(v => {
+      console.log(`  L${v.line}: Hardcoded ${v.type} found -> ${v.value}`);
+      totalViolations++;
+    });
   }
 }
 
 const startPath = process.argv[2] || '.';
-console.log(`🔍 Scanning for Design System violations in: ${startPath}`);
+console.log(`🔍 Scanning for Design System violations in: ${path.resolve(startPath)}`);
 
 if (fs.existsSync(startPath)) {
-  const stats = fs.statSync(startPath);
-  if (stats.isDirectory()) {
-    scanDir(startPath);
-  } else {
-    checkFile(startPath);
-  }
+  scanDir(startPath);
 } else {
   console.error(`❌ Path not found: ${startPath}`);
   process.exit(1);
 }
 
 if (totalViolations > 0) {
-  console.log(`\n❌ Total Design System violations: ${totalViolations}`);
-  console.log('💡 Please use semantic tokens from THEME instead of hardcoded hex values.');
+  console.log(`\n❌ Design System compliance check failed!`);
+  console.log(`Found ${totalViolations} violations across ${filesWithViolations} files.`);
+  console.log('💡 Action: Replace these values with semantic tokens from THEME (e.g., THEME.primary, THEME.surfaceGlass).');
   process.exit(1);
 } else {
-  console.log('\n✅ Design System compliance check passed!');
+  console.log('\n✅ All scanned files comply with the Design System!');
   process.exit(0);
 }

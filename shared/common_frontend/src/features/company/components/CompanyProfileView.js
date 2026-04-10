@@ -288,29 +288,29 @@ const styles = StyleSheet.create({
     },
     headerOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.1)',
+        backgroundColor: THEME.overlaySubtle,
     },
     headerSafeArea: {
         flex: 1,
         justifyContent: 'flex-end',
-        paddingBottom: 10,
+        paddingBottom: THEME.spacing.sm,
     },
     topProfileContainer: {
-        paddingHorizontal: 15,
+        paddingHorizontal: THEME.spacing.md,
         width: '100%',
         zIndex: 20,
     },
     headerActionContainer: {
         flexDirection: 'row',
         alignSelf: 'flex-end',
-        gap: 10,
-        marginBottom: 10,
+        gap: THEME.spacing.sm,
+        marginBottom: THEME.spacing.sm,
     },
     headerIconButton: {
         marginBottom: 2,
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        borderRadius: 15,
-        padding: 4,
+        backgroundColor: THEME.overlaySubtle,
+        borderRadius: THEME.radius.md,
+        padding: THEME.spacing.xs,
     },
     profileRow: {
         flexDirection: 'row',

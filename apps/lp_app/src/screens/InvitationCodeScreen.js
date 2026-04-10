@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { validateInvitationCode } from '@shared/src/features/registration/services/registrationService';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -74,7 +75,7 @@ const InvitationCodeScreen = ({ navigation }) => {
                     <TextInput
                         style={styles.input}
                         placeholder="6桁〜7桁のコード"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={THEME.textMuted}
                         value={code}
                         onChangeText={(text) => {
                             setCode(text);
@@ -82,7 +83,7 @@ const InvitationCodeScreen = ({ navigation }) => {
                         }}
                         autoCapitalize="characters"
                         maxLength={10}
-                        selectionColor="#00E5FF"
+                        selectionColor={THEME.primary}
                     />
                     <Text style={styles.hint}>※英数字の組み合わせ</Text>
                     
@@ -99,7 +100,7 @@ const InvitationCodeScreen = ({ navigation }) => {
                     disabled={isLoading}
                 >
                     {isLoading ? (
-                        <ActivityIndicator color="#000" />
+                        <ActivityIndicator color={THEME.textPrimary} />
                     ) : (
                         <Text style={styles.verifyButtonText}>確認する</Text>
                     )}
@@ -119,7 +120,7 @@ const InvitationCodeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0A0A0A', // Deep Black
+        backgroundColor: THEME.background,
     },
     content: {
         flex: 1,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     backButtonText: {
-        color: '#999',
+        color: THEME.textMuted,
         fontSize: 16,
     },
     header: {
@@ -140,13 +141,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: '800',
-        color: '#FFFFFF',
+        color: THEME.textInverse,
         letterSpacing: 1,
         marginBottom: 16,
     },
     subtitle: {
         fontSize: 16,
-        color: '#AAA',
+        color: THEME.textSecondary,
         lineHeight: 24,
     },
     inputContainer: {
@@ -155,53 +156,53 @@ const styles = StyleSheet.create({
     input: {
         height: 64,
         borderBottomWidth: 2,
-        borderBottomColor: '#333',
+        borderBottomColor: THEME.borderDefault,
         fontSize: 28,
-        color: '#00E5FF', // Neon Cyan
-        fontWeight: '700',
+        color: THEME.primary,
+        fontWeight: '700', 
         textAlign: 'center',
         letterSpacing: 4,
     },
     hint: {
         marginTop: 12,
-        color: '#555',
+        color: THEME.textMuted,
         textAlign: 'center',
         fontSize: 12,
     },
     errorContainer: {
         marginTop: 15,
-        backgroundColor: 'rgba(255, 68, 68, 0.1)',
+        backgroundColor: THEME.surfaceError,
         padding: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255, 68, 68, 0.3)',
+        borderColor: THEME.error,
     },
     errorText: {
-        color: '#FF4444',
+        color: THEME.error,
         textAlign: 'center',
         fontSize: 14,
         fontWeight: '500',
     },
     verifyButton: {
-        backgroundColor: '#00E5FF',
+        backgroundColor: THEME.primary,
         height: 60,
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#00E5FF',
+        shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
         shadowRadius: 10,
         elevation: 8,
     },
     verifyButtonText: {
-        color: '#000',
+        color: THEME.textPrimary,
         fontSize: 18,
         fontWeight: 'bold',
         letterSpacing: 1,
     },
     disabledButton: {
-        backgroundColor: '#333',
+        backgroundColor: THEME.borderDefault,
         shadowOpacity: 0,
     },
     footer: {
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 13,
-        color: '#444',
+        color: THEME.textMuted,
         textAlign: 'center',
         lineHeight: 20,
     },

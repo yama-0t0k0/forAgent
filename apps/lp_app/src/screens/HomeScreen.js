@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
     opacity: 0.34,
   },
   heroBinaryText: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: THEME.textInverse,
     fontSize: 12,
     lineHeight: 22,
     letterSpacing: 1.2,
@@ -1083,7 +1083,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: THEME.overlaySubtle,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: THEME.radius.lg,

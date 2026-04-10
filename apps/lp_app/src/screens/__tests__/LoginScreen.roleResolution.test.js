@@ -42,18 +42,18 @@ jest.mock('firebase/firestore', () => ({
   getDoc: jest.fn(),
 }));
 
-jest.mock('../../features/firebase/config', () => ({
+jest.mock('@features/firebase/config', () => ({
   auth: {},
   db: {},
 }));
 
-jest.mock('../../features/analytics', () => ({
+jest.mock('@features/analytics', () => ({
   logCustomEvent: jest.fn(),
   setAnalyticsUser: jest.fn(),
   setAnalyticsUserProperties: jest.fn(),
 }));
 
-jest.mock('../../utils/navigationHelper', () => ({
+jest.mock('src/utils/navigationHelper', () => ({
   getRedirectUrlForRole: jest.fn(),
   redirectToApp: jest.fn(),
 }));

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useContext } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DataProvider, DataContext } from '@shared/src/core/state/DataContext';
@@ -23,10 +23,6 @@ const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json')
 
 /**
  * Inner content component for UserDetailModal to manage internal navigation.
- * @param {Object} props
- * @param {string} props.userId - The user ID.
- * @param {Object} props.userDoc - The user document data.
- * @returns {JSX.Element|null} The rendered screen or null.
  */
 const UserDetailContent = ({ userId, userDoc }) => {
   const [stack, setStack] = useState([]);
@@ -35,10 +31,6 @@ const UserDetailContent = ({ userId, userDoc }) => {
     setStack([{ name: 'MyPage', params: { userId, userDoc, hideSafeArea: true } }]);
   }, [userId, userDoc]);
 
-  /**
-   * Custom navigation object mimicking React Navigation.
-   * @type {Object}
-   */
   const navigation = useMemo(() => ({
     navigate: (name, params) => {
       setStack(prev => [...prev, { name, params }]);
@@ -59,9 +51,6 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
   if (!currentRoute) return null;
 
-  /**
-   * Handles granting the corporate registration permission.
-   */
   const handleGrantPermission = async () => {
     try {
       Alert.alert('確認', 'このユーザーに法人アカウントの作成権限を付与しますか？', [
@@ -72,7 +61,6 @@ const UserDetailContent = ({ userId, userDoc }) => {
              const result = await grantCorporatePermission(userId);
              if (result.success) {
                Alert.alert('完了', '権限を付与しました。ユーザーに通知が送信されます。');
-               // Refresh local user state if needed (or rely on next refresh)
              }
           }
         }
@@ -83,52 +71,32 @@ const UserDetailContent = ({ userId, userDoc }) => {
     }
   };
 
-  /**
-   * Renders the administrative controls for the user.
-   */
   const renderAdminControls = () => {
-    // Only show if not already a corporate member and doesn't have the flag
     if (userDoc.isCorporateMember && userDoc.isCorporateMember()) return null;
     if (userDoc.canCreateCompany) return (
-       <View style={{ padding: 15, backgroundColor: THEME.surfaceNeutral, borderBottomWidth: 1, borderBottomColor: THEME.borderDefault }}>
-         <Text style={{ color: THEME.textSecondary, fontSize: 12 }}>※ このユーザーは既に法人登録権限を持っています</Text>
+       <View style={styles.adminBannerWarning}>
+         <Text style={styles.adminBannerText}>※ このユーザーは既に法人登録権限を持っています</Text>
        </View>
     );
 
     return (
-      <View style={{ padding: 15, backgroundColor: THEME.surface, borderBottomWidth: 1, borderBottomColor: THEME.borderDefault }}>
+      <View style={styles.adminBannerAction}>
         <TouchableOpacity 
-          style={{ backgroundColor: THEME.success, padding: 12, borderRadius: 8, alignItems: 'center' }}
+          style={styles.grantButton}
           onPress={handleGrantPermission}
         >
-          <Text style={{ color: THEME.textInverse, fontWeight: 'bold' }}>法人登録権限 (canCreateCompany) を付与する</Text>
+          <Text style={styles.grantButtonText}>法人登録権限 (canCreateCompany) を付与する</Text>
         </TouchableOpacity>
       </View>
     );
   };
 
-  /**
-   * Custom save logic for Admin App to handle split data (public_profile + private_info).
-   * @param {Object} db - Firestore instance
-   * @param {string} id - Document ID
-   * @param {Object} data - Full user data
-   */
   const handleAdminUserSave = async (db, id, data) => {
-    // 1. Split data
     const { publicData, privateData } = User.splitData(data);
-
-    // 2. Save public profile
     await setDoc(doc(db, 'public_profile', id), publicData);
-
-    // 3. Save private info (Admin has permission to write to private_info)
-    // Use merge: true to preserve allowed_companies and other fields
     await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
   };
 
-  /**
-   * Renders the current screen based on the stack state.
-   * @returns {JSX.Element} The screen component.
-   */
   const renderScreen = () => {
     const props = {
       route: currentRoute,
@@ -155,7 +123,7 @@ const UserDetailContent = ({ userId, userDoc }) => {
           <GenericRegistrationScreen
             {...props}
             title='エンジニア個人登録'
-            collectionName='public_profile' // Use public_profile for ID generation check
+            collectionName='public_profile'
             idField='id_individual'
             idPrefixChar='C'
             orderTemplate={ENGINEER_TEMPLATE}
@@ -179,36 +147,20 @@ const UserDetailContent = ({ userId, userDoc }) => {
   );
 };
 
-
-
 /**
  * Modal component for displaying detailed user information with internal navigation.
- * @param {Object} props
- * @param {boolean} props.visible - Whether the modal is visible.
- * @param {Function} props.onClose - Callback to close the modal.
- * @param {boolean} props.loading - Loading state.
- * @param {Object} props.error - Error object.
- * @param {Object} props.userDoc - The user document data.
- * @param {string} props.userId - The user ID.
- * @returns {JSX.Element} The rendered modal.
  */
 export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => {
-  // Access global Admin Data (contains all JDs, Users, etc.)
   const { data: adminData } = React.useContext(DataContext);
 
-  // Merge the selected User Doc with the global lists required for matching features
   const enhancedUserDoc = useMemo(() => {
     if (!userDoc) return null;
-
-    // Preserve the User model prototype methods (like isCorporateMember)
-    // while attaching additional lists required for child components.
     const enhanced = Object.create(Object.getPrototypeOf(userDoc));
-    Object.assign(enhanced, userDoc, {
+    Object.assign(enhanced, userDoc, { 
       jd: adminData?.jd || [],
       users: adminData?.users || [],
       fmjs: adminData?.fmjs || []
     });
-
     return enhanced;
   }, [userDoc, adminData]);
 
@@ -228,3 +180,33 @@ export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, use
     </DetailModal>
   );
 };
+
+const styles = StyleSheet.create({
+  adminBannerWarning: {
+    padding: THEME.spacing.md,
+    backgroundColor: THEME.surfaceNeutral,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.borderDefault,
+  },
+  adminBannerText: {
+    ...THEME.typography.small,
+    color: THEME.textSecondary,
+  },
+  adminBannerAction: {
+    padding: THEME.spacing.md,
+    backgroundColor: THEME.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.borderDefault,
+  },
+  grantButton: {
+    backgroundColor: THEME.success,
+    padding: THEME.spacing.md,
+    borderRadius: THEME.radius.md,
+    alignItems: 'center',
+  },
+  grantButtonText: {
+    color: THEME.textInverse,
+    fontWeight: 'bold',
+    ...THEME.typography.bodySmall,
+  }
+});

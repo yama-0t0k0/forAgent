@@ -86,8 +86,8 @@ export const JobListItem = ({
                   style={{ marginRight: 6 }}
                   labelStyle={{ fontSize: 9, marginBottom: 3 }}
                   badgeStyle={{
-                    backgroundColor: 'rgba(139, 92, 246, 0.10)',
-                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    backgroundColor: THEME.surfaceAccent,
+                    borderColor: THEME.secondary,
                     borderWidth: 1,
                     borderRadius: 10,
                   }}

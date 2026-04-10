@@ -7,6 +7,7 @@ import {
     Dimensions,
     ActivityIndicator,
     Alert,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../features/firebase/config';
@@ -18,6 +19,7 @@ import {
 } from 'firebase/auth';
 
 import registrationService from '@shared/src/features/registration/services/registrationService';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -41,7 +43,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
 
         setIsLoading(true);
         try {
-            let provider;
+            let provider = null;
             if (method === 'google') {
                 provider = new GoogleAuthProvider();
             } else if (method === 'github') {
@@ -161,7 +163,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
                 </View>
                 {isLoading && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#00E5FF" />
+                        <ActivityIndicator size="large" color={THEME.primary} />
                     </View>
                 )}
             </View>
@@ -172,87 +174,87 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0A0A0A',
+        backgroundColor: THEME.background,
     },
     header: {
         height: 60,
-        paddingHorizontal: 20,
+        paddingHorizontal: THEME.spacing.md,
         justifyContent: 'center',
     },
     backButton: {
-        paddingVertical: 10,
+        paddingVertical: THEME.spacing.xs,
     },
     backButtonText: {
-        color: '#999',
+        color: THEME.textMuted,
         fontSize: 16,
     },
     content: {
         flex: 1,
-        paddingHorizontal: 30,
+        paddingHorizontal: THEME.spacing.lg,
         justifyContent: 'center',
     },
     titleArea: {
-        marginBottom: 60,
+        marginBottom: THEME.spacing.xl * 1.5,
     },
     welcomeText: {
-        color: '#7C4DFF', // Neon Purple
+        color: THEME.accent,
         fontSize: 14,
         fontWeight: 'bold',
         letterSpacing: 2,
         textTransform: 'uppercase',
-        marginBottom: 8,
+        marginBottom: THEME.spacing.xs,
     },
     title: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 28,
         fontWeight: '800',
-        marginBottom: 12,
+        marginBottom: THEME.spacing.sm,
     },
     subtitle: {
-        color: '#666',
+        color: THEME.textSecondary,
         fontSize: 16,
         lineHeight: 24,
     },
     buttonStack: {
-        gap: 16,
+        gap: THEME.spacing.md,
     },
     methodButton: {
         height: 60,
-        borderRadius: 15,
+        borderRadius: THEME.radius.md,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        backgroundColor: '#1C1C1E',
+        paddingHorizontal: THEME.spacing.md,
+        backgroundColor: THEME.surfaceElevated,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: THEME.borderDefault,
     },
     googleButton: {
-        backgroundColor: '#FFF',
-        borderColor: '#FFF',
+        backgroundColor: THEME.textInverse,
+        borderColor: THEME.textInverse,
     },
     googleButtonText: {
-        color: '#000',
+        color: THEME.textPrimary, 
     },
     githubButton: {
-        backgroundColor: '#1C1C1E',
-        borderColor: '#444',
+        backgroundColor: THEME.surfaceElevated,
+        borderColor: THEME.borderDefault,
     },
     emailButton: {
-        backgroundColor: '#7C4DFF',
-        borderColor: '#7C4DFF',
+        backgroundColor: THEME.accent,
+        borderColor: THEME.accent,
         justifyContent: 'center',
     },
     methodButtonText: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 17,
         fontWeight: '600',
-        marginLeft: 15,
+        marginLeft: THEME.spacing.md,
     },
     iconPlaceholder: {
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#F1F1F1',
+        backgroundColor: THEME.borderLight,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -260,47 +262,47 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#333',
+        backgroundColor: THEME.borderDefault,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center', 
     },
     iconText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#4285F4', // Google Blue
+        color: THEME.primary,
     },
     iconTextWhite: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#FFF',
+        color: THEME.textInverse,
     },
     separator: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 20,
+        marginVertical: THEME.spacing.lg,
     },
     line: {
         flex: 1,
         height: 1,
-        backgroundColor: '#333',
+        backgroundColor: THEME.borderDefault,
     },
     separatorText: {
-        color: '#555',
-        marginHorizontal: 15,
+        color: THEME.textMuted,
+        marginHorizontal: THEME.spacing.md,
         fontSize: 14,
     },
     footer: {
-        marginTop: 60,
+        marginTop: THEME.spacing.xl * 1.5,
     },
     footerText: {
-        color: '#444',
+        color: THEME.textMuted,
         fontSize: 12,
         textAlign: 'center',
-        lineHeight: 18,
+        lineHeight: 18, 
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: THEME.overlayDark,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -17,6 +17,7 @@ import { auth } from '../features/firebase/config';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from 'firebase/auth';
 import registrationService, { registerUser } from '@shared/src/features/registration/services/registrationService';
 import { Alert } from 'react-native';
+import { THEME } from '@shared/src/core/theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -254,11 +255,11 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                     <TextInput
                         style={styles.input}
                         placeholder={currentStepConfig.placeholder}
-                        placeholderTextColor="#444"
+                        placeholderTextColor={THEME.textMuted}
                         value={formData[currentStepConfig.key] || ''}
                         onChangeText={updateValue}
                         autoFocus={true}
-                        selectionColor="#00E5FF"
+                        selectionColor={THEME.primary}
                         keyboardType={currentStepConfig.type === 'phone' ? 'phone-pad' : (currentStepConfig.type === 'email' ? 'email-address' : 'default')}
                         autoCapitalize="none"
                         secureTextEntry={currentStepConfig.type === 'password'}
@@ -275,7 +276,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                         disabled={isLoading || !(formData[currentStepConfig.key]?.length >= (currentStepConfig.key === 'password' ? 8 : 2))}
                     >
                         {isLoading ? (
-                            <ActivityIndicator color="#000" />
+                            <ActivityIndicator color={THEME.textPrimary} />
                         ) : (
                             <Text style={styles.nextButtonText}>
                                 {currentStep === steps.length - 1 ? '登録を完了する' : '次へ進む'}
@@ -292,7 +293,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0A0A0A',
+        backgroundColor: THEME.background,
     },
     content: {
         flex: 1,
@@ -309,33 +310,33 @@ const styles = StyleSheet.create({
         marginRight: 20,
     },
     backButtonText: {
-        color: '#666',
+        color: THEME.textMuted,
         fontSize: 14,
     },
     progressContainer: {
         flex: 1,
         height: 4,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: THEME.surfaceElevated,
         borderRadius: 2,
-        overflow: 'hidden',
+        overflow: 'hidden', 
     },
     progressBar: {
         height: '100%',
-        backgroundColor: '#00E5FF',
+        backgroundColor: THEME.primary,
     },
     formArea: {
         flex: 1,
         justifyContent: 'center',
     },
     stepIndicator: {
-        color: '#00E5FF',
+        color: THEME.primary,
         fontSize: 12,
         fontWeight: 'bold',
         letterSpacing: 2,
         marginBottom: 12,
     },
     label: {
-        color: '#FFF',
+        color: THEME.textInverse,
         fontSize: 26,
         fontWeight: '800',
         lineHeight: 36,
@@ -343,9 +344,9 @@ const styles = StyleSheet.create({
     },
     input: {
         fontSize: 24,
-        color: '#FFF',
+        color: THEME.textInverse,
         borderBottomWidth: 2,
-        borderBottomColor: '#333',
+        borderBottomColor: THEME.borderDefault,
         paddingVertical: 15,
         fontWeight: '600',
     },
@@ -353,27 +354,27 @@ const styles = StyleSheet.create({
         marginBottom: Platform.OS === 'ios' ? 40 : 20,
     },
     nextButton: {
-        backgroundColor: '#00E5FF',
+        backgroundColor: THEME.primary,
         height: 60,
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#00E5FF',
+        shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,
     },
     disabledButton: {
-        backgroundColor: '#222',
+        backgroundColor: THEME.borderDefault,
         shadowOpacity: 0,
     },
     nextButtonText: {
-        color: '#000',
+        color: THEME.textPrimary,
         fontSize: 18,
         fontWeight: 'bold',
     },
     footerHint: {
-        color: '#444',
+        color: THEME.textMuted,
         fontSize: 12,
         textAlign: 'center',
         marginTop: 20,

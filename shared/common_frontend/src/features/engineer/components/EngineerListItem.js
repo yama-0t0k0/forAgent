@@ -93,7 +93,7 @@ export const EngineerListItem = ({
                   width={60}
                   style={{ marginRight: 6 }}
                   badgeStyle={{
-                    backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                    backgroundColor: THEME.surfaceInfo,
                     borderColor: THEME.accent,
                     borderWidth: 1,
                   }}
@@ -115,8 +115,8 @@ export const EngineerListItem = ({
                   style={{ marginRight: 6 }}
                   labelStyle={{ fontSize: 9, marginBottom: 3 }}
                   badgeStyle={{
-                    backgroundColor: 'rgba(14, 165, 233, 0.10)',
-                    borderColor: 'rgba(14, 165, 233, 0.3)',
+                    backgroundColor: THEME.surfaceInfo,
+                    borderColor: THEME.chartLevel1,
                     borderWidth: 1,
                     borderRadius: 10,
                   }}

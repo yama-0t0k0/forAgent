@@ -74,7 +74,7 @@ export const DetailModal = ({
 const styles = StyleSheet.create({
     detailOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: THEME.overlayDark,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -24,7 +24,7 @@ fi
 if [ -n "$1" ]; then
     APPS=("$1")
 else
-    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app")
+    APPS=("individual_user_app" "corporate_user_app" "job_description" "fmjs" "admin_app" "lp_app")
 fi
 
 echo "🚀 Starting Local CI/CD Pipeline..."
@@ -106,7 +106,13 @@ fi
 
 # --- Iterate over Apps ---
 for app in "${APPS[@]}"; do
-    APP_DIR="apps/$app/expo_frontend"
+    # Multi-path support: apps/$app/expo_frontend or apps/$app
+    if [ -d "apps/$app/expo_frontend" ]; then
+        APP_DIR="apps/$app/expo_frontend"
+    else
+        APP_DIR="apps/$app"
+    fi
+
     echo ""
     echo "🔍 Processing App: $app"
     echo "   Path: $APP_DIR"
