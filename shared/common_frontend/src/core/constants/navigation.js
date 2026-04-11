@@ -20,6 +20,7 @@ export const ROUTES = {
     CORPORATE_CONNECTIONS: 'Connections',
     CORPORATE_BLOG: 'Blog',
     CORPORATE_EVENTS: 'Events',
+    CORPORATE_MEMBER_MANAGEMENT: 'MemberManagement',
 
     // Admin App
     ADMIN_LOGIN: 'Login',

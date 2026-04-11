@@ -2,8 +2,14 @@ import {
   getFirestore, 
   doc, 
   runTransaction, 
-  serverTimestamp 
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
+
+const FIRESTORE_OP_EQUALS = '=' + '=';
 
 /**
  * Service for managing company members and roles with governance rules.
@@ -109,6 +115,121 @@ export const MemberService = {
       console.log(`[MemberService] Successfully processed alpha demotion/removal for ${targetUid}`);
     } catch (error) {
       console.error('[MemberService] Alpha change failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetches all members belonging to a specific company.
+   * 
+   * @param {string} companyId 
+   * @returns {Promise<Array>} List of member objects with uid
+   */
+  getCompanyMembers: async (companyId) => {
+    const db = getFirestore();
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('companyId', FIRESTORE_OP_EQUALS, companyId));
+
+    try {
+      const querySnapshot = await getDocs(q);
+      const members = [];
+      querySnapshot.forEach((docSnap) => {
+        members.push({ uid: docSnap.id, ...docSnap.data() });
+      });
+      return members;
+    } catch (error) {
+      console.error('[MemberService] Failed to fetch company members:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * General role update for non-critical roles (Beta, Gamma).
+   * Note: For promotion TO Alpha, use promoteToAlpha.
+   * For demotion FROM Alpha, use demoteOrRemoveAlpha.
+   */
+  updateRole: async (targetUid, newRole) => {
+    const db = getFirestore();
+    const userRef = doc(db, 'users', targetUid);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) throw new Error('User not found');
+        
+        const currentRole = userDoc.data().role;
+        // Safety check: Avoid using this for Alpha governance logic accidentally
+        if (currentRole === 'corporate-alpha' || newRole === 'corporate-alpha') {
+          throw new Error('Please use specific Alpha promotion/demotion methods for Alpha role changes.');
+        }
+
+        transaction.update(userRef, {
+          role: newRole,
+          updatedAt: serverTimestamp()
+        });
+      });
+      console.log(`[MemberService] Role updated to ${newRole} for ${targetUid}`);
+    } catch (error) {
+      console.error('[MemberService] Role update failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Transfers Alpha role from current user to a successor in a single transaction.
+   * This ensures there is never a moment without an Alpha.
+   */
+  transferAlphaRole: async (currentAlphaUid, successorUid, companyId) => {
+    const db = getFirestore();
+    const companyRef = doc(db, 'companies', companyId);
+    const selfRef = doc(db, 'users', currentAlphaUid);
+    const successorRef = doc(db, 'users', successorUid);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const companyDoc = await transaction.get(companyRef);
+        if (!companyDoc.exists()) throw new Error('Company not found');
+        
+        const companyData = companyDoc.data();
+        const alphas = companyData.alphaUids || [];
+
+        // Ensure current user is actually an Alpha
+        if (!alphas.includes(currentAlphaUid)) {
+          throw new Error('Current user is not an Alpha.');
+        }
+
+        // Prepare new Alpha list
+        let nextAlphas = alphas.filter(id => id !== currentAlphaUid);
+        if (!nextAlphas.includes(successorUid)) {
+          nextAlphas.push(successorUid);
+        }
+
+        // Governance check: Max 3
+        if (nextAlphas.length > 3) {
+          throw new Error('Ownership transfer failed: Target company already has maximum Alphas.');
+        }
+
+        // 1. Update Company Document
+        transaction.update(companyRef, {
+          alphaUids: nextAlphas,
+          updatedAt: serverTimestamp()
+        });
+
+        // 2. Update Successor User Document
+        transaction.update(successorRef, {
+          role: 'corporate-alpha',
+          updatedAt: serverTimestamp()
+        });
+
+        // 3. Update Self User Document (Demote to Beta)
+        transaction.update(selfRef, {
+          role: 'corporate-beta',
+          updatedAt: serverTimestamp()
+        });
+      });
+      console.log(`[MemberService] Alpha role transferred from ${currentAlphaUid} to ${successorUid}`);
+    } catch (error) {
+      console.error('[MemberService] Transfer failed:', error);
       throw error;
     }
   }

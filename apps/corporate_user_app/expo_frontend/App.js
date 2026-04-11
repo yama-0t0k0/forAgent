@@ -13,6 +13,7 @@ import { CompanyPageScreen } from './src/features/company_profile/CompanyPageScr
 import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { CorporateImageEditScreen } from '@shared/src/features/profile/CorporateImageEditScreen';
 import { TechStackScreen } from './src/features/company_profile/TechStackScreen';
+import { MemberManagementScreen } from './src/features/company_profile/MemberManagementScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
 import { CorporateBottomNav } from '@shared/src/core/components/CorporateBottomNav';
 import { AppShell } from '@shared/src/core/components/AppShell';
@@ -87,6 +88,7 @@ const CorporateRegistrationWrapper = () => {
             <DataProvider initialData={initialData}>
                 <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={ROUTES.CORPORATE_PAGE}>
                     <Stack.Screen name={ROUTES.CORPORATE_PAGE} component={CompanyPageScreen} />
+                    <Stack.Screen name={ROUTES.CORPORATE_MEMBER_MANAGEMENT} component={MemberManagementScreen} />
                     <Stack.Screen name={ROUTES.CORPORATE_TECH_STACK} component={TechStackScreen} />
                     <Stack.Screen name={ROUTES.CORPORATE_JOBS} component={UnderConstructionScreen} initialParams={{ title: '求人' }} />
                     <Stack.Screen name={ROUTES.CORPORATE_CONNECTIONS} component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
