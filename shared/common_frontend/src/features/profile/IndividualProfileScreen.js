@@ -14,6 +14,9 @@ import { HeatmapCalculator } from '@shared/src/features/analytics/utils/HeatmapC
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { IconButton } from '@shared/src/core/components/IconButton';
+import { NotificationBell } from '@shared/src/core/components/NotificationBell';
+import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
+import { NotificationService } from '@shared/src/features/notification/services/notificationService';
 import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { SYSTEM_USER_ID } from '@shared/src/core/constants';
@@ -72,6 +75,8 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     const [userDoc, setUserDoc] = useState(propUserDoc || route?.params?.userDoc || (isCurrentUser ? localData : remoteUserDoc));
     const [heatmapValues, setHeatmapValues] = useState(null);
     const [registrationDraft, setRegistrationDraft] = useState(null);
+    const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+    const [notifications, setNotifications] = useState([]);
 
     const [containerWidth, setContainerWidth] = useState(width);
 
@@ -102,6 +107,22 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
         checkDraft();
     }, [isCurrentUser, user.canCreateCompany, user.uid, user.role, user.allowedCompanies]);
 
+    // Fetch notifications for the current user
+    const fetchNotifications = async () => {
+        if (isCurrentUser) {
+            try {
+                const data = await NotificationService.fetchNotifications(user.uid);
+                setNotifications(data);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [isCurrentUser, user.uid]);
+
     /**
      * Navigates to the registration/edit screen.
      */
@@ -128,12 +149,10 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <IconButton
-                                            name='notifications-outline'
-                                            size={24}
-                                            color={THEME.textInverse}
+                                        <NotificationBell
+                                            uid={user.uid}
+                                            onPress={() => setIsNotificationVisible(true)}
                                             style={styles.headerIconButton}
-                                            onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
@@ -179,12 +198,10 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 <View style={styles.topProfileContainer}>
                                     {/* Header Action Buttons (Notifications and Image Edit) */}
                                     <View style={styles.headerActionContainer}>
-                                        <IconButton
-                                            name='notifications-outline'
-                                            size={24}
-                                            color={THEME.textInverse}
+                                        <NotificationBell
+                                            uid={user.uid}
+                                            onPress={() => setIsNotificationVisible(true)}
                                             style={styles.headerIconButton}
-                                            onPress={() => console.log('Notifications')}
                                         />
                                         <IconButton
                                             name='create-outline'
@@ -317,6 +334,14 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                     </TouchableOpacity>
                 </View>
             )}
+
+            {/* Notification List Overlay */}
+            <NotificationListModal
+                visible={isNotificationVisible}
+                onClose={() => setIsNotificationVisible(false)}
+                notifications={notifications}
+                onRefresh={fetchNotifications}
+            />
         </View>
     );
 };

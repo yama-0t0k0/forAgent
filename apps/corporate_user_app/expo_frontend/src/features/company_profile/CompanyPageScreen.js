@@ -1,9 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '@shared/src/core/state/DataContext';
 import { THEME } from '@shared/src/core/theme/theme';
 import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 import { CompanyProfileView } from '@shared/src/features/company/components/CompanyProfileView';
+import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
+import { NotificationService } from '@shared/src/features/notification/services/notificationService';
 
 // Fallback background image
 const DEFAULT_BG_IMAGE = require('@assets/generated/rainforest_bg.png');
@@ -16,9 +18,32 @@ const DEFAULT_BG_IMAGE = require('@assets/generated/rainforest_bg.png');
 export const CompanyPageScreen = () => {
     const { data } = useContext(DataContext);
     const navigation = useNavigation();
+    
+    // Notification State
+    const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+
+    // Get current UID from data or fallback
+    const uid = data?.uid || data?.id;
 
     // Adapt data using utility
     const companyData = adaptCompanyData(data);
+
+    // Fetch notifications
+    const fetchNotifications = async () => {
+        if (uid) {
+            try {
+                const results = await NotificationService.fetchNotifications(uid);
+                setNotifications(results);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [uid]);
 
     // Menu Configuration
     const menuGroups = [
@@ -59,14 +84,24 @@ export const CompanyPageScreen = () => {
     };
 
     return (
-        <CompanyProfileView
-            companyData={companyData}
-            isEditable={true}
-            onEditPress={() => navigation.navigate('ImageEdit')}
-            onNotificationPress={() => console.log('Notifications')}
-            menuGroups={menuGroups}
-            onMenuPress={handleMenuPress}
-            defaultBackgroundImage={DEFAULT_BG_IMAGE}
-        />
+        <>
+            <CompanyProfileView
+                companyData={companyData}
+                uid={uid}
+                isEditable={true}
+                onEditPress={() => navigation.navigate('ImageEdit')}
+                onNotificationPress={() => setIsNotificationVisible(true)}
+                menuGroups={menuGroups}
+                onMenuPress={handleMenuPress}
+                defaultBackgroundImage={DEFAULT_BG_IMAGE}
+            />
+
+            <NotificationListModal
+                visible={isNotificationVisible}
+                onClose={() => setIsNotificationVisible(false)}
+                notifications={notifications}
+                onRefresh={fetchNotifications}
+            />
+        </>
     );
 };
