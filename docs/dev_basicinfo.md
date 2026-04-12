@@ -144,11 +144,11 @@
 
 ---
 
-## 🛠️ 開発環境と実行方法
-
-本プロジェクトでは、各アプリの起動ポート管理と環境変数の統一を徹底しています。
+#### 🛠️ 開発環境と実行方法
+本プロジェクトでは、各アプリの起動ポート管理、環境変数の統一、および **GitHub CLI (gh)** を用いたタスク管理を徹底しています。
 
 ### 🚀 アプリケーションの起動
+
 全アプリの起動は `scripts/start_expo.sh` スクリプトに統一されています。このスクリプトは、ポートの競合解消（プロセスkill）やトンネル（ngrok）の初期化を自動で行います。
 
 ```bash
@@ -236,6 +236,11 @@ EXPO_PUBLIC_APP_MODE=registration ./scripts/start_expo.sh individual_user_app
 ### 🔑 環境変数の管理 (.env)
 全アプリは同一の Firestore プロジェクトを参照するため、共通の `.env` 設定が必要です。
 `apps/individual_user_app/expo_frontend/.env` をマスターとし、各アプリの `expo_frontend/` 直下に複製して配置することを標準手順とします。
+
+### 🐙 プロジェクト管理・連携 (GitHub CLI)
+開発者は `gh` CLI をインストールし、認証を済ませている必要があります。
+- **マイルストーン記録**: 実装着手前に必ず対象のマイルストーンへ Issue を起票すること。
+- **進捗同期**: 実装完了後の検証結果（walkthrough）は `gh issue comment` 等を用いて関連 Issue に記録することを推奨します。
 
 > [!NOTE]
 > **例外**: `lp_app` は `expo_frontend/` 配下ではなく `apps/lp_app/.env` を使用します（`scripts/start_expo.sh` の `APP_PATH` に準拠）。
