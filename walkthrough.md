@@ -1,15 +1,15 @@
-# Milestone 9 & 10 完了報告
+# Project Sync & Milestone 3 完了報告
 
-コードベースで実装済みであった Milestone 9 の Issue クローズ、マイルストーンの完了、および関連ドキュメントの同期を全て完了しました。これにより、リポジトリの状態とドキュメント上のロードマップが完全に一致しました。
+コードベースでの実装状況と GitHub ステータスの乖離を解消するため、Milestone 3 (Automated App Startup Mechanism) の最終検証・クローズ、および Milestone 9 & 10 のドキュメント同期を全て完了しました。これにより、リポジトリの状態とドキュメント上のロードマップが完全に一致しました。
 
 ## 実施内容
 
 ### 1. GitHub ステータスの完全同期
-以下の Issue を、コードベースでの実装状況に基づき正式にクローズしました。
-- **#66 (Backend/Rules)**: `MemberService.getCompanyMembers` の実装確認。
-- **#67 (Frontend UI)**: `MemberManagementScreen.js` の実装確認。
-- **#68 (Successor Logic)**: `SuccessorPromptModal.js` によるガバナンス保護の実装確認。
-- **Milestone 9 (Alpha Management & Member Control)**: 全タスク完了に伴いクローズ。
+以下の Issue およびマイルストーンを、実態に合わせてクローズしました。
+- **#66, #67, #68 (Milestone 9)**: 完了済み。
+- **#19, #78 (Milestone 3)**: Deep Link に関する E2E 検証（DevBroker 連携テスト）および設計書更新を完了。
+- **Milestone 3 (Automated App Startup Mechanism)**: 全 Issue 完了につきクローズ。
+- **Milestone 9 (Alpha Management & Member Control)**: 完了済み。
 
 ### 2. ドキュメントの最新化
 現状のプロジェクトステータスを反映するため、以下のドキュメントを更新しました。
@@ -28,4 +28,4 @@
 - **通知システム**: ロール変更時に本人および全 Alpha ユーザーへ「実行者名」を含む通知が送信される設計を確認。
 
 ## 次のステップ
-マイルストーン 9 および 10 が全てクローズされたため、次は **Milestone 11 (Selection Process & FMJS Integration)** への移行準備が整いました。
+Milestone 3, 9, 10 が全てクローズされ、開発環境の自動起動メカニズムとガバナンス基盤が整いました。次は **Milestone 11 (Selection Process & FMJS Integration)** への移行準備が整いました。
