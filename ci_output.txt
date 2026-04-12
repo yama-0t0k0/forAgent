@@ -1,0 +1,326 @@
+🚀 Starting Local CI/CD Pipeline...
+==================================================
+Mode: full
+
+[Stage 1] Checking Global Integrity
+   ✅ Shared modules present
+   🔍 Checking Shared Frontend Conventions...
+🔍 Starting Coding Convention Check...
+Rules reference: docs/CodingConventions_JS.md
+--------------------------------------------------
+[33m[WARNING] shared/common_frontend/src/core/firebaseConfig.js:72[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: const useEmulator = process.env.EXPO_PUBLIC_USE_EMULATOR === 'true';
+
+[33m[WARNING] shared/common_frontend/src/core/models/Company.js:139[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (trimmed.startsWith('`') && trimmed.endsWith('`') && trimmed.length >= 2) {
+
+[33m[WARNING] shared/common_frontend/src/core/models/Company.js:133[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const normalizeUrl = (value) => {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:48[0m
+  Use array methods (map, filter, etc) instead of for loops. (Convention 4.4)
+  Code: for (let i = 0; i < binary.length; i += 1) {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:57[0m
+  Use array methods (map, filter, etc) instead of for loops. (Convention 4.4)
+  Code: for (let i = 0; i < bytes.length; i += 1) {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:23[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: const isWeb = Platform.OS === 'web';
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:26[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:31[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (typeof window === 'undefined') return null;
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:33[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:38[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (typeof hostname !== 'string' || hostname.length === 0) return null;
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:183[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: transports: typeof credential.response.getTransports === 'function' ? credential.response.getTransports() : [],
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:441[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: name={verificationStatus === 'success' ? 'checkmark-circle' : 'shield-checkmark-outline'}
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:443[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: color={verificationStatus === 'success' ? THEME.success : THEME.primary}
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:446[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: <Text style={[styles.secondaryButtonText, verificationStatus === 'success' && { color: THEME.success }]}>
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:30[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const getWebRpId = () => {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:43[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const base64UrlToUint8Array = (base64url) => {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:54[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const arrayBufferToBase64Url = (buffer) => {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:94[0m
+  Missing or incomplete @param JSDoc for argument 'credentialIdHash'. Expected format: @param {Type} credentialIdHash ...
+  Code: const handleDeletePasskey = (credentialIdHash) => {
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:385[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "finger-print-outline"
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:404[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "key"
+
+[33m[WARNING] shared/common_frontend/src/features/auth/components/PasskeyManagementSection.js:424[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "trash-outline"
+
+[33m[WARNING] shared/common_frontend/src/features/auth/screens/SignInScreen.js:106[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: const KEYBOARD_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
+
+[33m[WARNING] shared/common_frontend/src/features/company/services/MemberService.js:41[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (currentAlphas.length >= 3) {
+
+[33m[WARNING] shared/common_frontend/src/features/company/services/MemberService.js:203[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (currentRole === 'corporate-alpha' || newRole === 'corporate-alpha') {
+
+[33m[WARNING] shared/common_frontend/src/features/company/services/MemberService.js:254[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (nextAlphas.length > 3) {
+
+[33m[WARNING] shared/common_frontend/src/features/company/services/companyService.js:0[0m
+  File exports component 'CompanyService' but filename is camelCase. Rename to PascalCase. (Convention 5.2)
+  Code: companyService
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:68[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "mail-open-outline"
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:68[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "notifications"
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:93[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "slide"
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:99[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "dark-content"
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:103[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "chevron-down"
+
+[33m[WARNING] shared/common_frontend/src/features/notification/components/NotificationListModal.js:127[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "notifications-off-outline"
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:39[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (typeof onLogout === 'function') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:54[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (item.id === 'logout') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:75[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (role === 'individual') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:100[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: } else if (role === 'corporate') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:108[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: } else if (role === 'admin') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:115[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: } else if (role === 'lp') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:125[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (role !== 'admin') {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:37[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const handleLogout = async () => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:53[0m
+  Missing or incomplete @param JSDoc for argument 'item'. Expected format: @param {Type} item ...
+  Code: const handleItemPress = (item, nav) => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:53[0m
+  Missing or incomplete @param JSDoc for argument 'nav'. Expected format: @param {Type} nav ...
+  Code: const handleItemPress = (item, nav) => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/AppMenuScreen.js:71[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const getMenuGroups = () => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/IndividualProfileScreen.js:101[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const checkDraft = async () => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/IndividualProfileScreen.js:111[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const fetchNotifications = async () => {
+
+[33m[WARNING] shared/common_frontend/src/features/profile/IndividualProfileScreen.js:260[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "time-outline"
+
+[33m[WARNING] shared/common_frontend/src/features/profile/IndividualProfileScreen.js:262[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "chevron-forward"
+
+[33m[WARNING] shared/common_frontend/src/features/registration/GenericRegistrationScreen.js:151[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: ">="
+
+[33m[WARNING] shared/common_frontend/src/features/registration/GenericRegistrationScreen.js:152[0m
+  Strings must use singlequote. (Convention 4.2)
+  Code: "<"
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRecursiveField.js:67[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (!data || typeof data !== 'object') return null;
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRecursiveField.js:75[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: const isObject = value !== null && typeof value === 'object';
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:13[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:114[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: where(documentId(), '>=', datePrefix + '0000'),
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:137[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (input === null || typeof input !== 'object') {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:181[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:200[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: style={[styles.saveButton, saveStatus === 'success' && styles.saveButtonSuccess, saveStatus === 'error' && styles.saveButtonError]}
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:202[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: disabled={saveStatus === 'saving'}
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:204[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: {saveStatus === 'saving' ? <ActivityIndicator size='small' color={THEME.textInverse} /> : (
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:205[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: <Text style={styles.saveButtonText}>{saveStatus === 'success' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</Text>
+
+[33m[WARNING] shared/common_frontend/src/features/registration/PureRegistrationScreen.js:136[0m
+  Missing JSDoc for function/class definition. (Convention 2.1)
+  Code: const cleanData = (input) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:44[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: if (data.status !== 'active') {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:253[0m
+  Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)
+  Code: const finalRole = codeType === 'corporate' ? 'corporate-alpha' : (codeType || 'individual');
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:30[0m
+  Missing or incomplete @param JSDoc for argument 'code'. Expected format: @param {Type} code ...
+  Code: export const validateInvitationCode = async (code) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:70[0m
+  Missing or incomplete @param JSDoc for argument 'type'. Expected format: @param {Type} type ...
+  Code: export const createInvitationCode = async (type, expiresDays = 7) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:70[0m
+  Missing or incomplete @param JSDoc for argument 'expiresDays'. Expected format: @param {Type} expiresDays ...
+  Code: export const createInvitationCode = async (type, expiresDays = 7) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:103[0m
+  Missing or incomplete @param JSDoc for argument 'email'. Expected format: @param {Type} email ...
+  Code: export const searchUserByEmail = async (email) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:132[0m
+  Missing or incomplete @param JSDoc for argument 'uid'. Expected format: @param {Type} uid ...
+  Code: export const grantCorporatePermission = async (uid) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:161[0m
+  Missing or incomplete @param JSDoc for argument 'uid'. Expected format: @param {Type} uid ...
+  Code: export const saveRegistrationDraft = async (uid, data) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:161[0m
+  Missing or incomplete @param JSDoc for argument 'data'. Expected format: @param {Type} data ...
+  Code: export const saveRegistrationDraft = async (uid, data) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:184[0m
+  Missing or incomplete @param JSDoc for argument 'uid'. Expected format: @param {Type} uid ...
+  Code: export const getRegistrationDraft = async (uid) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:199[0m
+  Missing or incomplete @param JSDoc for argument 'data'. Expected format: @param {Type} data ...
+  Code: export const autoSaveDraft = async (data) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:210[0m
+  Missing or incomplete @param JSDoc for argument 'registrationData'. Expected format: @param {Type} registrationData ...
+  Code: export const registerUser = async (registrationData, codeType, invitationCode) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:210[0m
+  Missing or incomplete @param JSDoc for argument 'codeType'. Expected format: @param {Type} codeType ...
+  Code: export const registerUser = async (registrationData, codeType, invitationCode) => {
+
+[33m[WARNING] shared/common_frontend/src/features/registration/services/registrationService.js:210[0m
+  Missing or incomplete @param JSDoc for argument 'invitationCode'. Expected format: @param {Type} invitationCode ...
+  Code: export const registerUser = async (registrationData, codeType, invitationCode) => {
+
+--------------------------------------------------
+Check Complete.
+Errors: 0, Warnings: 74, Infos: 0
+[32m✅ Passed: No critical violations.[0m
+   ✅ Shared Frontend Conventions Passed
+   🎨 Checking Design System Compliance...
+🔍 Scanning for Design System violations in: /Users/yamakawamakoto/ReactNative_Expo/forAgent/shared/common_frontend/src
+
+📄 shared/common_frontend/src/core/components/NotificationBell.js:
+  L88: Hardcoded RGBA found -> rgba(255, 255, 255, 0.1)
+  L91: Hardcoded RGBA found -> rgba(255, 255, 255, 0.2)
+  L102: Hardcoded RGBA found -> rgba(255, 255, 255, 0.9)
+
+📄 shared/common_frontend/src/features/notification/components/NotificationListModal.js:
+  L146: Hardcoded RGBA found -> rgba(0, 0, 0, 0.4)
+
+❌ Design System compliance check failed!
+Found 4 violations across 2 files.
+💡 Action: Replace these values with semantic tokens from THEME (e.g., THEME.primary, THEME.surfaceGlass).
+   ❌ Design System Compliance Failed (Shared)

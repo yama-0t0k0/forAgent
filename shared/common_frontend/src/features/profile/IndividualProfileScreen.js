@@ -16,7 +16,7 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { NotificationBell } from '@shared/src/core/components/NotificationBell';
 import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
-import { NotificationService } from '@shared/src/features/notification/services/notificationService';
+import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
 import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { SYSTEM_USER_ID } from '@shared/src/core/constants';
@@ -338,6 +338,7 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
             {/* Notification List Overlay */}
             <NotificationListModal
                 visible={isNotificationVisible}
+                uid={user.uid}
                 onClose={() => setIsNotificationVisible(false)}
                 notifications={notifications}
                 onRefresh={fetchNotifications}

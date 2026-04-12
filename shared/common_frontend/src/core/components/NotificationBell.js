@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { THEME } from '@shared/src/core/theme/theme';
@@ -8,13 +8,7 @@ const FIRESTORE_OP_EQUALS = '=' + '=';
 
 /**
  * A shared Notification Bell component with real-time unread badge.
- * 
- * @param {Object} props
- * @param {string} props.uid - Current user's UID for tracking notifications.
- * @param {Function} props.onPress - Callback when the bell is pressed.
- * @param {number} [props.size=24] - Icon size.
- * @param {string} [props.color=THEME.textInverse] - Icon color.
- * @param {Object} [props.style] - Additional styling for the container.
+ * Includes glassmorphism and pulse animation for unread notifications.
  */
 export const NotificationBell = ({ 
   uid, 
@@ -24,6 +18,7 @@ export const NotificationBell = ({
   style 
 }) => {
   const [unreadCount, setUnreadCount] = useState(0);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (!uid) return;
@@ -35,7 +30,6 @@ export const NotificationBell = ({
       where('isRead', FIRESTORE_OP_EQUALS, false)
     );
 
-    // Set up real-time listener for unread notifications
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setUnreadCount(snapshot.size);
     }, (error) => {
@@ -44,6 +38,27 @@ export const NotificationBell = ({
 
     return () => unsubscribe();
   }, [uid]);
+
+  useEffect(() => {
+    if (unreadCount > 0) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.2,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [unreadCount, pulseAnim]);
 
   return (
     <TouchableOpacity 
@@ -54,9 +69,13 @@ export const NotificationBell = ({
       <Ionicons name='notifications-outline' size={size} color={color} />
       
       {unreadCount > 0 && (
-        <View style={styles.badge} testID='notification_badge'>
-          {/* We keep it as a simple dot for premium minimal look, or can add count if requested */}
-        </View>
+        <Animated.View 
+          style={[
+            styles.badge, 
+            { transform: [{ scale: pulseAnim }] }
+          ]} 
+          testID='notification_badge'
+        />
       )}
     </TouchableOpacity>
   );
@@ -66,6 +85,10 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     padding: 4,
+    backgroundColor: THEME.surfaceGlassLow, // Glassmorphism base
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: THEME.overlayLight,
   },
   badge: {
     position: 'absolute',
@@ -76,6 +99,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: THEME.error,
     borderWidth: 1.5,
-    borderColor: 'white', // Border to make the dot pop against different backgrounds
+    borderColor: THEME.surfaceGlassHigh, // Glassmorphism pop
+    shadowColor: THEME.error,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });

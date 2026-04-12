@@ -8,11 +8,12 @@ import {
   where,
   getDocs
 } from 'firebase/firestore';
+import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
 
 const FIRESTORE_OP_EQUALS = '=' + '=';
 
-/**
  * Service for managing company members and roles with governance rules.
+ * @file MemberService.js
  */
 export const MemberService = {
   /**
@@ -21,8 +22,9 @@ export const MemberService = {
    * 
    * @param {string} targetUid - The user ID to promote.
    * @param {string} companyId - The company ID.
+   * @param {string} performerName - The name of the user performing the promotion.
    */
-  promoteToAlpha: async (targetUid, companyId) => {
+  promoteToAlpha: async (targetUid, companyId, performerName) => {
     const db = getFirestore();
     const companyRef = doc(db, 'companies', companyId);
     const targetUserRef = doc(db, 'users', targetUid);
@@ -50,10 +52,27 @@ export const MemberService = {
           updatedAt: serverTimestamp()
         });
 
-        // 3. Update User's Role
         transaction.update(targetUserRef, {
           role: 'corporate-alpha',
           updatedAt: serverTimestamp()
+        });
+
+        const targetUserData = (await transaction.get(targetUserRef)).data();
+        const targetName = targetUserData?.displayName || '新しいメンバー';
+
+        // 4. Create Notifications (Target + All Alphas)
+        const notifyUids = [...new Set([...currentAlphas, targetUid])];
+        notifyUids.forEach(uid => {
+          const isTarget = uid === targetUid;
+          NotificationService.createNotificationInTransaction(transaction, {
+            uid: uid,
+            type: 'role_changed',
+            title: 'Alpha 権限への昇格',
+            message: isTarget 
+              ? `${performerName} さんによって、あなたは Alpha 権限に昇格しました。`
+              : `${performerName} さんによって、${targetName} さんが Alpha 権限に昇格しました。`,
+            metadata: { companyId, targetUid, role: 'corporate-alpha' }
+          });
         });
       });
       console.log(`[MemberService] Successfully promoted ${targetUid} to Alpha in ${companyId}`);
@@ -69,9 +88,10 @@ export const MemberService = {
    * 
    * @param {string} targetUid - The user ID to demote/remove.
    * @param {string} companyId - The company ID.
+   * @param {string} performerName - The name of the user performing the action.
    * @param {string} newRole - The target role (null if removing from company).
    */
-  demoteOrRemoveAlpha: async (targetUid, companyId, newRole = 'corporate-beta') => {
+  demoteOrRemoveAlpha: async (targetUid, companyId, performerName, newRole = 'corporate-beta') => {
     const db = getFirestore();
     const companyRef = doc(db, 'companies', companyId);
     const targetUserRef = doc(db, 'users', targetUid);
@@ -111,6 +131,27 @@ export const MemberService = {
             updatedAt: serverTimestamp()
           });
         }
+
+        const targetUserData = (await transaction.get(targetUserRef)).data();
+        const targetName = targetUserData?.displayName || 'メンバー';
+
+        // 4. Create Notifications (Target + Remaining Alphas)
+        const remainingAlphas = currentAlphas.filter(id => id !== targetUid);
+        const notifyUids = [...new Set([...remainingAlphas, targetUid])];
+        
+        notifyUids.forEach(uid => {
+          const isTarget = uid === targetUid;
+          const actionText = newRole ? `ロール変更（${newRole}）` : '法人からの脱退';
+          NotificationService.createNotificationInTransaction(transaction, {
+            uid: uid,
+            type: 'role_changed',
+            title: '権限変更の通知',
+            message: isTarget
+              ? `${performerName} さんによって、あなたの権限が変更されました。`
+              : `${performerName} さんによって、${targetName} さんの権限が変更されました。`,
+            metadata: { companyId, targetUid, role: newRole || 'individual' }
+          });
+        });
       });
       console.log(`[MemberService] Successfully processed alpha demotion/removal for ${targetUid}`);
     } catch (error) {
@@ -178,8 +219,13 @@ export const MemberService = {
   /**
    * Transfers Alpha role from current user to a successor in a single transaction.
    * This ensures there is never a moment without an Alpha.
+   * 
+   * @param {string} currentAlphaUid 
+   * @param {string} successorUid 
+   * @param {string} companyId 
+   * @param {string} performerName 
    */
-  transferAlphaRole: async (currentAlphaUid, successorUid, companyId) => {
+  transferAlphaRole: async (currentAlphaUid, successorUid, companyId, performerName) => {
     const db = getFirestore();
     const companyRef = doc(db, 'companies', companyId);
     const selfRef = doc(db, 'users', currentAlphaUid);
@@ -221,10 +267,35 @@ export const MemberService = {
           updatedAt: serverTimestamp()
         });
 
-        // 3. Update Self User Document (Demote to Beta)
         transaction.update(selfRef, {
           role: 'corporate-beta',
           updatedAt: serverTimestamp()
+        });
+
+        const successorData = (await transaction.get(successorRef)).data();
+        const successorName = successorData?.displayName || '新しい管理者';
+
+        // 4. Create Notifications (Predecessor, Successor, and other Alphas)
+        const otherAlphas = alphas.filter(id => id !== currentAlphaUid && id !== successorUid);
+        const notifyUids = [...new Set([currentAlphaUid, successorUid, ...otherAlphas])];
+
+        notifyUids.forEach(uid => {
+          let msg = '';
+          if (uid === successorUid) {
+            msg = `${performerName} さんから Alpha 権限（管理者）を引き継ぎました。`;
+          } else if (uid === currentAlphaUid) {
+            msg = `${successorName} さんへ Alpha 権限を引き継ぎました。`;
+          } else {
+            msg = `${performerName} さんから ${successorName} さんへ Alpha 権限が引き継がれました。`;
+          }
+
+          NotificationService.createNotificationInTransaction(transaction, {
+            uid: uid,
+            type: 'role_transferred',
+            title: '管理者権限の引き継ぎ',
+            message: msg,
+            metadata: { companyId, fromUid: currentAlphaUid, toUid: successorUid }
+          });
         });
       });
       console.log(`[MemberService] Alpha role transferred from ${currentAlphaUid} to ${successorUid}`);
