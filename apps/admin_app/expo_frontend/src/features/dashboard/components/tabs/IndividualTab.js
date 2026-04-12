@@ -17,10 +17,13 @@ export const IndividualTab = ({
 }) => {
   const isEmailQuery = searchQuery.includes('@');
 
+  /**
+   * @returns {React.JSX.Element}
+   */
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        {searchQuery ? `"${searchQuery}" に一致するユーザーはいません` : 'データがありません'}
+        {searchQuery ? `'${searchQuery}' に一致するユーザーはいません` : 'データがありません'}
       </Text>
       {isEmailQuery && (
         <View style={{ marginTop: 20 }}>

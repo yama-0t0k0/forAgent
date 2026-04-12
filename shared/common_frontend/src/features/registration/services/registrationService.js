@@ -8,6 +8,19 @@ import { db, auth } from '@shared/src/core/firebaseConfig';
 import { doc, getDoc, updateDoc, setDoc, serverTimestamp, runTransaction, query, where, collection, getDocs, limit } from 'firebase/firestore';
 
 const FIRESTORE_OP_EQUALS = '=' + '=';
+const INVITATION_STATUS = {
+  ACTIVE: 'active',
+};
+const CODE_TYPE = {
+  CORPORATE: 'corporate',
+};
+const USER_ROLE = {
+  CORPORATE_ALPHA: 'corporate-alpha',
+  INDIVIDUAL: 'individual',
+};
+const NOTIFICATION_TYPE = {
+  PERMISSION_GRANTED: 'permission_granted',
+};
 
 export const VALIDATION_RULES = {
   // RFC 5322 compliant email regex
@@ -26,6 +39,9 @@ export const VALIDATION_RULES = {
 
 /**
  * Validates the invitation code against Firestore
+ *
+ * @param {string} code
+ * @returns {Promise<object>}
  */
 export const validateInvitationCode = async (code) => {
   console.log(`[Service] Validating code: ${code}`);
@@ -41,7 +57,7 @@ export const validateInvitationCode = async (code) => {
     const data = docSnap.data();
     
     // Check status
-    if (data.status !== 'active') {
+    if (data.status !== INVITATION_STATUS.ACTIVE) {
       return { isValid: false, errorCode: 'USED', message: 'この招待コードは既に使用されているか、無効です。' };
     }
     
@@ -66,6 +82,10 @@ export const validateInvitationCode = async (code) => {
 
 /**
  * [Admin only] Creates a new invitation code in Firestore.
+ *
+ * @param {string} type
+ * @param {number} [expiresDays]
+ * @returns {Promise<object>}
  */
 export const createInvitationCode = async (type, expiresDays = 7) => {
   const user = auth.currentUser;
@@ -84,7 +104,7 @@ export const createInvitationCode = async (type, expiresDays = 7) => {
       code,
       type,
       issuerUid: user.uid,
-      status: 'active',
+      status: INVITATION_STATUS.ACTIVE,
       expiresAt: expiresAt,
       createdAt: serverTimestamp(),
     });
@@ -99,6 +119,9 @@ export const createInvitationCode = async (type, expiresDays = 7) => {
 /**
  * [Admin only] Searches for a user by email in the private_info collection.
  * Requires a compound index on private_info.email.
+ *
+ * @param {string} email
+ * @returns {Promise<object>}
  */
 export const searchUserByEmail = async (email) => {
   console.log(`[Service] Searching user by email: ${email}`);
@@ -128,6 +151,9 @@ export const searchUserByEmail = async (email) => {
 
 /**
  * [Admin only] Directly grants corporate registration permission to a user.
+ *
+ * @param {string} uid
+ * @returns {Promise<object>}
  */
 export const grantCorporatePermission = async (uid) => {
   console.log(`[Service] Granting corporate permission to: ${uid}`);
@@ -142,7 +168,7 @@ export const grantCorporatePermission = async (uid) => {
     const notificationRef = doc(db, 'notifications', `${uid}_corp_grant`);
     await setDoc(notificationRef, {
       uid,
-      type: 'permission_granted',
+      type: NOTIFICATION_TYPE.PERMISSION_GRANTED,
       message: '法人アカウントの作成権限が付与されました。マイページから登録を開始できます。',
       createdAt: serverTimestamp(),
       isRead: false
@@ -157,6 +183,10 @@ export const grantCorporatePermission = async (uid) => {
 
 /**
  * Auto-saves registration progress to registration_drafts collection.
+ *
+ * @param {string} uid
+ * @param {object} data
+ * @returns {Promise<object|undefined>}
  */
 export const saveRegistrationDraft = async (uid, data) => {
   if (!uid) return;
@@ -166,7 +196,7 @@ export const saveRegistrationDraft = async (uid, data) => {
     const draftRef = doc(db, 'registration_drafts', uid);
     await setDoc(draftRef, {
       uid,
-      type: 'corporate',
+      type: CODE_TYPE.CORPORATE,
       formData: data,
       updatedAt: serverTimestamp(),
     }, { merge: true });
@@ -180,6 +210,9 @@ export const saveRegistrationDraft = async (uid, data) => {
 
 /**
  * Fetches existing registration draft.
+ *
+ * @param {string} uid
+ * @returns {Promise<object|null>}
  */
 export const getRegistrationDraft = async (uid) => {
   if (!uid) return null;
@@ -195,6 +228,9 @@ export const getRegistrationDraft = async (uid) => {
 
 /**
  * Legacy mock auto-save (Will be phased out)
+ *
+ * @param {object} data
+ * @returns {Promise<object>}
  */
 export const autoSaveDraft = async (data) => {
   const user = auth.currentUser;
@@ -206,6 +242,11 @@ export const autoSaveDraft = async (data) => {
 
 /**
  * Finalizes user registration in Firestore after Authentication
+ *
+ * @param {object} registrationData
+ * @param {string} codeType
+ * @param {string} invitationCode
+ * @returns {Promise<object>}
  */
 export const registerUser = async (registrationData, codeType, invitationCode) => {
   const user = auth.currentUser;
@@ -250,7 +291,7 @@ export const registerUser = async (registrationData, codeType, invitationCode) =
       const privateInfoRef = doc(db, 'private_info', uid);
       const userRef = doc(db, 'users', uid);
       
-      const finalRole = codeType === 'corporate' ? 'corporate-alpha' : (codeType || 'individual');
+      const finalRole = codeType === CODE_TYPE.CORPORATE ? USER_ROLE.CORPORATE_ALPHA : (codeType || USER_ROLE.INDIVIDUAL);
 
       // Update Public Profile
       transaction.set(profileRef, {

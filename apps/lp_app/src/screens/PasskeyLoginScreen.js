@@ -22,6 +22,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 const PLATFORM_WEB = 'web';
 const TYPE_UNDEFINED = 'undefined';
 const TYPE_FUNCTION = 'function';
+const TYPE_STRING = 'string';
 
 const DEFAULT_PASSKEY_RP_ID_PROD = 'latcoltd.net';
 const DEFAULT_PASSKEY_RP_ID_DEV = 'engineer-registration-lp-dev.web.app';
@@ -47,13 +48,17 @@ const PLATFORM_IOS = 'ios';
  * Passkey Login Screen
  * @param {object} props
  * @param {object} props.navigation
- * @returns {JSX.Element}
+ * @returns {React.JSX.Element}
  */
 const PasskeyLoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * @param {string} userId
+   * @returns {string|null}
+   */
   const resolveRoleFromUserIdPrefix = (userId) => {
-    if (typeof userId !== 'string' || userId.trim().length === 0) {
+    if (typeof userId !== TYPE_STRING || userId.trim().length === 0) {
       return null;
     }
 
@@ -61,12 +66,16 @@ const PasskeyLoginScreen = ({ navigation }) => {
     return ROLE_BY_ID_PREFIX[prefix] || null;
   };
 
+  /**
+   * @param {string} uid
+   * @returns {Promise<string|null>}
+   */
   const fetchRoleFromFirestore = async (uid) => {
     try {
       const userDocSnap = await getDoc(doc(db, 'users', uid));
       if (userDocSnap.exists()) {
         const data = userDocSnap.data();
-        if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+        if (typeof data?.role === TYPE_STRING && data.role.trim().length > 0) {
           return data.role.trim();
         }
       }
@@ -78,7 +87,7 @@ const PasskeyLoginScreen = ({ navigation }) => {
       const legacyUserDocSnap = await getDoc(doc(db, 'Users', uid));
       if (legacyUserDocSnap.exists()) {
         const data = legacyUserDocSnap.data();
-        if (typeof data?.role === 'string' && data.role.trim().length > 0) {
+        if (typeof data?.role === TYPE_STRING && data.role.trim().length > 0) {
           return data.role.trim();
         }
       }

@@ -6,18 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { THEME } from '@shared/src/core/theme/theme';
 
-const { width } = Dimensions.get('window');
+const PLATFORM_IOS = 'ios';
 
 /**
  * Privacy Policy Agreement Screen
  * - Displays the privacy policy content.
  * - Forces user to scroll to the bottom before enabling the "Agree" button.
+ *
+ * @param {object} props
+ * @param {object} props.navigation
+ * @param {object} props.route
+ * @returns {React.JSX.Element}
  */
 const PrivacyPolicyScreen = ({ navigation, route }) => {
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
@@ -26,6 +30,10 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
   // Invitation data from source
   const invitationInfo = route.params?.invitationInfo || {};
 
+  /**
+   * @param {object} event
+   * @returns {void}
+   */
   const handleScroll = (event) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     
@@ -37,6 +45,9 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
     }
   };
 
+  /**
+   * @returns {void}
+   */
   const handleAgree = () => {
     if (!isScrolledToBottom) {
       Alert.alert('確認', '規約を最後までスクロールしてお読みください。');
@@ -46,6 +57,9 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
     navigation.navigate('RegistrationMethod', { invitationInfo });
   };
 
+  /**
+   * @returns {void}
+   */
   const handleBack = () => {
     navigation.goBack();
   };
@@ -80,10 +94,10 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
               <Text style={styles.policySection}>1. 当社サービスにおける個人情報の取り扱い</Text>
               <Text style={styles.policyParagraph}>
                 当社は、当社サービスの提供にあたり、以下の個人情報を取得・利用することがあります。
-                {"\n"}・ユーザー情報（氏名、メールアドレス、会社名、電話番号 等）
-                {"\n"}・アカウント情報およびアクセス履歴
-                {"\n"}・ユーザーが登録またはアップロードしたデータ
-                {"\n"}・サービス利用状況（ログ、IPアドレス、ブラウザ情報、アクセス日時 等）
+                {'\n'}・ユーザー情報（氏名、メールアドレス、会社名、電話番号 等）
+                {'\n'}・アカウント情報およびアクセス履歴
+                {'\n'}・ユーザーが登録またはアップロードしたデータ
+                {'\n'}・サービス利用状況（ログ、IPアドレス、ブラウザ情報、アクセス日時 等）
               </Text>
 
               <Text style={styles.policySubSection}>データの保存期間</Text>
@@ -94,14 +108,14 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
               <Text style={styles.policySubSection}>利用目的</Text>
               <Text style={styles.policyParagraph}>
                 当社は、個人情報を適切に取得し、以下の目的のために利用します。
-                {"\n"}・有料職業紹介事業における求職者と求人企業とのマッチング、および関連業務
-                {"\n"}・当社サービスにおけるユーザー登録、アカウント管理、各種サービスの提供、および改善、新機能開発、運用、管理
-                {"\n"}・採用活動に関する連絡、求人情報の提供
-                {"\n"}・ユーザーサポート・お問い合わせ対応
-                {"\n"}・当社サービス向上のためのアンケートや統計データ分析
-                {"\n"}・不正アクセスやセキュリティ対策のためのログ監視・分析
-                {"\n"}・法令に基づく対応およびその他正当な目的
-                {"\n"}また、上記の目的を超えて利用することはありません。
+                {'\n'}・有料職業紹介事業における求職者と求人企業とのマッチング、および関連業務
+                {'\n'}・当社サービスにおけるユーザー登録、アカウント管理、各種サービスの提供、および改善、新機能開発、運用、管理
+                {'\n'}・採用活動に関する連絡、求人情報の提供
+                {'\n'}・ユーザーサポート・お問い合わせ対応
+                {'\n'}・当社サービス向上のためのアンケートや統計データ分析
+                {'\n'}・不正アクセスやセキュリティ対策のためのログ監視・分析
+                {'\n'}・法令に基づく対応およびその他正当な目的
+                {'\n'}また、上記の目的を超えて利用することはありません。
               </Text>
 
               <Text style={styles.policySection}>2. 個人情報の適正管理</Text>
@@ -112,29 +126,29 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
               <Text style={styles.policySubSection}>セキュリティ事故時の対応</Text>
               <Text style={styles.policyParagraph}>
                 万が一、個人情報の漏洩や不正アクセス等のセキュリティ事故が発生した場合、速やかに以下の対応を行います。
-                {"\n"}・影響範囲の特定と被害の最小化
-                {"\n"}・当該ユーザーへの速やかな通知
-                {"\n"}・原因調査および再発防止策の実施
-                {"\n"}・必要に応じて監督官庁への報告
+                {'\n'}・影響範囲の特定と被害の最小化
+                {'\n'}・当該ユーザーへの速やかな通知
+                {'\n'}・原因調査および再発防止策の実施
+                {'\n'}・必要に応じて監督官庁への報告
               </Text>
 
               <Text style={styles.policySection}>3. 個人情報の第三者提供</Text>
               <Text style={styles.policyParagraph}>
                 当社は、以下の場合を除き、あらかじめ本人の同意を得ることなく、個人情報を第三者に提供いたしません。
-                {"\n"}・法令に基づく場合
-                {"\n"}・人の生命、身体または財産の保護のために必要があり、本人の同意を得ることが困難な場合
-                {"\n"}・公衆衛生の向上または児童の健全な育成に特に必要がある場合
-                {"\n"}・国の機関もしくは地方公共団体、またはその委託を受けた者が法令の定める事務を遂行することに対して協力する必要がある場合
+                {'\n'}・法令に基づく場合
+                {'\n'}・人の生命、身体または財産の保護のために必要があり、本人の同意を得ることが困難な場合
+                {'\n'}・公衆衛生の向上または児童の健全な育成に特に必要がある場合
+                {'\n'}・国の機関もしくは地方公共団体、またはその委託を受けた者が法令の定める事務を遂行することに対して協力する必要がある場合
               </Text>
 
               <Text style={styles.policySection}>4. 個人情報の共同利用について</Text>
               <Text style={styles.policyParagraph}>
                 当社は、以下の会社との間で、個人データを共同利用いたします。
-                {"\n"}・共同利用する個人データの項目：氏名、生年月日、連絡先（電話番号、メールアドレス等）、職務経歴、サービス利用履歴、希望条件等
-                {"\n"}・共同利用者の範囲：株式会社LaTおよび当社提携企業である株式会社ウィルオブ・ワーク(サービス名「ウィルオブテック」)
-                {"\n"}・利用目的：有料職業紹介事業および当社サービスにおける適切なサービスの提供
-                {"\n"}・管理責任者：株式会社LaT
-                {"\n\n"}
+                {'\n'}・共同利用する個人データの項目：氏名、生年月日、連絡先（電話番号、メールアドレス等）、職務経歴、サービス利用履歴、希望条件等
+                {'\n'}・共同利用者の範囲：株式会社LaTおよび当社提携企業である株式会社ウィルオブ・ワーク(サービス名「ウィルオブテック」)
+                {'\n'}・利用目的：有料職業紹介事業および当社サービスにおける適切なサービスの提供
+                {'\n'}・管理責任者：株式会社LaT
+                {'\n\n'}
                 当社では、付加価値の高いサービスを展開するために、厳格な管理・監督のもとに個人情報を提携企業である株式会社ウィルオブ・ワーク(サービス名「ウィルオブテック」)と共同利用する場合があります。当該個人情報について、第三者への提供の停止をご希望の採用候補者は巻末の「お問い合わせ先」までその旨ご連絡ください。ご連絡いただいた場合には、本人ご自身からのご請求であることを確認の上で、第三者への提供を停止（オプトアウト）させていただきます。
               </Text>
 
@@ -156,10 +170,10 @@ const PrivacyPolicyScreen = ({ navigation, route }) => {
               <Text style={styles.policySection}>8. お問い合わせ先</Text>
               <Text style={styles.policyParagraph}>
                 個人情報に関するお問い合わせは、下記までご連絡ください。
-                {"\n"}株式会社LaT
-                {"\n"}住所：東京都新宿区新宿2丁目12番13号新宿アントレサロンビル2階
-                {"\n"}電話番号：090-6744-7313
-                {"\n"}メールアドレス：m.yamakawa@lat-inc.com
+                {'\n'}株式会社LaT
+                {'\n'}住所：東京都新宿区新宿2丁目12番13号新宿アントレサロンビル2階
+                {'\n'}電話番号：090-6744-7313
+                {'\n'}メールアドレス：m.yamakawa@lat-inc.com
               </Text>
               
               <View style={{ height: 100 }} />
@@ -267,7 +281,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 30,
+    paddingBottom: Platform.OS === PLATFORM_IOS ? 40 : 30,
     backgroundColor: THEME.background,
   },
   agreeButton: {

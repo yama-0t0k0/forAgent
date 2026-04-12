@@ -4,14 +4,20 @@ import { auth, db } from '../features/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
 const ROLE_ADMIN = 'admin';
+const TYPEOF_STRING = 'string';
+const TYPEOF_OBJECT = 'object';
 const ROLE_BY_ID_PREFIX = {
     A: 'admin',
     B: 'corporate',
     C: 'individual',
 };
 
+/**
+ * @param {string|null|undefined} userId
+ * @returns {string|null}
+ */
 const resolveRoleFromUserIdPrefix = (userId) => {
-    if (typeof userId !== 'string' || userId.trim().length === 0) {
+    if (typeof userId !== TYPEOF_STRING || userId.trim().length === 0) {
         return null;
     }
 
@@ -19,8 +25,12 @@ const resolveRoleFromUserIdPrefix = (userId) => {
     return ROLE_BY_ID_PREFIX[prefix] || null;
 };
 
+/**
+ * @param {object|null|undefined} data
+ * @returns {string|null}
+ */
 const extractUserIdCandidate = (data) => {
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== TYPEOF_OBJECT) {
         return null;
     }
 
@@ -32,15 +42,19 @@ const extractUserIdCandidate = (data) => {
         data.id_individual,
     ];
 
-    return idCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || null;
+    return idCandidates.find((value) => typeof value === TYPEOF_STRING && value.trim().length > 0) || null;
 };
 
+/**
+ * @param {object|null|undefined} data
+ * @returns {string|null}
+ */
 const resolveRoleFromFirestoreData = (data) => {
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== TYPEOF_OBJECT) {
         return null;
     }
 
-    if (typeof data.role === 'string' && data.role.trim().length > 0) {
+    if (typeof data.role === TYPEOF_STRING && data.role.trim().length > 0) {
         return data.role.trim();
     }
 
@@ -125,10 +139,10 @@ export const AuthProvider = ({ children }) => {
                 setNeedsAdminRepair(roleFromUidPrefix === ROLE_ADMIN && !adminVerified);
 
                 if (!resolvedRole && (tokenError || firestoreError)) {
-                    const tokenErrorCode = typeof tokenError?.code === 'string' ? tokenError.code : null;
-                    const tokenErrorMessage = typeof tokenError?.message === 'string' ? tokenError.message : null;
-                    const firestoreErrorCode = typeof firestoreError?.code === 'string' ? firestoreError.code : null;
-                    const firestoreErrorMessage = typeof firestoreError?.message === 'string' ? firestoreError.message : null;
+                    const tokenErrorCode = typeof tokenError?.code === TYPEOF_STRING ? tokenError.code : null;
+                    const tokenErrorMessage = typeof tokenError?.message === TYPEOF_STRING ? tokenError.message : null;
+                    const firestoreErrorCode = typeof firestoreError?.code === TYPEOF_STRING ? firestoreError.code : null;
+                    const firestoreErrorMessage = typeof firestoreError?.message === TYPEOF_STRING ? firestoreError.message : null;
 
                     console.warn('⚠️ [AuthContext] Failed to resolve role', {
                         uid: currentUser.uid,

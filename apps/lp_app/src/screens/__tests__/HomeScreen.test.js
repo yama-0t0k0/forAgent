@@ -95,7 +95,7 @@ describe('HomeScreen helpers', () => {
   describe('parseNoteMagazineRssItems', () => {
     it('should parse titles, links, and thumbnails from RSS items', () => {
       const rssText = `
-        <rss version="2.0">
+        <rss version='2.0'>
           <channel>
             <item>
               <title>記事A</title>

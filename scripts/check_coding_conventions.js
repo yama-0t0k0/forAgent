@@ -76,7 +76,8 @@ const RULES = [
         message: 'Magic number or string literal detected in comparison. Use constants/Enums instead. (Convention 3.1)',
         // Matches comparisons (===, !==, ==, !=, >, <, >=, <=) with raw numbers (excluding -1, 0, 1) or strings (excluding empty "")
         // Heuristic: looks for space surrounding op, then literal.
-        regex: /(?:===|!==|==|!=|>=|<=|>|<)\s*(?!0\b|1\b|-1\b|""\b|''\b)(?:['"`][^'"`]+['"`]|-?\d+)/g
+        // Note: Require whitespace around < and > operators to avoid false positives on JSX tag delimiters.
+        regex: /(?:===|!==|==|!=)\s*(?!0\b|1\b|-1\b|""\b|''\b)(?:['"`][^'"`]+['"`]|-?\d+)|(?:\s(?:>=|<=|>|<)\s+)(?!0\b|1\b|-1\b|""\b|''\b)(?:['"`][^'"`]+['"`]|-?\d+)/g
     }
 ];
 

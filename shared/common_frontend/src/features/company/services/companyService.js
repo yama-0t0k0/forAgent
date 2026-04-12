@@ -9,7 +9,7 @@ import {
 /**
  * Service for company-related operations and governance.
  */
-export const CompanyService = {
+export const companyService = {
   /**
    * Registers a new company and updates the user's role and permissions.
    * This is an atomic operation.

@@ -4,16 +4,32 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { styles } from '@features/dashboard/dashboardStyles';
 import registrationService from '@shared/src/features/registration/services/registrationService';
 
+const SEARCH_RESULT = {
+  FOUND: 'found',
+  NOT_FOUND: 'not_found',
+};
+const INVITATION_TYPE = {
+  CORPORATE: 'corporate',
+};
+
 /**
  * Modal for issuing corporate invitations or directly granting permissions.
+ *
+ * @param {object} props
+ * @param {boolean} props.visible
+ * @param {Function} props.onClose
+ * @returns {React.JSX.Element}
  */
 export const IssueInvitationModal = ({ visible, onClose }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [searchResult, setSearchResult] = useState(null); // null, 'found', 'not_found'
+  const [searchResult, setSearchResult] = useState(null);
   const [foundUser, setFoundUser] = useState(null);
   const [issuedCode, setIssuedCode] = useState(null);
 
+  /**
+   * @returns {void}
+   */
   const resetState = () => {
     setEmail('');
     setSearchResult(null);
@@ -22,11 +38,17 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
     setLoading(false);
   };
 
+  /**
+   * @returns {void}
+   */
   const handleClose = () => {
     resetState();
     onClose();
   };
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleSearch = async () => {
     if (!email || !registrationService.VALIDATION_RULES.email.test(email)) {
       Alert.alert('エラー', '有効なメールアドレスを入力してください。');
@@ -37,10 +59,10 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
     try {
       const result = await registrationService.searchUserByEmail(email);
       if (result.found) {
-        setSearchResult('found');
+        setSearchResult(SEARCH_RESULT.FOUND);
         setFoundUser(result);
       } else {
-        setSearchResult('not_found');
+        setSearchResult(SEARCH_RESULT.NOT_FOUND);
       }
     } catch (error) {
       Alert.alert('エラー', '検索に失敗しました。');
@@ -49,6 +71,9 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
     }
   };
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleGrantPermission = async () => {
     if (!foundUser) return;
     setLoading(true);
@@ -63,10 +88,13 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
     }
   };
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleIssueCode = async () => {
     setLoading(true);
     try {
-      const result = await registrationService.createInvitationCode('corporate');
+      const result = await registrationService.createInvitationCode(INVITATION_TYPE.CORPORATE);
       setIssuedCode(result.code);
     } catch (error) {
       Alert.alert('エラー', '招待コードの発行に失敗しました。');
@@ -75,13 +103,17 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
     }
   };
 
+  /**
+   * @param {string} text
+   * @returns {void}
+   */
   const copyToClipboard = (text) => {
     Clipboard.setString(text);
     Alert.alert('コピー完了', '招待コードをクリップボードにコピーしました。');
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleClose}>
+    <Modal visible={visible} animationType='slide' transparent onRequestClose={handleClose}>
       <View style={styles.detailOverlay}>
         <View style={[styles.detailWindow, { height: 450 }]}>
           <View style={styles.detailWindowHeader}>
@@ -116,21 +148,21 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
                 <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
                   <TextInput
                     style={[styles.searchInput, { flex: 1, marginBottom: 0 }]}
-                    placeholder="email@example.com"
+                    placeholder='email@example.com'
                     value={email}
                     onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
+                    keyboardType='email-address'
+                    autoCapitalize='none'
                   />
                   <TouchableOpacity 
                     onPress={handleSearch}
                     style={{ backgroundColor: THEME.primary, paddingHorizontal: 15, justifyContent: 'center', borderRadius: 12 }}
                   >
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: 'bold' }}>検索</Text>}
+                    {loading ? <ActivityIndicator color={THEME.textInverse} /> : <Text style={{ color: THEME.textInverse, fontWeight: 'bold' }}>検索</Text>}
                   </TouchableOpacity>
                 </View>
 
-                {searchResult === 'found' && (
+                {searchResult === SEARCH_RESULT.FOUND && (
                   <View style={{ backgroundColor: THEME.surfaceInfo, padding: 16, borderRadius: 12, marginBottom: 20 }}>
                     <Text style={{ color: THEME.primary, fontWeight: 'bold', marginBottom: 4 }}>
                       登録済みユーザーが見つかりました
@@ -143,12 +175,12 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
                       style={{ backgroundColor: THEME.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}
                       disabled={loading}
                     >
-                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>直接、法人登録権限を付与する</Text>
+                      <Text style={{ color: THEME.textInverse, fontWeight: 'bold' }}>直接、法人登録権限を付与する</Text>
                     </TouchableOpacity>
                   </View>
                 )}
 
-                {searchResult === 'not_found' && (
+                {searchResult === SEARCH_RESULT.NOT_FOUND && (
                   <View style={{ backgroundColor: THEME.surfaceNeutral, padding: 16, borderRadius: 12, marginBottom: 20 }}>
                     <Text style={{ color: THEME.textSecondary, fontWeight: 'bold', marginBottom: 4 }}>
                       未登録のユーザーです
@@ -161,7 +193,7 @@ export const IssueInvitationModal = ({ visible, onClose }) => {
                       style={{ backgroundColor: THEME.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}
                       disabled={loading}
                     >
-                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>法人招待コードを発行する</Text>
+                      <Text style={{ color: THEME.textInverse, fontWeight: 'bold' }}>法人招待コードを発行する</Text>
                     </TouchableOpacity>
                   </View>
                 )}

@@ -48,6 +48,7 @@ export const SignInScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const PLATFORM_IOS = 'ios';
 
   /**
    * Handle Passkey Login
@@ -103,7 +104,7 @@ export const SignInScreen = () => {
     }
   };
 
-  const KEYBOARD_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
+  const KEYBOARD_BEHAVIOR = Platform.OS === PLATFORM_IOS ? 'padding' : 'height';
 
   return (
     <SafeAreaView style={styles.container}>

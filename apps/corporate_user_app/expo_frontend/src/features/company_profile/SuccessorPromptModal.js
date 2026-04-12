@@ -12,6 +12,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
 
+const USER_ROLE = {
+  CORPORATE_ALPHA: 'corporate-alpha',
+  CORPORATE_BETA: 'corporate-beta',
+};
+
 /**
  * Modal to prompt the user to select a successor Alpha.
  * Used when the last Alpha user tries to demote themselves or leave.
@@ -35,9 +40,12 @@ export const SuccessorPromptModal = ({
 
   // Filter for potential successors (non-alphas)
   const potentialSuccessors = members.filter(m => 
-    m.uid !== currentUid && m.role !== 'corporate-alpha'
+    m.uid !== currentUid && m.role !== USER_ROLE.CORPORATE_ALPHA
   );
 
+  /**
+   * @returns {void}
+   */
   const handleConfirm = () => {
     if (!selectedUid) {
       Alert.alert('確認', '後任のメンバーを一人選択してください。');
@@ -59,23 +67,32 @@ export const SuccessorPromptModal = ({
     );
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity 
-      style={[
-        styles.successorCard, 
-        selectedUid === item.uid && styles.selectedCard
-      ]}
-      onPress={() => setSelectedUid(item.uid)}
-    >
-      <View style={styles.successorInfo}>
-        <Text style={styles.successorName}>{item.displayName || 'No Name'}</Text>
-        <Text style={styles.successorRole}>現在の役割: {item.role === 'corporate-beta' ? 'β：採用関係者' : 'γ：一般社員'}</Text>
-      </View>
-      {selectedUid === item.uid && (
-        <Ionicons name='checkmark-circle' size={24} color={THEME.primary} />
-      )}
-    </TouchableOpacity>
-  );
+  /**
+   * @param {object} info
+   * @returns {React.JSX.Element}
+   */
+  const renderItem = (info) => {
+    const item = info.item;
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.successorCard, 
+          selectedUid === item.uid && styles.selectedCard
+        ]}
+        onPress={() => setSelectedUid(item.uid)}
+      >
+        <View style={styles.successorInfo}>
+          <Text style={styles.successorName}>{item.displayName || 'No Name'}</Text>
+          <Text style={styles.successorRole}>
+            現在の役割: {item.role === USER_ROLE.CORPORATE_BETA ? 'β：採用関係者' : 'γ：一般社員'}
+          </Text>
+        </View>
+        {selectedUid === item.uid && (
+          <Ionicons name='checkmark-circle' size={24} color={THEME.primary} />
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <Modal

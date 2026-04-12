@@ -1,12 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:logging/logging.dart';
 
 class AuthService {
+  static final Logger _logger = Logger('AuthService');
+  static const String _serviceAccountKeyPath = '../../serviceAccountKey.json';
+  static const String _envServiceAccountKeyPath = 'SERVICE_ACCOUNT_KEY_PATH';
+  static const String _envGoogleApplicationCredentials = 'GOOGLE_APPLICATION_CREDENTIALS';
+  static const List<String> _scopes = <String>[
+    'https://www.googleapis.com/auth/cloud-platform',
+  ];
+
   final String _projectId;
   final auth.ServiceAccountCredentials _credentials;
-  static const _scopes = ['https://www.googleapis.com/auth/cloud-platform'];
 
   AuthService._(this._projectId, this._credentials);
 
@@ -14,14 +21,23 @@ class AuthService {
   static Future<AuthService> firebase() async {
     // プロジェクトのルートにある serviceAccountKey.json を読み込む
     // Note: server.dart は apps/backend/bin/ にあるため、ルートは ../../
-    final keyFile = File('../../serviceAccountKey.json');
+    final keyPath = Platform.environment[_envServiceAccountKeyPath] ??
+        Platform.environment[_envGoogleApplicationCredentials] ??
+        _serviceAccountKeyPath;
+    final keyFile = File(keyPath);
     if (!await keyFile.exists()) {
       throw Exception('Service account key file not found at ${keyFile.absolute.path}');
     }
 
-    final data = json.decode(await keyFile.readAsString());
+    final Map<String, dynamic> data =
+        json.decode(await keyFile.readAsString()) as Map<String, dynamic>;
+    final projectIdRaw = data['project_id'];
+    if (projectIdRaw is! String || projectIdRaw.trim().isEmpty) {
+      throw Exception('project_id is missing in service account key JSON');
+    }
+    final projectId = projectIdRaw.trim();
     return AuthService._(
-      data['project_id'],
+      projectId,
       auth.ServiceAccountCredentials.fromJson(data),
     );
   }
@@ -32,7 +48,7 @@ class AuthService {
 
     try {
       final url = 'https://identitytoolkit.googleapis.com/v1/projects/$_projectId/accounts:update';
-      
+
       final response = await client.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -46,7 +62,7 @@ class AuthService {
         throw Exception('Failed to set custom claims: ${response.body}');
       }
 
-      print('Successfully set custom claims for $uid: $claims');
+      _logger.info('Successfully set custom claims for $uid: $claims');
     } finally {
       client.close();
     }

@@ -12,9 +12,34 @@ import { NotificationService } from '@shared/src/features/notification/services/
 
 const FIRESTORE_OP_EQUALS = '=' + '=';
 
- * Service for managing company members and roles with governance rules.
+/**
  * @file MemberService.js
+ * @description Service for managing company members and roles with governance rules.
  */
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+const USER_ROLE = {
+  CORPORATE_ALPHA: 'corporate-alpha',
+  CORPORATE_BETA: 'corporate-beta',
+  CORPORATE_GAMMA: 'corporate-gamma',
+  INDIVIDUAL: 'individual',
+};
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+const NOTIFICATION_TYPE = {
+  ROLE_CHANGED: 'role_changed',
+  ROLE_TRANSFERRED: 'role_transferred',
+};
+
+const MAX_ALPHA_COUNT = 3;
+const MIN_ALPHA_COUNT = 1;
+
 export const MemberService = {
   /**
    * Promotes a user to the Alpha (Recruitment Manager) role.
@@ -38,7 +63,7 @@ export const MemberService = {
         const currentAlphas = companyData.alphaUids || [];
 
         // 1. Enforce Max 3 Alphas
-        if (currentAlphas.length >= 3) {
+        if (currentAlphas.length >= MAX_ALPHA_COUNT) {
           throw new Error('A company can have a maximum of 3 Alpha (Recruitment Manager) users.');
         }
 
@@ -53,7 +78,7 @@ export const MemberService = {
         });
 
         transaction.update(targetUserRef, {
-          role: 'corporate-alpha',
+          role: USER_ROLE.CORPORATE_ALPHA,
           updatedAt: serverTimestamp()
         });
 
@@ -62,16 +87,16 @@ export const MemberService = {
 
         // 4. Create Notifications (Target + All Alphas)
         const notifyUids = [...new Set([...currentAlphas, targetUid])];
-        notifyUids.forEach(uid => {
+        notifyUids.forEach((uid) => {
           const isTarget = uid === targetUid;
           NotificationService.createNotificationInTransaction(transaction, {
             uid: uid,
-            type: 'role_changed',
+            type: NOTIFICATION_TYPE.ROLE_CHANGED,
             title: 'Alpha 権限への昇格',
             message: isTarget 
               ? `${performerName} さんによって、あなたは Alpha 権限に昇格しました。`
               : `${performerName} さんによって、${targetName} さんが Alpha 権限に昇格しました。`,
-            metadata: { companyId, targetUid, role: 'corporate-alpha' }
+            metadata: { companyId, targetUid, role: USER_ROLE.CORPORATE_ALPHA }
           });
         });
       });
@@ -91,7 +116,12 @@ export const MemberService = {
    * @param {string} performerName - The name of the user performing the action.
    * @param {string} newRole - The target role (null if removing from company).
    */
-  demoteOrRemoveAlpha: async (targetUid, companyId, performerName, newRole = 'corporate-beta') => {
+  demoteOrRemoveAlpha: async (
+    targetUid,
+    companyId,
+    performerName,
+    newRole = USER_ROLE.CORPORATE_BETA
+  ) => {
     const db = getFirestore();
     const companyRef = doc(db, 'companies', companyId);
     const targetUserRef = doc(db, 'users', targetUid);
@@ -105,7 +135,7 @@ export const MemberService = {
         const currentAlphas = companyData.alphaUids || [];
 
         // 1. Enforce Min 1 Alpha (Last Person Protection)
-        if (currentAlphas.includes(targetUid) && currentAlphas.length <= 1) {
+        if (currentAlphas.includes(targetUid) && currentAlphas.length <= MIN_ALPHA_COUNT) {
           throw new Error('Cannot remove the last Alpha user. Please designate a successor first.');
         }
 
@@ -126,7 +156,7 @@ export const MemberService = {
         } else {
           // Complete removal from company
           transaction.update(targetUserRef, {
-            role: 'individual',
+            role: USER_ROLE.INDIVIDUAL,
             companyId: null,
             updatedAt: serverTimestamp()
           });
@@ -139,17 +169,17 @@ export const MemberService = {
         const remainingAlphas = currentAlphas.filter(id => id !== targetUid);
         const notifyUids = [...new Set([...remainingAlphas, targetUid])];
         
-        notifyUids.forEach(uid => {
+        notifyUids.forEach((uid) => {
           const isTarget = uid === targetUid;
           const actionText = newRole ? `ロール変更（${newRole}）` : '法人からの脱退';
           NotificationService.createNotificationInTransaction(transaction, {
             uid: uid,
-            type: 'role_changed',
+            type: NOTIFICATION_TYPE.ROLE_CHANGED,
             title: '権限変更の通知',
             message: isTarget
               ? `${performerName} さんによって、あなたの権限が変更されました。`
               : `${performerName} さんによって、${targetName} さんの権限が変更されました。`,
-            metadata: { companyId, targetUid, role: newRole || 'individual' }
+            metadata: { companyId, targetUid, role: newRole || USER_ROLE.INDIVIDUAL }
           });
         });
       });
@@ -200,7 +230,7 @@ export const MemberService = {
         
         const currentRole = userDoc.data().role;
         // Safety check: Avoid using this for Alpha governance logic accidentally
-        if (currentRole === 'corporate-alpha' || newRole === 'corporate-alpha') {
+        if (currentRole === USER_ROLE.CORPORATE_ALPHA || newRole === USER_ROLE.CORPORATE_ALPHA) {
           throw new Error('Please use specific Alpha promotion/demotion methods for Alpha role changes.');
         }
 
@@ -251,7 +281,7 @@ export const MemberService = {
         }
 
         // Governance check: Max 3
-        if (nextAlphas.length > 3) {
+        if (nextAlphas.length > MAX_ALPHA_COUNT) {
           throw new Error('Ownership transfer failed: Target company already has maximum Alphas.');
         }
 
@@ -263,12 +293,12 @@ export const MemberService = {
 
         // 2. Update Successor User Document
         transaction.update(successorRef, {
-          role: 'corporate-alpha',
+          role: USER_ROLE.CORPORATE_ALPHA,
           updatedAt: serverTimestamp()
         });
 
         transaction.update(selfRef, {
-          role: 'corporate-beta',
+          role: USER_ROLE.CORPORATE_BETA,
           updatedAt: serverTimestamp()
         });
 
@@ -279,7 +309,7 @@ export const MemberService = {
         const otherAlphas = alphas.filter(id => id !== currentAlphaUid && id !== successorUid);
         const notifyUids = [...new Set([currentAlphaUid, successorUid, ...otherAlphas])];
 
-        notifyUids.forEach(uid => {
+        notifyUids.forEach((uid) => {
           let msg = '';
           if (uid === successorUid) {
             msg = `${performerName} さんから Alpha 権限（管理者）を引き継ぎました。`;
@@ -291,7 +321,7 @@ export const MemberService = {
 
           NotificationService.createNotificationInTransaction(transaction, {
             uid: uid,
-            type: 'role_transferred',
+            type: NOTIFICATION_TYPE.ROLE_TRANSFERRED,
             title: '管理者権限の引き継ぎ',
             message: msg,
             metadata: { companyId, fromUid: currentAlphaUid, toUid: successorUid }

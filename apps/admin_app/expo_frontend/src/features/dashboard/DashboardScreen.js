@@ -379,7 +379,7 @@ export default function DashboardScreen() {
         setSelectedUserDoc(user);
         setSelectedUserCache(prev => ({ ...prev, [user.id]: user }));
       } else {
-        Alert.alert('検索結果', `メールアドレス "${email}" に一致するユーザーは見つかりませんでした。`);
+        Alert.alert('検索結果', `メールアドレス '${email}' に一致するユーザーは見つかりませんでした。`);
       }
     } catch (e) {
       console.error(e);

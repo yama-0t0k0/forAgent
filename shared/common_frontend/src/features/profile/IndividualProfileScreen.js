@@ -98,6 +98,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
 
     // Check for registration drafts if eligible
     useEffect(() => {
+        /**
+         * @returns {Promise<void>}
+         */
         const checkDraft = async () => {
             if (isCurrentUser && user.canCreateCompany && !user.isCorporateMember()) {
                 const draft = await registrationService.getRegistrationDraft(user.uid);
@@ -108,6 +111,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
     }, [isCurrentUser, user.canCreateCompany, user.uid, user.role, user.allowedCompanies]);
 
     // Fetch notifications for the current user
+    /**
+     * @returns {Promise<void>}
+     */
     const fetchNotifications = async () => {
         if (isCurrentUser) {
             try {
@@ -257,9 +263,9 @@ export const IndividualProfileScreen = ({ route, userId: propUserId, userDoc: pr
                                 resumeData: registrationDraft.formData 
                             })}
                         >
-                            <Ionicons name="time-outline" size={20} color={THEME.textInverse} />
+                            <Ionicons name='time-outline' size={20} color={THEME.textInverse} />
                             <Text style={styles.draftBannerText}>法人登録を再開する</Text>
-                            <Ionicons name="chevron-forward" size={16} color={THEME.textInverse} />
+                            <Ionicons name='chevron-forward' size={16} color={THEME.textInverse} />
                         </TouchableOpacity>
                     )}
 

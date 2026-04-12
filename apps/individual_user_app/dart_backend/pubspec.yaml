@@ -1,6 +1,7 @@
 name: individual_user_app_backend
 description: Backend logic for Individual User App (Pure Dart)
 version: 1.0.0
+publish_to: none
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -9,7 +10,7 @@ resolution: workspace
 
 dependencies:
   # HTTP client for external API calls
-  http: ^1.1.0
+  http: ^1.2.0
 
   # JSON serialization
   json_annotation: ^4.8.1
@@ -33,7 +34,7 @@ dev_dependencies:
   lints: ^3.0.0
 
   # Testing framework
-  test: ^1.24.0
+  test: ^1.25.0
 
   # Code generation for JSON serialization
   build_runner: ^2.4.6

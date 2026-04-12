@@ -14,6 +14,9 @@ import { DatePickerInput } from '@shared/src/core/components/DatePickerInput';
 import { SingleSelectGroup } from '@shared/src/core/components/SingleSelectGroup';
 import { StatusRow } from '@shared/src/core/components/StatusRow';
 
+const TYPEOF_OBJECT = 'object';
+const TYPEOF_BOOLEAN = 'boolean';
+
 /**
  * An item component for the accordion view.
  * @param {Object} props - The component props.
@@ -64,7 +67,7 @@ const AccordionItem = ({ label, data, depth, path }) => {
  */
 export const PureRecursiveField = ({ data, depth = 0, path = [] }) => {
   const { updateValue } = useContext(DataContext);
-  if (!data || typeof data !== 'object') return null;
+  if (!data || typeof data !== TYPEOF_OBJECT) return null;
 
   return (
     <View style={styles.container}>
@@ -72,8 +75,8 @@ export const PureRecursiveField = ({ data, depth = 0, path = [] }) => {
         if (key === FIELD_META.DISPLAY_TYPE) return null;
 
         const currentPath = [...path, key];
-        const isObject = value !== null && typeof value === 'object';
-        const isBool = typeof value === 'boolean';
+        const isObject = value !== null && typeof value === TYPEOF_OBJECT;
+        const isBool = typeof value === TYPEOF_BOOLEAN;
 
         if (isObject && value[FIELD_META.DISPLAY_TYPE]) {
           const displayType = value[FIELD_META.DISPLAY_TYPE];
@@ -126,8 +129,8 @@ export const PureRecursiveField = ({ data, depth = 0, path = [] }) => {
         }
 
         if (isObject) {
-          const valKeys = Object.keys(value).filter(k => k !== FIELD_META.DISPLAY_TYPE);
-          if (valKeys.length > 0 && valKeys.every(k => SKILL_LEVEL_TEXTS.includes(k))) {
+          const valKeys = Object.keys(value).filter((k) => k !== FIELD_META.DISPLAY_TYPE);
+          if (valKeys.length > 0 && valKeys.every((k) => SKILL_LEVEL_TEXTS.includes(k))) {
             return (
               <View key={key} style={{ marginLeft: depth * 12, marginBottom: 12 }}>
                 <Text style={styles.label}>{key}</Text>

@@ -26,6 +26,12 @@ export const MemberManagementScreen = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const USER_ROLE = {
+    CORPORATE_ALPHA: 'corporate-alpha',
+    CORPORATE_BETA: 'corporate-beta',
+    CORPORATE_GAMMA: 'corporate-gamma',
+  };
   
   // Successor Flow State
   const [isSuccessorModalVisible, setIsSuccessorModalVisible] = useState(false);
@@ -33,12 +39,15 @@ export const MemberManagementScreen = () => {
 
   const companyId = data?.companyId || 'B00000'; // Fallback for dev
 
+  /**
+   * @returns {Promise<void>}
+   */
   const fetchMembers = async () => {
     try {
       const results = await MemberService.getCompanyMembers(companyId);
       // Sort members: Alpha first, then Beta, then Gamma
       const sorted = results.sort((a, b) => {
-        const order = { 'corporate-alpha': 1, 'corporate-beta': 2, 'corporate-gamma': 3 };
+        const order = { [USER_ROLE.CORPORATE_ALPHA]: 1, [USER_ROLE.CORPORATE_BETA]: 2, [USER_ROLE.CORPORATE_GAMMA]: 3 };
         return (order[a.role] || 99) - (order[b.role] || 99);
       });
       setMembers(sorted);
@@ -54,15 +63,19 @@ export const MemberManagementScreen = () => {
     fetchMembers();
   }, []);
 
+  /**
+   * @param {object} member
+   * @returns {void}
+   */
   const handleRoleChange = (member) => {
     const options = [
-      { text: 'α：採用管理者 (Alpha) に昇格', onPress: () => processUpdate(member, 'corporate-alpha') },
-      { text: 'β：採用関係者 (Beta) に設定', onPress: () => processUpdate(member, 'corporate-beta') },
-      { text: 'γ：一般社員 (Gamma) に設定', onPress: () => processUpdate(member, 'corporate-gamma') },
+      { text: 'α：採用管理者 (Alpha) に昇格', onPress: () => processUpdate(member, USER_ROLE.CORPORATE_ALPHA) },
+      { text: 'β：採用関係者 (Beta) に設定', onPress: () => processUpdate(member, USER_ROLE.CORPORATE_BETA) },
+      { text: 'γ：一般社員 (Gamma) に設定', onPress: () => processUpdate(member, USER_ROLE.CORPORATE_GAMMA) },
       { text: 'キャンセル', style: 'cancel' },
     ];
 
-    if (member.role === 'corporate-alpha') {
+    if (member.role === USER_ROLE.CORPORATE_ALPHA) {
       options.push({ 
         text: '会社から削除', 
         style: 'destructive', 
@@ -77,12 +90,17 @@ export const MemberManagementScreen = () => {
     );
   };
 
+  /**
+   * @param {object} member
+   * @param {string|null} newRole
+   * @returns {Promise<void>}
+   */
   const processUpdate = async (member, newRole) => {
     setLoading(true);
     try {
-      if (newRole === 'corporate-alpha') {
+      if (newRole === USER_ROLE.CORPORATE_ALPHA) {
         await MemberService.promoteToAlpha(member.uid, companyId);
-      } else if (member.role === 'corporate-alpha') {
+      } else if (member.role === USER_ROLE.CORPORATE_ALPHA) {
         await MemberService.demoteOrRemoveAlpha(member.uid, companyId, newRole);
       } else {
         await MemberService.updateRole(member.uid, newRole);
@@ -101,6 +119,10 @@ export const MemberManagementScreen = () => {
     }
   };
 
+  /**
+   * @param {string} successorUid
+   * @returns {Promise<void>}
+   */
   const handleSuccessorConfirm = async (successorUid) => {
     setSuccessorLoading(true);
     try {
@@ -115,6 +137,10 @@ export const MemberManagementScreen = () => {
     }
   };
 
+  /**
+   * @param {string} role
+   * @returns {{label: string, color: string, bg: string}}
+   */
   const getRoleInfo = (role) => {
     switch (role) {
       case 'corporate-alpha':
@@ -128,7 +154,12 @@ export const MemberManagementScreen = () => {
     }
   };
 
-  const renderMemberItem = ({ item }) => {
+  /**
+   * @param {object} info
+   * @returns {React.JSX.Element}
+   */
+  const renderMemberItem = (info) => {
+    const item = info.item;
     const roleInfo = getRoleInfo(item.role);
     const isSelf = item.uid === data?.uid;
 
@@ -156,7 +187,7 @@ export const MemberManagementScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={THEME.textPrimary} />
+          <Ionicons name='arrow-back' size={24} color={THEME.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>メンバー管理</Text>
       </View>

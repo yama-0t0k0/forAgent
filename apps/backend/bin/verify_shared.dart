@@ -19,11 +19,8 @@ void main() {
   try {
     // 1. Verify CommonLogic instantiation
     final matchingLogic = MatchingLogic();
-    final scores = matchingLogic.evaluateSkillMatching(
-      {'dart': 3}, 
-      {'dart': 4}, 
-      isJobMatching: true
-    );
+    final scores =
+        matchingLogic.evaluateSkillMatching({'dart': 3}, {'dart': 4}, isJobMatching: true);
     print('✅ CommonLogic: MatchingLogic instantiated and executed. Result: $scores');
 
     // 2. Verify CommonService instantiation
@@ -44,7 +41,7 @@ void main() {
     print('❌ Verification failed: $e');
     print(stack);
     // Exit with error code 1
-    // exit(1); // exit needs dart:io, assumed imported implicitly or just let it finish. 
+    // exit(1); // exit needs dart:io, assumed imported implicitly or just let it finish.
     // Actually print is enough for manual verification.
   }
 }

@@ -5,11 +5,14 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 import { CompanyProfileView } from '@shared/src/features/company/components/CompanyProfileView';
 import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
-import { NotificationService } from '@shared/src/features/notification/services/notificationService';
+import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 
 // Fallback background image
 const DEFAULT_BG_IMAGE = require('@assets/generated/rainforest_bg.png');
+const USER_ROLE = {
+    CORPORATE_ALPHA: 'corporate-alpha',
+};
 
 /**
  * Main screen for the company profile page.
@@ -31,6 +34,9 @@ export const CompanyPageScreen = () => {
     const companyData = adaptCompanyData(data);
 
     // Fetch notifications
+    /**
+     * @returns {Promise<void>}
+     */
     const fetchNotifications = async () => {
         if (uid) {
             try {
@@ -53,7 +59,7 @@ export const CompanyPageScreen = () => {
             items: [
                 { id: 'profile', label: '企業情報編集', icon: 'business-outline', target: ROUTES.REGISTRATION },
                 // Only show Member Management to Alphas
-                ...(data?.role === 'corporate-alpha' ? [
+                ...(data?.role === USER_ROLE.CORPORATE_ALPHA ? [
                     { id: 'members', label: 'メンバー管理', icon: 'people-outline', target: ROUTES.CORPORATE_MEMBER_MANAGEMENT }
                 ] : []),
                 { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },

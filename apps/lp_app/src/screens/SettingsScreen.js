@@ -6,6 +6,10 @@ import { auth } from '../features/firebase/config';
 /**
  * Settings Screen for LP App
  * Uses the universal AppMenuScreen with 'lp' role.
+ *
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
  */
 const SettingsScreen = ({ navigation }) => {
     return (
