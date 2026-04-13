@@ -16,6 +16,8 @@ import { TechStackScreen } from './src/features/company_profile/TechStackScreen'
 import { MemberManagementScreen } from './src/features/company_profile/MemberManagementScreen';
 import { UnderConstructionScreen } from './src/features/company_profile/UnderConstructionScreen';
 import { CorporateBottomNav } from '@shared/src/core/components/CorporateBottomNav';
+import { JobListScreen } from './src/features/job/JobListScreen';
+import { JobEditScreen } from './src/features/job/JobEditScreen';
 import { AppShell } from '@shared/src/core/components/AppShell';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 
@@ -90,7 +92,8 @@ const CorporateRegistrationWrapper = () => {
                     <Stack.Screen name={ROUTES.CORPORATE_PAGE} component={CompanyPageScreen} />
                     <Stack.Screen name={ROUTES.CORPORATE_MEMBER_MANAGEMENT} component={MemberManagementScreen} />
                     <Stack.Screen name={ROUTES.CORPORATE_TECH_STACK} component={TechStackScreen} />
-                    <Stack.Screen name={ROUTES.CORPORATE_JOBS} component={UnderConstructionScreen} initialParams={{ title: '求人' }} />
+                    <Stack.Screen name={ROUTES.CORPORATE_JOBS} component={JobListScreen} />
+                    <Stack.Screen name={ROUTES.CORPORATE_JOB_EDIT} component={JobEditScreen} />
                     <Stack.Screen name={ROUTES.CORPORATE_CONNECTIONS} component={UnderConstructionScreen} initialParams={{ title: 'つながり' }} />
                     <Stack.Screen name={ROUTES.CORPORATE_BLOG} component={UnderConstructionScreen} initialParams={{ title: 'ブログ' }} />
                     <Stack.Screen name={ROUTES.CORPORATE_EVENTS} component={UnderConstructionScreen} initialParams={{ title: 'イベント' }} />

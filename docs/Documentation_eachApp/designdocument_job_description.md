@@ -9,6 +9,9 @@
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `JobDescription` モデルを使用します（`shared/common_frontend/src/core/models/JobDescription.js`）。
   - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`jd.title` 等）を使用します。
+- **自動採番とID体系**:
+  - 法人ごとに `01` から `99` までの2桁の連番（JD_Number）が自動的に割り当てられます。
+  - JDの一意なIDは `[法人ID]/JD_Number/[連番]` として構成されます。
 
 ## Firestore 接続
 - Firestoreへの接続は共有設定 [firebaseConfig.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/firebaseConfig.js) を介して行います
@@ -23,7 +26,7 @@
 - Firestore プロジェクトはブラウザからの管理画面で確認できます（例: flutter-frontend-21d0a）。認証が必要です
 - 参照ドキュメント例:
   - コレクション: job_description
-  - ドキュメントパス: job_description/B00000/JD_Number/02
+  - ドキュメントパス: job_description/B00000/JD_Number/01
 
 ## データフロー
 - 画面: [JobDescriptionScreen.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen.js)
@@ -112,7 +115,8 @@ graph TD
     "ポジション名": "フロントエンドエンジニア",
     "雇用形態": "正社員",
     "勤務地": "東京/リモート可",
-    "年収レンジ": "600-900万円"
+    "年収レンジ": "600-900万円",
+    "status": "public"
   }
 }
 ```
@@ -178,6 +182,7 @@ classDiagram
       雇用形態
       勤務地
       年収レンジ
+      status
     }
     class スキル経験 {
       必須
