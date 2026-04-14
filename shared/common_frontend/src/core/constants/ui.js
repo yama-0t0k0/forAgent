@@ -18,7 +18,7 @@ export const APP_TABS = {
   HOME: 'Home',
   CAREER: 'Career',
   CONNECTION: 'Connection',
-  LEARNING: 'Learning',
+  SEARCH: 'Search',
   MENU: 'Menu',
   REGISTRATION: 'Registration'
 };

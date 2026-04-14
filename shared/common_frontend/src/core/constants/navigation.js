@@ -12,6 +12,7 @@ export const ROUTES = {
     INDIVIDUAL_MY_PAGE: 'MyPage',
     INDIVIDUAL_CONNECTION: 'Connection',
     INDIVIDUAL_CAREER: 'Career',
+    INDIVIDUAL_JOB_SEARCH: 'JobSearch',
 
     // Corporate App
     CORPORATE_PAGE: 'CompanyPage',

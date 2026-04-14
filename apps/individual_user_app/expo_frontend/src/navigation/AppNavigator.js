@@ -4,13 +4,14 @@ import { IndividualProfileScreen } from '@shared/src/features/profile/Individual
 import { IndividualImageEditScreen } from '@shared/src/features/profile/IndividualImageEditScreen';
 import { AppMenuScreen } from '@shared/src/features/profile/AppMenuScreen';
 import { ConnectionScreen } from '@shared/src/features/job/ConnectionScreen';
-import { JobDescriptionScreen } from '@shared/src/features/job_profile/screens/JobDescriptionScreen';
 import { CareerScreen } from '@shared/src/features/job/CareerScreen';
 import { PureRegistrationScreen } from '@shared/src/features/registration/PureRegistrationScreen';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { doc, setDoc } from 'firebase/firestore';
 import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
+import { JobSearchScreen } from '../features/job/JobSearchScreen';
+import { JobDetailScreen } from '../features/job/JobDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -55,6 +56,7 @@ export const AppNavigator = () => (
         </Stack.Screen>
         <Stack.Screen name={ROUTES.INDIVIDUAL_CONNECTION} component={ConnectionScreen} />
         <Stack.Screen name={ROUTES.INDIVIDUAL_CAREER} component={CareerScreen} />
-        <Stack.Screen name={ROUTES.JOB_DESCRIPTION} component={JobDescriptionScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_JOB_SEARCH} component={JobSearchScreen} />
+        <Stack.Screen name={ROUTES.JOB_DESCRIPTION} component={JobDetailScreen} />
     </Stack.Navigator>
 );

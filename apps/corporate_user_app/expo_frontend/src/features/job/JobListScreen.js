@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,12 +8,14 @@ import { JobDescriptionService } from '@shared/src/core/services/JobDescriptionS
 import { GenericDataList } from '@shared/src/core/components/GenericDataList';
 import { CorporateJobCard } from './components/CorporateJobCard';
 import { AppShell } from '@shared/src/core/components/AppShell';
+import { DataContext } from '@shared/src/core/state/DataContext';
 
 /**
  * Job List Screen for Corporate App
  */
 export const JobListScreen = () => {
   const navigation = useNavigation();
+  const { data } = useContext(DataContext);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,8 +28,8 @@ export const JobListScreen = () => {
     EMPTY: 'document-text-outline',
   };
 
-  // TODO: Use actual company ID from context/auth
-  const companyId = 'B00000'; 
+  // Extract companyId from DataContext
+  const companyId = data?.id || 'B00000'; 
 
   const fetchJobs = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
