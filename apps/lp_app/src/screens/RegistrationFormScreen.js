@@ -40,6 +40,9 @@ const FIELD_TYPE = {
     PASSWORD: 'password',
     PHONE: 'phone',
 };
+const EMAIL_FIELD_TYPE = {
+    EMAIL: 'email',
+};
 const KEYBOARD_TYPE = {
     DEFAULT: 'default',
     EMAIL_ADDRESS: 'email-address',
@@ -131,6 +134,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
     const [currentStep, setCurrentStep] = useState(getInitialStep());
     const [formData, setFormData] = useState(resumeData || {});
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     
     // Animation
     const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -179,10 +183,19 @@ const RegistrationFormScreen = ({ navigation, route }) => {
      * @returns {Promise<void>}
      */
     const handleNext = async () => {
+        setErrorMessage('');
         const val = formData[currentStepConfig.key];
         if (!val || val.length < getMinLengthForKey(currentStepConfig.key)) {
-            Alert.alert('入力エラー', `${currentStepConfig.label}を正しく入力してください。`);
+            setErrorMessage(`${currentStepConfig.label}を正しく入力してください。`);
             return;
+        }
+
+        if (currentStepConfig.type === FIELD_TYPE.EMAIL || currentStepConfig.type === EMAIL_FIELD_TYPE.EMAIL) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(val)) {
+                setErrorMessage('正しいメールアドレスの形式で入力してください。');
+                return;
+            }
         }
 
         // Logic for transition or next step
@@ -321,6 +334,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
      * @returns {void}
      */
     const updateValue = (text) => {
+        setErrorMessage('');
         setFormData({ ...formData, [currentStepConfig.key]: text });
     };
 
@@ -352,7 +366,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                     <Text style={styles.label}>{currentStepConfig.label}</Text>
                     
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, errorMessage ? styles.inputError : null]}
                         placeholder={currentStepConfig.placeholder}
                         placeholderTextColor={THEME.textMuted}
                         value={formData[currentStepConfig.key] || ''}
@@ -363,6 +377,9 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                         autoCapitalize='none'
                         secureTextEntry={currentStepConfig.type === FIELD_TYPE.PASSWORD}
                     />
+                    {errorMessage ? (
+                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    ) : null}
                 </Animated.View>
 
                 <View style={styles.footer}>
@@ -448,6 +465,14 @@ const styles = StyleSheet.create({
         borderBottomColor: THEME.borderDefault,
         paddingVertical: 15,
         fontWeight: '600',
+    },
+    inputError: {
+        borderBottomColor: THEME.error,
+    },
+    errorText: {
+        color: THEME.error,
+        fontSize: THEME.typography?.bodySmall?.fontSize || 14,
+        marginTop: 8,
     },
     footer: {
         marginBottom: Platform.OS === PLATFORM_IOS ? 40 : 20,
