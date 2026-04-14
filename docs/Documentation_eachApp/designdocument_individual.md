@@ -112,15 +112,41 @@ graph TD
     MyPage --> Firebase["shared/common_frontend/firebaseConfig"]
 ```
 
+## 🆕 求人検索機能 (Job Search Feature)
+本アプリでは、企業が登録した求人票（JD）を横断的に検索・閲覧する機能を提供します。
+
+### 1. 検索ロジック (Client-Side filtering)
+Firestore の性能と柔軟な検索要件を両立するため、`JobDescriptionService.searchJobs` を使用してクライアントサイドで高度なフィルタリングを行います。
+
+- **基本的な検索項目**:
+  - **フリーワード**: AND/OR 検索および `""` による完全一致検索に対応。
+  - **ポジション名**: 求人タイトルに対するキーワード検索（AND/OR）。
+  - **勤務地**: 複数選択可能なチェックボックス（OR 検索）。
+  - **こだわり（魅力/特徴）**: 企業側の `company.json` 定義と同期したチェックボックス（AND 検索）。
+- **詳細検索 (Detailed Search)**:
+  - `Individual.json` に定義されている全項目（スキル経験、志向、働き方など）を検索対象にします。
+  - UI は `RecursiveField` を使用した動的なアコーディオン形式を想定。
+
+### 2. デザインコンセプト: 「Wanderlust Search」
+プレミアムな体験を提供するため、以下の UI/UX 要素を取り入れます。
+- **Glassmorphism**: 検索バーやフィルターチップに半透明のガラス風デザインを適用。
+- **Interactive Feedback**: フィルタ適用時や結果読み込み時にスムーズなアニメーションを提供。
+- **Heroic Card Layout**: 検索結果は視認性の高いカード形式で表示し、主要な情報（年収、勤務時間、必須スキル等）を即座に把握可能にします。
+
+---
+
 ## 画面遷移（個人ユーザーアプリ）
 ```mermaid
 graph TD
     MyPage["マイページ (MyPageScreen)"] -->|編集| Registration["プロフィール編集 (GenericRegistrationScreen)"]
     MyPage -->|画像タップ| ImageEdit["画像編集 (ImageEditScreen)"]
     MyPage -->|メニュー| Menu["メニュー (MenuScreen)"]
+    MyPage -->|探す| Search["求人検索 (JobSearchScreen)"]
+    Search -->|タップ| Detail["求人詳細 (JobDetailScreen)"]
     Registration -->|保存/キャンセル| MyPage
     ImageEdit -->|保存/キャンセル| MyPage
     Menu -->|閉じる| MyPage
+    Detail -->|バック| Search
 ```
 
 ## ヒートマップ計算の要点

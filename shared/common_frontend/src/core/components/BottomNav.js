@@ -22,8 +22,8 @@ export const BottomNav = ({ navigation, activeTab = APP_TABS.HOME, userDoc = nul
     const tabs = [
         { id: APP_TABS.CAREER, label: 'キャリア', icon: 'person-circle-outline' },
         { id: APP_TABS.CONNECTION, label: 'つながり', icon: 'people-circle-outline' },
-        { id: APP_TABS.HOME, label: 'ホーム', icon: 'home', activeIcon: 'home' },
-        { id: APP_TABS.LEARNING, label: '学習', icon: 'book-outline' },
+        { id: APP_TABS.HOME, label: 'ホーム', icon: 'home-outline', activeIcon: 'home' },
+        { id: APP_TABS.SEARCH, label: '探す', icon: 'search-outline', activeIcon: 'search' },
         { id: APP_TABS.MENU, label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
     ];
 
@@ -33,15 +33,17 @@ export const BottomNav = ({ navigation, activeTab = APP_TABS.HOME, userDoc = nul
      */
     const handlePress = (tabId) => {
         if (tabId === APP_TABS.HOME) {
-            navigation.navigate('MyPage', { userDoc });
+            navigation.navigate(ROUTES.INDIVIDUAL_MY_PAGE, { userDoc });
         } else if (tabId === APP_TABS.CONNECTION) {
-            navigation.navigate('Connection', { userDoc });
+            navigation.navigate(ROUTES.INDIVIDUAL_CONNECTION, { userDoc });
+        } else if (tabId === APP_TABS.SEARCH) {
+            navigation.navigate(ROUTES.INDIVIDUAL_JOB_SEARCH, { userDoc });
         } else if (tabId === APP_TABS.MENU) {
-            navigation.navigate('Menu', { userDoc });
+            navigation.navigate(ROUTES.MENU, { userDoc });
         } else if (tabId === APP_TABS.CAREER) {
-            navigation.navigate('Career', { userDoc });
+            navigation.navigate(ROUTES.INDIVIDUAL_CAREER, { userDoc });
         } else if (tabId === APP_TABS.REGISTRATION) {
-            navigation.navigate('Registration', { isEdit: true, userDoc });
+            navigation.navigate(ROUTES.REGISTRATION, { isEdit: true, userDoc });
         } else {
             console.log(`Navigating to ${tabId}`);
         }

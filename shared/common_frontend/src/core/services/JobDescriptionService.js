@@ -225,4 +225,129 @@ export const JobDescriptionService = {
             throw error;
         }
     },
+
+    /**
+     * Searches for job descriptions based on keywords and filters.
+     * Implements client-side filtering for complex logic not supported by Firestore.
+     * @param {Object} queryOptions 
+     * @param {string} [queryOptions.freeWord] - Main search keyword
+     * @param {string} [queryOptions.positionName] - Keyword for positionName
+     * @param {string[]} [queryOptions.locations] - Geographic locations
+     * @param {string[]} [queryOptions.features] - Appeal/Feature tags
+     * @param {Object} [queryOptions.detailedFields] - Key-value pairs for other fields
+     * @returns {Promise<Array<JobDescription>>}
+     */
+    async searchJobs({ freeWord, positionName, locations, features, detailedFields }) {
+        try {
+            const EMPTY_STRING = '';
+            const SEARCH_OPERATOR = {
+                OR: 'OR',
+            };
+            const JD_STATUS = {
+                ACTIVE: 'active',
+            };
+            const OR_SEPARATOR = ` ${SEARCH_OPERATOR.OR} `;
+            const exactPhraseRegex = new RegExp('\\u0022([^\\u0022]+)\\u0022', 'g');
+
+            // 1. Fetch all active/public JDs first (Base set)
+            // Note: In production, we might want to filter by status='active' in Firestore if possible
+            const allJds = await this.listAllJobDescriptions();
+            
+            /**
+             * Helper to parse AND/OR/Exact match logic from a keyword string.
+             * @param {string} input 
+             * @returns {{exact: string[], and: string[], or: string[]}}
+             */
+            const parseLogic = (input) => {
+                if (!input) return { exact: [], and: [], or: [] };
+                
+                const exactMatches = [];
+                const processed = input.replace(exactPhraseRegex, (_, p1) => {
+                    exactMatches.push(p1.trim().toLowerCase());
+                    return EMPTY_STRING;
+                });
+
+                const orParts = processed
+                    .split(OR_SEPARATOR)
+                    .map((s) => s.trim().toLowerCase())
+                    .filter(Boolean);
+                const andParts = processed
+                    .split(/\s+/)
+                    .filter((s) => s !== SEARCH_OPERATOR.OR)
+                    .map((s) => s.trim().toLowerCase())
+                    .filter(Boolean);
+
+                return { exact: exactMatches, and: andParts, or: orParts };
+            };
+
+            const freeWordLogic = parseLogic(freeWord);
+            const positionLogic = parseLogic(positionName);
+
+            /**
+             * Checks if a text matches the parsed logic.
+             * @param {string} text 
+             * @param {ReturnType<parseLogic>} logic 
+             * @returns {boolean}
+             */
+            const matchesLogic = (text, logic) => {
+                const target = (text || '').toLowerCase();
+                if (logic.exact.length > 0 && !logic.exact.every(e => target.includes(e))) return false;
+                if (logic.or.length > 1) return logic.or.some(o => target.includes(o));
+                if (logic.and.length > 0) return logic.and.every(a => target.includes(a));
+                return true;
+            };
+
+            return allJds.filter((jd) => {
+                // Filter by status (internal check)
+                if (jd.status !== JD_STATUS.ACTIVE) return false;
+
+                // 2. Keyword Filtering (FreeWord)
+                if (freeWord) {
+                    const fullText = JSON.stringify(jd.rawData || {}).toLowerCase();
+                    if (!matchesLogic(fullText, freeWordLogic)) return false;
+                }
+
+                // 3. Position Name Filtering
+                if (positionName) {
+                    if (!matchesLogic(jd.positionName, positionLogic)) return false;
+                }
+
+                // 4. Location Filtering (Multi-select)
+                if (locations && locations.length > 0) {
+                    const jdLocations = jd.basicItems?.['勤務地'] || {};
+                    const hasMatch = locations.some((loc) => jdLocations[loc] === true);
+                    if (!hasMatch) return false;
+                }
+
+                // 5. Feature Filtering (こだわり - 魅力/特徴)
+                if (features && features.length > 0) {
+                    // Logic: Must have at least one of the selected features
+                    // Features are mapped from company.json "魅力/特徴"
+                    const companyAppeal = jd.rawData?.companyInfo?.appeal || {};
+                    const hasMatch = features.some((f) => companyAppeal[f] === true);
+                    if (!hasMatch) return false;
+                }
+
+                // 6. Detailed Fields (Accordion)
+                if (detailedFields) {
+                    const filteredPairs = Object.entries(detailedFields).filter(([, value]) => {
+                        if (value === undefined || value === null) return false;
+                        return value !== EMPTY_STRING;
+                    });
+
+                    const hasAll = filteredPairs.every(([key, value]) => {
+                        const jdValue = jd.rawData?.[key];
+                        return jdValue === value;
+                    });
+
+                    if (!hasAll) return false;
+                }
+
+                return true;
+            });
+        } catch (error) {
+            console.error('[JobDescriptionService] searchJobs failed:', error);
+            throw error;
+        }
+    },
 };
