@@ -62,10 +62,14 @@ sequenceDiagram
 | **individual** | `http://localhost:8082` | `https://individual.lat-inc.com` | `individual-app://home` | 8082 |
 | **corporate** | `http://localhost:8083` | `https://corporate.lat-inc.com` | `corporate-app://home` | 8083 |
 
-#### 切り替え・上書きロジック
-- **開発時 (`__DEV__` ベース)**: `.env` の `EXPO_PUBLIC_*_APP_URL` で上書き可能（未指定時は上記 localhost ポート）。
-- **本番Web**: `.env` の `EXPO_PUBLIC_PROD_WEB_*_URL` によるフェデレーション。
-- **本番Native**: 各アプリの `app.config.js` に設定された `scheme` に基づく Custom URL Scheme で遷移。
+#### 整合性管理 (Port Mapping Consistency)
+開発環境の安定稼働のため、以下の3箇所の設定が常に一致している必要があります。
+- **[scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/scripts/start_expo.sh)**: 各アプリの起動ポート定義。
+- **`apps/lp_app/.env`**: リダイレクト先 URL の定義 (`EXPO_PUBLIC_*_APP_URL`)。
+- **[navigationHelper.js](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/apps/lp_app/src/utils/navigationHelper.js)**: コードレベルでのデフォルトポート定義。
+
+> [!WARNING]
+> ポート番号を変更した場合は、上記3点を同時に更新してください。
 
 
 ### 🆕 対象アプリ側のディープリンク受信

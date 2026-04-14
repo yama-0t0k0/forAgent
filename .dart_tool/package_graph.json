@@ -109,12 +109,13 @@
       "dependencies": [
         "common_logic",
         "domain_models",
+        "googleapis_auth",
+        "http",
         "logging",
         "shelf",
         "shelf_router"
       ],
       "devDependencies": [
-        "http",
         "lints",
         "test"
       ]
@@ -401,6 +402,17 @@
       "version": "4.9.0",
       "dependencies": [
         "meta"
+      ]
+    },
+    {
+      "name": "googleapis_auth",
+      "version": "1.6.0",
+      "dependencies": [
+        "args",
+        "crypto",
+        "google_identity_services_web",
+        "http",
+        "http_parser"
       ]
     },
     {
@@ -1074,6 +1086,14 @@
         "stream_transform",
         "watcher",
         "web_socket_channel"
+      ]
+    },
+    {
+      "name": "google_identity_services_web",
+      "version": "0.3.3+1",
+      "dependencies": [
+        "meta",
+        "web"
       ]
     },
     {

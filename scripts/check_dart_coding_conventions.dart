@@ -13,6 +13,8 @@
 
 import 'dart:io';
 
+const int _headerScanLineLimit = 5;
+
 void main(List<String> args) {
   if (args.isEmpty) {
     print('Usage: dart check_dart_coding_conventions.dart <directory_path>');
@@ -37,15 +39,14 @@ void main(List<String> args) {
       if (_shouldIgnore(entity.path)) continue;
 
       final lines = entity.readAsLinesSync();
-      
+
       bool ignorePrint = false;
-      bool ignoreDynamic = false;
-      
+
       // Check for file-level ignores
       for (final line in lines) {
         if (line.contains('ignore_for_file:')) {
-           if (line.contains('avoid_print')) ignorePrint = true;
-           // Add other ignores if needed
+          if (line.contains('avoid_print')) ignorePrint = true;
+          // Add other ignores if needed
         }
       }
 
@@ -54,9 +55,11 @@ void main(List<String> args) {
       if (lines.isNotEmpty) {
         bool hasHeader = false;
         // 最初の数行を確認
-        for (int i = 0; i < (lines.length > 5 ? 5 : lines.length); i++) {
+        for (int i = 0; i < (lines.length > _headerScanLineLimit ? _headerScanLineLimit : lines.length); i++) {
           final trimmed = lines[i].trim();
-          if (trimmed.startsWith('//') || trimmed.startsWith('///') || trimmed.startsWith('library')) {
+          if (trimmed.startsWith('//') ||
+              trimmed.startsWith('///') ||
+              trimmed.startsWith('library')) {
             hasHeader = true;
             break;
           }
@@ -70,24 +73,27 @@ void main(List<String> args) {
       for (int i = 0; i < lines.length; i++) {
         final line = lines[i];
         final trimmed = line.trim();
-        
+
         // Skip comments
         if (trimmed.startsWith('//') || trimmed.startsWith('*')) continue;
 
         // Check 1: print() usage
         // debugPrint, logger は許可。print( は禁止。
         if (!ignorePrint && line.contains('print(') && !line.contains('debugPrint') && !trimmed.startsWith('//')) {
-           print('❌ [Error] Avoid using print() at ${entity.path}:${i+1}. Use logger or debugPrint.');
-           errorCount++;
+          print('❌ [Error] Avoid using print() at ${entity.path}:${i + 1}. Use logger or debugPrint.');
+          errorCount++;
         }
-        
+
         // Check 2: dynamic usage
         // Map<String, dynamic> はよく使うので許容するが、単体の 'dynamic ' は警告
         // jsonDecodeなどの戻り値もdynamicなので、厳密すぎると辛い。
         // ここでは "dynamic variable" のような宣言を簡易検知する
-        if (line.contains('dynamic ') && !line.contains('Map<String, dynamic>') && !line.contains('List<dynamic>') && !trimmed.startsWith('//')) {
-           print('⚠️  [Warning] Avoid using dynamic at ${entity.path}:${i+1}. Use strict types if possible.');
-           warningCount++;
+        if (line.contains('dynamic ') &&
+            !line.contains('Map<String, dynamic>') &&
+            !line.contains('List<dynamic>') &&
+            !trimmed.startsWith('//')) {
+          print('⚠️  [Warning] Avoid using dynamic at ${entity.path}:${i + 1}. Use strict types if possible.');
+          warningCount++;
         }
       }
     }

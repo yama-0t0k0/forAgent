@@ -9,6 +9,7 @@ import { User } from '@shared/src/core/models/User';
 import { JobDescription } from '@shared/src/core/models/JobDescription';
 import { Company } from '@shared/src/core/models/Company';
 import { SelectionProgress } from '@shared/src/core/models/SelectionProgress';
+import { JobDescriptionService } from './JobDescriptionService';
 
 const FIRESTORE_OP_EQUALS = '=' + '=';
 const ERROR_CODE_PERMISSION_DENIED = 'permission-denied';
@@ -199,41 +200,11 @@ export const FirestoreDataService = {
 
     /**
      * Fetches all job descriptions with nested JD_Number subcollections.
+     * Delegates to JobDescriptionService for optimized fetching.
      * @returns {Promise<Array<JobDescription>>}
      */
     async fetchAllJobDescriptions() {
-        try {
-            const companiesSnap = await getDocs(collection(db, 'job_description'));
-            const allJobs = [];
-
-            const promises = companiesSnap.docs.map(async (companyDoc) => {
-                const companyId = companyDoc.id;
-                try {
-                    const jdSnap = await getDocs(collection(db, 'job_description', companyId, 'JD_Number'));
-                    jdSnap.forEach(d => {
-                        const data = d.data();
-                        allJobs.push(JobDescription.fromFirestore(
-                            `${companyId}_${d.id}`,
-                            {
-                                id: `${companyId}_${d.id}`,
-                                company_ID: companyId,
-                                JD_Number: data.JD_Number || d.id,
-                                ...data
-                            },
-                            companyId
-                        ));
-                    });
-                } catch (err) {
-                    console.error(`[FirestoreDataService] Error fetching JDs for ${companyId}:`, err);
-                }
-            });
-
-            await Promise.all(promises);
-            return allJobs;
-        } catch (e) {
-            console.error('[FirestoreDataService] Error fetching job descriptions:', e);
-            return [];
-        }
+        return JobDescriptionService.listAllJobDescriptions();
     },
 
     /**

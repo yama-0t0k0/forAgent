@@ -30,13 +30,26 @@ export const AppMenuScreen = ({
     onLogout
 }) => {
     const { data } = React.useContext(DataContext);
+    const TYPEOF_FUNCTION = 'function';
+    const MENU_ITEM_ID = {
+        LOGOUT: 'logout',
+    };
+    const USER_ROLE = {
+        ADMIN: 'admin',
+        CORPORATE: 'corporate',
+        INDIVIDUAL: 'individual',
+        LP: 'lp',
+    };
 
     // Initial hydration of user model
     const user = data instanceof User ? data : User.fromFirestore(data?.uid || '', data);
 
+    /**
+     * @returns {Promise<void>}
+     */
     const handleLogout = async () => {
         try {
-            if (typeof onLogout === 'function') {
+            if (typeof onLogout === TYPEOF_FUNCTION) {
                 await onLogout();
                 return;
             }
@@ -49,9 +62,12 @@ export const AppMenuScreen = ({
 
     /**
      * Common menu item handler
+     * @param {Object} item - Menu item definition.
+     * @param {Object} nav - Navigation instance.
+     * @returns {void}
      */
     const handleItemPress = (item, nav) => {
-        if (item.id === 'logout') {
+        if (item.id === MENU_ITEM_ID.LOGOUT) {
             Alert.alert('ログアウト', 'ログアウトしますか？', [
                 { text: 'キャンセル', style: 'cancel' },
                 { text: 'ログアウト', style: 'destructive', onPress: handleLogout },
@@ -68,11 +84,14 @@ export const AppMenuScreen = ({
     };
 
     // Role-based menu configuration
+    /**
+     * @returns {Array<{title: string, items: Array<Object>}>}
+     */
     const getMenuGroups = () => {
         const groups = [];
 
         // 1. Primary Settings Group
-        if (role === 'individual') {
+        if (role === USER_ROLE.INDIVIDUAL) {
             const individualItems = [
                 { id: 'profile', label: 'プロフィール編集', icon: 'person-outline', target: 'Registration' },
                 { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },
@@ -97,7 +116,7 @@ export const AppMenuScreen = ({
                     ]
                 });
             }
-        } else if (role === 'corporate') {
+        } else if (role === USER_ROLE.CORPORATE) {
             groups.push({
                 title: '法人設定',
                 items: [
@@ -105,14 +124,14 @@ export const AppMenuScreen = ({
                     { id: 'account', label: 'アカウント情報 / セキュリティ', icon: 'id-card-outline' },
                 ]
             });
-        } else if (role === 'admin') {
+        } else if (role === USER_ROLE.ADMIN) {
             groups.push({
                 title: '管理者設定',
                 items: [
                     { id: 'admin_security', label: 'アカウント情報 / セキュリティ', icon: 'shield-checkmark-outline' },
                 ]
             });
-        } else if (role === 'lp') {
+        } else if (role === USER_ROLE.LP) {
             groups.push({
                 title: 'セキュリティ',
                 items: [
@@ -122,7 +141,7 @@ export const AppMenuScreen = ({
         }
 
         // 2. App Settings Group
-        if (role !== 'admin') {
+        if (role !== USER_ROLE.ADMIN) {
             groups.push({
                 title: 'アプリ設定',
                 items: [

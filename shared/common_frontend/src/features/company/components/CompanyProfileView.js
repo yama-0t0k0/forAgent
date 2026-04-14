@@ -8,6 +8,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { PLATFORM } from '@shared/src/core/constants/system';
 import { TechStackView } from '@shared/src/features/analytics/components/TechStackView';
 import { IconButton } from '@shared/src/core/components/IconButton';
+import { NotificationBell } from '@shared/src/core/components/NotificationBell';
 import { BottomNavItem } from '@shared/src/core/components/BottomNavItem';
 
 // Enable LayoutAnimation on Android
@@ -77,6 +78,7 @@ const UnderConstructionView = ({ title }) => (
  * 
  * @param {Object} props
  * @param {Object} props.companyData - Adapted company data object
+ * @param {string} props.uid - Current user's UID (for notification badge)
  * @param {boolean} props.isEditable - Whether to show edit controls
  * @param {Function} props.onEditPress - Callback for edit button press
  * @param {Function} props.onNotificationPress - Callback for notification button press
@@ -86,6 +88,7 @@ const UnderConstructionView = ({ title }) => (
  */
 export const CompanyProfileView = ({
     companyData,
+    uid,
     isEditable = false,
     onEditPress,
     onNotificationPress,
@@ -169,12 +172,10 @@ export const CompanyProfileView = ({
                         {/* Header Action Buttons (Editable Only) */}
                         {isEditable && (
                             <View style={styles.headerActionContainer}>
-                                <IconButton
-                                    name='notifications-outline'
-                                    size={24}
-                                    color={THEME.textInverse}
-                                    style={styles.headerIconButton}
+                                <NotificationBell
+                                    uid={uid}
                                     onPress={onNotificationPress}
+                                    style={styles.headerIconButton}
                                 />
                                 <IconButton
                                     name='create-outline'

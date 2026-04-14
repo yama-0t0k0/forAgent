@@ -11,6 +11,9 @@
 
 set -e # Exit immediately if any command fails
 
+# Ensure common tool paths are in the PATH (especially for MacOS environments)
+export PATH="/usr/local/bin:$PATH"
+
 # Resolve the project root relative to the script location
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

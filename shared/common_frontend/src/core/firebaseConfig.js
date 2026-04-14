@@ -69,7 +69,8 @@ const functions = getFunctions(app, functionsRegion);
 
 
 // Connect to Emulators during development if explicitly requested
-const useEmulator = process.env.EXPO_PUBLIC_USE_EMULATOR === 'true';
+const ENV_TRUE = 'true';
+const useEmulator = process.env.EXPO_PUBLIC_USE_EMULATOR === ENV_TRUE;
 if (__DEV__ && useEmulator) {
   try {
     // Note: use '10.0.2.2' for Android emulator if necessary, but 'localhost' works for web/iOS

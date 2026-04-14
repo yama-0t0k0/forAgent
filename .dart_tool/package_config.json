@@ -290,6 +290,18 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "google_identity_services_web",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "googleapis_auth",
+      "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/googleapis_auth-1.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "graphs",
       "rootUri": "file:///Users/yamakawamakoto/.pub-cache/hosted/pub.dev/graphs-2.3.2",
       "packageUri": "lib/",

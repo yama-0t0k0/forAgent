@@ -8,6 +8,9 @@ import { app } from '../firebase/config';
 let analyticsInstance = null;
 
 // Initialize analytics instance safely
+/**
+ * @returns {Promise<import('firebase/analytics').Analytics|null>}
+ */
 const getAnalyticsSafe = async () => {
     if (analyticsInstance) return analyticsInstance;
     

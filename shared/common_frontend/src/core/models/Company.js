@@ -130,13 +130,20 @@ export class Company {
             name = flatName;
         }
 
+        const BACKTICK = '`';
+        const MIN_WRAPPED_LENGTH = 2;
+
+        /**
+         * @param {unknown} value
+         * @returns {string}
+         */
         const normalizeUrl = (value) => {
             if (typeof value !== DATA_TYPE.STRING) {
                 return '';
             }
 
             const trimmed = value.trim();
-            if (trimmed.startsWith('`') && trimmed.endsWith('`') && trimmed.length >= 2) {
+            if (trimmed.startsWith(BACKTICK) && trimmed.endsWith(BACKTICK) && trimmed.length >= MIN_WRAPPED_LENGTH) {
                 return trimmed.slice(1, -1).trim();
             }
 

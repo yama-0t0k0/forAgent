@@ -24,6 +24,8 @@ export const THEME = {
     surfaceInput: PALETTE.slate[100],
     surfaceMuted: PALETTE.slate[200],
     surfaceGlass: 'rgba(255, 255, 255, 0.4)',
+    surfaceGlassLow: 'rgba(255, 255, 255, 0.1)',
+    surfaceGlassHigh: 'rgba(255, 255, 255, 0.9)',
 
     // --- App Specific Nuances (Subtle variations per user request) ---
     app: {
@@ -83,6 +85,7 @@ export const THEME = {
 
     // Overlay & Utility Tokens (Newly added to clear hardcoded rgba)
     overlayDark: 'rgba(0, 0, 0, 0.5)',
+    overlayMedium: 'rgba(0, 0, 0, 0.4)',
     overlaySubtle: 'rgba(0, 0, 0, 0.1)',
     overlayLight: 'rgba(255, 255, 255, 0.2)',
     shadowColor: 'rgba(0, 0, 0, 0.5)',

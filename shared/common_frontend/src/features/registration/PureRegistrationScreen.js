@@ -9,8 +9,17 @@ import { collection, query, where, getDocs, setDoc, doc, documentId } from 'fire
 import { PureRecursiveField } from './PureRecursiveField';
 
 const Tab = createMaterialTopTabNavigator();
+const SAVE_STATUS = {
+  IDLE: 'idle',
+  SAVING: 'saving',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+const PLATFORM_ANDROID = 'android';
+const TYPEOF_OBJECT = 'object';
+
+if (Platform.OS === PLATFORM_ANDROID && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -64,14 +73,14 @@ export const PureRegistrationScreen = ({
   orderTemplate
 }) => {
   const { data, updateValue } = useContext(DataContext);
-  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
+  const [saveStatus, setSaveStatus] = useState(SAVE_STATUS.IDLE);
   const navigation = useNavigation();
 
   /**
    * Handles the save operation for the registration data.
    */
   const handleSave = async () => {
-    setSaveStatus('saving');
+    setSaveStatus(SAVE_STATUS.SAVING);
     try {
       let finalId = data[idField];
       let newId = null;
@@ -133,8 +142,12 @@ export const PureRegistrationScreen = ({
         updateValue([idField], finalId);
       }
 
+      /**
+       * @param {unknown} input
+       * @returns {unknown}
+       */
       const cleanData = (input) => {
-        if (input === null || typeof input !== 'object') {
+        if (input === null || typeof input !== TYPEOF_OBJECT) {
           return input;
         }
         if (Array.isArray(input)) {
@@ -158,7 +171,7 @@ export const PureRegistrationScreen = ({
         await setDoc(doc(db, collectionName, finalId), dataToSave);
       }
 
-      setSaveStatus('success');
+      setSaveStatus(SAVE_STATUS.SUCCESS);
       setTimeout(() => {
         if (homeRouteName) {
           navigation.navigate(homeRouteName);
@@ -168,8 +181,8 @@ export const PureRegistrationScreen = ({
       }, 1500);
     } catch (e) {
       console.error('Error saving document: ', e);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setSaveStatus(SAVE_STATUS.ERROR);
+      setTimeout(() => setSaveStatus(SAVE_STATUS.IDLE), 3000);
     }
   };
 
@@ -178,7 +191,7 @@ export const PureRegistrationScreen = ({
     const internalKeys = [idField, '_displayType'];
     const dataKeys = Object.keys(data).filter(key => !internalKeys.includes(key));
 
-    if (!orderTemplate || typeof orderTemplate !== 'object') return dataKeys;
+    if (!orderTemplate || typeof orderTemplate !== TYPEOF_OBJECT) return dataKeys;
 
     const tplKeys = Object.keys(orderTemplate).filter(key => !internalKeys.includes(key));
     const inTpl = dataKeys.filter(k => tplKeys.includes(k)).sort((a, b) => tplKeys.indexOf(a) - tplKeys.indexOf(b));
@@ -197,12 +210,12 @@ export const PureRegistrationScreen = ({
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.saveButton, saveStatus === 'success' && styles.saveButtonSuccess, saveStatus === 'error' && styles.saveButtonError]}
+          style={[styles.saveButton, saveStatus === SAVE_STATUS.SUCCESS && styles.saveButtonSuccess, saveStatus === SAVE_STATUS.ERROR && styles.saveButtonError]}
           onPress={handleSave}
-          disabled={saveStatus === 'saving'}
+          disabled={saveStatus === SAVE_STATUS.SAVING}
         >
-          {saveStatus === 'saving' ? <ActivityIndicator size='small' color={THEME.textInverse} /> : (
-            <Text style={styles.saveButtonText}>{saveStatus === 'success' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</Text>
+          {saveStatus === SAVE_STATUS.SAVING ? <ActivityIndicator size='small' color={THEME.textInverse} /> : (
+            <Text style={styles.saveButtonText}>{saveStatus === SAVE_STATUS.SUCCESS ? 'Saved' : saveStatus === SAVE_STATUS.ERROR ? 'Error' : 'Save'}</Text>
           )}
         </TouchableOpacity>
       </View>
