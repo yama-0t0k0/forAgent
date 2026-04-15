@@ -148,8 +148,8 @@ export const GenericRegistrationScreen = ({
           // Sequential ID logic: prefix + N digits (e.g., B00001)
           const q = query(
             collection(db, collectionName),
-            where(documentId(), ">=", idPrefixChar),
-            where(documentId(), "<", String.fromCharCode(idPrefixChar.charCodeAt(0) + 1))
+            where(documentId(), '>=', idPrefixChar),
+            where(documentId(), '<', String.fromCharCode(idPrefixChar.charCodeAt(0) + 1))
           );
 
           const querySnapshot = await getDocs(q);

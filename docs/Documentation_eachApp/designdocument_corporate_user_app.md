@@ -67,12 +67,15 @@ graph TD
     Nav --> Company["CompanyPageScreen (企業トップ)"]
     Nav --> TechStack["TechStackScreen (使用技術)"]
     Nav --> Menu["MenuScreen (メニュー)"]
+    Nav --> JobList["JobListScreen (求人一覧)"]
     Nav --> ImageEdit["ImageEditScreen (画像編集)"]
     Nav --> Registration["GenericRegistrationScreen (プロフィール登録)"]
+    Nav --> JobEdit["JobEditScreen (求人登録/編集)"]
 
     Company --> SharedUI["shared/common_frontend/components"]
     Company --> SharedState["shared/common_frontend/state"]
     Registration --> Firebase["shared/common_frontend/firebaseConfig"]
+    JobEdit --> RegistrationScreen["GenericRegistrationScreen (共通基盤)"]
 ```
 
 ## 画面遷移（法人ユーザーアプリ）
@@ -82,6 +85,11 @@ graph TD
     Company -->|画像編集| ImageEdit["画像編集 (ImageEditScreen)"]
     Company -->|メニュー| Menu["メニュー (MenuScreen)"]
     Company -->|使用技術| TechStack["使用技術 (TechStackScreen)"]
+    
+    Menu -->|求人管理| JobList["求人一覧 (JobListScreen)"]
+    JobList -->|作成/編集| JobEdit["求人編集 (JobEditScreen)"]
+    JobEdit -->|保存/キャンセル| JobList
+    
     Registration -->|保存/キャンセル| Company
     ImageEdit -->|保存/キャンセル| Company
     Menu -->|閉じる| Company
@@ -113,6 +121,23 @@ LPアプリ等からのリダイレクトをスムーズに受け入れるため
 1. **ポート監視**: LPアプリの `navigationHelper.js` が、本アプリのポート（8083）をポーリング（`waitForPort`）します。
 2. **自動起動**: ポートが閉じている場合、開発用の `dev_broker.mjs` を通じて `start_expo.sh corporate_user_app` がバックグラウンドで実行されます。
 3. **リダイレクト**: 本アプリの準備が整い次第、ディープリンクまたは HTTP URL により自動的に画面が切り替わります。
+
+## 🆕 12. 求人票（JD）管理 (JD Management)
+
+法人ユーザーが自社の求人を管理するための機能です。
+
+### 1. 構成画面
+- **JobListScreen**: 登録済みの求人一覧を表示。`DataContext` から動的に `companyId` を取得し、自社の求人のみを表示。公開/非公開の即時切り替え、編集、削除アクションを提供。
+- **JobEditScreen**: 求人の新規作成および内容編集。`GenericRegistrationScreen` を内部で利用し、タブ形式で複雑なJDデータを管理。
+
+### 2. 削除ガードレール (Deletion Guardrail)
+データの整合性を維持するため、以下のロジックが導入されています。
+- **チェック内容**: 削除対象の求人（`JD_Number`）に対して、`selection_progress` コレクション内に「選考中」などの進行中のレコードが存在するかを確認。
+- **制限**: 進行中の選考がある場合は削除をブロックし、ユーザーに警告アラートを表示。
+- **実体**: `JobDescriptionService.hasOngoingSelections` にて判定。
+
+### 3. 採番ルール
+新規作成時、`JobDescriptionService.getNextJdNumber` を用いて、当該企業内で未使用の最小連番（01-99）を自動的に取得して割り当てます。
 
 ## 起動方法（法人ユーザーアプリ）
 - スクリプト: [scripts/start_expo.sh](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/scripts/start_expo.sh)

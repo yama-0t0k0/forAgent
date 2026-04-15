@@ -14,6 +14,9 @@ import { logScreenView } from '../features/analytics';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * @returns {React.JSX.Element}
+ */
 function AppNavigation() {
   const navigationRef = useNavigationContainerRef();
   const routeNameRef = React.useRef();
@@ -39,59 +42,59 @@ function AppNavigation() {
         }
       }}
     >
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName='Home'>
         <Stack.Screen
-          name="Home"
+          name='Home'
           component={WelcomeScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="InvitationCode"
+          name='InvitationCode'
           component={InvitationCodeScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="PrivacyPolicy"
+          name='PrivacyPolicy'
           component={PrivacyPolicyScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="RegistrationMethod"
+          name='RegistrationMethod'
           component={RegistrationMethodScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="RegistrationForm"
+          name='RegistrationForm'
           component={RegistrationFormScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Login"
+          name='Login'
           component={LoginScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="PasskeyLogin"
+          name='PasskeyLogin'
           component={PasskeyLoginScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Settings"
+          name='Settings'
           component={SettingsScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="CompanyOverview"
+          name='CompanyOverview'
           component={CompanyOverviewScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Purpose"
+          name='Purpose'
           component={PurposeScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="RecruitmentInfo"
+          name='RecruitmentInfo'
           component={RecruitmentInfoScreen}
           options={{ headerShown: false }}
         />

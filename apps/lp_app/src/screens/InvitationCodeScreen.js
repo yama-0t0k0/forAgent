@@ -9,26 +9,37 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
-    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { validateInvitationCode } from '@shared/src/features/registration/services/registrationService';
 import { THEME } from '@shared/src/core/theme/theme';
 
-const { width } = Dimensions.get('window');
+const PLATFORM_IOS = 'ios';
+const KEYBOARD_BEHAVIOR = {
+    IOS: 'padding',
+    DEFAULT: 'height',
+};
+const MIN_INVITATION_CODE_LENGTH = 5;
 
 /**
  * Invitation Code Input Screen (Step 1)
  * Premium Antigravity Design
+ *
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
  */
 const InvitationCodeScreen = ({ navigation }) => {
     const [code, setCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
+    /**
+     * @returns {Promise<void>}
+     */
     const handleVerify = async () => {
         setErrorMessage('');
-        if (code.length < 5) {
+        if (code.length < MIN_INVITATION_CODE_LENGTH) {
             setErrorMessage('招待コードを入力してください。');
             return;
         }
@@ -56,7 +67,7 @@ const InvitationCodeScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === PLATFORM_IOS ? KEYBOARD_BEHAVIOR.IOS : KEYBOARD_BEHAVIOR.DEFAULT}
                 style={styles.content}
             >
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -66,7 +77,7 @@ const InvitationCodeScreen = ({ navigation }) => {
                 <View style={styles.header}>
                     <Text style={styles.title}>招待コードを入力</Text>
                     <Text style={styles.subtitle}>
-                        本プラットフォームは完全招待制です。{"\n"}
+                        本プラットフォームは完全招待制です。{'\n'}
                         お手元の招待コードを入力してください。
                     </Text>
                 </View>
@@ -74,14 +85,14 @@ const InvitationCodeScreen = ({ navigation }) => {
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="6桁〜7桁のコード"
+                        placeholder='6桁〜7桁のコード'
                         placeholderTextColor={THEME.textMuted}
                         value={code}
                         onChangeText={(text) => {
                             setCode(text);
                             if (errorMessage) setErrorMessage('');
                         }}
-                        autoCapitalize="characters"
+                        autoCapitalize='characters'
                         maxLength={10}
                         selectionColor={THEME.primary}
                     />
@@ -108,7 +119,7 @@ const InvitationCodeScreen = ({ navigation }) => {
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        招待コードをお持ちでない方は、{"\n"}
+                        招待コードをお持ちでない方は、{'\n'}
                         公式サイトよりウェイトリストにご登録ください。
                     </Text>
                 </View>

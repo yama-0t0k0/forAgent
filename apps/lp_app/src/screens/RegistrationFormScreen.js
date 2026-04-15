@@ -5,7 +5,6 @@ import {
     StyleSheet,
     TextInput,
     TouchableOpacity,
-    Dimensions,
     KeyboardAvoidingView,
     Platform,
     Animated,
@@ -19,17 +18,65 @@ import registrationService, { registerUser } from '@shared/src/features/registra
 import { Alert } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 
-const { width } = Dimensions.get('window');
+const PLATFORM_IOS = 'ios';
+const KEYBOARD_BEHAVIOR = {
+    IOS: 'padding',
+    DEFAULT: 'height',
+};
+const INVITATION_TYPE = {
+    CORPORATE: 'corporate',
+};
+const AUTH_METHOD = {
+    EMAIL: 'email',
+};
+const FIELD_KEY = {
+    EMAIL: 'email',
+    WORK_EMAIL: 'work_email',
+    PASSWORD: 'password',
+    PHONE: 'phone',
+};
+const FIELD_TYPE = {
+    EMAIL: 'email',
+    PASSWORD: 'password',
+    PHONE: 'phone',
+};
+const EMAIL_FIELD_TYPE = {
+    EMAIL: 'email',
+};
+const KEYBOARD_TYPE = {
+    DEFAULT: 'default',
+    EMAIL_ADDRESS: 'email-address',
+    PHONE_PAD: 'phone-pad',
+};
+const MIN_LENGTH = {
+    PASSWORD: 8,
+    PHONE: 10,
+    DEFAULT: 2,
+};
+const AUTH_ERROR_CODE = {
+    EMAIL_IN_USE: 'auth/email-already-in-use',
+    INVALID_EMAIL: 'auth/invalid-email',
+    WEAK_PASSWORD: 'auth/weak-password',
+    NETWORK_FAILED: 'auth/network-request-failed',
+};
+const ERROR_CODE = {
+    PERMISSION_DENIED: 'permission-denied',
+};
 
 /**
  * Registration Form Screen (Step 4)
  * - Step-by-step (one-by-one) input style.
  * - Branches based on invitationType.
  * - Minimalist & Premium Design.
+ *
+ * @param {object} props
+ * @param {object} props.navigation
+ * @param {object} props.route
+ * @returns {React.JSX.Element}
  */
 const RegistrationFormScreen = ({ navigation, route }) => {
     const { invitationInfo, authMethod, resumeData } = route.params || {};
-    const isCorporate = invitationInfo?.type === 'corporate';
+    const isCorporate = invitationInfo?.type === INVITATION_TYPE.CORPORATE;
 
     // Steps defined later, moved up for index calculation
     const individualSteps = [
@@ -49,7 +96,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         { key: 'work_phone', label: '会社の電話番号', placeholder: '0312345678', type: 'phone' },
     ];
 
-    const passwordStep = authMethod === 'email' 
+    const passwordStep = authMethod === AUTH_METHOD.EMAIL 
         ? [{ key: 'password', label: 'ログイン用パスワードを設定してください', placeholder: '8文字以上', type: 'password' }]
         : [];
 
@@ -57,12 +104,29 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         ? [...individualSteps, ...passwordStep, ...corporateSteps] 
         : [...individualSteps, ...passwordStep];
 
+    /**
+     * @param {string} key
+     * @returns {number}
+     */
+    const getMinLengthForKey = (key) => {
+        switch (key) {
+            case FIELD_KEY.PASSWORD:
+                return MIN_LENGTH.PASSWORD;
+            case FIELD_KEY.PHONE:
+                return MIN_LENGTH.PHONE;
+            default:
+                return MIN_LENGTH.DEFAULT;
+        }
+    };
+
     // Determine initial step if resuming
+    /**
+     * @returns {number}
+     */
     const getInitialStep = () => {
         if (!resumeData) return 0;
-        for (let i = 0; i < steps.length; i++) {
-            if (!resumeData[steps[i].key]) return i;
-        }
+        const firstMissingIndex = steps.findIndex((step) => !resumeData[step.key]);
+        if (firstMissingIndex !== -1) return firstMissingIndex;
         return steps.length - 1;
     };
 
@@ -70,6 +134,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
     const [currentStep, setCurrentStep] = useState(getInitialStep());
     const [formData, setFormData] = useState(resumeData || {});
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     
     // Animation
     const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -77,7 +142,29 @@ const RegistrationFormScreen = ({ navigation, route }) => {
 
     const isLastIndividualStep = currentStep === (individualSteps.length + passwordStep.length - 1);
     const currentStepConfig = steps[currentStep];
+    const currentInputLength = formData[currentStepConfig.key]?.length ?? 0;
+    const currentMinLength = getMinLengthForKey(currentStepConfig.key);
+    const isNextDisabled = isLoading || currentInputLength < currentMinLength;
 
+    /**
+     * @param {string} type
+     * @returns {string}
+     */
+    const getKeyboardType = (type) => {
+        switch (type) {
+            case FIELD_TYPE.PHONE:
+                return KEYBOARD_TYPE.PHONE_PAD;
+            case FIELD_TYPE.EMAIL:
+                return KEYBOARD_TYPE.EMAIL_ADDRESS;
+            default:
+                return KEYBOARD_TYPE.DEFAULT;
+        }
+    };
+
+    /**
+     * @param {Function} callback
+     * @returns {void}
+     */
     const animateTransition = (callback) => {
         Animated.parallel([
             Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
@@ -92,11 +179,23 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         });
     };
 
+    /**
+     * @returns {Promise<void>}
+     */
     const handleNext = async () => {
+        setErrorMessage('');
         const val = formData[currentStepConfig.key];
-        if (!val || val.length < (currentStepConfig.key === 'password' ? 8 : (currentStepConfig.key === 'phone' ? 10 : 2))) {
-            Alert.alert('入力エラー', `${currentStepConfig.label}を正しく入力してください。`);
+        if (!val || val.length < getMinLengthForKey(currentStepConfig.key)) {
+            setErrorMessage(`${currentStepConfig.label}を正しく入力してください。`);
             return;
+        }
+
+        if (currentStepConfig.type === FIELD_TYPE.EMAIL || currentStepConfig.type === EMAIL_FIELD_TYPE.EMAIL) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(val)) {
+                setErrorMessage('正しいメールアドレスの形式で入力してください。');
+                return;
+            }
         }
 
         // Logic for transition or next step
@@ -113,6 +212,9 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         }
     };
 
+    /**
+     * @returns {Promise<void>}
+     */
     const handleTransitionToCorporate = async () => {
         setIsLoading(true);
         try {
@@ -120,7 +222,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             
             // 1. Auth (if email)
             let user = auth.currentUser;
-            if (authMethod === 'email' && !user) {
+            if (authMethod === AUTH_METHOD.EMAIL && !user) {
                 const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
                 user = userCredential.user;
             }
@@ -141,7 +243,7 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         } catch (error) {
             console.error('[Registration] Transition Error:', error);
             let message = '取得・保存中にエラーが発生しました。';
-            if (error.code === 'auth/email-already-in-use') {
+            if (error.code === AUTH_ERROR_CODE.EMAIL_IN_USE) {
                 message = 'このメールアドレスは既に使用されています。';
             }
             Alert.alert('エラー', message);
@@ -150,6 +252,9 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         }
     };
 
+    /**
+     * @returns {Promise<void>}
+     */
     const handleFinalSubmit = async () => {
         setIsLoading(true);
         try {
@@ -158,8 +263,8 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             // 1. Authentication (if not already authenticated via Social)
             let user = auth.currentUser;
             
-            if (authMethod === 'email' && !user) {
-                const email = formData.email || formData.work_email;
+            if (authMethod === AUTH_METHOD.EMAIL && !user) {
+                const email = formData[FIELD_KEY.EMAIL] || formData[FIELD_KEY.WORK_EMAIL];
                 const password = formData.password;
                 
                 console.log(`[Registration] Creating user with email: ${email}`);
@@ -191,17 +296,17 @@ const RegistrationFormScreen = ({ navigation, route }) => {
             let message = '登録処理中にエラーが発生しました。';
             
             // Firebase Auth Errors
-            if (error.code === 'auth/email-already-in-use') {
+            if (error.code === AUTH_ERROR_CODE.EMAIL_IN_USE) {
                 message = 'このメールアドレスは既に登録されています。\nログイン画面からログインするか、別のメールアドレスをお試しください。';
-            } else if (error.code === 'auth/invalid-email') {
+            } else if (error.code === AUTH_ERROR_CODE.INVALID_EMAIL) {
                 message = 'メールアドレスの形式が正しくありません。';
-            } else if (error.code === 'auth/weak-password') {
+            } else if (error.code === AUTH_ERROR_CODE.WEAK_PASSWORD) {
                 message = 'パスワードが短すぎます。8文字以上で設定してください。';
-            } else if (error.code === 'auth/network-request-failed') {
+            } else if (error.code === AUTH_ERROR_CODE.NETWORK_FAILED) {
                 message = 'ネットワーク接続に失敗しました。通信環境を確認してください。';
             } 
             // Firestore / Generic Errors
-            else if (error.code === 'permission-denied' || error.message?.includes('permission-denied')) {
+            else if (error.code === ERROR_CODE.PERMISSION_DENIED || error.message?.includes(ERROR_CODE.PERMISSION_DENIED)) {
                 message = 'セキュリティ権限エラーが発生しました。\n招待コードが正しく反映されていないか、通信に問題がある可能性があります。再度お試しください。';
             } else if (error.message) {
                 message = error.message;
@@ -213,6 +318,9 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         }
     };
 
+    /**
+     * @returns {void}
+     */
     const handleBack = () => {
         if (currentStep > 0) {
             animateTransition(() => setCurrentStep(currentStep - 1));
@@ -221,14 +329,19 @@ const RegistrationFormScreen = ({ navigation, route }) => {
         }
     };
 
+    /**
+     * @param {string} text
+     * @returns {void}
+     */
     const updateValue = (text) => {
+        setErrorMessage('');
         setFormData({ ...formData, [currentStepConfig.key]: text });
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === PLATFORM_IOS ? KEYBOARD_BEHAVIOR.IOS : KEYBOARD_BEHAVIOR.DEFAULT}
                 style={styles.content}
             >
                 <View style={styles.header}>
@@ -253,27 +366,30 @@ const RegistrationFormScreen = ({ navigation, route }) => {
                     <Text style={styles.label}>{currentStepConfig.label}</Text>
                     
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, errorMessage ? styles.inputError : null]}
                         placeholder={currentStepConfig.placeholder}
                         placeholderTextColor={THEME.textMuted}
                         value={formData[currentStepConfig.key] || ''}
                         onChangeText={updateValue}
                         autoFocus={true}
                         selectionColor={THEME.primary}
-                        keyboardType={currentStepConfig.type === 'phone' ? 'phone-pad' : (currentStepConfig.type === 'email' ? 'email-address' : 'default')}
-                        autoCapitalize="none"
-                        secureTextEntry={currentStepConfig.type === 'password'}
+                        keyboardType={getKeyboardType(currentStepConfig.type)}
+                        autoCapitalize='none'
+                        secureTextEntry={currentStepConfig.type === FIELD_TYPE.PASSWORD}
                     />
+                    {errorMessage ? (
+                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    ) : null}
                 </Animated.View>
 
                 <View style={styles.footer}>
                     <TouchableOpacity 
                         style={[
                             styles.nextButton, 
-                            !(formData[currentStepConfig.key]?.length >= 2) && styles.disabledButton
+                            isNextDisabled && styles.disabledButton
                         ]} 
                         onPress={handleNext}
-                        disabled={isLoading || !(formData[currentStepConfig.key]?.length >= (currentStepConfig.key === 'password' ? 8 : 2))}
+                        disabled={isNextDisabled}
                     >
                         {isLoading ? (
                             <ActivityIndicator color={THEME.textPrimary} />
@@ -350,8 +466,16 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         fontWeight: '600',
     },
+    inputError: {
+        borderBottomColor: THEME.error,
+    },
+    errorText: {
+        color: THEME.error,
+        fontSize: THEME.typography?.bodySmall?.fontSize || 14,
+        marginTop: 8,
+    },
     footer: {
-        marginBottom: Platform.OS === 'ios' ? 40 : 20,
+        marginBottom: Platform.OS === PLATFORM_IOS ? 40 : 20,
     },
     nextButton: {
         backgroundColor: THEME.primary,

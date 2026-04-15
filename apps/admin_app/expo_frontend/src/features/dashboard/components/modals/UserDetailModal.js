@@ -23,6 +23,9 @@ const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json')
 
 /**
  * Inner content component for UserDetailModal to manage internal navigation.
+ * @param {string} userId
+ * @param {Object} userDoc
+ * @returns {JSX.Element|null}
  */
 const UserDetailContent = ({ userId, userDoc }) => {
   const [stack, setStack] = useState([]);
@@ -51,6 +54,9 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
   if (!currentRoute) return null;
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleGrantPermission = async () => {
     try {
       Alert.alert('確認', 'このユーザーに法人アカウントの作成権限を付与しますか？', [
@@ -71,6 +77,9 @@ const UserDetailContent = ({ userId, userDoc }) => {
     }
   };
 
+  /**
+   * @returns {JSX.Element|null}
+   */
   const renderAdminControls = () => {
     if (userDoc.isCorporateMember && userDoc.isCorporateMember()) return null;
     if (userDoc.canCreateCompany) return (
@@ -91,12 +100,21 @@ const UserDetailContent = ({ userId, userDoc }) => {
     );
   };
 
+  /**
+   * @param {import('firebase/firestore').Firestore} db
+   * @param {string} id
+   * @param {Object} data
+   * @returns {Promise<void>}
+   */
   const handleAdminUserSave = async (db, id, data) => {
     const { publicData, privateData } = User.splitData(data);
     await setDoc(doc(db, 'public_profile', id), publicData);
     await setDoc(doc(db, 'private_info', id), privateData, { merge: true });
   };
 
+  /**
+   * @returns {JSX.Element}
+   */
   const renderScreen = () => {
     const props = {
       route: currentRoute,
@@ -149,18 +167,26 @@ const UserDetailContent = ({ userId, userDoc }) => {
 
 /**
  * Modal component for displaying detailed user information with internal navigation.
+ * @param {boolean} visible
+ * @param {function(): void} onClose
+ * @param {boolean} loading
+ * @param {string|Error|null} error
+ * @param {Object|null} userDoc
+ * @param {string} userId
+ * @returns {JSX.Element}
  */
 export const UserDetailModal = ({ visible, onClose, loading, error, userDoc, userId }) => {
   const { data: adminData } = React.useContext(DataContext);
 
   const enhancedUserDoc = useMemo(() => {
     if (!userDoc) return null;
-    const enhanced = Object.create(Object.getPrototypeOf(userDoc));
-    Object.assign(enhanced, userDoc, { 
+    const enhanced = { 
+      ...userDoc,
       jd: adminData?.jd || [],
       users: adminData?.users || [],
       fmjs: adminData?.fmjs || []
-    });
+    };
+    Object.setPrototypeOf(enhanced, Object.getPrototypeOf(userDoc));
     return enhanced;
   }, [userDoc, adminData]);
 

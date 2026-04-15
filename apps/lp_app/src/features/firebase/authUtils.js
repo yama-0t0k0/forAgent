@@ -4,6 +4,8 @@ import { db } from './config';
 /**
  * Role prefix mapping based on UID convention.
  */
+const TYPEOF_STRING = 'string';
+const TYPEOF_OBJECT = 'object';
 const ROLE_BY_ID_PREFIX = {
   A: 'admin',
   B: 'corporate',
@@ -16,7 +18,7 @@ const ROLE_BY_ID_PREFIX = {
  * @returns {string|null} The resolved role or null
  */
 export const resolveRoleFromIdPrefix = (id) => {
-  if (typeof id !== 'string' || id.trim().length === 0) {
+  if (typeof id !== TYPEOF_STRING || id.trim().length === 0) {
     return null;
   }
   const prefix = id.trim().charAt(0).toUpperCase();
@@ -29,7 +31,7 @@ export const resolveRoleFromIdPrefix = (id) => {
  * @returns {string|null} Found ID or null
  */
 export const extractIdCandidate = (data) => {
-  if (!data || typeof data !== 'object') return null;
+  if (!data || typeof data !== TYPEOF_OBJECT) return null;
   const candidates = [
     data.userId,
     data.id,
@@ -37,7 +39,39 @@ export const extractIdCandidate = (data) => {
     data.id_company,
     data.id_individual,
   ];
-  return candidates.find(v => typeof v === 'string' && v.trim().length > 0) || null;
+  return candidates.find((v) => typeof v === TYPEOF_STRING && v.trim().length > 0) || null;
+};
+
+/**
+ * @param {string[]} collections
+ * @param {string} uid
+ * @param {number} [index]
+ * @returns {Promise<string|null>}
+ */
+const resolveRoleFromCollections = async (collections, uid, index = 0) => {
+  if (index >= collections.length) return null;
+
+  const col = collections[index];
+  try {
+    const snap = await getDoc(doc(db, col, uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.role) {
+        console.log(`[AuthUtils] Role found in Firestore (${col}): ${data.role}`);
+        return data.role;
+      }
+      const candidate = extractIdCandidate(data);
+      const resolved = resolveRoleFromIdPrefix(candidate);
+      if (resolved) {
+        console.log(`[AuthUtils] Role resolved from Firestore (${col}) ID candidate: ${resolved}`);
+        return resolved;
+      }
+    }
+  } catch (e) {
+    console.warn(`[AuthUtils] Failed to fetch from ${col}:`, e);
+  }
+
+  return resolveRoleFromCollections(collections, uid, index + 1);
 };
 
 /**
@@ -76,26 +110,8 @@ export const resolveUserRole = async (user, forceRefresh = false) => {
 
   // 3. Priority 3: Firestore (users or Users)
   const collections = ['users', 'Users'];
-  for (const col of collections) {
-    try {
-      const snap = await getDoc(doc(db, col, user.uid));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.role) {
-          console.log(`[AuthUtils] Role found in Firestore (${col}): ${data.role}`);
-          return data.role;
-        }
-        const candidate = extractIdCandidate(data);
-        const resolved = resolveRoleFromIdPrefix(candidate);
-        if (resolved) {
-          console.log(`[AuthUtils] Role resolved from Firestore (${col}) ID candidate: ${resolved}`);
-          return resolved;
-        }
-      }
-    } catch (e) {
-      console.warn(`[AuthUtils] Failed to fetch from ${col}:`, e);
-    }
-  }
+  const roleFromCollections = await resolveRoleFromCollections(collections, user.uid);
+  if (roleFromCollections) return roleFromCollections;
 
   // 4. Priority 4: Firestore (public_profile)
   try {

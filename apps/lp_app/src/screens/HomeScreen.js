@@ -37,14 +37,21 @@ const FALLBACK_ITEMS = [
 
 const NOTE_MAGAZINE_RSS_URL = 'https://note.com/lycaonpictus/m/m7f05093c60f0/rss';
 const NOTE_NEWS_LIMIT = 3;
+const PLATFORM_WEB = 'web';
+const TYPE_STRING = 'string';
+const TYPE_NUMBER = 'number';
 
 const PURPOSE_BINARY_SOURCE = '11100011 10000001 10101011 11100011 10000011 10110011 11100011 10000011 10101111 11100011 10000011 10001010 11100011 10000011 10100010 11100011 10000010 10101110 11100011 10000011 10101110 11100011 10000010 10101110 11100011 10000011 10000011 11100110 10101100 10101101 11100011 10000110 10101111 11100111 10011001 10101110 11100111 10011110 10101110 11100101 10101000 10100110 11100110 10011100 10100011 11100011 10000010 10010010 11100110 10011100 10000000 11100101 10100100 10100111 11100101 10001100 10010110 11100011 10000010 10011001 11100011 10000010 10001011 11100011 10000010 10101110 11100011 10000010 10100111 11100011 10000010 10100110 11100110 10010111 10100101 11100110 10011100 10101100 11100011 10000010 10001001 11100111 10011010 10000000 11100111 10011011 10010111 11100110 10011000 10100110 11100110 10010111 10110000 11100110 10011001 10110000 11100011 10000010 10010010 11100110 10011111 10101111 11100011 10000010 10001000 11101000 10101110 10101111 11100110 10011100 10101100 11100111 10010110 10101001 11100101 10010011 10100011 11100011 10000010 10011001 11100111 10010111 10001101 11100101 10001001 10010101 11100111 10010000 10010010 11100011 10000010 10001001 11100101 10101000 10010101 11100101 10101001 10101100 11100011 10000010 10001101 11100111 10011003 10001000 11100101 10011011 10111111 11100011 10000010 10001001';
 const PURPOSE_BINARY_WALLPAPER = Array.from({ length: 8 })
   .fill(PURPOSE_BINARY_SOURCE)
   .join('\n');
 
+/**
+ * @param {string} input
+ * @returns {string}
+ */
 const decodeXmlEntities = (input) => {
-  if (typeof input !== 'string') {
+  if (typeof input !== TYPE_STRING) {
     return '';
   }
 
@@ -53,15 +60,24 @@ const decodeXmlEntities = (input) => {
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>')
     .replaceAll('&quot;', '"')
-    .replaceAll('&apos;', "'");
+    .replaceAll('&apos;', '\'');
 };
 
+/**
+ * @param {string} tagName
+ * @returns {string}
+ */
 const escapeRegExp = (tagName) => {
   return tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
+/**
+ * @param {string} xml
+ * @param {string} tagName
+ * @returns {string|null}
+ */
 const getXmlTagValue = (xml, tagName) => {
-  if (typeof xml !== 'string' || typeof tagName !== 'string' || tagName.length === 0) {
+  if (typeof xml !== TYPE_STRING || typeof tagName !== TYPE_STRING || tagName.length === 0) {
     return null;
   }
 
@@ -75,8 +91,13 @@ const getXmlTagValue = (xml, tagName) => {
   return decodeXmlEntities(match[1].trim());
 };
 
+/**
+ * @param {string} rssText
+ * @param {number} [limit]
+ * @returns {LpListItem[]}
+ */
 export const parseNoteMagazineRssItems = (rssText, limit = NOTE_NEWS_LIMIT) => {
-  if (typeof rssText !== 'string' || rssText.length === 0) {
+  if (typeof rssText !== TYPE_STRING || rssText.length === 0) {
     return [];
   }
 
@@ -100,12 +121,15 @@ export const parseNoteMagazineRssItems = (rssText, limit = NOTE_NEWS_LIMIT) => {
         is_locked: false,
       };
     })
-    .filter((item) => typeof item.id === 'string' && item.id.length > 0 && typeof item.title === 'string' && item.title.length > 0)
-    .slice(0, typeof limit === 'number' && limit > 0 ? limit : NOTE_NEWS_LIMIT);
+    .filter((item) => typeof item.id === TYPE_STRING && item.id.length > 0 && typeof item.title === TYPE_STRING && item.title.length > 0)
+    .slice(0, typeof limit === TYPE_NUMBER && limit > 0 ? limit : NOTE_NEWS_LIMIT);
 };
 
+/**
+ * @returns {Promise<LpListItem[]>}
+ */
 export const fetchNoteMagazineNews = async () => {
-  if (Platform.OS !== 'web') {
+  if (Platform.OS !== PLATFORM_WEB) {
     const response = await fetch(NOTE_MAGAZINE_RSS_URL, { method: 'GET' });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -162,10 +186,10 @@ export const extractLpListItems = (raw) => {
   const contents = Array.isArray(raw?.contents) ? raw.contents : [];
 
   return contents
-    .filter((c) => c && typeof c.id === 'string')
+    .filter((c) => c && typeof c.id === TYPE_STRING)
     .map((c) => {
-      const title = typeof c.title === 'string' ? c.title : '';
-      let thumbnailUrl = typeof c?.thumbnail?.url === 'string' ? c.thumbnail.url : null;
+      const title = typeof c.title === TYPE_STRING ? c.title : '';
+      let thumbnailUrl = typeof c?.thumbnail?.url === TYPE_STRING ? c.thumbnail.url : null;
 
       // Image Optimization: Append imgix parameters
       if (thumbnailUrl) {
@@ -184,8 +208,8 @@ export const extractLpListItems = (raw) => {
         thumbnailUrl,
         isPremiumOnly,
         is_locked: isLocked,
-        seo_title: typeof c.seo_title === 'string' ? c.seo_title : title,
-        seo_description: typeof c.seo_description === 'string' ? c.seo_description : '',
+        seo_title: typeof c.seo_title === TYPE_STRING ? c.seo_title : title,
+        seo_description: typeof c.seo_description === TYPE_STRING ? c.seo_description : '',
       };
     });
 };
@@ -193,6 +217,7 @@ export const extractLpListItems = (raw) => {
 /**
  * @param {object} params
  * @param {string} [params.draftKey]
+ * @param {boolean} [params.preview]
  * @returns {Promise<Array<LpListItem>>}
  */
 export const fetchLpContents = async ({ draftKey, preview } = {}) => {
@@ -264,28 +289,40 @@ export const LP_FOOTER_LINKS = [
   { label: '採用情報', routeName: 'RecruitmentInfo' },
 ];
 
+/**
+ * @param {object} props
+ * @param {string} props.title
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
+ */
 const InfoHeader = ({ title, navigation }) => {
   return (
     <View style={infoStyles.header}>
       <TouchableOpacity
         style={infoStyles.headerBackButton}
         onPress={() => navigation.goBack()}
-        accessibilityRole="button"
-        accessibilityLabel="戻る"
+        accessibilityRole='button'
+        accessibilityLabel='戻る'
       >
         <Text style={infoStyles.headerBackText}>←</Text>
       </TouchableOpacity>
-      <Text style={infoStyles.headerTitle} accessibilityRole="header">
+      <Text style={infoStyles.headerTitle} accessibilityRole='header'>
         {title}
       </Text>
     </View>
   );
 };
 
+/**
+ * @param {object} props
+ * @param {string} props.title
+ * @param {React.ReactNode} props.children
+ * @returns {React.JSX.Element}
+ */
 const InfoCard = ({ title, children }) => {
   return (
     <View style={infoStyles.card}>
-      {typeof title === 'string' && title.length > 0 && (
+      {typeof title === TYPE_STRING && title.length > 0 && (
         <Text style={infoStyles.cardTitle}>{title}</Text>
       )}
       {children}
@@ -293,6 +330,12 @@ const InfoCard = ({ title, children }) => {
   );
 };
 
+/**
+ * @param {object} props
+ * @param {string} props.label
+ * @param {React.ReactNode} props.children
+ * @returns {React.JSX.Element}
+ */
 const InfoRow = ({ label, children }) => {
   return (
     <View style={infoStyles.row}>
@@ -302,34 +345,39 @@ const InfoRow = ({ label, children }) => {
   );
 };
 
+/**
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
+ */
 const BottomMenu = ({ navigation }) => {
   return (
     <View style={infoStyles.bottomMenu}>
       <TouchableOpacity
         onPress={() => navigation.navigate('Home')}
         style={infoStyles.bottomMenuItem}
-        accessibilityRole="button"
+        accessibilityRole='button'
       >
         <Text style={infoStyles.bottomMenuText}>トップページ</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate('CompanyOverview')}
         style={infoStyles.bottomMenuItem}
-        accessibilityRole="button"
+        accessibilityRole='button'
       >
         <Text style={infoStyles.bottomMenuText}>会社概要</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate('Purpose')}
         style={infoStyles.bottomMenuItem}
-        accessibilityRole="button"
+        accessibilityRole='button'
       >
         <Text style={infoStyles.bottomMenuText}>パーパス</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate('RecruitmentInfo')}
         style={infoStyles.bottomMenuItem}
-        accessibilityRole="button"
+        accessibilityRole='button'
       >
         <Text style={infoStyles.bottomMenuText}>採用情報</Text>
       </TouchableOpacity>
@@ -337,10 +385,15 @@ const BottomMenu = ({ navigation }) => {
   );
 };
 
+/**
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
+ */
 export const CompanyOverviewScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={infoStyles.container}>
-      <InfoHeader title="会社概要" navigation={navigation} />
+      <InfoHeader title='会社概要' navigation={navigation} />
       <ScrollView contentContainerStyle={infoStyles.scrollContent}>
         <View style={infoStyles.hero}>
           <View style={infoStyles.heroIconPlaceholder}>
@@ -349,32 +402,32 @@ export const CompanyOverviewScreen = ({ navigation }) => {
           <Text style={infoStyles.heroTitle}>株式会社LaT</Text>
         </View>
 
-        <InfoCard title="会社概要">
-          <InfoRow label="会社名">
+        <InfoCard title='会社概要'>
+          <InfoRow label='会社名'>
             <Text style={infoStyles.rowValueText}>株式会社LaT</Text>
           </InfoRow>
-          <InfoRow label="代表取締役CEO">
+          <InfoRow label='代表取締役CEO'>
             <Text style={infoStyles.rowValueText}>山川 真</Text>
           </InfoRow>
-          <InfoRow label="所在地">
+          <InfoRow label='所在地'>
             <Text style={infoStyles.rowValueText}>
               〒160-0022 東京都新宿区{'\n'}
               新宿2丁目12番13号 新宿アントレサロンビル2階
             </Text>
           </InfoRow>
-          <InfoRow label="設立">
+          <InfoRow label='設立'>
             <Text style={infoStyles.rowValueText}>2024年8月</Text>
           </InfoRow>
-          <InfoRow label="事業内容">
+          <InfoRow label='事業内容'>
             <Text style={infoStyles.rowValueText}>
               ・AI技術を活用したキャリアデベロップメントツールの提供{'\n'}
               ・人材紹介事業（許可番号：13-ユ-317469）
             </Text>
           </InfoRow>
-          <InfoRow label="ウェブサイト">
+          <InfoRow label='ウェブサイト'>
             <TouchableOpacity
               onPress={() => Linking.openURL('https://latcoltd.net/')}
-              accessibilityRole="link"
+              accessibilityRole='link'
             >
               <Text style={infoStyles.linkText}>https://latcoltd.net/</Text>
             </TouchableOpacity>
@@ -385,10 +438,15 @@ export const CompanyOverviewScreen = ({ navigation }) => {
   );
 };
 
+/**
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
+ */
 export const PurposeScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={infoStyles.container}>
-      <InfoHeader title="パーパス" navigation={navigation} />
+      <InfoHeader title='パーパス' navigation={navigation} />
       <ScrollView contentContainerStyle={infoStyles.scrollContent}>
         <Text style={infoStyles.largeTitle}>LaT のパーパス</Text>
 
@@ -403,13 +461,13 @@ export const PurposeScreen = ({ navigation }) => {
           </Text>
         </InfoCard>
 
-        <InfoCard title="ビジョン">
+        <InfoCard title='ビジョン'>
           <Text style={infoStyles.paragraph}>
             テクノロジーの力でエンジニアとテック企業の最適なマッチングを実現し、よりイノベーティブな社会づくりに貢献します。
           </Text>
         </InfoCard>
 
-        <InfoCard title="ミッション">
+        <InfoCard title='ミッション'>
           <Text style={infoStyles.paragraph}>
             キャリアの可視化と継続的な成長支援を通じて、エンジニア一人ひとりが納得できる選択をできる環境を提供します。
           </Text>
@@ -419,10 +477,15 @@ export const PurposeScreen = ({ navigation }) => {
   );
 };
 
+/**
+ * @param {object} props
+ * @param {object} props.navigation
+ * @returns {React.JSX.Element}
+ */
 export const RecruitmentInfoScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={infoStyles.container}>
-      <InfoHeader title="採用情報" navigation={navigation} />
+      <InfoHeader title='採用情報' navigation={navigation} />
       <ScrollView contentContainerStyle={infoStyles.scrollContent}>
         <View style={infoStyles.hero}>
           <View style={infoStyles.heroIconPlaceholder}>
@@ -459,6 +522,9 @@ const HomeScreen = (props) => {
   const navigation = props.navigation;
 
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleOpenMyPage = async () => {
     if (!user) {
       return;
@@ -473,7 +539,7 @@ const HomeScreen = (props) => {
 
       console.log('[HomeScreen] handleOpenMyPage resolved role:', resolvedRole);
 
-      if (typeof resolvedRole !== 'string' || resolvedRole.length === 0) {
+      if (typeof resolvedRole !== TYPE_STRING || resolvedRole.length === 0) {
         Alert.alert('権限確認', '権限情報が取得できていません。再試行するか、ログアウトして再ログインしてください。', [
           {
             text: '再試行',
@@ -501,6 +567,9 @@ const HomeScreen = (props) => {
     }
   };
 
+  /**
+   * @returns {Promise<void>}
+   */
   const handleRegisterPasskey = async () => {
     if (!user) return;
 
@@ -533,6 +602,11 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     // Check for draftKey in deep link URL
+    /**
+     * @param {object} event
+     * @param {string} event.url
+     * @returns {void}
+     */
     const handleUrl = (event) => {
       const url = event.url;
       if (url && url.includes('draftKey=')) {
@@ -542,6 +616,9 @@ const HomeScreen = (props) => {
       }
     };
 
+    /**
+     * @returns {Promise<void>}
+     */
     const getInitialUrl = async () => {
       const url = await Linking.getInitialURL();
       if (url) handleUrl({ url });
@@ -674,9 +751,9 @@ const HomeScreen = (props) => {
         )}
 
         {/* Header / Nav */}
-        <View style={styles.header} testID="header-container" onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
+        <View style={styles.header} testID='header-container' onLayout={(e) => console.log('Header layout:', e.nativeEvent.layout)}>
           <TouchableOpacity
-            testID="logo-text-wrapper"
+            testID='logo-text-wrapper'
             onLongPress={() => {
               trackEvent('logo_long_press', { user_id: user?.uid });
               if (!user) {
@@ -689,9 +766,9 @@ const HomeScreen = (props) => {
           >
             <Text
               style={styles.logoText}
-              testID="logo-text"
+              testID='logo-text'
               accessible={true}
-              accessibilityLabel="Career Dev Tool"
+              accessibilityLabel='Career Dev Tool'
               onLayout={(e) => console.log('Logo layout:', e.nativeEvent.layout)}
             >
               Career Dev Tool
@@ -700,7 +777,7 @@ const HomeScreen = (props) => {
           <View style={styles.headerButtons}>
             <TouchableOpacity
               style={styles.registerButton}
-              testID="register-button"
+              testID='register-button'
               onPress={() => {
                 trackEvent('click_register', { location: 'header' });
                 props.navigation.navigate('InvitationCode');
@@ -710,7 +787,7 @@ const HomeScreen = (props) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.loginButton}
-              testID="login-button"
+              testID='login-button'
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               onPress={() => {
@@ -748,7 +825,7 @@ const HomeScreen = (props) => {
 
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroBinaryPattern} pointerEvents="none">
+          <View style={styles.heroBinaryPattern} pointerEvents='none'>
             <Text style={styles.heroBinaryText}>{PURPOSE_BINARY_WALLPAPER}</Text>
           </View>
           <View style={styles.heroContent}>
@@ -780,10 +857,10 @@ const HomeScreen = (props) => {
 
         {/* Contents Section Placeholder (microCMS) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle} testID="latest-news-section">Latest News</Text>
+          <Text style={styles.sectionTitle} testID='latest-news-section'>Latest News</Text>
           {isLoading && (
             <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" />
+              <ActivityIndicator size='small' />
               <Text style={styles.loadingText}>読み込み中...</Text>
             </View>
           )}
@@ -854,12 +931,12 @@ const HomeScreen = (props) => {
               <TouchableOpacity
                 key={link.routeName}
                 onPress={() => props.navigation.navigate(link.routeName)}
-                accessibilityRole="button"
+                accessibilityRole='button'
               >
                 <Text style={styles.footerLink}>{link.label}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')} accessibilityRole="button">
+            <TouchableOpacity onPress={() => props.navigation.navigate('PrivacyPolicy')} accessibilityRole='button'>
               <Text style={styles.footerLink}>プライバシーポリシー</Text>
             </TouchableOpacity>
           </View>

@@ -4,7 +4,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Dimensions,
     ActivityIndicator,
     Alert,
     Platform,
@@ -21,19 +20,39 @@ import {
 import registrationService from '@shared/src/features/registration/services/registrationService';
 import { THEME } from '@shared/src/core/theme/theme';
 
-const { width } = Dimensions.get('window');
+const PLATFORM_WEB = 'web';
+const INVITATION_TYPE = {
+    CORPORATE: 'corporate',
+};
+const AUTH_METHOD = {
+    EMAIL: 'email',
+    GOOGLE: 'google',
+    GITHUB: 'github',
+};
+const UI_SIZE = {
+    LOADING_INDICATOR: 'large',
+};
 
 /**
  * Registration Method Selection Screen (Step 3)
  * Premium Antigravity Design
  * Choice: Google, GitHub, or Email
+ *
+ * @param {object} props
+ * @param {object} props.navigation
+ * @param {object} props.route
+ * @returns {React.JSX.Element}
  */
 const RegistrationMethodScreen = ({ navigation, route }) => {
     const { invitationInfo } = route.params || {};
     const [isLoading, setIsLoading] = React.useState(false);
 
+    /**
+     * @param {string} method
+     * @returns {Promise<void>}
+     */
     const handleSelectMethod = async (method) => {
-        if (method === 'email') {
+        if (method === AUTH_METHOD.EMAIL) {
             navigation.navigate('RegistrationForm', { 
                 invitationInfo,
                 authMethod: method 
@@ -44,13 +63,13 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
         setIsLoading(true);
         try {
             let provider = null;
-            if (method === 'google') {
+            if (method === AUTH_METHOD.GOOGLE) {
                 provider = new GoogleAuthProvider();
-            } else if (method === 'github') {
+            } else if (method === AUTH_METHOD.GITHUB) {
                 provider = new GithubAuthProvider();
             }
 
-            if (Platform.OS === 'web') {
+            if (Platform.OS === PLATFORM_WEB) {
                 const result = await signInWithPopup(auth, provider);
                 console.log(`[Method] Social Auth Success: ${result.user.email}`);
                 
@@ -112,7 +131,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
                     <Text style={styles.welcomeText}>Welcome to LAT</Text>
                     <Text style={styles.title}>アカウント作成方法を選択</Text>
                     <Text style={styles.subtitle}>
-                        {invitationInfo?.type === 'corporate' ? '法人担当者' : '個人'}アカウントとして{"\n"}
+                        {invitationInfo?.type === INVITATION_TYPE.CORPORATE ? '法人担当者' : '個人'}アカウントとして{'\n'}
                         登録を継続します。
                     </Text>
                 </View>
@@ -121,7 +140,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
                     {/* Google Button */}
                     <TouchableOpacity 
                         style={[styles.methodButton, styles.googleButton]} 
-                        onPress={() => handleSelectMethod('google')}
+                        onPress={() => handleSelectMethod(AUTH_METHOD.GOOGLE)}
                     >
                         <View style={styles.iconPlaceholder}>
                             <Text style={styles.iconText}>G</Text>
@@ -132,7 +151,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
                     {/* GitHub Button */}
                     <TouchableOpacity 
                         style={[styles.methodButton, styles.githubButton]} 
-                        onPress={() => handleSelectMethod('github')}
+                        onPress={() => handleSelectMethod(AUTH_METHOD.GITHUB)}
                     >
                         <View style={styles.iconPlaceholderDark}>
                             <Text style={styles.iconTextWhite}>Git</Text>
@@ -149,7 +168,7 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
                     {/* Email Button */}
                     <TouchableOpacity 
                         style={[styles.methodButton, styles.emailButton]} 
-                        onPress={() => handleSelectMethod('email')}
+                        onPress={() => handleSelectMethod(AUTH_METHOD.EMAIL)}
                     >
                         <Text style={styles.methodButtonText}>メールアドレスで登録</Text>
                     </TouchableOpacity>
@@ -157,13 +176,13 @@ const RegistrationMethodScreen = ({ navigation, route }) => {
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        登録を進めることで、利用規約および{"\n"}
+                        登録を進めることで、利用規約および{'\n'}
                         個人情報保護方針に同意したものとみなされます。
                     </Text>
                 </View>
                 {isLoading && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color={THEME.primary} />
+                        <ActivityIndicator size={UI_SIZE.LOADING_INDICATOR} color={THEME.primary} />
                     </View>
                 )}
             </View>

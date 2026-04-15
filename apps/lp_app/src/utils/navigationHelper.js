@@ -15,6 +15,18 @@ import { Platform, Linking, Alert } from 'react-native';
  *   - corporate-app://home
  */
 const PLATFORM_WEB = 'web';
+const TYPEOF_UNDEFINED = 'undefined';
+const HTTP_SERVER_ERROR_THRESHOLD = 500;
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+const USER_ROLE = {
+  ADMIN: 'admin',
+  CORPORATE: 'corporate',
+  INDIVIDUAL: 'individual',
+};
 
 const APP_URLS = __DEV__
   ? {
@@ -34,13 +46,17 @@ const APP_URLS = __DEV__
       corporate: 'corporate-app://home',
     };
 
+/**
+ * @param {string} role
+ * @returns {string|null}
+ */
 export const getRedirectUrlForRole = (role) => {
   switch (role) {
-    case 'admin':
+    case USER_ROLE.ADMIN:
       return APP_URLS.admin;
-    case 'corporate':
+    case USER_ROLE.CORPORATE:
       return APP_URLS.corporate;
-    case 'individual':
+    case USER_ROLE.INDIVIDUAL:
       return APP_URLS.individual;
     default:
       return null;
@@ -54,7 +70,7 @@ export const getRedirectUrlForRole = (role) => {
  */
 const signalAutoStart = async (role) => {
   // Use __DEV__ check provided by React Native/Expo
-  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+  if (typeof __DEV__ !== TYPEOF_UNDEFINED && __DEV__) {
     try {
       const appName = `${role}_app`;
       // For iOS simulator, localhost is the host machine.
@@ -95,7 +111,7 @@ const waitForPort = async (port, timeoutMs = 20000) => {
       });
       clearTimeout(id);
       
-      if (response.ok || response.status < 500) {
+      if (response.ok || response.status < HTTP_SERVER_ERROR_THRESHOLD) {
         console.log(`[Redirect] Port ${port} is active!`);
         return true;
       }
@@ -165,4 +181,3 @@ const performRedirect = async (url) => {
 
   Alert.alert('Error', `Cannot open URL: ${url}`);
 };
-

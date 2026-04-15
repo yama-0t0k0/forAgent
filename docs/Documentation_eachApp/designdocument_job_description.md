@@ -9,6 +9,28 @@
 - **モデル利用の徹底 (Model-First)**:
   - データの取得・操作には必ず `JobDescription` モデルを使用します（`shared/common_frontend/src/core/models/JobDescription.js`）。
   - 生のFirestoreデータへの直接アクセスは原則禁止とし、モデルのゲッター（`jd.title` 等）を使用します。
+- **自動採番とID体系**:
+  - 法人ごとに `01` から `99` までの2桁の連番（JD_Number）が自動的に割り当てられます。
+  - JDの一意なIDは `job_description/[法人ID]/JD_Number/[JD_Number]` として構成されます。
+- **書き込み制限 (Guardrails)**:
+  - `JobDescriptionService` により、既に選考（`selection_progress`）が開始されている求人票は、誤削除防止のため削除できないよう制限されています。
+- **Firestore セキュリティルール**:
+  - `job_description` コレクションは、作成者が所属する企業ドキュメントと一致する場合のみ書き込みを許可。
+  - 公開設定（`status: 'public'`）の求人のみ、認証済みユーザーからの読み取りが可能。
+  - 管理者（App Admin）はすべての操作が制限なく可能。
+
+## サービス層 (Service Layer)
+`shared/common_frontend/src/core/services/JobDescriptionService.js` が以下の主要機能を提供します。
+
+### 1. 検索機能 (`searchJobs`)
+- **CollectionGroup 検索**: 全企業の公開済み求人を一括で取得。
+- **高度な重み付け/フィルタリング**: キーワードの `""` 完全一致、AND/OR 検索、勤務地選択などを実装。
+
+### 2. ID 管理
+- **`getNextJdNumber`**: 既存の ID をスキャンし、空いている最小の番号（01-99）を自動で払い出し。
+
+### 3. セキュリティ & ガードレール
+- **`hasOngoingSelections`**: Firestore の `selection_progress` コレクションを照会し、該当 JD に紐づく選考データの有無を返します。
 
 ## Firestore 接続
 - Firestoreへの接続は共有設定 [firebaseConfig.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/shared/common_frontend/src/core/firebaseConfig.js) を介して行います
@@ -23,7 +45,7 @@
 - Firestore プロジェクトはブラウザからの管理画面で確認できます（例: flutter-frontend-21d0a）。認証が必要です
 - 参照ドキュメント例:
   - コレクション: job_description
-  - ドキュメントパス: job_description/B00000/JD_Number/02
+  - ドキュメントパス: job_description/B00000/JD_Number/01
 
 ## データフロー
 - 画面: [JobDescriptionScreen.js](file:///Users/yamakawamakoto/ReactNative_Expo/engineer-registration-app-yama/apps/job_description/expo_frontend/src/features/job_description/JobDescriptionScreen.js)
@@ -112,7 +134,8 @@ graph TD
     "ポジション名": "フロントエンドエンジニア",
     "雇用形態": "正社員",
     "勤務地": "東京/リモート可",
-    "年収レンジ": "600-900万円"
+    "年収レンジ": "600-900万円",
+    "status": "public"
   }
 }
 ```
@@ -178,6 +201,7 @@ classDiagram
       雇用形態
       勤務地
       年収レンジ
+      status
     }
     class スキル経験 {
       必須

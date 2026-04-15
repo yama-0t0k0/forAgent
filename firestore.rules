@@ -9,26 +9,21 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-
-
     // ============================================================================
     // Helper Functions / ヘルパー関数
     // ============================================================================
 
     // Check if user is authenticated
-    // ユーザーが認証済みかどうかを確認
     function isAuthenticated() {
       return request.auth != null;
     }
 
     // Check if the user is the owner of the document (based on userId)
-    // ユーザーがドキュメントの所有者本人であるか確認 (userIdベース)
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Check if the user has a specific role (stored in their user profile)
-    // ユーザーが特定のロールを持っているか確認 (Custom Claims 優先、未設定時は users コレクション参照)
+    // Check if the user has a specific role
     function hasRole(role) {
       return isAuthenticated() && (
         ('role' in request.auth.token && request.auth.token.role == role) ||
@@ -43,7 +38,6 @@ service cloud.firestore {
     }
 
     // Check if the user is a member of the specific company
-    // ユーザーが特定の企業のメンバーであるか確認 (Custom Claims 優先)
     function isCompanyMember(companyId) {
       return isAuthenticated() && (
         ('role' in request.auth.token && request.auth.token.role == 'corporate' && 
@@ -54,10 +48,7 @@ service cloud.firestore {
       );
     }
     
-    // Check if the requesting company user is allowed to view the private info
-    // This relies on 'allowed_companies' array field in the target document
     // リクエスト元の企業ユーザーが個人情報を閲覧する権限を持っているか確認
-    // これはターゲットドキュメント内の 'allowed_companies' 配列フィールドに依存します
     function isMatched(allowedCompanies) {
        return isAuthenticated() && 
               exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
@@ -70,182 +61,94 @@ service cloud.firestore {
     // Collection Rules / コレクションルール
     // ============================================================================
 
-    // ----------------------------------------------------------------------------
     // 1. users Collection (Authentication & RBAC Base)
-    // users コレクション (認証とRBACの基盤)
-    // ----------------------------------------------------------------------------
     match /users/{userId} {
-      // Users can read their own data. Admins can read all.
-      // ユーザーは自分のデータを閲覧可能。管理者は全て閲覧可能。
       allow read: if isOwner(userId) || isAdmin();
-      
-      // Prevent users from making themselves admin or changing their role/companyId
-      // ユーザーが自分自身を管理者にしたり、ロール/会社IDを変更したりするのを防ぐ
-      // + Data Validation: role must be valid, companyId required for corporate
       allow create: if isOwner(userId) 
                     && (
-                      // Standard creation: Role must not be admin, must be valid
                       (!('role' in request.resource.data) || request.resource.data.role != 'admin')
                       && ('role' in request.resource.data && request.resource.data.role in ['individual', 'corporate'])
                       && (request.resource.data.role != 'corporate' || ('companyId' in request.resource.data && request.resource.data.companyId is string))
                     );
-                    
       allow update: if isAdmin() 
                     || (isOwner(userId) 
                         && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
                         && (!('companyId' in request.resource.data) || request.resource.data.companyId == resource.data.companyId));
     }
 
-    // ----------------------------------------------------------------------------
     // 2. Public Profiles (public_profile)
-    // 公開プロフィール (public_profile)
-    // ----------------------------------------------------------------------------
     match /public_profile/{userId} {
-      // Readable by any authenticated user (Candidate, Company, Admin)
-      // 認証済みユーザー (求職者、企業、管理者) であれば誰でも閲覧可能
-      // TEMPORARY: for dev without auth
       allow read: if isAuthenticated();
-      
-      // Writable only by the owner or Admin
-      // 所有者本人または管理者のみ書き込み可能
-      // Validation: 'name' must be a non-empty string
       allow create: if (isOwner(userId) || isAdmin())
                     && 'name' in request.resource.data
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0;
-
       allow update: if (isOwner(userId) || isAdmin())
                     && (!('name' in request.resource.data) 
                         || (request.resource.data.name is string && request.resource.data.name.size() > 0));
     }
 
-    // ----------------------------------------------------------------------------
     // 3. Private Info (private_info) - PII & Sensitive Data
-    // 非公開情報 (private_info) - 個人情報(PII)と機密データ
-    // ----------------------------------------------------------------------------
     match /private_info/{userId} {
-      // Writable only by the owner or Admin
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if (request.auth != null && request.auth.uid == userId) || isAdmin();
-      
-      // Readable by:
-      // 1. Owner (本人)
-      // 2. Admin (管理者)
-      // 3. Matched Company (via allowed_companies field) - マッチングした企業 ('allowed_companies' フィールド経由)
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) || isAdmin();
       allow read: if isOwner(userId) 
                   || isAdmin()
                   || (resource.data != null && 'allowed_companies' in resource.data && isMatched(resource.data.allowed_companies));
     }
 
-    // ----------------------------------------------------------------------------
-    // 4. Company Data (company / corporate)
-    // 企業データ (company / corporate)
-    // ----------------------------------------------------------------------------
+    // 4. Company Data (company)
     match /company/{companyId} {
-      // Publicly readable for authenticated users (Job Seekers need to see company info)
-      // 認証済みユーザーは閲覧可能 (求職者は企業情報を見る必要があるため)
-      // TEMPORARY: for dev without auth
       allow read: if isAuthenticated();
-      
-      // Writable by company members or Admin
-      // その企業のメンバーまたは管理者のみ書き込み可能
-      // Validation: 'name' is required and must be a non-empty string
-      allow create: if (isCompanyMember(companyId) || isAdmin())
-                    && 'name' in request.resource.data 
-                    && request.resource.data.name is string 
-                    && request.resource.data.name.size() > 0;
-                    
-      allow update: if (isCompanyMember(companyId) || isAdmin())
-                    && (!('name' in request.resource.data) 
-                        || (request.resource.data.name is string && request.resource.data.name.size() > 0));
-      
-      // Fallback for delete (if needed)
+      allow create, update: if isCompanyMember(companyId) || isAdmin();
       allow delete: if isAdmin();
     }
     
-    // Legacy support alias (if needed)
-    // レガシーサポート用のエイリアス (必要な場合)
+    // Legacy support alias
     match /corporate/{companyId} {
       allow read: if isAuthenticated();
       allow write: if isCompanyMember(companyId) || isAdmin();
     }
 
-    // ----------------------------------------------------------------------------
     // 5. Job Descriptions (job_description)
-    // 求人票 (job_description)
-    // ----------------------------------------------------------------------------
-    // Structure assumed: /job_description/{companyId}/JD_Number/{jdId}
-    // 想定構造: /job_description/{companyId}/JD_Number/{jdId}
     match /job_description/{companyId} {
-      // TEMPORARY: for dev without auth
       allow read: if isAuthenticated();
       allow write: if isCompanyMember(companyId) || isAdmin();
       
       match /JD_Number/{jdId} {
-        // TEMPORARY: for dev without auth
         allow read: if isAuthenticated();
-        
-        // Validation: title, description, salaryRange are required string fields
-        allow create: if (isCompanyMember(companyId) || isAdmin())
-                      && request.resource.data.title is string && request.resource.data.title.size() > 0
-                      && request.resource.data.description is string && request.resource.data.description.size() > 0
-                      && request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0;
-
-        allow update: if (isCompanyMember(companyId) || isAdmin())
-                      && (!('title' in request.resource.data) || (request.resource.data.title is string && request.resource.data.title.size() > 0))
-                      && (!('description' in request.resource.data) || (request.resource.data.description is string && request.resource.data.description.size() > 0))
-                      && (!('salaryRange' in request.resource.data) || (request.resource.data.salaryRange is string && request.resource.data.salaryRange.size() > 0));
+        // Validation for creation and updates
+        allow create, update: if (isCompanyMember(companyId) || isAdmin())
+                      && request.resource.data.positionName is string 
+                      && request.resource.data.positionName.size() > 0
+                      && request.resource.data.status in ['active', 'inactive']
+                      && ('基本情報' in request.resource.data && request.resource.data['基本情報'] is map);
+        allow delete: if isCompanyMember(companyId) || isAdmin();
       }
     }
 
-    // ----------------------------------------------------------------------------
     // 6. Selection Progress (selection_progress)
-    // 選考プロセス (selection_progress)
-    // ----------------------------------------------------------------------------
     match /selection_progress/{docId} {
-      // Readable by the Candidate, the Company, or Admin
-      // Fields: id_individual_個人ID, id_company_法人ID
-      // 求職者本人、該当企業、または管理者が閲覧可能
-      // TEMPORARY: for dev without auth
       allow read: if isAuthenticated();
-      
-      // Creation/Update: Allowed for authenticated users
-      // Create: Must be the candidate applying OR the company scouting OR Admin
-      // 作成: 応募する求職者本人、スカウトする企業、または管理者
       allow create: if isAuthenticated() && (
         request.resource.data['id_individual_個人ID'] == request.auth.uid ||
         isCompanyMember(request.resource.data['id_company_法人ID']) ||
         isAdmin()
       );
-
-      // Update: Must be the candidate OR the company involved OR Admin
-      // 更新: 関係する求職者、企業、または管理者
       allow update: if isAuthenticated() && (
         resource.data['id_individual_個人ID'] == request.auth.uid || 
         isCompanyMember(resource.data['id_company_法人ID']) ||
         isAdmin()
       );
     }
-    // ----------------------------------------------------------------------------
+
     // 7. Fee Management & Job Stats (FeeMgmtAndJobStatDB)
-    // 手数料管理と求人ステータス (FeeMgmtAndJobStatDB)
-    // ----------------------------------------------------------------------------
     match /FeeMgmtAndJobStatDB/{docId} {
-      // Readable by:
-      // 1. Admin
-      // 2. The Individual (individual_ID == auth.uid)
-      // 3. The Company Member (company_ID == user.companyId)
       allow read: if isAuthenticated() && (
         isAdmin() ||
         resource.data.individual_ID == request.auth.uid ||
         isCompanyMember(resource.data.company_ID)
       );
-
-      // Writable by:
-      // 1. Admin
-      // 2. The Individual (creating application)
-      // 3. The Company Member (updating status)
-      // Validation: 'amount' must be a positive number (if present)
       allow create: if isAuthenticated() && (
         isAdmin() ||
         request.resource.data.individual_ID == request.auth.uid ||
@@ -253,7 +156,6 @@ service cloud.firestore {
       ) && (
         !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
-
       allow update: if isAuthenticated() && (
         isAdmin() ||
         resource.data.individual_ID == request.auth.uid ||
@@ -261,52 +163,34 @@ service cloud.firestore {
       ) && (
         !('amount' in request.resource.data) || (request.resource.data.amount is number && request.resource.data.amount > 0)
       );
-      
       allow delete: if isAdmin();
     }
 
-    // ----------------------------------------------------------------------------
     // 8. Invitation Codes (invitationCodes)
-    // 招待コード (invitationCodes)
-    // ----------------------------------------------------------------------------
     match /invitationCodes/{code} {
-      // 招待コードは、バリデーションのために未認証でも get のみ許可（一覧は禁止）
       allow get: if true;
-      
-      // 登録時にユーザー自身がコードを「使用済み」に更新することを許可
       allow update: if request.auth != null 
                     && resource.data.status == 'active'
                     && request.resource.data.status == 'used'
                     && request.resource.data.usedBy == request.auth.uid;
-
       allow list, create, delete: if isAdmin();
     }
 
-    // ----------------------------------------------------------------------------
-    // 9. Profiles (profiles) - New consolidated profile
-    // 新しいプロファイル情報 (profiles)
-    // ----------------------------------------------------------------------------
+    // 9. Profiles (profiles)
     match /profiles/{userId} {
-      // 認証済みユーザーは基本プロフィールの閲覧が可能
       allow read: if request.auth != null;
-      // 本人または管理者のみ書き込み可能
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) || isAdmin();
     }
-    // ----------------------------------------------------------------------------
+
     // 10. Notifications (notifications)
-    // 通知 (notifications)
-    // ----------------------------------------------------------------------------
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create, update: if isAdmin();
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.uid == request.auth.uid);
     }
 
-    // ----------------------------------------------------------------------------
     // 11. Registration Drafts (registration_drafts)
-    // 下書き保存 (registration_drafts)
-    // ----------------------------------------------------------------------------
     match /registration_drafts/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
     }

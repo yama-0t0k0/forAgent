@@ -20,43 +20,58 @@ export const PasskeyManagementSection = () => {
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState(null); // 'success', 'error', null
     const [actionFeedback, setActionFeedback] = useState(null);
-    const isWeb = Platform.OS === 'web';
+    const PLATFORM_WEB = 'web';
+    const TYPEOF_UNDEFINED = 'undefined';
+    const TYPEOF_STRING = 'string';
+    const TYPEOF_FUNCTION = 'function';
+    const LATCO_WWW_HOSTNAME = 'www.latcoltd.net';
+    const LATCO_HOST_SUFFIX = '.latcoltd.net';
+    const LATCO_DOMAIN = 'latcoltd.net';
+    const VERIFICATION_STATUS = {
+        SUCCESS: 'success',
+    };
+
+    const isWeb = Platform.OS === PLATFORM_WEB;
     const defaultPasskeyRpId = __DEV__ ? 'engineer-registration-lp-dev.web.app' : 'latcoltd.net';
     const desiredPasskeyRpId =
-        typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
+        typeof process !== TYPEOF_UNDEFINED && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === TYPEOF_STRING
             ? process.env.EXPO_PUBLIC_PASSKEY_RP_ID.trim() || defaultPasskeyRpId
             : defaultPasskeyRpId;
 
+    /**
+     * @returns {string|null}
+     */
     const getWebRpId = () => {
-        if (typeof window === 'undefined') return null;
+        if (typeof window === TYPEOF_UNDEFINED) return null;
         const envRpId =
-            typeof process !== 'undefined' && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === 'string'
+            typeof process !== TYPEOF_UNDEFINED && typeof process?.env?.EXPO_PUBLIC_PASSKEY_RP_ID === TYPEOF_STRING
                 ? process.env.EXPO_PUBLIC_PASSKEY_RP_ID.trim()
                 : null;
         if (envRpId && envRpId.length > 0) return envRpId;
         const hostname = window.location?.hostname;
-        if (typeof hostname !== 'string' || hostname.length === 0) return null;
-        if (hostname === 'www.latcoltd.net' || hostname.endsWith('.latcoltd.net')) return 'latcoltd.net';
+        if (typeof hostname !== TYPEOF_STRING || hostname.length === 0) return null;
+        if (hostname === LATCO_WWW_HOSTNAME || hostname.endsWith(LATCO_HOST_SUFFIX)) return LATCO_DOMAIN;
         return hostname;
     };
 
+    /**
+     * @param {string} base64url
+     * @returns {Uint8Array}
+     */
     const base64UrlToUint8Array = (base64url) => {
         const base64 = String(base64url).replace(/-/g, '+').replace(/_/g, '/');
         const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
         const binary = atob(padded);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i += 1) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        return bytes;
+        return Uint8Array.from(binary, (c) => c.charCodeAt(0));
     };
 
+    /**
+     * @param {ArrayBuffer} buffer
+     * @returns {string}
+     */
     const arrayBufferToBase64Url = (buffer) => {
         const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i += 1) {
-            binary += String.fromCharCode(bytes[i]);
-        }
+        const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
         const base64 = btoa(binary);
         return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
     };
@@ -90,6 +105,10 @@ export const PasskeyManagementSection = () => {
 
     /**
      * Handles Passkey Deletion
+     */
+    /**
+     * @param {string} credentialIdHash
+     * @returns {void}
      */
     const handleDeletePasskey = (credentialIdHash) => {
         Alert.alert(
@@ -180,7 +199,7 @@ export const PasskeyManagementSection = () => {
                     response: {
                         attestationObject: arrayBufferToBase64Url(credential.response.attestationObject),
                         clientDataJSON: arrayBufferToBase64Url(credential.response.clientDataJSON),
-                        transports: typeof credential.response.getTransports === 'function' ? credential.response.getTransports() : [],
+                        transports: typeof credential.response.getTransports === TYPEOF_FUNCTION ? credential.response.getTransports() : [],
                     },
                     clientExtensionResults: credential.getClientExtensionResults?.() || {},
                 };
@@ -382,7 +401,7 @@ export const PasskeyManagementSection = () => {
                                     <ActivityIndicator color={THEME.textInverse} />
                                 ) : (
                                     <>
-                                        <Ionicons name="finger-print-outline" size={20} color={THEME.textInverse} style={styles.buttonIcon} />
+                                        <Ionicons name='finger-print-outline' size={20} color={THEME.textInverse} style={styles.buttonIcon} />
                                         <Text style={styles.buttonText}>🔑 パスキーを登録する</Text>
                                     </>
                                 )}
@@ -401,7 +420,7 @@ export const PasskeyManagementSection = () => {
                                     {passkeys.map((pk) => (
                                         <View key={pk.credentialIdHash} style={styles.passkeyItem}>
                                             <View style={styles.passkeyItemLeft}>
-                                                <Ionicons name="key" size={20} color={THEME.textSecondary} style={styles.passkeyItemIcon} />
+                                                <Ionicons name='key' size={20} color={THEME.textSecondary} style={styles.passkeyItemIcon} />
                                                 <View>
                                                     <Text style={styles.passkeyItemLabel}>
                                                         {pk.label || pk.deviceName || 'Unknown Device'}
@@ -421,7 +440,7 @@ export const PasskeyManagementSection = () => {
                                                 onPress={() => handleDeletePasskey(pk.credentialIdHash)}
                                                 disabled={isActionLoading}
                                             >
-                                                <Ionicons name="trash-outline" size={20} color={THEME.error} />
+                                                <Ionicons name='trash-outline' size={20} color={THEME.error} />
                                             </TouchableOpacity>
                                         </View>
                                     ))}
@@ -438,13 +457,24 @@ export const PasskeyManagementSection = () => {
                                 ) : (
                                     <>
                                         <Ionicons
-                                            name={verificationStatus === 'success' ? 'checkmark-circle' : 'shield-checkmark-outline'}
+                                            name={
+                                                verificationStatus === VERIFICATION_STATUS.SUCCESS
+                                                    ? 'checkmark-circle'
+                                                    : 'shield-checkmark-outline'
+                                            }
                                             size={20}
-                                            color={verificationStatus === 'success' ? THEME.success : THEME.primary}
+                                            color={verificationStatus === VERIFICATION_STATUS.SUCCESS ? THEME.success : THEME.primary}
                                             style={styles.buttonIcon}
                                         />
-                                        <Text style={[styles.secondaryButtonText, verificationStatus === 'success' && { color: THEME.success }]}>
-                                            {verificationStatus === 'success' ? '検証済み' : '今すぐパスキーログインを試す（検証）'}
+                                        <Text
+                                            style={[
+                                                styles.secondaryButtonText,
+                                                verificationStatus === VERIFICATION_STATUS.SUCCESS && { color: THEME.success },
+                                            ]}
+                                        >
+                                            {verificationStatus === VERIFICATION_STATUS.SUCCESS
+                                                ? '検証済み'
+                                                : '今すぐパスキーログインを試す（検証）'}
                                         </Text>
                                     </>
                                 )}

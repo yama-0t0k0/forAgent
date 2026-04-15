@@ -12,6 +12,7 @@ export const ROUTES = {
     INDIVIDUAL_MY_PAGE: 'MyPage',
     INDIVIDUAL_CONNECTION: 'Connection',
     INDIVIDUAL_CAREER: 'Career',
+    INDIVIDUAL_JOB_SEARCH: 'JobSearch',
 
     // Corporate App
     CORPORATE_PAGE: 'CompanyPage',
@@ -20,6 +21,8 @@ export const ROUTES = {
     CORPORATE_CONNECTIONS: 'Connections',
     CORPORATE_BLOG: 'Blog',
     CORPORATE_EVENTS: 'Events',
+    CORPORATE_MEMBER_MANAGEMENT: 'MemberManagement',
+    CORPORATE_JOB_EDIT: 'CorporateJobEdit',
 
     // Admin App
     ADMIN_LOGIN: 'Login',
