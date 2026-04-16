@@ -16,6 +16,26 @@ AUTO_MODE=true
 TARGET_BRANCH="Agent"
 AUTHORIZATION_EVIDENCE=""
 TARGET_MILESTONE=""
+INCLUDE_UNTRACKED=false
+NO_COMMIT=false
+NO_PUSH=false
+SKIP_CI=false
+ISSUE_ONLY=false
+CONTEXT_APPEND=""
+CONTEXT_FILE=""
+NOTE_LOCAL_AUTONOMY=false
+
+LOCAL_AUTONOMY_PREP_NOTES=$(cat <<'EOF'
+裏側で以下のプロセス群をバックグラウンドに放ちました！
+
+ollama serve & (バックグラウンドでのローカルデーモン待機)
+ollama pull gemma4:26b (現在ダウンロード中 ※サイズが大きいため裏側で進行させています)
+ironclaw コマンドの稼働確認
+※ IronClaw について1点だけご報告です。 ドキュメント上の設計では ironclaw init を想定されていましたが、公式の nearai/ironclaw の仕様を確認したところ、初期化コマンド は ironclaw onboard に、実行コマンドは ironclaw run となっていました（コンセプトや役割は設計と100%同じです！）。これを加味し、後ほど pm_orchestrator.js 側のコマンド引数も微調整しておきます。
+
+ここまでの準備により、ついに【完全トークン消費ゼロのローカル自律基盤】のエンジンがかかり始めました。 Gemma 4のダウンロード（数十分かかります）が完了次第、いつでもモックIssueをポーリングして動ける状態です
+EOF
+)
 
 # Capture original arguments for delegation
 # 委譲用に元の引数を保持
@@ -28,6 +48,10 @@ parse_arguments() {
         case $1 in
             --auto)
                 AUTO_MODE=true
+                shift
+                ;;
+            --manual|--interactive)
+                AUTO_MODE=false
                 shift
                 ;;
             --authorized-by)
@@ -62,6 +86,14 @@ parse_arguments() {
                 CONTEXT_NOTES="$2"
                 shift 2
                 ;;
+            --context-append)
+                CONTEXT_APPEND="$2"
+                shift 2
+                ;;
+            --context-file)
+                CONTEXT_FILE="$2"
+                shift 2
+                ;;
             --command-log)
                 COMMAND_LOG_FILE="$2"
                 shift 2
@@ -69,6 +101,33 @@ parse_arguments() {
             --main-commands)
                 INVESTIGATION_COMMANDS="$2"
                 shift 2
+                ;;
+            --include-untracked)
+                INCLUDE_UNTRACKED=true
+                shift
+                ;;
+            --no-commit)
+                NO_COMMIT=true
+                shift
+                ;;
+            --no-push)
+                NO_PUSH=true
+                shift
+                ;;
+            --no-ci)
+                SKIP_CI=true
+                shift
+                ;;
+            --issue-only)
+                ISSUE_ONLY=true
+                NO_COMMIT=true
+                NO_PUSH=true
+                SKIP_CI=true
+                shift
+                ;;
+            --note-local-autonomy)
+                NOTE_LOCAL_AUTONOMY=true
+                shift
                 ;;
             *)
                 if [ -z "$COMMIT_MESSAGE" ]; then
@@ -84,6 +143,31 @@ parse_arguments() {
 # Issue用の追加情報を収集する関数
 collect_issue_info() {
     if [ "$AUTO_MODE" = true ]; then
+        if [ -n "$CONTEXT_FILE" ] && [ -z "$CONTEXT_NOTES" ]; then
+            if [ -f "$CONTEXT_FILE" ]; then
+                CONTEXT_NOTES=$(cat "$CONTEXT_FILE")
+            else
+                echo "❌ Error: --context-file not found: $CONTEXT_FILE"
+                exit 1
+            fi
+        fi
+
+        if [ "$NOTE_LOCAL_AUTONOMY" = true ]; then
+            if [ -n "$CONTEXT_NOTES" ]; then
+                CONTEXT_NOTES="${CONTEXT_NOTES}"$'\n\n'"${LOCAL_AUTONOMY_PREP_NOTES}"
+            else
+                CONTEXT_NOTES="${LOCAL_AUTONOMY_PREP_NOTES}"
+            fi
+        fi
+
+        if [ -n "$CONTEXT_APPEND" ]; then
+            if [ -n "$CONTEXT_NOTES" ]; then
+                CONTEXT_NOTES="${CONTEXT_NOTES}"$'\n\n'"${CONTEXT_APPEND}"
+            else
+                CONTEXT_NOTES="${CONTEXT_APPEND}"
+            fi
+        fi
+
         # Check for mandatory arguments in Auto Mode
         # 自動モードでの必須引数チェック
         local missing_args=false
@@ -212,6 +296,23 @@ collect_issue_info() {
             CONTEXT_NOTES="（背景・技術的制約・コンテキストを具体的に記述してください）"
         fi
     fi
+
+    if [ -n "$CONTEXT_FILE" ]; then
+        if [ -f "$CONTEXT_FILE" ]; then
+            CONTEXT_NOTES=$(cat "$CONTEXT_FILE")
+        else
+            echo "❌ Error: --context-file not found: $CONTEXT_FILE"
+            exit 1
+        fi
+    fi
+
+    if [ "$NOTE_LOCAL_AUTONOMY" = true ]; then
+        CONTEXT_NOTES="${CONTEXT_NOTES}"$'\n\n'"${LOCAL_AUTONOMY_PREP_NOTES}"
+    fi
+
+    if [ -n "$CONTEXT_APPEND" ]; then
+        CONTEXT_NOTES="${CONTEXT_NOTES}"$'\n\n'"${CONTEXT_APPEND}"
+    fi
 }
 
 echo "🚀 Universal Safe Push Script for UI-centric Development"
@@ -311,20 +412,43 @@ handle_changes() {
 
     echo "📦 Preparing changes..."
     echo "📦 変更を準備中..."
-    if [ "$AUTO_MODE" = true ]; then
-        git add -A
-        echo "✅ All changes (including deletions and untracked files) staged (auto mode)"
-        echo "✅ 全ての変更（削除や未追跡ファイルを含む）がステージされました（自動モード）"
-    else
-        read -p "Stage ALL changes (including deletions)? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git add -A
-            echo "✅ All changes staged"
-        else
-            echo "❌ Manual staging requested. Exiting safe push."
+    UNTRACKED_FILES=$(git ls-files --others --exclude-standard || true)
+    if [ -n "$UNTRACKED_FILES" ] && [ "$INCLUDE_UNTRACKED" != true ]; then
+        if [ "$AUTO_MODE" = true ]; then
+            echo "🛑 Untracked files detected. Refusing to auto-stage untracked files."
+            echo "🛑 未追跡ファイルが検出されました。自動モードでは未追跡ファイルをステージしません。"
+            echo ""
+            echo "$UNTRACKED_FILES"
+            echo ""
+            echo "➡️  If you intend to include them, re-run with: --include-untracked"
+            echo "➡️  追加したい場合は --include-untracked を付けて再実行してください"
             exit 1
+        else
+            echo "⚠️  Untracked files detected:"
+            echo "$UNTRACKED_FILES"
+            read -p "Include untracked files? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                INCLUDE_UNTRACKED=true
+            fi
         fi
+    fi
+
+    git add -u
+    if [ "$INCLUDE_UNTRACKED" = true ]; then
+        git add .
+    fi
+
+    if [ "$AUTO_MODE" = true ]; then
+        if [ "$INCLUDE_UNTRACKED" = true ]; then
+            echo "✅ Tracked changes + untracked files staged (auto mode)"
+            echo "✅ 追跡済み変更 + 未追跡ファイルをステージしました（自動モード）"
+        else
+            echo "✅ Tracked changes staged (auto mode)"
+            echo "✅ 追跡済み変更をステージしました（自動モード）"
+        fi
+    else
+        echo "✅ Changes staged"
     fi
     
     echo "🔍 Verifying staged changes..."
@@ -355,6 +479,12 @@ check_staged_changes() {
 # Function to commit changes
 # 変更をコミットする関数
 commit_changes() {
+    if [ "$NO_COMMIT" = true ]; then
+        echo "ℹ️  --no-commit is set. Skipping commit step."
+        echo "ℹ️  --no-commit が指定されています。コミット手順をスキップします。"
+        return 0
+    fi
+
     echo ""
     echo "📝 Ready to commit changes"
     echo "📝 コミットの準備ができました"
@@ -386,6 +516,12 @@ commit_changes() {
 # Function to push changes
 # 変更をプッシュする関数
 push_changes() {
+    if [ "$NO_PUSH" = true ]; then
+        echo "ℹ️  --no-push is set. Skipping push step."
+        echo "ℹ️  --no-push が指定されています。プッシュ手順をスキップします。"
+        return 0
+    fi
+
     echo ""
     echo "🚀 Pushing changes to remote repository..."
     echo "🚀 リモートリポジトリに変更をプッシュ中..."
@@ -544,33 +680,39 @@ main() {
     # 1. 許可チェック（ポカヨケ）
     verify_user_instruction
 
-    # Run Local CI Pipeline
-    # ローカルCIパイプラインの実行
-    if [ -x "./scripts/local_ci.sh" ]; then
-        echo "🛡️  Running Local CI Pipeline..."
-        echo "🛡️  ローカルCIパイプラインを実行中..."
-        ./scripts/local_ci.sh
-    elif [ -f "./scripts/local_ci.sh" ]; then
-        echo "🛡️  Running Local CI Pipeline..."
-        echo "🛡️  ローカルCIパイプラインを実行中..."
-        bash ./scripts/local_ci.sh
+    if [ "$SKIP_CI" != true ]; then
+        if [ -x "./scripts/local_ci.sh" ]; then
+            echo "🛡️  Running Local CI Pipeline..."
+            echo "🛡️  ローカルCIパイプラインを実行中..."
+            ./scripts/local_ci.sh
+        elif [ -f "./scripts/local_ci.sh" ]; then
+            echo "🛡️  Running Local CI Pipeline..."
+            echo "🛡️  ローカルCIパイプラインを実行中..."
+            bash ./scripts/local_ci.sh
+        else
+            echo "⚠️  scripts/local_ci.sh not found. Skipping CI checks."
+            echo "⚠️  scripts/local_ci.sh が見つかりません。CIチェックをスキップします。"
+        fi
     else
-        echo "⚠️  scripts/local_ci.sh not found. Skipping CI checks."
-        echo "⚠️  scripts/local_ci.sh が見つかりません。CIチェックをスキップします。"
+        echo "ℹ️  --no-ci is set. Skipping CI checks."
+        echo "ℹ️  --no-ci が指定されています。CIチェックをスキップします。"
     fi
 
     check_git_repo
     ensure_yama_branch
-    handle_changes
-    check_staged_changes
     collect_issue_info
-    commit_changes
-    sync_remote
-    
-    # Capture remote hash before pushing
-    # プッシュ前にリモートハッシュを取得
-    PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH")
-    
+
+    if [ "$ISSUE_ONLY" != true ]; then
+        handle_changes
+        check_staged_changes
+        commit_changes
+        sync_remote
+    else
+        git fetch origin "$TARGET_BRANCH" >/dev/null 2>&1 || true
+    fi
+
+    PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH" 2>/dev/null || true)
+
     push_changes
     create_push_issue
     

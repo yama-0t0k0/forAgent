@@ -32,6 +32,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Local LLM / tooling binaries (do not commit)
+ollama_app/
+node-v*-darwin-arm64.tar.gz
+
 # local env files
 .env*.local
 .env
