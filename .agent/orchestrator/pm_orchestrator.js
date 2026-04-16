@@ -214,26 +214,69 @@ ${task.instruction}
  * ローカルの Gemma 4 を呼び出し、タスク分割JSON（DAG）を取得するスタブ
  */
 async function consultPMAgent(issue) {
-  // 実際は Ollama経由で pm_agent の SKILL.md と Issueテキストを結合してJSONを出力させる
-  return {
-    tasks: [
-      { 
-        id: "task_1", agent: "platform_shared", dir: "./packages/shared", 
-        instruction: "実装要求を元に必要な共通UIやInterfaceを追加せよ。", 
-        dependsOn: [] 
-      },
-      { 
-        id: "task_2", agent: "lp_app_expert", dir: "./apps/lp_app", 
-        instruction: "追加された共通UIを用いて要件の画面を実装せよ。", 
-        dependsOn: ["task_1"] 
-      },
-      { 
-        id: "task_3", agent: "enabling_quality", dir: "./", 
-        instruction: "変更されたコードの品質監査とPR作成前のテストを行え。", 
-        dependsOn: ["task_2"] 
-      }
-    ]
-  };
+  console.log(`[Daemon] 🤖 Asking gemma:2b (PM Agent) to design task DAG for Issue #${issue.number}...`);
+  // PM AgentのSKILL.mdを取得
+  const skillPath = path.resolve(__dirname, '../skills/pm_agent/SKILL.md');
+  let pmPersona = '';
+  try {
+    pmPersona = fs.readFileSync(skillPath, 'utf-8');
+  } catch(e) {
+    console.warn(`[Daemon] ⚠️ PM Agent SKILL.md not found.`);
+  }
+
+  const prompt = `
+System Persona:
+${pmPersona}
+
+User Request (GitHub Issue #${issue.number}):
+${issue.title}
+${issue.body}
+
+Please act as the PM Agent. Read the user request and output exactly a valid JSON object matching the DAG schema (with a "tasks" array containing objects with id, agent, dir, instruction, and dependsOn). Do not include any other text or markdown blocks outside the JSON.`;
+
+  try {
+    const res = await fetch('http://127.0.0.1:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gemma:2b',
+        prompt: prompt,
+        stream: false,
+        format: 'json'
+      })
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Ollama API error: ${res.statusText}`);
+    }
+    const data = await res.json();
+    
+    // Markdownコードブロック修復 (```json ... ``` などの除去)
+    let rawText = data.response;
+    const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) rawText = jsonMatch[1];
+    
+    let dagJson = JSON.parse(rawText.trim());
+    
+    // 構造の正規化 (配列で返ってきた場合は { tasks: [...] } でラップ)
+    if (Array.isArray(dagJson)) {
+      dagJson = { tasks: dagJson };
+    } else if (!dagJson.tasks) {
+      // 想定外の構造の安全策
+      dagJson = { tasks: [dagJson] };
+    }
+
+    // 依存関係(dependsOn)の正規化 (文字列で来た場合は配列化)
+    dagJson.tasks.forEach(t => {
+      if (!t.dependsOn) t.dependsOn = [];
+      if (!Array.isArray(t.dependsOn)) t.dependsOn = [t.dependsOn];
+    });
+
+    return dagJson;
+  } catch (err) {
+    console.error(`[Daemon] 🔴 Failed to consult PM Agent via Ollama:`, err.message);
+    throw err;
+  }
 }
 
 if (require.main === module) {

@@ -36,6 +36,10 @@ yarn-error.*
 ollama_app/
 node-v*-darwin-arm64.tar.gz
 
+# Agent local working files
+.agent/tmp/
+scripts/mac_cache_cleanup.sh
+
 # local env files
 .env*.local
 .env
