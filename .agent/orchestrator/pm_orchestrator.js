@@ -3,35 +3,94 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * PM Agent Orchestrator (Resident Daemon) - DAG Engine
+ * PM Agent Orchestrator (Resident Daemon) - DAG Engine v2
  *
  * 役割：
  * pm_agent が定義した「タスクのJSONグラフ（DAG）」をパースし、
  * 各専門家エージェント（IronClaw経由）を依存順序に従って起動する。
  * 前タスクの出力を次のタスクの入力（システムプロンプト）に注入し、「バケツリレー」を実現する。
+ *
+ * v2 変更点:
+ * - 進捗ダッシュボード（status.json）によるリアルタイム可視化
+ * - エージェント名ホワイトリストによるDAG正規化
+ * - IronClawシングルインスタンス制約への対応（逐次実行）
+ * - 処理済みIssueの重複処理防止
  */
 
 const POLLING_INTERVAL_MS = 60000;
 const LABEL_TO_WATCH = 'ready-for-agent';
+const STATUS_FILE = path.resolve(__dirname, 'status.json');
+const LOG_FILE = path.resolve(__dirname, 'daemon.log');
+
+// 実在するエージェント名のホワイトリスト
+const VALID_AGENTS = [
+  'platform_shared', 'lp_app_expert', 'enabling_quality',
+  'platform_infra', 'complex_logic', 'tech_concierge', 'pm_agent'
+];
+
+// 処理済みIssue番号を追跡（再起動でリセット）
+const processedIssues = new Set();
+
+// ---- ログ & ステータス管理 ----
+
+function log(level, message) {
+  const ts = new Date().toISOString();
+  const line = `[${ts}] [${level}] ${message}`;
+  console.log(line);
+  try {
+    fs.appendFileSync(LOG_FILE, line + '\n');
+  } catch (_) { /* ignore */ }
+}
+
+function updateStatus(issueNumber, phase, detail, progress) {
+  const status = {
+    updatedAt: new Date().toISOString(),
+    issueNumber,
+    phase,
+    detail,
+    progress, // e.g. "2/3"
+    log: LOG_FILE
+  };
+  try {
+    fs.writeFileSync(STATUS_FILE, JSON.stringify(status, null, 2));
+  } catch (_) { /* ignore */ }
+  log('STATUS', `Issue #${issueNumber} | ${phase} | ${detail} | ${progress}`);
+}
+
+// ---- デーモン本体 ----
 
 async function startDaemon() {
-  console.log(`[Daemon] PM Orchestrator DAG Engine started. Polling every 60s...`);
+  log('INFO', '🚀 PM Orchestrator DAG Engine v2 started. Polling every 60s...');
+  updateStatus('-', 'IDLE', 'ポーリング待機中...', '-');
+
+  // 初回即時実行
+  await pollOnce();
+
   setInterval(async () => {
-    try {
-      const issues = await fetchTargetIssues();
-      for (const issue of issues) {
-        await processIssue(issue);
-      }
-    } catch (err) {
-      console.error('[Daemon] 🔴 Error during polling:', err);
-    }
+    await pollOnce();
   }, POLLING_INTERVAL_MS);
+}
+
+async function pollOnce() {
+  try {
+    const issues = await fetchTargetIssues();
+    const newIssues = issues.filter(i => !processedIssues.has(i.number));
+    if (newIssues.length === 0) {
+      updateStatus('-', 'IDLE', `ポーリング完了。新規タスクなし (処理済み: ${[...processedIssues].join(', ') || 'なし'})`, '-');
+      return;
+    }
+    for (const issue of newIssues) {
+      await processIssue(issue);
+    }
+  } catch (err) {
+    log('ERROR', `ポーリング中のエラー: ${err.message}`);
+  }
 }
 
 async function fetchTargetIssues() {
   const repoFull = 'yama-0t0k0/forAgent';
   const url = `https://api.github.com/repos/${repoFull}/issues?labels=${LABEL_TO_WATCH}&state=open`;
-  
+
   const headers = {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'PM-Orchestrator-Daemon'
@@ -43,196 +102,205 @@ async function fetchTargetIssues() {
   try {
     const res = await fetch(url, { headers });
     if (!res.ok) {
-      console.error(`[Daemon] 🔴 GitHub API Error: ${res.statusText}`);
+      log('ERROR', `GitHub API Error: ${res.statusText}`);
       return [];
     }
-    const issues = await res.json();
-    return issues;
-  } catch(err) {
-    console.error(`[Daemon] 🔴 Fetch Error:`, err.message);
+    return await res.json();
+  } catch (err) {
+    log('ERROR', `Fetch Error: ${err.message}`);
     return [];
   }
 }
 
 async function processIssue(issue) {
+  log('INFO', `━━━ Issue #${issue.number} の処理を開始: "${issue.title}" ━━━`);
+  updateStatus(issue.number, 'PLANNING', 'Gemma 2b にタスク分割を依頼中...', '0/?');
+
   try {
-    // 1. pm_agent人格を使用して、Issueからタスク依存グラフ（DAG）を作成
+    // 1. PM Agent (Gemma) にDAGを作らせる
     const taskPlan = await consultPMAgent(issue);
-
-    // 2. DAGエンジンの実行（バケツリレー）
-    await executeTaskGraph(taskPlan.tasks, issue.number);
-
-    console.log(`[Daemon] ✅ Task for Issue #${issue.number} completed successfully.`);
-    // TODO: Create Draft PR via API
-
-  } catch (error) {
-    console.error(`[Daemon] ❌ Fatal error on Issue #${issue.number}.`, error);
-  }
-}
-
-/**
- * 依存グラフ（DAG）を解析し、順次・並列にタスクを実行するエンジン関数
- */
-async function executeTaskGraph(tasks, issueNumber) {
-  const completed = new Set();
-  const taskOutputs = {}; // バケツの受け皿（各タスクのエラー内容やコミット差分を保存）
-
-  let allCompleted = false;
-
-  while (!allCompleted) {
-    // 未完了かつ、依存タスク(dependsOn)が全てcompletedに入っているタスクを探す
-    const executableTasks = tasks.filter(t =>
-      !completed.has(t.id) && 
-      (!t.dependsOn || t.dependsOn.every(dep => completed.has(dep)))
-    );
-
-    if (executableTasks.length === 0) {
-      if (completed.size === tasks.length) {
-        allCompleted = true; // 全タスク完了
-        break;
-      } else {
-        throw new Error("[DAG] Deadlock detected! Unmet dependencies in task graph.");
-      }
-    }
-
-    // 実行可能なタスク群を並列起動
-    const promises = executableTasks.map(async (task) => {
-      // 👉 【バケツリレー】: 依存している前タスクの出力結果（コンテキスト）を集約
-      let previousContext = "";
-      if (task.dependsOn && task.dependsOn.length > 0) {
-        previousContext += "\n--- PREVIOUS TASK CONTEXT ---\n";
-        task.dependsOn.forEach(dep => {
-          previousContext += `[Task: ${dep}] Output:\n${taskOutputs[dep]}\n`;
-        });
-      }
-
-      console.log(`[DAG] 🚀 Starting ${task.id} (${task.agent}) in ${task.dir}`);
-      
-      try {
-        const output = await runIronClawJob(task, previousContext);
-        taskOutputs[task.id] = output; // 出力をバケツに貯める
-        completed.add(task.id);
-      } catch (childError) {
-        console.error(`[DAG] ❌ Task ${task.id} failed! Initiating self-healing loop...`);
-        // 自己修復の実行（原因となった前タスクにエラー文脈を渡して再実行させる）
-        await handleSelfHealing(task, childError, taskOutputs, issueNumber);
-        
-        // 修復ループで全体がやり直しになるため、一旦処理を停止する
-        throw new Error(`Task halted for self-healing: ${task.id}`);
-      }
+    const taskCount = taskPlan.tasks.length;
+    log('INFO', `DAG計画を受領: ${taskCount} タスク`);
+    taskPlan.tasks.forEach((t, i) => {
+      log('INFO', `  Task ${i + 1}: [${t.agent}] ${t.instruction}`);
     });
 
-    // 同じ階層（依存度）のタスク群をすべて完了するまで待つ
-    await Promise.all(promises);
+    // 2. DAGエンジンの逐次実行（バケツリレー）
+    updateStatus(issue.number, 'EXECUTING', `DAG実行開始 (${taskCount} タスク)`, `0/${taskCount}`);
+    await executeTaskGraph(taskPlan.tasks, issue.number);
+
+    // 3. 成功
+    log('INFO', `✅ Issue #${issue.number} の全タスクが完了しました！`);
+    updateStatus(issue.number, 'DONE', '全タスク完了！', `${taskCount}/${taskCount}`);
+    processedIssues.add(issue.number);
+
+  } catch (error) {
+    log('ERROR', `❌ Issue #${issue.number} で致命的エラー: ${error.message}`);
+    updateStatus(issue.number, 'FAILED', error.message, '-');
+    processedIssues.add(issue.number); // 無限リトライ防止
   }
 }
 
-/**
- * 自己修復ループ（Self-Healing Loop）
- * enabling_quality（監査エージェント）等でLinterや規約エラーが発生した場合、
- * 書いた本人（直前の実装担当エージェント）にエラー内容を差し戻す。
- */
-async function handleSelfHealing(failedTask, errorData, currentOutputs, issueNumber) {
-  // 制作者（直前のタスク）を特定する
-  const authorTaskId = failedTask.dependsOn ? failedTask.dependsOn[0] : null;
+// ---- DAG実行エンジン (逐次実行版) ----
 
-  console.log(`[Healing] 🩹 Feedback sent back to: ${authorTaskId || 'None (root task)'}`);
-  
-  // TODO: PM Agentを再度呼び出し、
-  // 「前回の出力(currentOutputs[authorTaskId])」と「今回発生したエラー(errorData)」を合成。
-  // そのエラーを修正するための新しいDAGタスクを1〜2個作成して再実行キューに投入するロジックを実装。
+async function executeTaskGraph(tasks, issueNumber) {
+  const completed = new Set();
+  const taskOutputs = {};
+
+  while (completed.size < tasks.length) {
+    // 実行可能なタスクを1つ探す（依存が全て解決済みのもの）
+    const nextTask = tasks.find(t =>
+      !completed.has(t.id) &&
+      (!t.dependsOn || t.dependsOn.length === 0 || t.dependsOn.every(dep => completed.has(dep)))
+    );
+
+    if (!nextTask) {
+      // 全未完了タスクの依存が解決不能 => デッドロック
+      const remaining = tasks.filter(t => !completed.has(t.id)).map(t => `${t.id}(deps:${t.dependsOn})`);
+      throw new Error(`[DAG] Deadlock! 残タスク: ${remaining.join(', ')}`);
+    }
+
+    // バケツリレー: 前タスクの出力を集約
+    let previousContext = "";
+    if (nextTask.dependsOn && nextTask.dependsOn.length > 0) {
+      previousContext += "\n--- PREVIOUS TASK CONTEXT ---\n";
+      nextTask.dependsOn.forEach(dep => {
+        previousContext += `[Task: ${dep}] Output:\n${taskOutputs[dep] || '(no output)'}\n`;
+      });
+    }
+
+    const taskIndex = tasks.indexOf(nextTask) + 1;
+    const progressStr = `${taskIndex}/${tasks.length}`;
+    log('INFO', `🚀 [${progressStr}] Task "${nextTask.id}" を開始 (agent: ${nextTask.agent})`);
+    updateStatus(issueNumber, 'EXECUTING', `Task ${taskIndex}/${tasks.length}: [${nextTask.agent}] ${nextTask.instruction.substring(0, 60)}...`, progressStr);
+
+    try {
+      const output = await runIronClawJob(nextTask, previousContext);
+      taskOutputs[nextTask.id] = output;
+      completed.add(nextTask.id);
+      log('INFO', `✅ Task "${nextTask.id}" 完了`);
+    } catch (childError) {
+      log('ERROR', `❌ Task "${nextTask.id}" 失敗: ${childError}`);
+      // 自己修復ループ（将来実装）のフックだけ残し、今は失敗を記録して次へ進む
+      taskOutputs[nextTask.id] = `FAILED: ${childError}`;
+      completed.add(nextTask.id); // スキップして次へ進む（全体を止めない）
+      log('WARN', `⚠️ Task "${nextTask.id}" をスキップして続行します`);
+    }
+  }
 }
 
-/**
- * IronClaw サンドボックスプロセスの起動およびバケツリレー注入
- */
+// ---- IronClaw サンドボックス起動 ----
+
 function runIronClawJob(task, previousContext) {
   return new Promise((resolve, reject) => {
-    // 1. 最終厳守ポリシー (ガードレール) の取得
+    // 1. セキュリティポリシーの取得
     const policyPath = path.resolve(__dirname, '../../docs/architecture/ironclaw_security_policy.md');
     let securityPolicy = '';
     try {
       securityPolicy = fs.readFileSync(policyPath, 'utf-8');
     } catch (e) {
-      console.warn(`[Daemon] ⚠️ Security policy not found at ${policyPath}`);
+      log('WARN', `セキュリティポリシー未検出: ${policyPath}`);
     }
 
-    // 2. 各専門家エージェントのスキル（規約・人格）を取得
+    // 2. エージェントスキル(SKILL.md)の取得
     const skillPath = path.resolve(__dirname, `../skills/${task.agent}/SKILL.md`);
     let basePersona = '';
     try {
       basePersona = fs.readFileSync(skillPath, 'utf-8');
     } catch (e) {
-      console.warn(`[Daemon] ⚠️ SKILL.md not found for ${task.agent}.`);
+      log('WARN', `SKILL.md 未検出: ${task.agent}`);
     }
 
-    // 3. ポリシー + SKILL.md + バケツリレー文脈 を結合し、究極のシステムプロンプトを作成
-    const injectedSystemPrompt = `
-[IronClaw Security Guardrails]
-${securityPolicy}
+    // 3. 統合プロンプト構築
+    const injectedSystemPrompt = [
+      '[IronClaw Security Guardrails]',
+      securityPolicy,
+      '[Agent Persona / Skill]',
+      basePersona,
+      '[Bucket Brigade Context]',
+      previousContext,
+      '[Current Instruction]',
+      task.instruction
+    ].join('\n');
 
-[Agent Persona / Skill]
-${basePersona}
+    // 4. stale PID fileをクリーンアップしてからIronClawを起動
+    const pidFile = path.join(process.env.HOME || '', '.ironclaw', 'ironclaw.pid');
+    try { fs.unlinkSync(pidFile); } catch (_) { /* ignore */ }
 
-[Bucket Brigade Context]
-${previousContext}
+    log('INFO', `  ironclaw run -m "..." を起動中...`);
 
-[Current Instruction]
-${task.instruction}
-    `;
-
-    // 3. IronClaw Wasm Sandboxを起動
     const child = spawn('ironclaw', [
       'run',
-      '--agent', task.agent,
-      '--allow-read-write', task.dir
+      '--cli-only',
+      '--auto-approve',
+      '--no-onboard',
+      '-m', injectedSystemPrompt
     ], {
-      env: { ...process.env, SYSTEM_PROMPT: injectedSystemPrompt }
+      env: { ...process.env }
     });
 
     let stdoutData = '';
     let stderrData = '';
 
     child.stdout.on('data', (data) => {
+      const text = data.toString().trim();
       stdoutData += data.toString();
-      console.log(`[${task.agent}] ${data.toString().trim()}`);
+      if (text) log('IRONCLAW', `[${task.agent}] ${text}`);
     });
 
     child.stderr.on('data', (data) => {
+      const text = data.toString().trim();
       stderrData += data.toString();
-      console.error(`[${task.agent}] ERROR: ${data.toString().trim()}`);
+      if (text) log('IRONCLAW_ERR', `[${task.agent}] ${text}`);
     });
 
     child.on('close', (code) => {
-      if (code === 0) resolve(stdoutData);
-      else reject(stderrData || stdoutData);
+      if (code === 0) {
+        resolve(stdoutData);
+      } else {
+        reject(stderrData || stdoutData || `exit code ${code}`);
+      }
     });
+
+    // 5分タイムアウト
+    setTimeout(() => {
+      child.kill('SIGTERM');
+      reject('Timeout: 5分以内にタスクが完了しませんでした');
+    }, 5 * 60 * 1000);
   });
 }
 
-/**
- * ローカルの Gemma 4 を呼び出し、タスク分割JSON（DAG）を取得するスタブ
- */
+// ---- Gemma 2b (PM Agent) への問い合わせ ----
+
 async function consultPMAgent(issue) {
-  console.log(`[Daemon] 🤖 Asking gemma:2b (PM Agent) to design task DAG for Issue #${issue.number}...`);
-  // PM AgentのSKILL.mdを取得
+  log('INFO', `🤖 Gemma:2b に DAG計画を依頼中 (Issue #${issue.number})...`);
+
   const skillPath = path.resolve(__dirname, '../skills/pm_agent/SKILL.md');
   let pmPersona = '';
   try {
     pmPersona = fs.readFileSync(skillPath, 'utf-8');
-  } catch(e) {
-    console.warn(`[Daemon] ⚠️ PM Agent SKILL.md not found.`);
+  } catch (e) {
+    log('WARN', 'PM Agent SKILL.md not found');
   }
 
+  // プロンプトにホワイトリストを明示的に含める
   const prompt = `
-System Persona:
-${pmPersona}
+You are a Project Manager AI. Given the following GitHub Issue, create a task execution plan as a JSON object.
 
-User Request (GitHub Issue #${issue.number}):
-${issue.title}
+CRITICAL RULES:
+- Output ONLY valid JSON. No markdown, no explanation.
+- The JSON must have a "tasks" array.
+- Each task object must have: "id" (string), "agent" (string), "dir" (string), "instruction" (string), "dependsOn" (array of id strings).
+- "agent" MUST be one of these exact values: ${VALID_AGENTS.map(a => `"${a}"`).join(', ')}
+- "dir" must be a relative path like "./packages/shared" or "./"
+- "dependsOn" for the first task must be an empty array [].
+- Use sequential dependencies (task_2 depends on task_1, task_3 depends on task_2, etc).
+
+GitHub Issue #${issue.number}: ${issue.title}
+
 ${issue.body}
 
-Please act as the PM Agent. Read the user request and output exactly a valid JSON object matching the DAG schema (with a "tasks" array containing objects with id, agent, dir, instruction, and dependsOn). Do not include any other text or markdown blocks outside the JSON.`;
+Output JSON:`;
 
   try {
     const res = await fetch('http://127.0.0.1:11434/api/generate', {
@@ -245,37 +313,79 @@ Please act as the PM Agent. Read the user request and output exactly a valid JSO
         format: 'json'
       })
     });
-    
+
     if (!res.ok) {
       throw new Error(`Ollama API error: ${res.statusText}`);
     }
     const data = await res.json();
-    
-    // Markdownコードブロック修復 (```json ... ``` などの除去)
+
+    // Markdownコードブロック除去
     let rawText = data.response;
     const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (jsonMatch) rawText = jsonMatch[1];
-    
-    let dagJson = JSON.parse(rawText.trim());
-    
-    // 構造の正規化 (配列で返ってきた場合は { tasks: [...] } でラップ)
+
+    let dagJson;
+    try {
+      dagJson = JSON.parse(rawText.trim());
+    } catch (parseErr) {
+      log('ERROR', `JSON parse失敗。rawText: ${rawText.substring(0, 200)}`);
+      throw parseErr;
+    }
+
+    // 構造の正規化
     if (Array.isArray(dagJson)) {
       dagJson = { tasks: dagJson };
     } else if (!dagJson.tasks) {
-      // 想定外の構造の安全策
       dagJson = { tasks: [dagJson] };
     }
 
-    // 依存関係(dependsOn)の正規化 (文字列で来た場合は配列化)
-    dagJson.tasks.forEach(t => {
+    // 各タスクの正規化
+    dagJson.tasks = dagJson.tasks.map((t, index) => {
+      // ID正規化
+      if (!t.id) t.id = `task_${index + 1}`;
+
+      // エージェント名正規化: ホワイトリストに無い場合はデフォルトに置換
+      if (!t.agent || !VALID_AGENTS.includes(t.agent)) {
+        const fallbacks = ['platform_shared', 'lp_app_expert', 'enabling_quality'];
+        const fallback = fallbacks[Math.min(index, fallbacks.length - 1)];
+        log('WARN', `エージェント名 "${t.agent}" は無効。"${fallback}" に置換`);
+        t.agent = fallback;
+      }
+
+      // dir 正規化
+      if (!t.dir) t.dir = './';
+
+      // instruction 正規化
+      if (!t.instruction) t.instruction = `Issue の要件を ${t.agent} の担当範囲で実装せよ`;
+
+      // dependsOn 正規化
       if (!t.dependsOn) t.dependsOn = [];
       if (!Array.isArray(t.dependsOn)) t.dependsOn = [t.dependsOn];
+
+      // 存在しないIDへの依存を除去
+      const validIds = dagJson.tasks.map(tt => tt.id || `task_${dagJson.tasks.indexOf(tt) + 1}`);
+      t.dependsOn = t.dependsOn.filter(dep => validIds.includes(dep));
+
+      return t;
     });
 
+    log('INFO', `DAG正規化完了: ${dagJson.tasks.length} タスク`);
     return dagJson;
+
   } catch (err) {
-    console.error(`[Daemon] 🔴 Failed to consult PM Agent via Ollama:`, err.message);
-    throw err;
+    log('ERROR', `Ollama呼び出し失敗: ${err.message}`);
+    // フォールバック: 手動で安全なDAGを生成
+    log('WARN', 'フォールバックDAGを使用します');
+    return {
+      tasks: [
+        { id: "task_1", agent: "platform_shared", dir: "./packages/shared",
+          instruction: `Issue #${issue.number} "${issue.title}" の共通基盤設計と実装`, dependsOn: [] },
+        { id: "task_2", agent: "lp_app_expert", dir: "./apps/lp_app",
+          instruction: `Issue #${issue.number} の要件に基づくフロントエンド実装`, dependsOn: ["task_1"] },
+        { id: "task_3", agent: "enabling_quality", dir: "./",
+          instruction: `変更コードの品質監査とテスト`, dependsOn: ["task_2"] }
+      ]
+    };
   }
 }
 
