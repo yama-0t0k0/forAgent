@@ -40,7 +40,6 @@ node-v*-darwin-arm64.tar.gz
 .agent/tmp/
 .agent/orchestrator/*.log
 .agent/orchestrator/status.json
-scripts/mac_cache_cleanup.sh
 
 # local env files
 .env*.local
