@@ -24,7 +24,7 @@ const LOG_FILE = path.resolve(__dirname, 'daemon.log');
 
 // 実在するエージェント名のホワイトリスト
 const VALID_AGENTS = [
-  'platform_shared', 'lp_app_expert', 'enabling_quality',
+  'platform_shared', 'apps_expert', 'enabling_quality',
   'platform_infra', 'complex_logic', 'tech_concierge', 'pm_agent'
 ];
 
@@ -114,7 +114,7 @@ async function fetchTargetIssues() {
 
 async function processIssue(issue) {
   log('INFO', `━━━ Issue #${issue.number} の処理を開始: "${issue.title}" ━━━`);
-  updateStatus(issue.number, 'PLANNING', 'Gemma 2b にタスク分割を依頼中...', '0/?');
+  updateStatus(issue.number, 'PLANNING', 'Qwen 2.5 3B にタスク分割を依頼中...', '0/?');
 
   try {
     // 1. PM Agent (Gemma) にDAGを作らせる
@@ -262,18 +262,18 @@ function runIronClawJob(task, previousContext) {
       }
     });
 
-    // 5分タイムアウト
+    // 10分タイムアウト (モデルロードや推論遅延を考慮)
     setTimeout(() => {
       child.kill('SIGTERM');
-      reject('Timeout: 5分以内にタスクが完了しませんでした');
-    }, 5 * 60 * 1000);
+      reject('Timeout: 10分以内にタスクが完了しませんでした');
+    }, 10 * 60 * 1000);
   });
 }
 
 // ---- Gemma 2b (PM Agent) への問い合わせ ----
 
 async function consultPMAgent(issue) {
-  log('INFO', `🤖 Gemma:2b に DAG計画を依頼中 (Issue #${issue.number})...`);
+  log('INFO', `🤖 Qwen 2.5 3B に DAG計画を依頼中 (Issue #${issue.number})...`);
 
   const skillPath = path.resolve(__dirname, '../skills/pm_agent/SKILL.md');
   let pmPersona = '';
@@ -307,7 +307,7 @@ Output JSON:`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gemma:2b',
+        model: 'qwen2.5:3b',
         prompt: prompt,
         stream: false,
         format: 'json'
@@ -346,7 +346,7 @@ Output JSON:`;
 
       // エージェント名正規化: ホワイトリストに無い場合はデフォルトに置換
       if (!t.agent || !VALID_AGENTS.includes(t.agent)) {
-        const fallbacks = ['platform_shared', 'lp_app_expert', 'enabling_quality'];
+        const fallbacks = ['platform_shared', 'apps_expert', 'enabling_quality'];
         const fallback = fallbacks[Math.min(index, fallbacks.length - 1)];
         log('WARN', `エージェント名 "${t.agent}" は無効。"${fallback}" に置換`);
         t.agent = fallback;
