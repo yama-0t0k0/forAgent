@@ -57,9 +57,8 @@
 
 ## 🛠 技術スタック
 
-- **Frontend**: Expo (React Native), React Context API
-- **Backend**: Firebase (Firestore, Auth, Storage), Pure Dart (server.dart)
-- **Infrastructure**: Google Cloud Run
+- **Infrastructure**: Google Cloud Run, Colima (Native Apple Silicon / VZ Framework)
+- **Monitoring**: Agent Watchdog (Local Log Monitoring & Alerting)
 - **Documentation**: Markdown, Mermaid diagrams
 - **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management), Security Audit/Coverage Reporting
 
@@ -97,6 +96,16 @@
 ```bash
 ./githooks/safe_push.sh "commit message" --prompt "指示内容" --intent "目的" --outcome "結果"
 ```
+
+### 自律エージェントシステムの起動
+専門エージェントによる自動開発・監視システムを一括で起動します。
+```bash
+./scripts/start_agent_system.sh
+```
+このコマンドにより以下がバックグラウンドで開始されます：
+- **Colima**: コンテナ実行環境の自動チェック・起動
+- **PM Orchestrator**: GitHub Issue の監視とタスクの自動実行
+- **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示
 
 ---
 

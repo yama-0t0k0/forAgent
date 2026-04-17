@@ -50,3 +50,36 @@ Local AI Worker (IronClaw) の性能向上のため、Gemma 4 (E4B) および Ge
 - [x] **モデル切り替え**: デフォルトモデルを `qwen2.5:3b` に固定し、IronClaw 構成を更新。
 - [x] **タイムアウト緩和**: モデルのロード時間を考慮し、オーケストレーターのタイムアウトを 5分から 10分に延長。
 - [x] **構成の安定化**: WEBフック機能を無効化し、ポート競合のリスクを排除。
+
+# Postmortem: Container Runtime Architecture Mismatch (Intel vs. ARM64)
+
+**Date**: 2026-04-18
+**Status**: Resolved
+**Authors**: Antigravity (AI Architect)
+
+## Summary
+Apple Silicon (M4) 環境において、Intel 版 Homebrew を用いてインストールされた Colima/Lima が起動エラー (`limactl is running under rosetta`) を起こし、自律エージェントのサンドボックス環境が利用不能になりました。ネイティブ版 Homebrew (`/opt/homebrew`) の導入とアーキテクチャの統一により解決しました。
+
+## Impact
+- **自律開発の停止**: コンテナが起動できないため、ファイルの書き込みや検証を伴う全タスクが中断。
+- **デバッグ工数**: 「Docker Desktop は入っているが、その下の仮想化レイヤー (Lima) が非互換」という階層的な問題の特定に時間を要した。
+
+## Timeline
+- **02:30**: Docker Desktop の不安定さを解消するため Colima への移行を開始。
+- **07:11**: `colima start` が `limactl is running under rosetta` エラーで失敗。
+- **07:15**: マシンが Apple M4 (arm64) であるのに対し、`brew` が `/usr/local/bin` (Intel版) であることを特定。
+- **07:38**: ユーザー協力のもと、ネイティブ版 Homebrew を `/opt/homebrew` にインストール。
+- **08:18**: arm64 版 Colima が正常起動。
+- **08:23**: オーケストレーターがサンドボックスを正常に検知し、自律作業を再開。
+
+## Root Causes
+1.  **環境の不整合**: Intel Mac からの移行や旧来の設定により、Apple Silicon 機に Intel 版 Homebrew が混入していた。
+2.  **仮想化レジストリの制約**: Colima のベースである Lima は、ネイティブ仮想化を利用するため Rosetta 2 (エミュレーション) 下での動作を許容しない。
+
+## Lessons Learned
+1.  **環境診断の徹底**: 新しいマシンでコンテナ等のインフラを扱う際は、まず最初に `uname -m` と `which brew` の整合性を確認すべきである。
+2.  **インストールの排他性**: Apple Silicon では `/opt/homebrew` を正（ソース）とし、仮想化ツールは必ずそこから導入するルールを徹底する。
+
+## Action Items
+- [x] **ドキュメント更新**: `phase0_setup.md` に Apple Silicon 向けのインストール手順を明記。
+- [x] **起動スクリプト強化**: `start_agent_system.sh` に `/opt/homebrew/bin` を優先するパス設定を追加。

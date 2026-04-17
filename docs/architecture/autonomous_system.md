@@ -30,8 +30,14 @@
    - 人間やGemma4からの指示を、`.agent/skills/*.md` に定義された各「専門エージェント」へと分解・ルーティング。
    - `lp_app_expert` や `enabling_quality` が「自身の作業スコープ」のルールに基づいてコード差分を提案。
 
-4. **Action Layer / IronClaw（物理的な操作・検証・実行）**
+4. **Monitoring & Alerting Layer / Watchdog（常時監視と警告）**
+   - `scripts/agent_watchdog.js` による常時監視。
+   - オーケストレーターのログ (`daemon.log`) をリアルタイム解析し、ループ、タイムアウト、LLMエラー、コンテナ停止などの異常を検知した際に物理ターミナルへ即座に警告（赤色表示）を出す。
+   - `alerts.log` への記録と、必要に応じた人間へのエスカレーションを担当。
+
+5. **Action Layer / IronClaw + Colima（物理的な操作・検証・実行）**
    - 提案されたコード差分を**実際にローカル（またはSandbox空間）で書き換え**、Linter を回し、`safe_push.sh` などを実行して結果をフィードバックするレイヤー。
+   - **コンテナ基盤**: macOS ネイティブの仮想化 (Apple Virtualization Framework / VZ) を利用した **Colima** を採用。Docker Desktop の依存を排除し、Apple M4 等の Apple Silicon に最適化された高速・安定動作を実現。
    - 変更内容を自律的にコミットし、PRを作る「手足」の役割を果たす。
 
 ---
@@ -57,10 +63,15 @@ graph TD
         AppExp[LP App Expert<br/>Feature Dev]
     end
 
-    subgraph Action[4. Action Layer / IronClaw]
-        Sandbox[Sandboxed Environment]
+    subgraph Action[5. Action Layer / IronClaw + Colima]
+        Sandbox[Sandboxed Environment<br/>Ubuntu/Colima/VZ]
         Git[Git / PR Creator]
         Tools[Linter / Tests / Expo]
+    end
+
+    subgraph Monitor[Monitoring & Alerts]
+        Watchdog[Agent Watchdog<br/>Real-time Stats]
+        Alerts[Terminal Alerts / alerts.log]
     end
 
     %% データフロー
@@ -76,6 +87,10 @@ graph TD
     
     Enabling -- "5. 承認済コード" --> Action
     AppExp -- "5. 実行指示" --> Action
+    
+    Action -- "ログ出力" --> Watchdog
+    Watchdog -- "異常検知・警告" --> Alerts
+    Alerts -- "ステータス報告" --> User
     
     Sandbox -- "実行結果・Linterエラー" --> Enabling
     Git -- "6. Draft PR 作成" --> PM
