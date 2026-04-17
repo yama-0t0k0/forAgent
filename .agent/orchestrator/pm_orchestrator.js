@@ -117,7 +117,7 @@ async function processIssue(issue) {
   updateStatus(issue.number, 'PLANNING', 'Qwen 2.5 3B にタスク分割を依頼中...', '0/?');
 
   try {
-    // 1. PM Agent (Gemma) にDAGを作らせる
+    // 1. PM Agent (Local LLM) にDAGを作らせる
     const taskPlan = await consultPMAgent(issue);
     const taskCount = taskPlan.tasks.length;
     log('INFO', `DAG計画を受領: ${taskCount} タスク`);
@@ -270,7 +270,7 @@ function runIronClawJob(task, previousContext) {
   });
 }
 
-// ---- Gemma 2b (PM Agent) への問い合わせ ----
+// ---- Local LLM (PM Agent) への問い合わせ ----
 
 async function consultPMAgent(issue) {
   log('INFO', `🤖 Qwen 2.5 3B に DAG計画を依頼中 (Issue #${issue.number})...`);
