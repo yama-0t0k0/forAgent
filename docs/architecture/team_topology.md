@@ -1,6 +1,22 @@
 # 専門エージェント・チームトポロジー (7-Agent Framework)
 
-本ドキュメントは、プロジェクト「yama-0t0k0/engineer-registration-app」に従事する 7 つの専門エージェントの役割分担、管轄範囲、および連携パスを定義します。
+本ドキュメントは、プロジェクト「yama-0t0k0/engineer-registration-app」に従事する（チームトポロジーの哲学に準拠した）7 つの専門エージェントの役割分担、管轄範囲、および連携パスを定義します。
+
+## チームトポロジーの哲学とは
+
+チームトポロジーは、ソフトウェア開発の組織設計に関する考え方で、以下の4つのチームタイプを提唱しています。
+
+### ストリームアラインドチーム（Stream-aligned Team）
+ビジネス価値の流れに沿ったチーム。今回の apps_expert がこれにあたります。
+
+### プラットフォームチーム（Platform Team）
+開発者がセルフサービスで利用できるプラットフォームを提供するチーム。今回の platform_shared と platform_infra がこれにあたります。
+
+### エネイリングチーム（Enabling Team）
+他のチームの能力向上を支援するチーム。今回の enabling_quality がこれにあたります。
+
+### コンプリケーテッドサブシステム（Complicated Subsystem）
+複雑な専門領域を担当するチーム。今回の complex_logic と tech_concierge がこれにあたります。
 
 ---
 

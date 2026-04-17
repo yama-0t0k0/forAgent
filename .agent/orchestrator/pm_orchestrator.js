@@ -31,12 +31,23 @@ const VALID_AGENTS = [
 // 処理済みIssue番号を追跡（再起動でリセット）
 const processedIssues = new Set();
 
-// ---- ログ & ステータス管理 ----
+// ---- ログ & ステータス管理 (ANSIカラー対応) ----
+
+const COLORS = {
+  INFO: '\x1b[36m',    // Cyan
+  WARN: '\x1b[33m',    // Yellow
+  ERROR: '\x1b[31m',   // Red
+  SUCCESS: '\x1b[32m', // Green
+  STATUS: '\x1b[35m',  // Magenta (Status updates)
+  IRONCLAW: '\x1b[34m',// Blue
+  RESET: '\x1b[0m'
+};
 
 function log(level, message) {
   const ts = new Date().toISOString();
+  const color = COLORS[level] || COLORS.RESET;
   const line = `[${ts}] [${level}] ${message}`;
-  console.log(line);
+  console.log(`${color}${line}${COLORS.RESET}`);
   try {
     fs.appendFileSync(LOG_FILE, line + '\n');
   } catch (_) { /* ignore */ }
@@ -130,13 +141,24 @@ async function processIssue(issue) {
     await executeTaskGraph(taskPlan.tasks, issue.number);
 
     // 3. 成功
-    log('INFO', `✅ Issue #${issue.number} の全タスクが完了しました！`);
+    log('SUCCESS', `✅ Issue #${issue.number} の全タスクが完了しました！`);
     updateStatus(issue.number, 'DONE', '全タスク完了！', `${taskCount}/${taskCount}`);
     processedIssues.add(issue.number);
 
   } catch (error) {
-    log('ERROR', `❌ Issue #${issue.number} で致命的エラー: ${error.message}`);
-    updateStatus(issue.number, 'FAILED', error.message, '-');
+    log('ERROR', `❌ Issue #${issue.number} でエラーが発生しました。分析を開始します...`);
+    
+    // 4. 失敗分析
+    const analysis = await analyzeFailure(issue, error.message);
+    log('WARN', `原因分析完了:\n${analysis.reason}`);
+    log('WARN', `提案解決策: ${analysis.solution}`);
+
+    // 5. ポストモーテム連携（重大な場合）
+    if (analysis.isCritical) {
+      await handleCriticalFailure(issue, analysis);
+    }
+
+    updateStatus(issue.number, 'FAILED', `失敗: ${analysis.reason}`, '-');
     processedIssues.add(issue.number); // 無限リトライ防止
   }
 }
@@ -178,13 +200,11 @@ async function executeTaskGraph(tasks, issueNumber) {
       const output = await runIronClawJob(nextTask, previousContext);
       taskOutputs[nextTask.id] = output;
       completed.add(nextTask.id);
-      log('INFO', `✅ Task "${nextTask.id}" 完了`);
+      log('SUCCESS', `✅ Task "${nextTask.id}" 完了`);
     } catch (childError) {
       log('ERROR', `❌ Task "${nextTask.id}" 失敗: ${childError}`);
-      // 自己修復ループ（将来実装）のフックだけ残し、今は失敗を記録して次へ進む
-      taskOutputs[nextTask.id] = `FAILED: ${childError}`;
-      completed.add(nextTask.id); // スキップして次へ進む（全体を止めない）
-      log('WARN', `⚠️ Task "${nextTask.id}" をスキップして続行します`);
+      // スキップせずに停止する
+      throw new Error(`Task "${nextTask.id}" failed: ${childError}`);
     }
   }
 }
@@ -289,6 +309,7 @@ You are a Project Manager AI. Given the following GitHub Issue, create a task ex
 
 CRITICAL RULES:
 - Output ONLY valid JSON. No markdown, no explanation.
+- Divide work into small, atomic tasks (e.g., separate UI from backend/logic).
 - The JSON must have a "tasks" array.
 - Each task object must have: "id" (string), "agent" (string), "dir" (string), "instruction" (string), "dependsOn" (array of id strings).
 - "agent" MUST be one of these exact values: ${VALID_AGENTS.map(a => `"${a}"`).join(', ')}
@@ -386,6 +407,67 @@ Output JSON:`;
           instruction: `変更コードの品質監査とテスト`, dependsOn: ["task_2"] }
       ]
     };
+  }
+}
+
+// ---- 失敗分析 & ポストモーテム連携 ----
+
+async function analyzeFailure(issue, errorMessage) {
+  log('INFO', '🤖 失敗原因を分析中...');
+  const prompt = `
+あなたはシニア開発者・監視エージェントです。
+以下のエージェント実行エラーが発生しました。原因を分析し、解決策を提示してください。
+
+Issue: #${issue.number} ${issue.title}
+Error: ${errorMessage}
+
+出力形式(JSON):
+{
+  "reason": "短い失敗理由（日本語）",
+  "solution": "具体的な解決策（日本語）",
+  "isCritical": boolean (アーキテクチャやシステム全体の設計に関連する致命的な問題であればtrue)
+}
+`;
+
+  try {
+    const res = await fetch('http://127.0.0.1:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'qwen2.5:3b',
+        prompt: prompt,
+        stream: false,
+        format: 'json'
+      })
+    });
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    return JSON.parse(data.response);
+  } catch (err) {
+    return {
+      reason: errorMessage,
+      solution: "手動での確認が必要です。",
+      isCritical: false
+    };
+  }
+}
+
+async function handleCriticalFailure(issue, analysis) {
+  log('WARN', '🚨 致命的な問題が検知されました。ポストモーテムの作成を準備します...');
+  // enabling_quality エージェントのコンテキストを使用して Postmortem.md に追記
+  const postmortemPath = path.resolve(__dirname, '../../docs/Postmortem.md');
+  const ts = new Date().toISOString();
+  const entry = `
+## [INCIDENT] ${ts} - Issue #${issue.number}
+- **事象**: ${analysis.reason}
+- **原因・解決策**: ${analysis.solution}
+- **自動検知**: pm_orchestrator
+`;
+  try {
+    fs.appendFileSync(postmortemPath, entry);
+    log('INFO', '✅ Postmortem.md にインシデント情報を記録しました。');
+  } catch (e) {
+    log('ERROR', `Postmortem.md への書き込みに失敗: ${e.message}`);
   }
 }
 
