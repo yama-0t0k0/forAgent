@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { DataProvider } from '@shared/src/core/state/DataContext';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, ActivityIndicator, Text, Alert } from 'react-native';
+import { DataContext, DataProvider } from '@shared/src/core/state/DataContext';
 import { GenericRegistrationScreen } from '@shared/src/features/registration/GenericRegistrationScreen';
 import { JobDescriptionService } from '@shared/src/core/services/JobDescriptionService';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { THEME } from '@shared/src/core/theme/theme';
+import { useNavigation } from '@react-navigation/native';
 
 const JD_TEMPLATE = require('@assets/json/jd-template.json');
 const ID_FIELD = 'id';
@@ -17,11 +18,21 @@ const COLLECTION_NAME = 'job_descriptions';
  * @returns {JSX.Element}
  */
 export const JobEditScreen = ({ route }) => {
+  const navigation = useNavigation();
+  const { data } = useContext(DataContext);
+  const userRole = data?.currentUser?.role || 'corporate-gamma';
+  const isGamma = userRole === 'corporate-gamma';
+
   const { companyId, job } = route.params || {};
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isGamma) {
+      Alert.alert('権限エラー', 'この操作を行う権限がありません。');
+      navigation.navigate(ROUTES.CORPORATE_JOBS);
+      return;
+    }
     /**
      * @returns {Promise<void>}
      */

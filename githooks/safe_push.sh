@@ -17,6 +17,7 @@ TARGET_BRANCH="Agent"
 AUTHORIZATION_EVIDENCE=""
 TARGET_MILESTONE=""
 INCLUDE_UNTRACKED=false
+ALLOW_UNTRACKED=false
 NO_COMMIT=false
 NO_PUSH=false
 SKIP_CI=false
@@ -104,6 +105,10 @@ parse_arguments() {
                 ;;
             --include-untracked)
                 INCLUDE_UNTRACKED=true
+                shift
+                ;;
+            --allow-untracked)
+                ALLOW_UNTRACKED=true
                 shift
                 ;;
             --no-commit)
@@ -415,14 +420,23 @@ handle_changes() {
     UNTRACKED_FILES=$(git ls-files --others --exclude-standard || true)
     if [ -n "$UNTRACKED_FILES" ] && [ "$INCLUDE_UNTRACKED" != true ]; then
         if [ "$AUTO_MODE" = true ]; then
-            echo "🛑 Untracked files detected. Refusing to auto-stage untracked files."
-            echo "🛑 未追跡ファイルが検出されました。自動モードでは未追跡ファイルをステージしません。"
-            echo ""
-            echo "$UNTRACKED_FILES"
-            echo ""
-            echo "➡️  If you intend to include them, re-run with: --include-untracked"
-            echo "➡️  追加したい場合は --include-untracked を付けて再実行してください"
-            exit 1
+            if [ "$ALLOW_UNTRACKED" = true ]; then
+                echo "⚠️  Untracked files detected. Proceeding without staging untracked files (--allow-untracked)."
+                echo "⚠️  未追跡ファイルが検出されました。未追跡はステージせず続行します（--allow-untracked）。"
+                echo ""
+                echo "$UNTRACKED_FILES"
+                echo ""
+            else
+                echo "🛑 Untracked files detected. Refusing to auto-stage untracked files."
+                echo "🛑 未追跡ファイルが検出されました。自動モードでは未追跡ファイルをステージしません。"
+                echo ""
+                echo "$UNTRACKED_FILES"
+                echo ""
+                echo "➡️  If you intend to include them, re-run with: --include-untracked"
+                echo "➡️  追加したい場合は --include-untracked を付けて再実行してください"
+                echo "➡️  含めずに続行したい場合は --allow-untracked を付けて再実行してください"
+                exit 1
+            fi
         else
             echo "⚠️  Untracked files detected:"
             echo "$UNTRACKED_FILES"

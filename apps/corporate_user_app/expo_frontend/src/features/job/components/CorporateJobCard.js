@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Switch } from 'react-native';
 import { THEME } from '@shared/src/core/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { JobDescriptionService } from '@shared/src/core/services/JobDescriptionService';
+import { DataContext } from '@shared/src/core/state/DataContext';
 
 /**
  * Corporate Job Card Component
@@ -13,6 +14,12 @@ import { JobDescriptionService } from '@shared/src/core/services/JobDescriptionS
  * @param {function} props.onStatusChange - Callback after status change
  */
 export const CorporateJobCard = ({ job, onEdit, onDeleteSuccess, onStatusChange }) => {
+  const { data } = useContext(DataContext);
+  const userRole = data?.currentUser?.role || 'corporate-gamma';
+  const isAlpha = userRole === 'corporate-alpha';
+  const isBeta = userRole === 'corporate-beta';
+  const isGamma = userRole === 'corporate-gamma';
+
   const [isToggling, setIsToggling] = useState(false);
   const JOB_STATUS = {
     ACTIVE: 'active',
@@ -93,7 +100,7 @@ export const CorporateJobCard = ({ job, onEdit, onDeleteSuccess, onStatusChange 
           <Switch
             value={isActive}
             onValueChange={handleToggleStatus}
-            disabled={isToggling}
+            disabled={isToggling || !isAlpha} // Only Alpha can toggle
             trackColor={{ false: THEME.borderDefault, true: THEME.primary }}
             thumbColor={THEME.textInverse}
             ios_backgroundColor={THEME.borderDefault}
@@ -103,15 +110,19 @@ export const CorporateJobCard = ({ job, onEdit, onDeleteSuccess, onStatusChange 
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
-          <Ionicons name={IONICON_NAME.EDIT} size={18} color={THEME.primary} />
-          <Text style={styles.actionText}>編集</Text>
-        </TouchableOpacity>
+        {!isGamma && (
+          <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
+            <Ionicons name={IONICON_NAME.EDIT} size={18} color={THEME.primary} />
+            <Text style={styles.actionText}>編集</Text>
+          </TouchableOpacity>
+        )}
         
-        <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={handleDelete}>
-          <Ionicons name={IONICON_NAME.DELETE} size={18} color={THEME.error} />
-          <Text style={[styles.actionText, { color: THEME.error }]}>削除</Text>
-        </TouchableOpacity>
+        {isAlpha && (
+          <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={handleDelete}>
+            <Ionicons name={IONICON_NAME.DELETE} size={18} color={THEME.error} />
+            <Text style={[styles.actionText, { color: THEME.error }]}>削除</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

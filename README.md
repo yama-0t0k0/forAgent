@@ -57,9 +57,8 @@
 
 ## 🛠 技術スタック
 
-- **Frontend**: Expo (React Native), React Context API
-- **Backend**: Firebase (Firestore, Auth, Storage), Pure Dart (server.dart)
-- **Infrastructure**: Google Cloud Run
+- **Infrastructure**: Google Cloud Run, Podman (Rootless / Native Apple Silicon / VZ Framework)
+- **Monitoring**: Agent Watchdog (Local Log Monitoring & Alerting)
 - **Documentation**: Markdown, Mermaid diagrams
 - **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management), Security Audit/Coverage Reporting
 
@@ -97,6 +96,17 @@
 ```bash
 ./githooks/safe_push.sh "commit message" --prompt "指示内容" --intent "目的" --outcome "結果"
 ```
+
+### 自律エージェントシステムの起動
+**IronClaw Autonomous Core** を中心とした自律開発・監視システムを一括で起動します。
+Antigravity（クラウド AI）が Issue を起票した後は、IronClaw Core がローカルで自律的にタスクのルーティング・実行・監視を行い、クラウドトークン消費はゼロになります。
+```bash
+./scripts/start_agent_system.sh
+```
+このコマンドにより以下がバックグラウンドで開始されます：
+- **Podman (Rootless)**: コンテナ実行環境の自動チェック・起動（Zero Trust セキュリティ）
+- **IronClaw Core (pm_orchestrator.js)**: GitHub Issue の検知 → DAG 計画 → 専門家エージェントへのルーティング → 自律実行
+- **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示
 
 ---
 

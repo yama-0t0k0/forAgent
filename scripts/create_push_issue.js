@@ -15,6 +15,8 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 // --- Configuration ---
 // --- 設定 ---
@@ -147,6 +149,28 @@ function ensureFallbackLabelExists(repoSlug, fallbackLabel) {
     } catch (e) {
         return false;
     }
+}
+
+function writeIssueBodyToTempFile(issueBody) {
+    const timestamp = Date.now();
+    const candidates = [
+        path.join(process.cwd(), '.agent', 'logs', `issue_body_${timestamp}.md`),
+        path.join(os.tmpdir(), `issue_body_${timestamp}.md`),
+        path.join(process.cwd(), `issue_body_${timestamp}.md`)
+    ];
+
+    let lastError = null;
+    for (const candidate of candidates) {
+        try {
+            fs.mkdirSync(path.dirname(candidate), { recursive: true });
+            fs.writeFileSync(candidate, issueBody);
+            return candidate;
+        } catch (e) {
+            lastError = e;
+        }
+    }
+
+    throw lastError || new Error('Failed to create temp file for issue body');
 }
 
 // --- Main Logic ---
@@ -331,9 +355,8 @@ ${recentContext}
     console.log('🚀 Creating GitHub Issue...');
     
     // Write body to temp file to avoid shell escaping issues
-        // シェルエスケープの問題を回避するため、本文を一時ファイルに書き込む
-        const tempBodyFile = `/tmp/issue_body_${Date.now()}.md`;
-        fs.writeFileSync(tempBodyFile, issueBody);
+    // シェルエスケープの問題を回避するため、本文を一時ファイルに書き込む
+    const tempBodyFile = writeIssueBodyToTempFile(issueBody);
         
         const repoArg = repoSlug ? `--repo "${repoSlug}"` : '';
         const milestoneArg = CONFIG.targetMilestone ? `--milestone "${CONFIG.targetMilestone}"` : '';
@@ -351,7 +374,6 @@ ${recentContext}
         try {
             const issueUrl = createIssue(labelsToApply);
             console.log(`✅ Issue created successfully: ${issueUrl}`);
-            fs.unlinkSync(tempBodyFile);
             return;
         } catch (e) {
             const message = e?.message || String(e);
@@ -361,18 +383,19 @@ ${recentContext}
                     try {
                         const issueUrl = createIssue([fallbackLabel]);
                         console.log(`✅ Issue created successfully: ${issueUrl}`);
-                        fs.unlinkSync(tempBodyFile);
                         return;
                     } catch (retryError) {
                         console.error('❌ Failed to create issue:', retryError?.message || String(retryError));
-                        if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
                         process.exit(1);
                     }
                 }
             }
             console.error('❌ Failed to create issue:', message);
-            if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
             process.exit(1);
+        } finally {
+            try {
+                if (fs.existsSync(tempBodyFile)) fs.unlinkSync(tempBodyFile);
+            } catch (e) {}
         }
 }
 
