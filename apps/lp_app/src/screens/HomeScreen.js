@@ -1071,7 +1071,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: THEME.spacing.sm,
-    color: THEME.textPrimary,
+    color: THEME.primary,
   },
   featureDesc: {
     fontSize: 14,

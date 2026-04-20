@@ -54,7 +54,7 @@ export const THEME = {
     textSecondary: PALETTE.slate[500],
     textMuted: PALETTE.slate[400],
     textInverse: '#FFFFFF',
-    textLink: PALETTE.sky[500],
+    textLink: PALETTE.sky[700],
 
     // --- Status Tokens ---
     success: PALETTE.emerald[500],
