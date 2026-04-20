@@ -35,10 +35,11 @@
    - オーケストレーターのログ (`daemon.log`) をリアルタイム解析し、ループ、タイムアウト、LLMエラー、コンテナ停止などの異常を検知した際に物理ターミナルへ即座に警告（赤色表示）を出す。
    - `alerts.log` への記録と、必要に応じた人間へのエスカレーションを担当。
 
-5. **Action Layer / IronClaw + Colima（物理的な操作・検証・実行）**
+5. **Action Layer / IronClaw + Podman (Rootless)（物理的な操作・検証・実行）**
    - 提案されたコード差分を**実際にローカル（またはSandbox空間）で書き換え**、Linter を回し、`safe_push.sh` などを実行して結果をフィードバックするレイヤー。
-   - **コンテナ基盤**: macOS ネイティブの仮想化 (Apple Virtualization Framework / VZ) を利用した **Colima** を採用。Docker Desktop の依存を排除し、Apple M4 等の Apple Silicon に最適化された高速・安定動作を実現。
-   - 変更内容を自律的にコミットし、PRを作る「手足」の役割を果たす。
+   - **コンテナ基盤**: セキュリティを最優先し、デーモンレスかつ一般ユーザー権限で動作する **Podman (Rootless)** を採用。
+   - **セキュリティ強化 (Zero Trust)**: AI エージェントが万が一暴走しても、ホスト (macOS) のルート権限には物理的にアクセスできない多層防御層（VM 隔離 + 非特権実行）を構築。
+   - **最適化**: Apple Silicon (M4) の VZ 仮想化ドライバと VirtioFS を活用し、安定したファイル共有と実行速度を確保。
 
 ---
 
@@ -63,8 +64,8 @@ graph TD
         AppExp[LP App Expert<br/>Feature Dev]
     end
 
-    subgraph Action[5. Action Layer / IronClaw + Colima]
-        Sandbox[Sandboxed Environment<br/>Ubuntu/Colima/VZ]
+    subgraph Action[5. Action Layer / IronClaw + Podman]
+        Sandbox[Sandboxed Environment<br/>Fedora CoreOS / Podman Rootless]
         Git[Git / PR Creator]
         Tools[Linter / Tests / Expo]
     end

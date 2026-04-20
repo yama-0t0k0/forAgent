@@ -57,7 +57,7 @@
 
 ## 🛠 技術スタック
 
-- **Infrastructure**: Google Cloud Run, Colima (Native Apple Silicon / VZ Framework)
+- **Infrastructure**: Google Cloud Run, Podman (Rootless / Native Apple Silicon / VZ Framework)
 - **Monitoring**: Agent Watchdog (Local Log Monitoring & Alerting)
 - **Documentation**: Markdown, Mermaid diagrams
 - **Automated Workflow**: Git Hooks (safe_push), Shell Scripts, Melos (Dart management), Security Audit/Coverage Reporting
@@ -103,7 +103,7 @@
 ./scripts/start_agent_system.sh
 ```
 このコマンドにより以下がバックグラウンドで開始されます：
-- **Colima**: コンテナ実行環境の自動チェック・起動
+- **Podman**: コンテナ実行環境の自動チェック・起動
 - **PM Orchestrator**: GitHub Issue の監視とタスクの自動実行
 - **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示
 

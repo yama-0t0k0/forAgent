@@ -2,6 +2,9 @@
 
 # Configuration
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+# Podman rootless socket path (default for podman-machine-default)
+export DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+
 PROJECT_ROOT=$(pwd)
 ORCHESTRATOR_PATH="$PROJECT_ROOT/.agent/orchestrator/pm_orchestrator.js"
 WATCHDOG_PATH="$PROJECT_ROOT/scripts/agent_watchdog.js"
@@ -12,26 +15,31 @@ echo "--------------------------------------------------"
 echo "🚀 Starting Agent Development System..."
 echo "--------------------------------------------------"
 
-# Step 0: Ensure Docker (Colima) is running
-echo "Checking Container Runtime (Colima)..."
-if ! colima status >/dev/null 2>&1; then
-    echo "⚠️  Colima is not running. Attempting to start..."
-    colima start --cpu 2 --memory 2
+# Step 0: Ensure Container Runtime (Podman) is running
+echo "Checking Container Runtime (Podman)..."
+if [ -z "$(podman machine list --quiet)" ]; then
+    echo "⚠️  Podman machine is not initialized. Please run 'podman machine init' manually."
+    exit 1
+fi
+
+if [[ $(podman machine list --format "{{.LastUp}}") != *"Currently running"* ]]; then
+    echo "⚠️  Podman machine is not running. Attempting to start..."
+    podman machine start
     
-    # Wait for Docker daemon to be ready
+    # Wait for Podman/Docker socket to be ready
     MAX_RETRIES=30
     COUNT=0
-    while ! docker info >/dev/null 2>&1; do
+    while ! podman info >/dev/null 2>&1; do
         if [ $COUNT -ge $MAX_RETRIES ]; then
-            echo "❌ Error: Docker daemon failed to start within time limit."
+            echo "❌ Error: Podman failed to start within time limit."
             exit 1
         fi
-        echo "Waiting for Docker daemon... ($COUNT/$MAX_RETRIES)"
+        echo "Waiting for Podman... ($COUNT/$MAX_RETRIES)"
         sleep 2
         ((COUNT++))
     done
 fi
-echo "✅ Container Runtime is READY."
+echo "✅ Container Runtime (Podman Rootless) is READY."
 
 # Ensure log directory exists
 mkdir -p "$LOG_DIR"

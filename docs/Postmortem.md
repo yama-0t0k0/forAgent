@@ -83,3 +83,32 @@ Apple Silicon (M4) 環境において、Intel 版 Homebrew を用いてインス
 ## Action Items
 - [x] **ドキュメント更新**: `phase0_setup.md` に Apple Silicon 向けのインストール手順を明記。
 - [x] **起動スクリプト強化**: `start_agent_system.sh` に `/opt/homebrew/bin` を優先するパス設定を追加。
+
+# Postmortem: Transition to Podman Rootless for Zero Trust Security
+
+**Date**: 2026-04-20
+**Status**: Completed
+**Authors**: Antigravity (AI Architect)
+
+## Summary
+自律エージェントの安全性を究極まで高めるため、コンテナ実行環境を Colima から Podman (Rootless) へ移行しました。これにより、AI エージェントが実行環境（仮想マシン）内でルート権限を持つ状態を解消し、ホスト (macOS) への意図しない特権アクセスや情報漏洩のリスクを構造的に排除しました。
+
+## Background & Rationale
+1.  **特権アクセスの懸念**: Colima は VM 隔離を提供しますが、VM 内では Docker デーモンがルート権限で動作します。ユーザーより「AI が意図せずホストの権限や情報を取得する懸念」が示されました。
+2.  **Podman の採用**: Podman はデーモンレスかつ設計段階から非特権（Rootless）実行を前提としており、AI が万が一脱獄を試みても、奪える権限が最初から存在しない「Zero Trust」の状態を実現できます。
+
+## Timeline
+- **10:15**: ユーザーよりセキュリティ懸念の提示（AI による権限奪取の可能性）。
+- **10:22**: Podman への移行計画を承認。
+- **10:26**: Colima のアンインストールおよび Podman (arm64) のインストール開始。
+- **10:28**: Podman Machine (Rootless, VZ Framework) の初期化・起動。
+- **10:30**: `start_agent_system.sh` および各種ドキュメントの更新完了。
+
+## Lessons Learned
+1.  **「安全」の定義の深化**: VM 隔離（物理的遮断）だけでなく、内部権限の最小化（Rootless）を組み合わせることで、ユーザーの心理的な安心感と技術的な安全性を両立できる。
+2.  **インフラの柔軟性**: 早期に `/opt/homebrew` への移行を済ませていたため、コンテナエンジンの差し替えという大きな変更も迅速かつ安定して実施できた。
+
+## Action Items
+- [x] **インフラ移行**: Colima を完全に排除し、Podman を標準のコンテナ基盤とする。
+- [x] **スクリプト改修**: `DOCKER_HOST` を Podman の一般ユーザー用ソケットに向けるよう `start_agent_system.sh` を改修。
+- [x] **ドキュメント同期**: プロジェクトの全アーキテクチャ図およびセットアップガイドを Podman ベースに更新。
