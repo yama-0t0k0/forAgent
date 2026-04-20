@@ -44,17 +44,35 @@ echo "✅ Container Runtime (Podman Rootless) is READY."
 # Ensure log directory exists
 mkdir -p "$LOG_DIR"
 
-# Step 1: Start the Orchestrator (in background)
-echo "Starting PM Orchestrator..."
-# 既存のプロセスがあれば停止（簡易版）
-pkill -f "node $ORCHESTRATOR_PATH" 2>/dev/null
-nohup node "$ORCHESTRATOR_PATH" >> "$DAEMON_LOG" 2>&1 &
-echo "✅ Orchestrator started (PID: $!)"
+# Step 1: Build the Hardened IronClaw Image
+IMAGE_NAME="ironclaw-runtime"
+echo "Building IronClaw Runtime image ($IMAGE_NAME)..."
+/opt/homebrew/bin/podman build -t "$IMAGE_NAME" -f "$PROJECT_ROOT/Containerfile" "$PROJECT_ROOT"
 
-# Step 2: Start the Watchdog (in background to provide terminal alerts)
-echo "Starting Agent Watchdog..."
+# Step 2: Start the Orchestrator (in Podman)
+echo "Starting PM Orchestrator in Podman..."
+# 既存のコンテナがあれば停止・削除
+/opt/homebrew/bin/podman stop ironclaw-active 2>/dev/null
+/opt/homebrew/bin/podman rm ironclaw-active 2>/dev/null
+
+# Determine Host IP for Ollama (macOS Podman fallback)
+OLLAMA_URL="http://host.containers.internal:11434"
+
+/opt/homebrew/bin/podman run -d \
+    --name ironclaw-active \
+    --env-file "$PROJECT_ROOT/.env" \
+    --env OLLAMA_URL="$OLLAMA_URL" \
+    -v "$PROJECT_ROOT:/app" \
+    -v "$HOME/.gitconfig:/root/.gitconfig:ro" \
+    -v "$HOME/.ssh:/root/.ssh:ro" \
+    --add-host=host.containers.internal:host-gateway \
+    "$IMAGE_NAME"
+
+echo "✅ Orchestrator started in Podman (Container: ironclaw-active)"
+
+# Step 3: Start the Watchdog (on Host - to monitor the volume-mapped log)
+echo "Starting Agent Watchdog (Host)..."
 pkill -f "node $WATCHDOG_PATH" 2>/dev/null
-# Watchdogはターミナルに直接出力させたいので、バックグラウンドにするがstdoutは維持
 nohup node "$WATCHDOG_PATH" &
 echo "✅ Watchdog started (PID: $!)"
 

@@ -102,10 +102,7 @@ async function pollOnce() {
   }
 }
 
-async function fetchTargetIssues() {
-  const repoFull = 'yama-0t0k0/forAgent';
-  const url = `https://api.github.com/repos/${repoFull}/issues?labels=${LABEL_TO_WATCH}&state=open`;
-
+async function githubApiFetch(url) {
   const headers = {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'PM-Orchestrator-Daemon'
@@ -117,23 +114,60 @@ async function fetchTargetIssues() {
   try {
     const res = await fetch(url, { headers });
     if (!res.ok) {
-      log('ERROR', `GitHub API Error: ${res.statusText}`);
-      return [];
+      log('ERROR', `GitHub API Error (${url}): ${res.statusText}`);
+      return null;
     }
     return await res.json();
   } catch (err) {
-    log('ERROR', `Fetch Error: ${err.message}`);
-    return [];
+    log('ERROR', `Fetch Error (${url}): ${err.message}`);
+    return null;
   }
+}
+
+async function fetchTargetIssues() {
+  const repoFull = 'yama-0t0k0/forAgent';
+  const url = `https://api.github.com/repos/${repoFull}/issues?labels=${LABEL_TO_WATCH}&state=open`;
+  return await githubApiFetch(url) || [];
+}
+
+async function fetchMilestoneContext(milestone) {
+  if (!milestone) return "No milestone assigned.";
+  // milestone is an object from the issue response
+  log('INFO', `🐘 Milestone Context 取得中: "${milestone.title}"`);
+  return milestone.description || "No description provided for this milestone.";
+}
+
+async function fetchRecentIssuesContext() {
+  const repoFull = 'yama-0t0k0/forAgent';
+  const url = `https://api.github.com/repos/${repoFull}/issues?state=closed&per_page=10`;
+  log('INFO', `🐘 直近 10 件の Issue 実績 取得中...`);
+  const issues = await githubApiFetch(url);
+  if (!issues || !Array.isArray(issues)) return "No recent closed issues found.";
+
+  return issues.map(i => `- Issue #${i.number}: ${i.title}\n  Result: ${i.body ? i.body.substring(0, 200) + '...' : '(No result recorded)'}`).join('\n');
 }
 
 async function processIssue(issue) {
   log('INFO', `━━━ Issue #${issue.number} の処理を開始: "${issue.title}" ━━━`);
+  
+  // 0. GitHub 外部記憶のフェッチ (SSOT 連携)
+  const milestoneContext = await fetchMilestoneContext(issue.milestone);
+  const recentIssuesContext = await fetchRecentIssuesContext();
+  const projectContext = `
+--- PROJECT CONTEXT (Memory) ---
+[Current Milestone Goals]
+${milestoneContext}
+
+[Recent Completed Work (Last 10 Issues)]
+${recentIssuesContext}
+-------------------------------
+`;
+
   updateStatus(issue.number, 'PLANNING', '[IronClaw Core] Qwen にDAG計画を依頼中...', '0/?');
 
   try {
     // 1. IronClaw Core が Local LLM にDAGを計画させる
-    const taskPlan = await planTaskDAG(issue);
+    const taskPlan = await planTaskDAG(issue, projectContext);
     const taskCount = taskPlan.tasks.length;
     log('INFO', `DAG計画を受領: ${taskCount} タスク`);
     taskPlan.tasks.forEach((t, i) => {
@@ -142,7 +176,7 @@ async function processIssue(issue) {
 
     // 2. DAGエンジンの逐次実行（バケツリレー）
     updateStatus(issue.number, 'EXECUTING', `DAG実行開始 (${taskCount} タスク)`, `0/${taskCount}`);
-    await executeTaskGraph(taskPlan.tasks, issue.number);
+    await executeTaskGraph(taskPlan.tasks, issue.number, projectContext);
 
     // 3. 成功
     log('SUCCESS', `✅ Issue #${issue.number} の全タスクが完了しました！`);
@@ -169,7 +203,7 @@ async function processIssue(issue) {
 
 // ---- DAG実行エンジン (逐次実行版) ----
 
-async function executeTaskGraph(tasks, issueNumber) {
+async function executeTaskGraph(tasks, issueNumber, projectContext) {
   const completed = new Set();
   const taskOutputs = {};
 
@@ -201,7 +235,7 @@ async function executeTaskGraph(tasks, issueNumber) {
     updateStatus(issueNumber, 'EXECUTING', `Task ${taskIndex}/${tasks.length}: [${nextTask.agent}] ${nextTask.instruction.substring(0, 60)}...`, progressStr);
 
     try {
-      const output = await runIronClawJob(nextTask, previousContext);
+      const output = await runIronClawJob(nextTask, previousContext, projectContext);
       taskOutputs[nextTask.id] = output;
       completed.add(nextTask.id);
       log('SUCCESS', `✅ Task "${nextTask.id}" 完了`);
@@ -215,15 +249,21 @@ async function executeTaskGraph(tasks, issueNumber) {
 
 // ---- IronClaw サンドボックス起動 ----
 
-function runIronClawJob(task, previousContext) {
+function runIronClawJob(task, previousContext, projectContext) {
   return new Promise((resolve, reject) => {
-    // 1. セキュリティポリシーの取得
-    const policyPath = path.resolve(__dirname, '../../docs/architecture/ironclaw_security_policy.md');
+    // 1. セキュリティポリシーの取得 (Distilled 版を優先)
+    const distilledPolicyPath = path.resolve(__dirname, '../../docs/architecture/distilled_policy.md');
+    const fullPolicyPath = path.resolve(__dirname, '../../docs/architecture/ironclaw_security_policy.md');
     let securityPolicy = '';
     try {
-      securityPolicy = fs.readFileSync(policyPath, 'utf-8');
+      securityPolicy = fs.readFileSync(distilledPolicyPath, 'utf-8');
+      log('INFO', '  [Prompt Optimization] Using Distilled Security Policy');
     } catch (e) {
-      log('WARN', `セキュリティポリシー未検出: ${policyPath}`);
+      try {
+        securityPolicy = fs.readFileSync(fullPolicyPath, 'utf-8');
+      } catch (ee) {
+        log('WARN', `セキュリティポリシー未検出`);
+      }
     }
 
     // 2. エージェントスキル(SKILL.md)の取得
@@ -235,14 +275,15 @@ function runIronClawJob(task, previousContext) {
       log('WARN', `SKILL.md 未検出: ${task.agent}`);
     }
 
-    // 3. 統合プロンプト構築
+    // 3. 統合プロンプト構築 (SSOT 連携)
     const injectedSystemPrompt = [
-      '[IronClaw Security Guardrails]',
-      securityPolicy,
       '[Agent Persona / Skill]',
       basePersona,
+      projectContext, // GitHub Milestone/Issue Context
       '[Bucket Brigade Context]',
       previousContext,
+      '[IronClaw Security Guardrails (DISTILLED)]',
+      securityPolicy,
       '[Current Instruction]',
       task.instruction
     ].join('\n');
@@ -304,7 +345,7 @@ function runIronClawJob(task, previousContext) {
 
 // ---- Local LLM (IronClaw Core → Qwen) への問い合わせ ----
 
-async function planTaskDAG(issue) {
+async function planTaskDAG(issue, projectContext) {
   log('INFO', `🤖 [IronClaw Core] Qwen に DAG計画を依頼中 (Issue #${issue.number})...`);
 
   const skillPath = path.resolve(__dirname, '../skills/pm_agent/SKILL.md');
@@ -315,9 +356,11 @@ async function planTaskDAG(issue) {
     log('WARN', 'PM Agent SKILL.md not found');
   }
 
-  // プロンプトにホワイトリストを明示的に含める
+  // プロンプトにホワイトリストと外部記憶を明示的に含める
   const prompt = `
-You are a Project Manager AI. Given the following GitHub Issue, create a task execution plan as a JSON object.
+You are a Project Manager AI. Given the following GitHub Issue and Project Context, create a task execution plan as a JSON object.
+
+${projectContext}
 
 CRITICAL RULES:
 - Output ONLY valid JSON. No markdown, no explanation.
