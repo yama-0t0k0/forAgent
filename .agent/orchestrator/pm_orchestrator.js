@@ -251,16 +251,24 @@ function runIronClawJob(task, previousContext) {
     const pidFile = path.join(process.env.HOME || '', '.ironclaw', 'ironclaw.pid');
     try { fs.unlinkSync(pidFile); } catch (_) { /* ignore */ }
 
-    log('INFO', `  ironclaw run -m "..." を起動中...`);
+    log('INFO', `  [Security Enforcement] Using Hardened IronClaw Core binary`);
 
-    const child = spawn('ironclaw', [
+    const binaryPath = path.resolve(__dirname, '../../shared/ironclaw_core/target/release/ironclaw_core');
+    
+    // SAFE ENV: Do NOT pass process.env which contains consolidated secrets!
+    // Only pass minimal required variables if any.
+    const safeEnv = {
+      PATH: process.env.PATH, // Needed for internal tools
+      HOME: process.env.HOME,
+      USER: process.env.USER,
+      // SECRET vars are EXCLUDED here.
+    };
+
+    const child = spawn(binaryPath, [
       'run',
-      '--cli-only',
-      '--auto-approve',
-      '--no-onboard',
       '-m', injectedSystemPrompt
     ], {
-      env: { ...process.env }
+      env: safeEnv
     });
 
     let stdoutData = '';

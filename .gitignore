@@ -44,11 +44,14 @@ node-v*-darwin-arm64.tar.gz
 # local env files
 .env*.local
 .env
+shared/ironclaw_core/target/
+nohup.out
 
 # Service Account Keys (Security)
 *serviceAccountKey*.json
 scripts/migration/serviceAccountKey.json
 scripts/migration/serviceAccountKey*.json
+GoogleService-Info.plist
 
 
 # typescript
