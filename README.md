@@ -98,13 +98,14 @@
 ```
 
 ### 自律エージェントシステムの起動
-専門エージェントによる自動開発・監視システムを一括で起動します。
+**IronClaw Autonomous Core** を中心とした自律開発・監視システムを一括で起動します。
+Antigravity（クラウド AI）が Issue を起票した後は、IronClaw Core がローカルで自律的にタスクのルーティング・実行・監視を行い、クラウドトークン消費はゼロになります。
 ```bash
 ./scripts/start_agent_system.sh
 ```
 このコマンドにより以下がバックグラウンドで開始されます：
-- **Podman**: コンテナ実行環境の自動チェック・起動
-- **PM Orchestrator**: GitHub Issue の監視とタスクの自動実行
+- **Podman (Rootless)**: コンテナ実行環境の自動チェック・起動（Zero Trust セキュリティ）
+- **IronClaw Core (pm_orchestrator.js)**: GitHub Issue の検知 → DAG 計画 → 専門家エージェントへのルーティング → 自律実行
 - **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示
 
 ---

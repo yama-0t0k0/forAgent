@@ -88,6 +88,7 @@
   - **Cloud Functions (Dart)**: ステートレスな計算（マッチングスコア等）を担当。フロントエンドから渡された結合済みデータ（`public` + `private`）を処理するため、DB構造の変更に影響を受けない設計。
   - **Local Dart Backend**: `apps/*/dart_backend` は主にローカルテスト・検証用であり、本番環境のデータアクセスは行わない。
 - **AI Integration**: Google Gemini API (分析・職歴生成等)
+- **Container Runtime**: **Podman (Rootless)** - Apple Silicon (M4) ネイティブおよび Apple VZ Framework を活用した、高セキュリティなデーモンレス実行環境。
 
 ---
 
@@ -121,9 +122,10 @@
 
 - **現在の構成 (Phase 1)**:
     - **アーキテクチャ**: モジュラーモノリス形式。各機能モジュール（Admin, Individual, Corporate, etc.）が独立して存在。
-    - **テスタック**: 
+    - **技術スタック**: 
         - フロントエンド: **Expo (React Native) + JavaScript** (各アプリ配下の `expo_frontend/` に実装)
         - バックエンド: **Firebase + Pure Dart** (各アプリ配下の `dart_backend/` に実装)
+        - インフラ: **Google Cloud Run**, **Podman (Rootless)**
 - **ロードマップ (Phase 2)**:
     - 将来的にはモバイルフロントエンドも **Flutter** へ移行。
     - これにより、Admin/Individual/Corporate などの全アプリが **Dart で統一**され、JavaScript を完全に排除した Pure Dart プロジェクトが完成します。
@@ -279,14 +281,16 @@ Cloud Run の「認証が必要（Require authentication）」設定は、以下
 
 ---
 
-## 🤖 AIエージェント運用ルール (Sandbox利用の厳禁)
+## 🤖 AIエージェント運用ルール (エディタ標準Sandbox利用の制限)
 
-本プロジェクトにおいて、AIエージェント（Trae等）の「Sandbox（仮想環境）」を利用したコマンド実行は**厳格に禁止**されています。
+本プロジェクトにおいて、AIエージェント（Trae等）が**エディタの機能として提供する標準的な「Sandbox（仮想環境）」**を利用したコマンド実行は、環境の不整合を防ぐため制限されています。
 
 ### 🚫 禁止事項
-- **Sandbox内でのテスト実行**: `npm test`, `run_e2e.sh` 等をSandbox環境で実行すること。
-- **Sandbox内でのビルド・サーバー起動**: `expo start`, `flutter build` 等をSandbox環境で実行すること。
-- **環境構築コマンドの実行**: Sandbox環境に対して `npm install` や `apt-get` 等を行い、無理やり環境を適合させようとすること。
+- **エディタ内蔵Sandboxでの直接実行**: エディタ（Trae等）のデフォルトVM内で `npm test`, `run_e2e.sh`, `expo start` 等を実行すること。これらはホストOSのハードウェア（シミュレーター・物理ポート）にアクセスできず、誤ったエラーを誘発します。
+
+### ✅ 推奨される安全な実行環境
+- **ホストOS上の Podman (Rootless) Sandbox**: 
+  AIエージェントが生成したコードやコマンドを安全に試行・検証する場合は、プロジェクト標準の **Podman Rootless** 環境を使用してください。これはホストのルート権限から隔離されており、かつ開発に必要なツールチェーンが正確に構成されています。
 
 ### ✅ 正しい運用フロー
 AIエージェントがコマンド実行を必要とする場合は、以下の手順を遵守してください：

@@ -1,6 +1,7 @@
-# 自律型エージェント環境アーキテクチャ設計（IronClaw / Local LLM 統合版）
+# 自律型エージェント環境アーキテクチャ設計（IronClaw Autonomous Core 統合版）
 
-本書は、現在試験的に運用している専門エージェントのチームトポロジー構成に、真の自律実行層「**IronClaw**」および高度推論層「**Local LLM (Qwen 2.5 / Gemma 4 等)**」を統合した最終的な自律型開発環境のアーキテクチャ全体像を定義します。
+本書は、自律型開発エコシステムの最終的なアーキテクチャ全体像を定義します。
+**IronClaw** を自律システムの中心（Autonomous Core / Router）に据え、クラウド AI（Antigravity）はユーザーとの対話インターフェースに限定することで、実行フェーズのトークン消費を構造的にゼロに近づける設計です。
 
 人間の開発者に対し「何が・どこで・どのように」自動実行され、フェイルセーフ（安全装置）がどう担保されているかを可視化する目的で作成されています。
 
@@ -8,38 +9,43 @@
 
 ## 1. 概念構成（Conceptual Architecture）
 
-システムは大きく4つのレイヤーに分かれます。
+システムは大きく5つのレイヤーに分かれます。
 
 1. **Human Layer（司令塔・最終承認者）**
    - 人間の開発者（PDM/PM）。
    - 大きな方針（Goal）の定義と、Merge直前のPull Request（PR）の最終レビューのみを担当。
 
-2. **Reasoning Layer / Local LLM（高度な思考と計画）**
+2. **Interface Layer / Antigravity（通訳・翻訳ゲートウェイ）**
+   - ユーザーの自然言語による指示を、自律システムが理解できる形式（GitHub Issue、タスク定義ファイル、CLI コマンド）に **翻訳** するレイヤー。
+   - 翻訳・投入が完了したら **退場** し、以降のトークン消費は発生しない。
+   - つまり Antigravity は「司令塔と現場をつなぐ通訳」であり、現場の指揮は取らない。
+
+3. **Autonomous Core / IronClaw（自律システムの中枢 — ルーティング・実行・安全管理）**
+   - **本システムの心臓部。** Antigravity が投入した Issue をポーリング検知し、以下を自律的に実行する：
+     - **計画**: Local LLM (Qwen) を呼び出し、Issue をタスクの DAG（有向非巡回グラフ）に分解。
+     - **ルーティング**: DAG の各タスクを、`.agent/skills/*.md` に定義された最適な専門家エージェントに割り当て。
+     - **実行**: 専門家エージェントを Sandbox 内で逐次実行し、前タスクの出力を次タスクに注入する「バケツリレー」を管理。
+     - **安全管理**: `ironclaw_security_policy.md` に基づくコンプライアンス・エンジンとして、全エージェントの動作を監視・制限。
+     - **失敗分析**: タスク失敗時に Qwen を再度呼び出し、原因分析と解決策の提示を行う。
+   - **コンテナ基盤**: セキュリティを最優先し、デーモンレスかつ一般ユーザー権限で動作する **Podman (Rootless)** を採用。
+   - **セキュリティ強化 (Zero Trust)**: AI エージェントが万が一暴走しても、ホスト (macOS) のルート権限には物理的にアクセスできない多層防御層（VM 隔離 + 非特権実行）を構築。
+   - **最適化**: Apple Silicon (M4) の VZ 仮想化ドライバと VirtioFS を活用し、安定したファイル共有と実行速度を確保。
+
+4. **Cognitive Layer / Local LLM + 専門家エージェント（思考と実装）**
+   - **Local LLM (Qwen 2.5 3B等)**: IronClaw Core が呼び出す「思考エンジン」。Issue の分析、DAG 計画の立案、失敗原因の推論を担当。
+   - **専門家エージェント**: `.agent/skills/` に定義された 7 つの専門家。IronClaw Core からの指示に基づき、特定領域のコード生成・修正を行う。
    - 将来的なモデル移行（特定の LLM 非依存）への備えとして、長大なコンテキスト（コード依存関係や過去の経緯）の保全は **GitHub をメインの記憶領域（Single Source of Truth）** として管理します。
      - https://github.com/yama-0t0k0/forAgent/issues
      - https://github.com/yama-0t0k0/forAgent/milestone
-   - ローカル LLM は、常に上記のGitHub情報を読み込んで複雑な問題解決や計画を行う「補助的な分析・推論機能」として位置づけます。
    - **モデル選定基準**: 実行環境のリソースに応じ、以下のモデルを動的に選択します。
      - **High-Spec (32GB+ RAM)**: Gemma 4 (E4B) 等の大型モデル
      - **Standard (16GB RAM)**: Qwen 2.5 3B 等の軽量かつツール対応モデル
    - オープンモデルの強みをフル活用し、ローカル環境や自社インフラ（GKE / Cloud Run 等）で実行することで、高頻度に自律ループを回しても**トークン消費・推論コストを実質ゼロ**に抑える運用を行います。
-   - 主に `pm_agent`（プロジェクト司令塔）と `complex_logic`（計算ロジック専門）等の思考エンジンとして機能。
 
-3. **Routing & Execution Layer / Antigravity（役割分担とルーティング）**
-   - 中核となるフレームワーク。
-   - 人間やGemma4からの指示を、`.agent/skills/*.md` に定義された各「専門エージェント」へと分解・ルーティング。
-   - `lp_app_expert` や `enabling_quality` が「自身の作業スコープ」のルールに基づいてコード差分を提案。
-
-4. **Monitoring & Alerting Layer / Watchdog（常時監視と警告）**
+5. **Monitoring & Alerting Layer / Watchdog（常時監視と警告）**
    - `scripts/agent_watchdog.js` による常時監視。
-   - オーケストレーターのログ (`daemon.log`) をリアルタイム解析し、ループ、タイムアウト、LLMエラー、コンテナ停止などの異常を検知した際に物理ターミナルへ即座に警告（赤色表示）を出す。
+   - IronClaw Core のログ (`daemon.log`) をリアルタイム解析し、ループ、タイムアウト、LLMエラー、コンテナ停止などの異常を検知した際に物理ターミナルへ即座に警告（赤色表示）を出す。
    - `alerts.log` への記録と、必要に応じた人間へのエスカレーションを担当。
-
-5. **Action Layer / IronClaw + Podman (Rootless)（物理的な操作・検証・実行）**
-   - 提案されたコード差分を**実際にローカル（またはSandbox空間）で書き換え**、Linter を回し、`safe_push.sh` などを実行して結果をフィードバックするレイヤー。
-   - **コンテナ基盤**: セキュリティを最優先し、デーモンレスかつ一般ユーザー権限で動作する **Podman (Rootless)** を採用。
-   - **セキュリティ強化 (Zero Trust)**: AI エージェントが万が一暴走しても、ホスト (macOS) のルート権限には物理的にアクセスできない多層防御層（VM 隔離 + 非特権実行）を構築。
-   - **最適化**: Apple Silicon (M4) の VZ 仮想化ドライバと VirtioFS を活用し、安定したファイル共有と実行速度を確保。
 
 ---
 
@@ -48,56 +54,57 @@
 ```mermaid
 graph TD
     %% レイヤー定義
-    subgraph Human[1. Human Layer]
+    subgraph Human["1. Human Layer"]
         User[Human Developer]
     end
 
-    subgraph Reasoning[2. Reasoning Layer / Local LLM]
-        PM[PM Agent<br/>Requirement Breakdown]
-        Complex[Complex Logic<br/>Agent]
+    subgraph Interface["2. Interface Layer / Antigravity"]
+        Translate["自然言語 → Issue/CLI 翻訳<br/>(翻訳後は退場)"]
     end
 
-    subgraph Routing[3. Routing Layer / Antigravity]
-        SkillDir[.agent/skills/*.md]
-        Enabling[Enabling Quality<br/>Audit & Docs]
-        Shared[Platform Shared<br/>Architecture]
-        AppExp[LP App Expert<br/>Feature Dev]
+    subgraph Core["3. Autonomous Core / IronClaw"]
+        Orchestrator["IronClaw Core<br/>DAG Engine + Router"]
+        Sandbox["Sandboxed Environment<br/>Fedora CoreOS / Podman Rootless"]
+        Git["Git / PR Creator"]
     end
 
-    subgraph Action[5. Action Layer / IronClaw + Podman]
-        Sandbox[Sandboxed Environment<br/>Fedora CoreOS / Podman Rootless]
-        Git[Git / PR Creator]
-        Tools[Linter / Tests / Expo]
+    subgraph Cognitive["4. Cognitive Layer"]
+        LLM["Local LLM (Qwen 2.5 3B)<br/>計画立案 / 失敗分析"]
+        PMSkill["PM Agent<br/>計画アドバイザー"]
+        AppExp["Apps Expert<br/>Feature Dev"]
+        Shared["Platform Shared<br/>Architecture"]
+        Quality["Enabling Quality<br/>Audit & Docs"]
     end
 
-    subgraph Monitor[Monitoring & Alerts]
-        Watchdog[Agent Watchdog<br/>Real-time Stats]
-        Alerts[Terminal Alerts / alerts.log]
+    subgraph Monitor["5. Monitoring Layer"]
+        Watchdog["Agent Watchdog<br/>Real-time Alerts"]
+        Alerts["Terminal Alerts / alerts.log"]
     end
 
     %% データフロー
-    User -- "1. 高レベルな指示/Issue" --> PM
-    PM -- "2. コンテキスト分析" --> Complex
-    Complex -.-> PM
+    User -- "1. 自然言語で指示" --> Translate
+    Translate -- "2. Issue 起票 / CLI 投入" --> Orchestrator
+
+    Orchestrator -- "3. DAG計画を依頼" --> LLM
+    LLM -- "DAG (タスクグラフ)" --> Orchestrator
+    Orchestrator -- "4a. 計画助言を参照" --> PMSkill
+    Orchestrator -- "4b. 実装タスク委譲" --> AppExp
+    Orchestrator -- "4c. 共通化タスク委譲" --> Shared
     
-    PM -- "3. 個別タスク委譲" --> AppExp
-    PM -- "3. 共通化・方針相談" --> Shared
+    AppExp -- "コード案" --> Quality
+    Quality -- "品質監査結果" --> Orchestrator
     
-    AppExp -- "コード案作成" --> Enabling
-    Enabling -- "4. 品質・規約監査" --> AppExp
+    Orchestrator -- "5. Sandbox 内で実行" --> Sandbox
+    Sandbox -- "実行結果・Linterエラー" --> Orchestrator
     
-    Enabling -- "5. 承認済コード" --> Action
-    AppExp -- "5. 実行指示" --> Action
-    
-    Action -- "ログ出力" --> Watchdog
+    Orchestrator -- "6. Draft PR 作成" --> Git
+    Git -- "PR URL" --> User
+
+    Orchestrator -- "ログ出力" --> Watchdog
     Watchdog -- "異常検知・警告" --> Alerts
     Alerts -- "ステータス報告" --> User
-    
-    Sandbox -- "実行結果・Linterエラー" --> Enabling
-    Git -- "6. Draft PR 作成" --> PM
-    
-    PM -- "7. 報告・レビュー依頼" --> User
-    User -. "8. Approve & Merge" .-> Git
+
+    User -. "7. Approve & Merge" .-> Git
 ```
 
 ---
@@ -106,22 +113,23 @@ graph TD
 
 このシステムは「アイデアの種」から「実装完了」まで、以下の10段階でループする**真の自律型開発エコシステム**として稼働します。このフローにより、属人化（手動のCLIコマンド実行）を完全に排除します。
 
-### 前半：クラウドAIによる企画・設計（Antigravity 主導）
+### 前半：Antigravity による翻訳と投入（Gateway フェーズ）
 1. **Ideation (着想)**: 人間（開発者）が Antigravity に実装したいアイデアの種を投げる。
-2. **Analysis (解釈)**: Antigravity が PM エージェントとして振る舞い、アイデアを分析。
-3. **Collaboration (専門家連携)**: PMエージェントが、各専門家エージェントの知見を読み込みアーキテクチャを勘案する。
+2. **Analysis (解釈)**: Antigravity が要件を分析し、構造化する。
+3. **Collaboration (専門家知見の参照)**: Antigravity が各専門家エージェントの SKILL.md を参照し、アーキテクチャを勘案する。
 4. **Planning (計画の提示)**: Antigravity が分析結果を `implementation_plan.md` として提示する。
 5. **Q&A**: 人間が Open Questions に対して回答する。
 6. **Finalizing (計画確定)**: 回答を元に Antigravity が計画を最終版にする。
-7. **Ticketing (Issue起票)**: 人間が計画を承認後、Antigravity（またはGitHub MCP機能）が GitHub に Issue や Milestone を自動起票する。
+7. **Ticketing (Issue 起票 → 退場)**: 人間が計画を承認後、Antigravity が GitHub に Issue を起票し、`ready-for-agent` ラベルを付与する。**ここで Antigravity は退場し、トークン消費が停止する。**
 
-### 後半：ローカルAIによる実装・テスト（Mac常駐デーモン 主導）
-8. **Implementation (並列自律実装 ＆ トークン消費ゼロ化)**: 
-    * Mac上で常駐するオーケストレーター・デーモン（`pm_orchestrator.js`）がIssue起票をポーリング検知して始動。
-    * デーモンが **「IronClaw サンドボックス ＋ ローカル LLM」** のプロセスを立ち上げ、並行してコード変更を実施する。
-    * **コスト削減と人格の共有**: 反復の多いコーディング・Linter修正などの泥臭い作業を全てローカル LLM が担うため、クラウドトークンの消費は実質ゼロ。また、デーモンが `SKILL.md` を読み込んで LLM の「システムプロンプト」とするため、クラウド上の専門家とローカル作業の専門家が全く同じ規約で動作する。
-9. **Reporting (成果物提示)**: 自律実装ループが完了後、結果と差分を `walkthrough.md` として人間に提示する。
-10. **Review & Loop (最終確認)**: 人間がコード・アプリの動作を確認し、納得しなかった場合は再度 Antigravity に伝え、Step 4からループする。
+### 後半：IronClaw Core による自律実行（Autonomous フェーズ）
+8. **Detection (検知)**: IronClaw Core（`pm_orchestrator.js`）が Issue のポーリングで `ready-for-agent` ラベルを検知し、処理を開始する。
+9. **Implementation (自律実行 & トークン消費ゼロ)**:
+    * IronClaw Core が Local LLM (Qwen) に DAG 計画を依頼。
+    * DAG の各タスクを、最適な専門家エージェントに割り当てて Sandbox 内で逐次実行。
+    * **コスト**: 全処理がローカルで完結するため、クラウドトークンの消費は **実質ゼロ**。
+    * 失敗時は Qwen が原因分析を行い、修正タスクを追加して再試行。
+10. **Reporting & Review (報告と確認)**: IronClaw Core が Draft PR を作成し、結果を人間に提示。人間が確認し、納得しなかった場合は Antigravity に伝え、Step 4 からループする。
 
 ---
 
@@ -132,13 +140,13 @@ graph TD
 1. **IronClawによる物理的遮断（厳格なSandbox）**
    - プロンプト（言葉）での指示に頼るだけでなく、Rustのシステムレベルで「このフォルダ以外は絶対に見せない」「外部への通信は許可しない」という物理的な壁によるSandboxを作ります。これにより破壊操作を確実に防ぎます。
 2. **ルールの絶対的優先順位（コンプライアンス・エンジン）**
-   - Antigravity側（`SKILL.md` の絶対ルール等）で設定した「禁止事項」を、IronClawはコンプライアンス・エンジンとして厳格に解釈し、システム的制約として違反行動を強制ブロックします。
+   - IronClaw Core は `ironclaw_security_policy.md` をコンプライアンス・エンジンとして厳格に解釈し、システム的制約として違反行動を強制ブロックします。
 3. **`main` ブランチへの直接Pushの恒久禁止**
    - IronClawのGit権限では、`main`（または `production`）ブランチへの直接Pushを弾く設定（Branch Protection Rulesベース）を敷く。
 4. **`enabling_quality` の絶対監査**
    - 人間にPR提出を報告する前に、必ず `enabling_quality` が「`DESIGN.md` からの逸脱の有無」および「セキュリティテストの結果」のレポートをPRにコメントすること。これが完了していないPRはマージ不能とする。
 5. **Ask User Input の残留**
-   - 影響範囲が著しく大きいモジュール（例: 決済・認証基盤のコア）に触れる場合は、`pm_agent` があらかじめ「この計画で進めるが、実行権限を与えて良いか？」を人間に尋ねる関門を運用に組み込む。
+   - 影響範囲が著しく大きいモジュール（例: 決済・認証基盤のコア）に触れる場合は、IronClaw Core があらかじめ「この計画で進めるが、実行権限を与えて良いか？」を人間に尋ねる関門を運用に組み込む。
 
 ---
 

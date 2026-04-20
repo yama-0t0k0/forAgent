@@ -3,12 +3,16 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * PM Agent Orchestrator (Resident Daemon) - DAG Engine v2
+ * IronClaw Autonomous Core - DAG Engine v2
  *
  * 役割：
- * pm_agent が定義した「タスクのJSONグラフ（DAG）」をパースし、
- * 各専門家エージェント（IronClaw経由）を依存順序に従って起動する。
+ * 自律システムの中枢として、GitHub Issue を検知し、
+ * Local LLM (Qwen) を用いてタスクの DAG（有向非巡回グラフ）を計画、
+ * 各専門家エージェントへのルーティングと逐次実行を自律的に管理する。
  * 前タスクの出力を次のタスクの入力（システムプロンプト）に注入し、「バケツリレー」を実現する。
+ *
+ * Antigravity (クラウド AI) は Issue の起票まで。
+ * 以降の計画・実行・監視はすべて本 Core が自律的に行う。
  *
  * v2 変更点:
  * - 進捗ダッシュボード（status.json）によるリアルタイム可視化
@@ -71,7 +75,7 @@ function updateStatus(issueNumber, phase, detail, progress) {
 // ---- デーモン本体 ----
 
 async function startDaemon() {
-  log('INFO', '🚀 PM Orchestrator DAG Engine v2 started. Polling every 60s...');
+  log('INFO', '🚀 IronClaw Autonomous Core - DAG Engine v2 started. Polling every 60s...');
   updateStatus('-', 'IDLE', 'ポーリング待機中...', '-');
 
   // 初回即時実行
@@ -125,11 +129,11 @@ async function fetchTargetIssues() {
 
 async function processIssue(issue) {
   log('INFO', `━━━ Issue #${issue.number} の処理を開始: "${issue.title}" ━━━`);
-  updateStatus(issue.number, 'PLANNING', 'Qwen 2.5 3B にタスク分割を依頼中...', '0/?');
+  updateStatus(issue.number, 'PLANNING', '[IronClaw Core] Qwen にDAG計画を依頼中...', '0/?');
 
   try {
-    // 1. PM Agent (Local LLM) にDAGを作らせる
-    const taskPlan = await consultPMAgent(issue);
+    // 1. IronClaw Core が Local LLM にDAGを計画させる
+    const taskPlan = await planTaskDAG(issue);
     const taskCount = taskPlan.tasks.length;
     log('INFO', `DAG計画を受領: ${taskCount} タスク`);
     taskPlan.tasks.forEach((t, i) => {
@@ -290,10 +294,10 @@ function runIronClawJob(task, previousContext) {
   });
 }
 
-// ---- Local LLM (PM Agent) への問い合わせ ----
+// ---- Local LLM (IronClaw Core → Qwen) への問い合わせ ----
 
-async function consultPMAgent(issue) {
-  log('INFO', `🤖 Qwen 2.5 3B に DAG計画を依頼中 (Issue #${issue.number})...`);
+async function planTaskDAG(issue) {
+  log('INFO', `🤖 [IronClaw Core] Qwen に DAG計画を依頼中 (Issue #${issue.number})...`);
 
   const skillPath = path.resolve(__dirname, '../skills/pm_agent/SKILL.md');
   let pmPersona = '';
