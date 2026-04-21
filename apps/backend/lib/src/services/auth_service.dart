@@ -17,20 +17,41 @@ class AuthService {
 
   AuthService._(this._projectId, this._credentials);
 
-  /// サービスアカウントキーファイルから AuthService を初期化します
+  /// サービスアカウントキーファイルまたは環境変数から AuthService を初期化します
   static Future<AuthService> firebase() async {
-    // プロジェクトのルートにある serviceAccountKey.json を読み込む
-    // Note: server.dart は apps/backend/bin/ にあるため、ルートは ../../
-    final keyPath = Platform.environment[_envServiceAccountKeyPath] ??
-        Platform.environment[_envGoogleApplicationCredentials] ??
-        _serviceAccountKeyPath;
-    final keyFile = File(keyPath);
-    if (!await keyFile.exists()) {
-      throw Exception('Service account key file not found at ${keyFile.absolute.path}');
+    Map<String, dynamic>? data;
+
+    // 1. 環境変数から JSON 文字列を直接読み込む試行
+    final jsonString = Platform.environment['FIREBASE_SERVICE_ACCOUNT_JSON'];
+    if (jsonString != null && jsonString.isNotEmpty) {
+      try {
+        data = json.decode(jsonString) as Map<String, dynamic>;
+        _logger.info('Initialized using FIREBASE_SERVICE_ACCOUNT_JSON environment variable');
+      } catch (e) {
+        _logger.warning('Failed to decode FIREBASE_SERVICE_ACCOUNT_JSON: $e');
+      }
     }
 
-    final Map<String, dynamic> data =
-        json.decode(await keyFile.readAsString()) as Map<String, dynamic>;
+    // 2. ファイルの読み込み試行（既存互換）
+    if (data == null) {
+      final keyPath = Platform.environment[_envServiceAccountKeyPath] ??
+          Platform.environment[_envGoogleApplicationCredentials] ??
+          _serviceAccountKeyPath;
+      final keyFile = File(keyPath);
+      if (await keyFile.exists()) {
+        try {
+          data = json.decode(await keyFile.readAsString()) as Map<String, dynamic>;
+          _logger.info('Initialized using service account key file: $keyPath');
+        } catch (e) {
+          throw Exception('Failed to decode service account key file: $e');
+        }
+      }
+    }
+
+    if (data == null) {
+      throw Exception('No service account credentials found (checked ENV and file)');
+    }
+
     final projectIdRaw = data['project_id'];
     if (projectIdRaw is! String || projectIdRaw.trim().isEmpty) {
       throw Exception('project_id is missing in service account key JSON');

@@ -130,6 +130,7 @@
 
 - **firebase**: Firestore のセキュリティルール、インデックス設定、および複数のアプリに跨る共通の Cloud Functions を管理。
 - **github**: プルリクエストやイシューのテンプレート、および CI/CD (ビルド・デプロイ) を自動化するワークフロー定義。
+- **podman**: Apple Silicon (M4) に最適化された Rootless/VZ 仮想化による安全なコンテナ実行基盤。
 
 ## 🔧 開発支援ツール (Scripts & Hooks)
 ローカル開発の効率化と品質担保を目的としたスクリプト群です。
@@ -143,14 +144,20 @@
 ---
 
 ## 技術スタック (Modular Monolith 版)
-- **Frontend**: Expo (React Native) + JS/TS
-- **Backend / Logic**: Firebase + Pure Dart
-- **Communication**: Firestore を中心としたデータドリブンな連携
+- Frontend: Expo (React Native) + JS/TS
+- Backend / Logic: Firebase + Pure Dart
+- Infrastructure: Google Cloud Run, Podman (Rootless)
+- Communication: Firestore を中心としたデータドリブンな連携
 
 ---
-*最終更新: 2025年12月 - モジュラーモノリス再定義版*
+*最終更新: 2026年4月 - Podman Rootless 移行対応*
 
 ## 📝 変更ログ (Dev Log)
+
+### 2026年4月20日: コンテナ基盤の Podman (Rootless) への移行
+- **インフラ刷新**: Colima (Lima) から Podman (Rootless / VZ Framework) へ移行し、セキュリティ強化と動作安定性を実現。
+- **ドキュメント同期**: `README.md`, `dev_basicinfo.md`, `CICD&BuildDeploy.md` を含む全ドキュメントを Podman ベースに刷新。
+- **スクリプト改修**: `scripts/start_agent_system.sh` を Podman Machine および Rootless ソケットに対応。
 
 ### 2026年1月30日: 画像編集・メニュー画面の共通化 (Shared 移行)
 - **Shared コンポーネントの新規作成・整理**:

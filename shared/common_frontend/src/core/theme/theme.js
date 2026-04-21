@@ -13,8 +13,9 @@ const PALETTE = {
 };
 
 export const THEME = {
-    // --- Base Brand Colors ---\n    primary: PALETTE.sky[500],
-    primaryHover: PALETTE.sky[600],
+    // --- Base Brand Colors ---
+    primary: PALETTE.sky[700],
+    primaryHover: PALETTE.sky[800],
     secondary: PALETTE.violet[500],
 
     // --- Semantic Surface Tokens ---
@@ -53,7 +54,7 @@ export const THEME = {
     textSecondary: PALETTE.slate[500],
     textMuted: PALETTE.slate[400],
     textInverse: '#FFFFFF',
-    textLink: PALETTE.sky[500],
+    textLink: PALETTE.sky[700],
 
     // --- Status Tokens ---
     success: PALETTE.emerald[500],
@@ -88,6 +89,7 @@ export const THEME = {
     overlayMedium: 'rgba(0, 0, 0, 0.4)',
     overlaySubtle: 'rgba(0, 0, 0, 0.1)',
     overlayLight: 'rgba(255, 255, 255, 0.2)',
+    overlayBrandSubtle: 'rgba(12, 74, 110, 0.2)', // Sky 900 with 0.2 opacity
     shadowColor: 'rgba(0, 0, 0, 0.5)',
     surfaceInvisible: 'rgba(0, 0, 0, 0.01)',
 

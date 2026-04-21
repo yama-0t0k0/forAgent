@@ -32,14 +32,26 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Local LLM / tooling binaries (do not commit)
+ollama_app/
+node-v*-darwin-arm64.tar.gz
+
+# Agent local working files
+.agent/tmp/
+.agent/orchestrator/*.log
+.agent/orchestrator/status.json
+
 # local env files
 .env*.local
 .env
+shared/ironclaw_core/target/
+nohup.out
 
 # Service Account Keys (Security)
 *serviceAccountKey*.json
 scripts/migration/serviceAccountKey.json
 scripts/migration/serviceAccountKey*.json
+GoogleService-Info.plist
 
 
 # typescript

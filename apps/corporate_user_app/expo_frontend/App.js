@@ -63,20 +63,32 @@ const CorporateRegistrationWrapper = () => {
          */
         const fetchData = async () => {
             try {
-                // Sign in anonymously to allow access to secured APIs (Cloud Run)
-                try {
-                    const auth = getAuth();
+                const auth = getAuth();
+                // 1. Ensure signed in
+                if (!auth.currentUser) {
                     await signInAnonymously(auth);
-                    console.log("Signed in anonymously (Corporate App)");
-                } catch (authError) {
-                    console.error("Anonymous auth failed:", authError);
+                }
+                
+                // 2. Fetch User Profile for RBAC
+                let userData = null;
+                try {
+                    userData = await FirestoreDataService.fetchIndividualById(auth.currentUser.uid);
+                } catch (e) {
+                    console.warn("Failed to fetch user profile:", e);
                 }
 
-                const data = await FirestoreDataService.fetchCorporateAppData('B00000', COMPANY_TEMPLATE);
-                setInitialData(data);
+                // 3. Fetch Company Data
+                const companyData = await FirestoreDataService.fetchCorporateAppData('B00000', COMPANY_TEMPLATE);
+                
+                // 4. Combine for DataContext
+                const combined = {
+                    ...companyData,
+                    currentUser: userData || { role: 'corporate-alpha' } // Dev default: Alpha
+                };
+                setInitialData(combined);
             } catch (error) {
                 console.error("Error fetching document:", error);
-                setInitialData(COMPANY_TEMPLATE);
+                setInitialData({ ...COMPANY_TEMPLATE, currentUser: { role: 'corporate-alpha' } });
             } finally {
                 setLoading(false);
             }

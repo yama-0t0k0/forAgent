@@ -117,13 +117,28 @@ service cloud.firestore {
       
       match /JD_Number/{jdId} {
         allow read: if isAuthenticated();
-        // Validation for creation and updates
-        allow create, update: if (isCompanyMember(companyId) || isAdmin())
-                      && request.resource.data.positionName is string 
-                      && request.resource.data.positionName.size() > 0
-                      && request.resource.data.status in ['active', 'inactive']
-                      && ('基本情報' in request.resource.data && request.resource.data['基本情報'] is map);
-        allow delete: if isCompanyMember(companyId) || isAdmin();
+        
+        // Validation for create/update
+        function isValidJD() {
+          return request.resource.data.positionName is string 
+                 && request.resource.data.positionName.size() > 0
+                 && request.resource.data.status in ['active', 'inactive']
+                 && ('基本情報' in request.resource.data && request.resource.data['基本情報'] is map);
+        }
+
+        // Alpha and Beta can create
+        allow create: if (isAdmin() || (isCompanyMember(companyId) && (hasRole('corporate-alpha') || hasRole('corporate-beta'))))
+                      && isValidJD();
+
+        // Alpha can update anything, Beta can update everything except 'status'
+        allow update: if (isAdmin() || (isCompanyMember(companyId) && (
+                        hasRole('corporate-alpha') || 
+                        (hasRole('corporate-beta') && request.resource.data.status == resource.data.status)
+                      )))
+                      && isValidJD();
+
+        // Only Alpha can delete
+        allow delete: if isAdmin() || (isCompanyMember(companyId) && hasRole('corporate-alpha'));
       }
     }
 

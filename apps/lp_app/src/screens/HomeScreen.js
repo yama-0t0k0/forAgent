@@ -967,7 +967,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: THEME.text,
+    color: THEME.textPrimary,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
   heroSection: {
     padding: THEME.spacing.xl,
     alignItems: 'center',
-    backgroundColor: THEME.borderGlass,
+    backgroundColor: THEME.primary,
     position: 'relative',
     overflow: 'hidden',
     marginBottom: 32,
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
     opacity: 0.34,
   },
   heroBinaryText: {
-    color: THEME.textInverse,
+    color: THEME.overlayBrandSubtle,
     fontSize: 12,
     lineHeight: 22,
     letterSpacing: 1.2,
@@ -1036,15 +1036,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: THEME.spacing.md,
-    color: THEME.textPrimary,
+    color: THEME.textInverse,
     lineHeight: 40,
   },
   heroSubtitle: {
     fontSize: 16,
     textAlign: 'center',
-    color: THEME.textSecondary,
+    color: THEME.textInverse,
     marginBottom: THEME.spacing.xl,
     lineHeight: 24,
+    opacity: 0.9,
   },
   section: {
     paddingHorizontal: THEME.spacing.lg,
@@ -1054,7 +1055,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: THEME.spacing.lg,
-    color: THEME.text,
+    color: THEME.textPrimary,
   },
   featureCard: {
     backgroundColor: THEME.surface,
@@ -1070,7 +1071,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: THEME.spacing.sm,
-    color: THEME.text,
+    color: THEME.primary,
   },
   featureDesc: {
     fontSize: 14,
@@ -1126,7 +1127,7 @@ const styles = StyleSheet.create({
   newsTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: THEME.text,
+    color: THEME.textPrimary,
     lineHeight: 20,
   },
   lockedNewsItem: {
@@ -1265,7 +1266,7 @@ const styles = StyleSheet.create({
 const infoStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.surfaceMuted,
+    backgroundColor: THEME.background,
   },
   header: {
     height: 56,
@@ -1370,7 +1371,7 @@ const infoStyles = StyleSheet.create({
     width: 110,
     fontSize: 14,
     fontWeight: '700',
-    color: THEME.text,
+    color: THEME.textPrimary,
   },
   rowValueContainer: {
     flex: 1,

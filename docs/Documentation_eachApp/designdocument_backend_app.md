@@ -89,13 +89,15 @@ dart run bin/server.dart
 # Server listening on port 8080
 ```
 
-### Docker ビルドと実行（ルートディレクトリから実行）
+### コンテナ ビルドと実行（Podman）
+ローカルでのコンテナ検証は **Podman (Rootless)** を使用します。
+
 ```bash
 # イメージのビルド
-docker build -t backend-app -f apps/backend/Dockerfile .
+podman build -t backend-app -f apps/backend/Dockerfile .
 
 # コンテナの起動
-docker run -p 8080:8080 backend-app
+podman run -p 8080:8080 backend-app
 ```
 
 ## 8. ロードマップと開発計画
@@ -111,7 +113,8 @@ docker run -p 8080:8080 backend-app
 現状はここに含まれます。
 
 *   ✅ **Pure Dart サーバーの構築**: `shelf` + `shelf_router` による基本構成。
-*   ✅ **Docker化とCloud Run対応**: AOTコンパイルによる高速起動コンテナ。
+*   ✅ **Podman (Rootless) 対応**: ローカルでの安全な実行環境の整備。
+*   ✅ **Cloud Run デプロイ構成**: AOTコンパイルによる高速起動コンテナ。
 *   ⬜ **共有ロジックの移植**: 現在各Expoアプリ内に散らばっている `dart_backend` ロジックを `apps/backend` に集約する。
 *   ⬜ **認証認可の統合**: Firebase Auth の ID Token 検証ロジックを実装し、セキュアなAPIエンドポイントを作成する。
 

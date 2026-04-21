@@ -28,8 +28,10 @@ export const JobListScreen = () => {
     EMPTY: 'document-text-outline',
   };
 
-  // Extract companyId from DataContext
+  // Extract companyId and role from DataContext
   const companyId = data?.id || 'B00000'; 
+  const userRole = data?.currentUser?.role || 'corporate-gamma';
+  const isGamma = userRole === 'corporate-gamma';
 
   const fetchJobs = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -94,10 +96,12 @@ export const JobListScreen = () => {
   const renderHeader = () => (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>求人管理</Text>
-      <TouchableOpacity style={styles.addButton} onPress={handleCreateNew}>
-        <Ionicons name={IONICON_NAME.ADD} size={24} color={THEME.textInverse} />
-        <Text style={styles.addButtonText}>新規作成</Text>
-      </TouchableOpacity>
+      {!isGamma && (
+        <TouchableOpacity style={styles.addButton} onPress={handleCreateNew}>
+          <Ionicons name={IONICON_NAME.ADD} size={24} color={THEME.textInverse} />
+          <Text style={styles.addButtonText}>新規作成</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
