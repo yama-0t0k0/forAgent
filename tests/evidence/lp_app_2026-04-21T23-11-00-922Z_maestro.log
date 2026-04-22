@@ -1,0 +1,58 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/Users/yamakawamakoto/.maestro/lib/jansi-2.4.1.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Running on iPhone 16 - iOS 18.4 - 891A44C2-8C9C-477B-BA1C-26E10ECB41DC
+ > Flow lp_app_golden_path
+Open ${EXPO_URL}...Run flow when "Open" is visible...
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.oracle.truffle.api.dsl.InlineSupport$UnsafeField (file:/Users/yamakawamakoto/.maestro/lib/truffle-api-24.1.2.jar)
+WARNING: Please consider reporting this to the maintainers of class com.oracle.truffle.api.dsl.InlineSupport$UnsafeField
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+com.github.michaelbull.result.UnwrapException: kotlin.Unit java.lang.IllegalStateException: An error was encountered processing the command (domain=NSOSStatusErrorDomain, code=-10814):
+Simulator device failed to open exp://1vpyfqs-anonymous-8087.exp.direct.
+Underlying error (domain=NSOSStatusErrorDomain, code=-10814):
+	The operation couldn’t be completed. (OSStatus error -10814.)
+
+	at maestro.drivers.IOSDriver.openLink$lambda$43(IOSDriver.kt:651)
+	at maestro.utils.Metrics.measured(Metrics.kt:48)
+	at maestro.drivers.IOSDriver.openLink(IOSDriver.kt:436)
+	at maestro.Maestro.openLink(Maestro.kt:474)
+	at maestro.orchestra.Orchestra.openLinkCommand(Orchestra.kt:976)
+	at maestro.orchestra.Orchestra.executeCommand(Orchestra.kt:346)
+	at maestro.orchestra.Orchestra.executeCommands(Orchestra.kt:252)
+	at maestro.orchestra.Orchestra.runFlow(Orchestra.kt:170)
+	at maestro.cli.runner.MaestroCommandRunner.runCommands(MaestroCommandRunner.kt:196)
+	at maestro.cli.runner.TestRunner$runSingle$result$1$1.invokeSuspend(TestRunner.kt:75)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:277)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source)
+	at maestro.cli.runner.TestRunner.runSingle$lambda$0(TestRunner.kt:74)
+	at maestro.cli.runner.TestRunner.runCatching-ta8aW1Q(TestRunner.kt:200)
+	at maestro.cli.runner.TestRunner.runSingle(TestRunner.kt:65)
+	at maestro.cli.command.TestCommand.runSingleFlow(TestCommand.kt:531)
+	at maestro.cli.command.TestCommand.runShardSuite$lambda$10(TestCommand.kt:500)
+	at maestro.cli.session.MaestroSessionManager.newSession(MaestroSessionManager.kt:129)
+	at maestro.cli.session.MaestroSessionManager.newSession$default(MaestroSessionManager.kt:65)
+	at maestro.cli.command.TestCommand.runShardSuite(TestCommand.kt:465)
+	at maestro.cli.command.TestCommand.access$runShardSuite(TestCommand.kt:80)
+	at maestro.cli.command.TestCommand$handleSessions$1$results$1$1.invokeSuspend(TestCommand.kt:424)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:585)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:802)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:706)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:693)
+
+
+==== Debug output (logs & screenshots) ====
+
+/Users/yamakawamakoto/.maestro/tests/2026-04-22_080949

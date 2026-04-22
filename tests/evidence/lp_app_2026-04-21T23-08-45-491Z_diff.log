@@ -1,0 +1,20 @@
+--- /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_state.tmp.json	2026-04-22 08:08:35
++++ /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_2026-04-21T23-08-45-491Z_after.json	2026-04-22 08:08:45
+@@ -1 +1,14 @@
+-null
+\ No newline at end of file
++{
++  "companyId": null,
++  "role": "individual",
++  "displayName": "E2E Test User",
++  "email": "e2e-test-C000000000001@lat-inc.com",
++  "createdAt": {
++    "_seconds": 1776812915,
++    "_nanoseconds": 954000000
++  },
++  "updatedAt": {
++    "_seconds": 1776812915,
++    "_nanoseconds": 954000000
++  }
++}
+\ No newline at end of file

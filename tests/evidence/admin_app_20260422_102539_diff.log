@@ -1,0 +1,19 @@
+--- /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/admin_app_state.tmp.json	2026-04-22 10:24:41
++++ /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/admin_app_20260422_102539_after.json	2026-04-22 10:25:40
+@@ -4,11 +4,11 @@
+   "displayName": "E2E Admin Tester",
+   "email": "e2e-test-A999@lat-inc.com",
+   "createdAt": {
+-    "_seconds": 1776820916,
+-    "_nanoseconds": 351000000
++    "_seconds": 1776821082,
++    "_nanoseconds": 279000000
+   },
+   "updatedAt": {
+-    "_seconds": 1776820916,
+-    "_nanoseconds": 351000000
++    "_seconds": 1776821082,
++    "_nanoseconds": 279000000
+   }
+ }
+\ No newline at end of file
