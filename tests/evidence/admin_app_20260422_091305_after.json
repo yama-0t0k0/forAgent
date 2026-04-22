@@ -1,0 +1,14 @@
+{
+  "companyId": null,
+  "role": "admin",
+  "displayName": "E2E Admin Tester",
+  "email": "e2e-test-A999@lat-inc.com",
+  "createdAt": {
+    "_seconds": 1776816723,
+    "_nanoseconds": 767000000
+  },
+  "updatedAt": {
+    "_seconds": 1776816723,
+    "_nanoseconds": 767000000
+  }
+}

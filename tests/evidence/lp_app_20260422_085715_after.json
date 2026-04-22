@@ -1,0 +1,14 @@
+{
+  "companyId": null,
+  "role": "individual",
+  "displayName": "E2E Test User",
+  "email": "e2e-test-C000000000001@lat-inc.com",
+  "createdAt": {
+    "_seconds": 1776815802,
+    "_nanoseconds": 650000000
+  },
+  "updatedAt": {
+    "_seconds": 1776815802,
+    "_nanoseconds": 650000000
+  }
+}
