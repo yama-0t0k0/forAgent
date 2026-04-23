@@ -106,7 +106,8 @@ const waitForPort = async (port, timeoutMs = 20000) => {
       const id = setTimeout(() => controller.abort(), 500);
       
       const response = await fetch(`http://localhost:${port}/`, { 
-        method: 'HEAD',
+        method: 'GET',
+        mode: 'no-cors',
         signal: controller.signal 
       });
       clearTimeout(id);

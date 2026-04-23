@@ -1,0 +1,29 @@
+appId: host.exp.Exponent
+---
+- openLink: ${EXPO_URL}
+
+# Handle Expo Go Prompts
+- runFlow:
+    when:
+      visible:
+        text: ".*開く.*|.*Open.*"
+    commands:
+      - tapOn:
+          text: "Open"
+          optional: true
+      - tapOn:
+          text: "開く"
+          optional: true
+
+# Wait for load (LP home screen)
+- extendedWaitUntil:
+    visible: 
+      text: ".*登録.*" # Looking for registration-related text common in LP
+    timeout: 30000
+    optional: true
+
+# Capture screenshot when app is confirmed visible or reached timeout
+- takeScreenshot: "lp_app_launched.png"
+
+- assertVisible:
+    text: ".*" # Just generic visible

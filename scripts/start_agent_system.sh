@@ -1,85 +1,76 @@
 #!/bin/bash
 
-# Configuration
+# IronClaw Autonomous Core — System Startup Script (v3)
+#
+# v3: ホスト上で直接実行する方式に移行。
+# コンテナはセキュリティ隔離（将来のエージェント実行）用途に限定。
+# オーケストレーター自体はホスト上の Node.js で稼働し、
+# Ollama への通信は localhost 直結で安定性を確保。
+
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-# Podman rootless socket path (default for podman-machine-default)
-export DOCKER_HOST="unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
 
 PROJECT_ROOT=$(pwd)
 ORCHESTRATOR_PATH="$PROJECT_ROOT/.agent/orchestrator/pm_orchestrator.js"
 WATCHDOG_PATH="$PROJECT_ROOT/scripts/agent_watchdog.js"
 LOG_DIR="$PROJECT_ROOT/.agent/orchestrator"
 DAEMON_LOG="$LOG_DIR/daemon.log"
+IRONCLAW_BINARY="$PROJECT_ROOT/shared/ironclaw_core/target/release/ironclaw_core"
 
 echo "--------------------------------------------------"
-echo "🚀 Starting Agent Development System..."
+echo "🚀 Starting IronClaw Autonomous Core v3..."
 echo "--------------------------------------------------"
 
-# Step 0: Ensure Container Runtime (Podman) is running
-echo "Checking Container Runtime (Podman)..."
-if [ -z "$(podman machine list --quiet)" ]; then
-    echo "⚠️  Podman machine is not initialized. Please run 'podman machine init' manually."
+# Step 0: 前回のプロセスをクリーンアップ
+pkill -f "node $ORCHESTRATOR_PATH" 2>/dev/null
+pkill -f "node $WATCHDOG_PATH" 2>/dev/null
+
+# Step 1: Ollama ヘルスチェック
+echo "Checking Ollama..."
+if ! curl -sf http://127.0.0.1:11434/api/tags > /dev/null 2>&1; then
+    echo "❌ Ollama が起動していません。"
+    echo "   → 'ollama serve' を実行してから再試行してください。"
     exit 1
 fi
+echo "✅ Ollama is READY."
 
-if [[ $(podman machine list --format "{{.LastUp}}") != *"Currently running"* ]]; then
-    echo "⚠️  Podman machine is not running. Attempting to start..."
-    podman machine start
-    
-    # Wait for Podman/Docker socket to be ready
-    MAX_RETRIES=30
-    COUNT=0
-    while ! podman info >/dev/null 2>&1; do
-        if [ $COUNT -ge $MAX_RETRIES ]; then
-            echo "❌ Error: Podman failed to start within time limit."
-            exit 1
-        fi
-        echo "Waiting for Podman... ($COUNT/$MAX_RETRIES)"
-        sleep 2
-        ((COUNT++))
-    done
+# Step 2: IronClaw Safety Guard バイナリ確認
+if [ -f "$IRONCLAW_BINARY" ]; then
+    echo "✅ IronClaw Safety Guard: $IRONCLAW_BINARY"
+else
+    echo "⚠️  IronClaw バイナリ未検出。ビルドします..."
+    (cd "$PROJECT_ROOT/shared/ironclaw_core" && cargo build --release)
+    if [ $? -ne 0 ]; then
+        echo "❌ IronClaw ビルド失敗"
+        exit 1
+    fi
+    echo "✅ IronClaw Safety Guard ビルド完了"
 fi
-echo "✅ Container Runtime (Podman Rootless) is READY."
 
-# Ensure log directory exists
+# Step 3: ログディレクトリ確保
 mkdir -p "$LOG_DIR"
 
-# Step 1: Build the Hardened IronClaw Image
-IMAGE_NAME="ironclaw-runtime"
-echo "Building IronClaw Runtime image ($IMAGE_NAME)..."
-/opt/homebrew/bin/podman build -t "$IMAGE_NAME" -f "$PROJECT_ROOT/Containerfile" "$PROJECT_ROOT"
+# Step 4: オーケストレーターをホスト上で起動（バックグラウンド）
+echo "Starting PM Orchestrator (Host)..."
 
-# Step 2: Start the Orchestrator (in Podman)
-echo "Starting PM Orchestrator in Podman..."
-# 既存のコンテナがあれば停止・削除
-/opt/homebrew/bin/podman stop ironclaw-active 2>/dev/null
-/opt/homebrew/bin/podman rm ironclaw-active 2>/dev/null
+# .env から GITHUB_TOKEN を読み込み（存在すれば）
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    export $(grep -v '^#' "$PROJECT_ROOT/.env" | grep GITHUB_TOKEN | xargs)
+fi
 
-# Determine Host IP for Ollama (macOS Podman fallback)
-OLLAMA_URL="http://host.containers.internal:11434"
+nohup node "$ORCHESTRATOR_PATH" >> /dev/null 2>&1 &
+ORCH_PID=$!
+echo "✅ Orchestrator started (PID: $ORCH_PID)"
 
-/opt/homebrew/bin/podman run -d \
-    --name ironclaw-active \
-    --env-file "$PROJECT_ROOT/.env" \
-    --env OLLAMA_URL="$OLLAMA_URL" \
-    -v "$PROJECT_ROOT:/app" \
-    -v "$HOME/.gitconfig:/root/.gitconfig:ro" \
-    -v "$HOME/.ssh:/root/.ssh:ro" \
-    --add-host=host.containers.internal:host-gateway \
-    "$IMAGE_NAME"
-
-echo "✅ Orchestrator started in Podman (Container: ironclaw-active)"
-
-# Step 3: Start the Watchdog (on Host - to monitor the volume-mapped log)
+# Step 5: Watchdog をホスト上で起動
 echo "Starting Agent Watchdog (Host)..."
-pkill -f "node $WATCHDOG_PATH" 2>/dev/null
-nohup node "$WATCHDOG_PATH" &
+nohup node "$WATCHDOG_PATH" >> /dev/null 2>&1 &
 echo "✅ Watchdog started (PID: $!)"
 
 echo "--------------------------------------------------"
-echo "System is now RUNNING."
+echo "System is now RUNNING (Host-native mode)."
 echo "- Main Log: $DAEMON_LOG"
 echo "- Alerts: $LOG_DIR/alerts.log"
 echo "- Status: $LOG_DIR/status.json"
 echo "--------------------------------------------------"
 echo "Tip: Use 'tail -f $DAEMON_LOG' to see activity."
+echo "     Use 'kill $ORCH_PID' to stop."

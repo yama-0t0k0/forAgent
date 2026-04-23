@@ -16,7 +16,7 @@ import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { IconButton } from '@shared/src/core/components/IconButton';
 import { NotificationBell } from '@shared/src/core/components/NotificationBell';
 import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
-import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
+import { NotificationService } from '@shared/src/features/notification/services/notificationService';
 import { useFirestoreSnapshot } from '@shared/src/core/utils/useFirestore';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 import { SYSTEM_USER_ID } from '@shared/src/core/constants';

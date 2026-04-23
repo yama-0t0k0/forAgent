@@ -5,7 +5,7 @@ import { THEME } from '@shared/src/core/theme/theme';
 import { adaptCompanyData } from '@shared/src/core/utils/CompanyAdapter';
 import { CompanyProfileView } from '@shared/src/features/company/components/CompanyProfileView';
 import { NotificationListModal } from '@shared/src/features/notification/components/NotificationListModal';
-import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
+import { NotificationService } from '@shared/src/features/notification/services/notificationService';
 import { ROUTES } from '@shared/src/core/constants/navigation';
 
 // Fallback background image

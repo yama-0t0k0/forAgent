@@ -12,6 +12,7 @@ import { User } from '@shared/src/core/models/User';
 import { BottomNav } from '@shared/src/core/components/BottomNav';
 import { JobSearchScreen } from '../features/job/JobSearchScreen';
 import { JobDetailScreen } from '../features/job/JobDetailScreen';
+import { ApplicationHistoryScreen } from '../features/job/ApplicationHistoryScreen';
 
 const Stack = createNativeStackNavigator();
 const ENGINEER_TEMPLATE = require('@assets/json/engineer-profile-template.json');
@@ -58,5 +59,6 @@ export const AppNavigator = () => (
         <Stack.Screen name={ROUTES.INDIVIDUAL_CAREER} component={CareerScreen} />
         <Stack.Screen name={ROUTES.INDIVIDUAL_JOB_SEARCH} component={JobSearchScreen} />
         <Stack.Screen name={ROUTES.JOB_DESCRIPTION} component={JobDetailScreen} />
+        <Stack.Screen name={ROUTES.INDIVIDUAL_APPLICATIONS} component={ApplicationHistoryScreen} />
     </Stack.Navigator>
 );

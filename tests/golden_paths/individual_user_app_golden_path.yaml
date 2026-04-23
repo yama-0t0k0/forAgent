@@ -1,0 +1,57 @@
+appId: host.exp.Exponent
+---
+- openLink: ${EXPO_URL}
+
+# Handle Expo Go Prompts
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn:
+          text: "Open"
+          optional: true
+      - tapOn:
+          text: "開く"
+          optional: true
+
+# Wait for load
+- extendedWaitUntil:
+    visible: 
+      id: "header_title"
+    timeout: 30000
+
+- takeScreenshot: "individual_app_launched.png"
+
+# Go to menu
+- tapOn: "メニュー"
+
+# Profile Editing Route
+- tapOn: "プロフィール編集"
+- extendedWaitUntil:
+    visible:
+      text: "エンジニア個人登録"
+    timeout: 10000
+
+# Test saving
+- scrollUntilVisible:
+    element:
+      id: "ハンドルネーム"
+    direction: DOWN
+- tapOn:
+    id: "ハンドルネーム"
+- eraseText: 20
+- inputText: "Super Golden User"
+- hideKeyboard
+- takeScreenshot: "individual_profile_edited.png"
+
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+- tapOn: "Save"
+
+# Assert Evidence
+- extendedWaitUntil:
+    visible:
+      text: ".*UPDATE.*public_profile.*"
+    timeout: 20000

@@ -1,0 +1,29 @@
+appId: host.exp.Exponent
+---
+- openLink: ${EXPO_URL}
+
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn:
+          text: "Open"
+          optional: true
+      - tapOn:
+          text: "開く"
+          optional: true
+
+- extendedWaitUntil:
+    visible: 
+      id: "header_title"
+    timeout: 30000
+
+- takeScreenshot: "corporate_app_launched.png"
+
+- tapOn: 
+    text: "メニュー"
+    optional: true
+
+- tapOn: 
+    text: "企業情報"
+    optional: true

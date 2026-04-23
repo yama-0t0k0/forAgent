@@ -1,5 +1,16 @@
 import { db } from '../firebaseConfig';
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDocs, query, orderBy, limit, arrayUnion } from 'firebase/firestore';
+import { 
+    collection, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    getDocs, 
+    query, 
+    where, 
+    serverTimestamp, 
+    arrayUnion,
+    writeBatch
+} from 'firebase/firestore';
 
 /**
  * FMJS (Fee Management and Job Status) サービス
@@ -7,75 +18,127 @@ import { collection, doc, setDoc, updateDoc, serverTimestamp, getDocs, query, or
  */
 export const FMJSService = {
     /**
-     * マッチング（FMJSレコード）を新規作成します。
-     * また、Step 4要件に従い、エンジニアのprivate_infoのallowed_companiesを更新します。
+     * すでに応募済みかどうかをチェックします。
+     * 
+     * @param {string} userId - エンジニアID
+     * @param {string} jdId - JD番号
+     * @returns {Promise<boolean>} 応募済みの場合はtrue
+     */
+    async checkAlreadyApplied(userId, jdId) {
+        try {
+            const q = query(
+                collection(db, 'selection_progress'),
+                where('id_individual_個人ID', '==', userId),
+                where('JD_Number', '==', jdId)
+            );
+            const querySnapshot = await getDocs(q);
+            return !querySnapshot.empty;
+        } catch (error) {
+            console.error('[FMJSService] Error checking application:', error);
+            return false;
+        }
+    },
+
+    /**
+     * 求人に応募します（マッチングの作成）。
      * 
      * @param {string} userId - エンジニアID (例: C000000000000)
      * @param {string} companyId - 会社ID (例: B00000)
      * @param {string} jdId - JD番号 (例: 02)
      * @param {Object} jdData - JDのデータ（タイトル等）
-     * @returns {Promise<{success: boolean, jobStatId?: string, error?: any}>} 作成結果
+     * @returns {Promise<{success: boolean, jobStatId?: string, error?: string}>} 作成結果
      */
-    async createMatching(userId, companyId, jdId, jdData) {
+    async applyForJob(userId, companyId, jdId, jdData = {}) {
         try {
+            // 重複チェック
+            const alreadyApplied = await this.checkAlreadyApplied(userId, jdId);
+            if (alreadyApplied) {
+                return { success: false, error: 'already_applied' };
+            }
+
             const today = new Date();
             const dateStr = today.getFullYear() +
                 String(today.getMonth() + 1).padStart(2, '0') +
                 String(today.getDate()).padStart(2, '0');
 
-            // JobStatIDの生成 (SYYYYMMDDXXXX)
-            // 本来はカウンターが必要ですが、ここではタイムスタンプベースで簡易生成
-            const jobStatId = `S${dateStr}${Math.floor(Math.random() * 9000) + 1000}`;
-
-            // Updated to use 'selection_progress' collection to match firestore.rules
+            // JobStatIDの生成 (SEL-YYYYMMDD-XXXX)
+            const jobStatId = `SEL-${dateStr}-${Math.floor(Math.random() * 9000) + 1000}`;
             const fmjsRef = doc(db, 'selection_progress', jobStatId);
 
             const newDoc = {
-                individual_ID: userId,
-                company_ID: companyId,
+                JobStatID: jobStatId,
+                id_individual_個人ID: userId,
+                id_company_法人ID: companyId,
                 JD_Number: jdId,
                 UpdateTimestamp: serverTimestamp(),
+                UpdateTimestamp_yyyymmddtttttt: new Date().toISOString(),
                 選考進捗: {
-                    fase_フェイズ: '応募_書類選考',
+                    fase_フェイズ: 'document_screening_書類選考',
                     status_ステータス: '未対応',
                     フェイズ履歴: [
                         {
-                            フェイズ: '応募_書類選考',
+                            フェイズ: 'document_screening_書類選考',
                             日付: dateStr,
                             ステータス: '未対応',
-                            コメント: 'システムによる自動作成'
+                            コメント: '求人応募による自動作成'
                         }
                     ]
                 },
-                手数料管理簿: {
-                    手数料の算出根拠: {
-                        理論年収: 0,
-                        紹介手数料率: 0,
-                        紹介手数料額: 0
-                    }
+                紹介料管理: {
+                    billing_amount_請求金額: 0,
+                    estimated_annual_salary_想定年収: jdData.estimatedSalary || 0,
+                    fee_rate_料率: 35
                 }
             };
 
-            await setDoc(fmjsRef, newDoc);
+            const batch = writeBatch(db);
+            
+            // 1. 選考ドキュメントの作成
+            batch.set(fmjsRef, newDoc);
 
-            // Step 4: private_infoのallowed_companiesを更新
-            // これにより、企業側がエンジニアの個人情報(PII)にアクセスできるようになる
-            try {
-                const privateInfoRef = doc(db, 'private_info', userId);
-                // Use setDoc with merge: true to ensure it works even if private_info doc doesn't exist yet
-                await setDoc(privateInfoRef, {
-                    allowed_companies: arrayUnion(companyId)
-                }, { merge: true });
-            } catch (piiError) {
-                console.warn('[FMJSService] Failed to update allowed_companies in private_info:', piiError);
-                // private_infoが存在しない場合(古いデータなど)は無視するか、エラーとして扱うか検討
-                // 現状はログ出力にとどめ、マッチング自体は成功とする
-            }
+            // 2. private_infoのallowed_companiesを更新 (PIIアクセス許可)
+            const privateInfoRef = doc(db, 'private_info', userId);
+            batch.set(privateInfoRef, {
+                allowed_companies: arrayUnion(companyId)
+            }, { merge: true });
+
+            await batch.commit();
 
             return { success: true, jobStatId };
         } catch (error) {
-            console.error('Error creating matching:', error);
-            return { success: false, error };
+            console.error('[FMJSService] Error applying for job:', error);
+            return { success: false, error: error.message };
         }
+    },
+
+    /**
+     * ユーザーの応募履歴を取得します。
+     * 
+     * @param {string} userId - エンジニアID
+     * @returns {Promise<Array>} 応募履歴リスト
+     */
+    async getUserApplications(userId) {
+        try {
+            const q = query(
+                collection(db, 'selection_progress'),
+                where('id_individual_個人ID', '==', userId)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(docSnap => ({
+                id: docSnap.id,
+                ...docSnap.data()
+            }));
+        } catch (error) {
+            console.error('[FMJSService] Error fetching user applications:', error);
+            return [];
+        }
+    },
+
+    /**
+     * 旧メソッド名との互換性維持
+     */
+    async createMatching(userId, companyId, jdId, jdData) {
+        return this.applyForJob(userId, companyId, jdId, jdData);
     }
 };
+

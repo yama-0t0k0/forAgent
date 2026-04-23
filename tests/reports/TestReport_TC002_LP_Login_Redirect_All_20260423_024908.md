@@ -4,7 +4,7 @@
 ## 1. テストサマリ
 - **テストケース番号**: TC-002
 - **テスト名**: LP ログイン・リダイレクト検証（全ロール）
-- **実施日時**: 2026/4/23 2:50:15
+- **実施日時**: 2026/4/23 10:27:32
 - **実施結果**: ✅ 合格 (All Passed)
 - **環境**: Web (Localhost / Expo Web)
 
@@ -20,9 +20,9 @@
 
 | ロール | 入力画面 | 成功画面 |
 |:---|:---|:---|
-| Admin | [Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Admin_input.png) | [Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Admin_success.png) |
-| Individual | [Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Individual_input.png) | [Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Individual_success.png) |
-| Corporate | [Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Corporate_input.png) | [Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Corporate_success.png) |
+| Admin | ![Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Admin_input.png) | ![Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Admin_success.png) |
+| Individual | ![Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Individual_input.png) | ![Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Individual_success.png) |
+| Corporate | ![Input](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Corporate_input.png) | ![Success](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/evidence/lp_app_web_20260423_024908_Corporate_success.png) |
 
 ## 4. ログ・関連ドキュメント
 - **設計書**: [TestCase_002_LP_Login_Redirect_All.md](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/docs/QA%26test/TestCase/TestCase_002_LP_Login_Redirect_All.md)

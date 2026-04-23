@@ -97,16 +97,30 @@
 ./githooks/safe_push.sh "commit message" --prompt "指示内容" --intent "目的" --outcome "結果"
 ```
 
-### 自律エージェントシステムの起動
+### 自律エージェントシステムの起動と検証
 **IronClaw Autonomous Core** を中心とした自律開発・監視システムを一括で起動します。
 Antigravity（クラウド AI）が Issue を起票した後は、IronClaw Core がローカルで自律的にタスクのルーティング・実行・監視を行い、クラウドトークン消費はゼロになります。
-```bash
-./scripts/start_agent_system.sh
-```
-このコマンドにより以下がバックグラウンドで開始されます：
-- **Podman (Rootless)**: コンテナ実行環境の自動チェック・起動（Zero Trust セキュリティ）
-- **IronClaw Core (pm_orchestrator.js)**: GitHub Issue の検知 → DAG 計画 → 専門家エージェントへのルーティング → 自律実行
-- **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示
+
+1. **システムの起動**:
+   ```bash
+   ./scripts/start_agent_system.sh
+   ```
+   ※ コンテナイメージのビルド (Podman) とオーケストレーターの起動が行われます。
+
+2. **E2E 自動運用テストの実行**:
+   ```bash
+   ./scripts/trigger_test_issue.sh
+   ```
+   ※ 自動でテスト用の GitHub Issue が起票され、エージェントが自律的にタスクを完了する流れを検証できます。
+
+3. **稼働状況の監視**:
+   ```bash
+   tail -f .agent/orchestrator/daemon.log
+   ```
+
+- **Podman (Rootless)**: コンテナ実行環境の自動チェック・起動（Zero Trust セキュリティ）。
+- **IronClaw Core (Rust/WASM)**: 物理的な隔離環境でのタスク実行と出力検閲。
+- **Agent Watchdog**: ログのリアルタイム監視とターミナルへの警告表示。
 
 ---
 

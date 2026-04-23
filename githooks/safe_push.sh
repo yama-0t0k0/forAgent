@@ -22,9 +22,15 @@ NO_COMMIT=false
 NO_PUSH=false
 SKIP_CI=false
 ISSUE_ONLY=false
+SKIP_PUSH_ISSUE=false
 CONTEXT_APPEND=""
 CONTEXT_FILE=""
 NOTE_LOCAL_AUTONOMY=false
+COMMENT_ISSUE_NUMBER=""
+COMMENT_BODY_FILE=""
+COMMENT_BODY=""
+COMMENT_ONLY=false
+ISSUE_BODY_FILE=""
 
 LOCAL_AUTONOMY_PREP_NOTES=$(cat <<'EOF'
 裏側で以下のプロセス群をバックグラウンドに放ちました！
@@ -95,6 +101,10 @@ parse_arguments() {
                 CONTEXT_FILE="$2"
                 shift 2
                 ;;
+            --issue-body-file)
+                ISSUE_BODY_FILE="$2"
+                shift 2
+                ;;
             --command-log)
                 COMMAND_LOG_FILE="$2"
                 shift 2
@@ -130,8 +140,33 @@ parse_arguments() {
                 SKIP_CI=true
                 shift
                 ;;
+            --no-push-issue)
+                SKIP_PUSH_ISSUE=true
+                shift
+                ;;
             --note-local-autonomy)
                 NOTE_LOCAL_AUTONOMY=true
+                shift
+                ;;
+            --comment-issue)
+                COMMENT_ISSUE_NUMBER="$2"
+                shift 2
+                ;;
+            --comment-body-file)
+                COMMENT_BODY_FILE="$2"
+                shift 2
+                ;;
+            --comment-body)
+                COMMENT_BODY="$2"
+                shift 2
+                ;;
+            --comment-only)
+                COMMENT_ONLY=true
+                NO_COMMIT=true
+                NO_PUSH=true
+                SKIP_CI=true
+                SKIP_PUSH_ISSUE=true
+                ISSUE_ONLY=false
                 shift
                 ;;
             *)
@@ -148,6 +183,14 @@ parse_arguments() {
 # Issue用の追加情報を収集する関数
 collect_issue_info() {
     if [ "$AUTO_MODE" = true ]; then
+        if [ -n "$ISSUE_BODY_FILE" ]; then
+            if [ ! -f "$ISSUE_BODY_FILE" ]; then
+                echo "❌ Error: --issue-body-file not found: $ISSUE_BODY_FILE"
+                exit 1
+            fi
+            return
+        fi
+
         if [ -n "$CONTEXT_FILE" ] && [ -z "$CONTEXT_NOTES" ]; then
             if [ -f "$CONTEXT_FILE" ]; then
                 CONTEXT_NOTES=$(cat "$CONTEXT_FILE")
@@ -591,6 +634,7 @@ create_push_issue() {
     export EXPLICIT_TITLE
     export TARGET_MILESTONE
     export AUTO_MODE
+    export ISSUE_BODY_FILE
 
     # Run the node script
     # Nodeスクリプトを実行
@@ -603,6 +647,55 @@ create_push_issue() {
         echo "❌ Issue作成に失敗しました。"
         # Non-critical failure, do not exit script
         # 致命的なエラーではないため、スクリプトを終了しない
+    fi
+}
+
+post_issue_comment() {
+    if [ -z "$COMMENT_ISSUE_NUMBER" ]; then
+        return 0
+    fi
+
+    if ! command -v gh &> /dev/null; then
+        echo "❌ Error: 'gh' command not found. Cannot post issue comment."
+        return 1
+    fi
+
+    local repo_url="${REPO_URL:-https://github.com/yama-0t0k0/forAgent}"
+    local repo_slug="${repo_url#https://github.com/}"
+    repo_slug="${repo_slug#http://github.com/}"
+    repo_slug="${repo_slug%.git}"
+
+    local body_file=""
+    local tmp_file=""
+
+    if [ -n "$COMMENT_BODY_FILE" ]; then
+        if [ ! -f "$COMMENT_BODY_FILE" ]; then
+            echo "❌ Error: --comment-body-file not found: $COMMENT_BODY_FILE"
+            return 1
+        fi
+        body_file="$COMMENT_BODY_FILE"
+    else
+        if [ -z "$COMMENT_BODY" ]; then
+            echo "❌ Error: Missing comment body. Use --comment-body or --comment-body-file."
+            return 1
+        fi
+        tmp_file="$(mktemp -t issue_comment.XXXXXX)"
+        printf '%s\n' "$COMMENT_BODY" > "$tmp_file"
+        body_file="$tmp_file"
+    fi
+
+    if gh issue comment "$COMMENT_ISSUE_NUMBER" --repo "$repo_slug" --body-file "$body_file"; then
+        echo "✅ Issue #$COMMENT_ISSUE_NUMBER にコメントを投稿しました"
+    else
+        echo "❌ Issue #$COMMENT_ISSUE_NUMBER へのコメント投稿に失敗しました"
+        if [ -n "$tmp_file" ] && [ -f "$tmp_file" ]; then
+            rm -f "$tmp_file" >/dev/null 2>&1 || true
+        fi
+        return 1
+    fi
+
+    if [ -n "$tmp_file" ] && [ -f "$tmp_file" ]; then
+        rm -f "$tmp_file" >/dev/null 2>&1 || true
     fi
 }
 
@@ -694,6 +787,16 @@ main() {
     # 1. 許可チェック（ポカヨケ）
     verify_user_instruction
 
+    if [ "$COMMENT_ONLY" = true ]; then
+        check_git_repo
+        post_issue_comment
+        echo ""
+        echo "🎉 Comment-only completed successfully!"
+        echo "🎉 コメント投稿が正常に完了しました！"
+        echo "=================================================="
+        return 0
+    fi
+
     if [ "$SKIP_CI" != true ]; then
         if [ -x "./scripts/local_ci.sh" ]; then
             echo "🛡️  Running Local CI Pipeline..."
@@ -714,7 +817,9 @@ main() {
 
     check_git_repo
     ensure_yama_branch
-    collect_issue_info
+    if [ "$SKIP_PUSH_ISSUE" != true ]; then
+        collect_issue_info
+    fi
 
     if [ "$ISSUE_ONLY" != true ]; then
         handle_changes
@@ -728,7 +833,10 @@ main() {
     PREV_PUSH_HASH=$(git rev-parse "origin/$TARGET_BRANCH" 2>/dev/null || true)
 
     push_changes
-    create_push_issue
+    if [ "$SKIP_PUSH_ISSUE" != true ]; then
+        create_push_issue
+    fi
+    post_issue_comment
     
     echo ""
     echo "🎉 Safe push completed successfully!"

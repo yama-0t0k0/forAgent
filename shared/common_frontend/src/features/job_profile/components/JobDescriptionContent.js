@@ -32,7 +32,7 @@ const BADGE_ITEMS = [
  * @param {Function} [props.onApply] - Callback for apply action
  * @returns {JSX.Element} The rendered content.
  */
-export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) => {
+export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply, isApplied }) => {
     const { data: localData } = useContext(DataContext);
     const [heatmapValues, setHeatmapValues] = useState(null);
     const [containerWidth, setContainerWidth] = useState(width);
@@ -132,15 +132,24 @@ export const JobDescriptionContent = ({ companyId, jdNumber, onEdit, onApply }) 
 
                 </ScrollView>
 
-                {/* 4. Bottom Button (Apply) */}
                 <View style={styles.bottomButtonContainer}>
                     <PrimaryButton
-                        style={styles.centerButton}
-                        activeOpacity={0.8}
-                        onPress={onApply || (() => {})}
+                        style={[
+                            styles.centerButton,
+                            isApplied && { backgroundColor: THEME.surfaceMuted, borderWidth: 1, borderColor: THEME.borderDefault }
+                        ]}
+                        activeOpacity={isApplied ? 1 : 0.8}
+                        onPress={isApplied ? null : (onApply || (() => {}))}
                     >
-                        <Text style={styles.centerButtonText}>応募する</Text>
-                        <Ionicons name='paper-plane-outline' size={20} color={THEME.textInverse} style={{ marginTop: -2 }} />
+                        <Text style={[styles.centerButtonText, isApplied && { color: THEME.textMuted }]}>
+                            {isApplied ? '応募済み' : '応募する'}
+                        </Text>
+                        <Ionicons 
+                            name={isApplied ? 'checkmark-circle' : 'paper-plane-outline'} 
+                            size={20} 
+                            color={isApplied ? THEME.success : THEME.textInverse} 
+                            style={{ marginTop: -2 }} 
+                        />
                     </PrimaryButton>
                 </View>
             </SafeAreaView>

@@ -19,6 +19,7 @@ export const APP_TABS = {
   CAREER: 'Career',
   CONNECTION: 'Connection',
   SEARCH: 'Search',
+  APPLICATIONS: 'Applications',
   MENU: 'Menu',
   REGISTRATION: 'Registration'
 };

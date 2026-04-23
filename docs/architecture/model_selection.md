@@ -18,12 +18,29 @@
 - **ステータス**: **現行標準（16GB環境用）**
 - **採用の理由**:
   - **軽量性**: 1.9GB とコンパクトで、16GB RAM の環境でも安定して常駐可能。
-  - **ツール対応**: `ollama show` にて `Capabilities: tools` を明示的にサポートしており、IronClaw からのファイル操作やコマンド実行の指示を理解できる。
-  - **推論性能**: コーディング関連の指示に対する日本語理解と構造化出力の精度が高く、自律開発サイクルを回すのに十分な実力を持つ。
+  - **JSON 構造出力の安定性**: コーディング関連の指示に対する日本語理解と構造化出力の精度が高く、自律開発サイクルを回すのに十分な実力を持つ。
 
-### 4. 専門エージェント・チームトポロジー
-チームトポロジーの哲学に準拠した 7 つの専門エージェント
-.agent/skills/配下に定義されている。
+---
+
+## Action Execution (実行ループ) におけるアーキテクチャの決定事項
+
+v3 自律稼働テストの過程で、以下の課題と解決策（方針）が決定しました。これらの決定は、ローカルLLMの制約を克服しつつ、高い信頼性と省エネを実現するためのものです。
+
+### 1. Tool Capability への非依存（Hybrid Adapter 方式）
+初期は Ollama API の `chat + tools` エンドポイントに依存する想定でしたが、モデルへの依存度を下げるため不採用としました。
+- **課題**: `tools` Capability の挙動はモデルごとに異なり、特定の小規模モデルでは Function Calling が安定しない、または将来APIの仕様変更に対応できなくなるリスクがあった。
+- **解決策**: `docs/CodingConventions/tool_call_schema.json` を SSOT（単一の真実の情報源）として定義。LLMには `format: 'json'` で出力を強制し、プロンプトにこのスキーマを埋め込む**ハイブリッド・アダプタ方式**を採用。特定のAPIエンドポイントに依存せず、いかなるLLMでもJSONさえ出力できればツール実行が可能になりました。
+
+### 2. コンテキスト飽和の防止（Two-Stage Prompting）
+- **課題**: 以前は「どう計画するか」と「どのツールを実行するか」を毎回ひとつの巨大なプロンプト（Project Context, Milestone, SKILL等を含む）で推論させており、数千トークンの無駄が発生、推論遅延や文脈迷子を招いていた。
+- **解決策**: プロンプトを「計画フェーズ（1度だけ重いコンテキストを渡してタスクのDAGを作る）」と「実行フェーズ（対象タスクの指示、JSON Schema、直前のツール結果だけを渡すループ）」の**二段階に分離（Two-Stage Prompting）**し、トークン消費を劇的に削減・安定化しました。
+
+### 3. 不正JSONの物理的遮断と自己修復（Physical Validation & Self-Healing）
+- **課題**: プロンプトで「必ずこのJSON Schemaに従え」と指示しても、LLMエスケープ漏れや括弧の閉じ忘れ、未定義フィールドの混入など、不完全なJSONが出力されるリスクが常にある。
+- **解決策**: プロンプトでの「お願い（ソフト制約）」に頼るのをやめ、Rust製システム (`ironclaw_core --validate-tool`) による **物理的制約（Hard Constraint）** を導入。`serde_json` の厳格な型システムを用いて実行前にJSONをパースし、構造違反があれば `exit 1` と共に出力されるRustのコンパイラレベルのエラーメッセージをキャッチします。これを直ちにOrchestratorがLLMにフィードバックし、「エラーがあるので修正せよ」と突き返す**自己修復(Self-correction)ループ**を標準装備しました。
+
+## 専門エージェント・チームトポロジー
+チームトポロジーの哲学に準拠した 7 つの専門エージェントが `.agent/skills/` 配下に定義されています。
 
 
 ## 連携の仕組み
@@ -37,13 +54,14 @@ IronClaw Autonomous Core、Qwen (Local LLM)、および 各専門家エージェ
 #### IronClaw Autonomous Core (自律システムの中枢 — Router + Executor + Safety Guard)
 
 **役割**: システム全体の「心臓部」。Issue の検知からタスクの完了報告まで、すべてを自律的に統括します。
+「IronClaw Core」は**システム全体の名称**であり、内部的には Orchestrator (Node.js) + Safety Guard (Rust) + Watchdog (Node.js) の 3 コンポーネントで構成されます。
 
 **具体的な仕事**:
-- GitHub Issue をポーリング検知し、処理を開始します。
-- Local LLM (Qwen) を呼び出してタスクの DAG（作業グラフ）を計画させます。
-- DAG の各タスクを、最適な専門家エージェントに割り当てて Sandbox 内で逐次実行します。
-- `ironclaw_security_policy.md` に基づく安全管理（コンプライアンス・エンジン）を常時適用します。
-- タスクが失敗した場合、Qwen による原因分析と修正タスクの追加を行います。
+- **Orchestrator** (`pm_orchestrator.js`): GitHub Issue をポーリング検知し、処理を開始します。ホスト上で直接実行され、Ollama (localhost:11434) に直結で通信します。
+- **Orchestrator → Qwen**: Local LLM (Qwen) を呼び出してタスクの DAG（作業グラフ）を計画させます。
+- **Orchestrator → Agents**: DAG の各タスクを、最適な専門家エージェントに割り当てて逐次実行します。
+- **Safety Guard** (`ironclaw_core`): 全 LLM 出力を stdin/stdout パイプ経由で Regex 検閲し、機密情報の漏洩を物理的に遮断します。
+- **失敗分析**: タスク失敗時に Qwen を再度呼び出し、原因分析と修正タスクの追加を行います。
 
 #### Qwen 2.5 3B (Local LLM / 思考エンジン)
 

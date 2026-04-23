@@ -144,6 +144,7 @@ const LoginScreen = ({ navigation }) => {
                         style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
                         onPress={handleLogin}
                         disabled={isLoading}
+                        testID="login-submit-button"
                     >
                         {isLoading ? (
                             <ActivityIndicator color={THEME.textInverse} />

@@ -27,9 +27,21 @@ export const JobDetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [isApplying, setIsApplying] = useState(false);
+    const [isAlreadyApplied, setIsAlreadyApplied] = useState(false);
 
     // Params from JobSearchScreen
     const { companyId, jdNumber } = route.params || {};
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            const auth = getAuth();
+            if (auth.currentUser && companyId && jdNumber) {
+                const applied = await FMJSService.checkAlreadyApplied(auth.currentUser.uid, jdNumber);
+                setIsAlreadyApplied(applied);
+            }
+        };
+        checkStatus();
+    }, [companyId, jdNumber]);
 
     if (!companyId || !jdNumber) {
         return (
@@ -57,7 +69,7 @@ export const JobDetailScreen = () => {
             return;
         }
 
-        if (isApplying) return;
+        if (isApplying || isAlreadyApplied) return;
 
         Alert.alert(
             '応募確認',
@@ -70,15 +82,20 @@ export const JobDetailScreen = () => {
                     onPress: async () => {
                         setIsApplying(true);
                         try {
-                            const result = await FMJSService.createMatching(
+                            const result = await FMJSService.applyForJob(
                                 currentUser.uid,
                                 companyId,
                                 jdNumber,
-                                {} // Extra data can be passed here
+                                {} // Extra data
                             );
                             
-                            if (result.success === true || result.status === APPLY_RESULT.SUCCESS) {
-                                Alert.alert('応募完了', '応募を受け付けました。企業からの連絡をお待ちください。');
+                            if (result.success) {
+                                Alert.alert('応募完了', '応募を受け付けました。応募履歴から状況を確認できます。', [
+                                    { text: 'OK', onPress: () => setIsAlreadyApplied(true) }
+                                ]);
+                            } else if (result.error === 'already_applied') {
+                                Alert.alert('通知', 'この求人には既に応募済みです。');
+                                setIsAlreadyApplied(true);
                             } else {
                                 Alert.alert('エラー', result.error || '応募に失敗しました。再度お試しください。');
                             }
@@ -110,6 +127,7 @@ export const JobDetailScreen = () => {
                 companyId={companyId}
                 jdNumber={jdNumber}
                 onApply={handleApply}
+                isApplied={isAlreadyApplied}
                 // Individual app doesn't typically show Edit button on JD detail
             />
 

@@ -1,0 +1,10 @@
+shared/ironclaw_core/target
+node_modules
+.git
+.expo
+*.log
+nohup.out
+.agent/orchestrator/daemon.log
+.agent/orchestrator/alerts.log
+.agent/orchestrator/status.json
+.agent/orchestrator/processed_issues.json

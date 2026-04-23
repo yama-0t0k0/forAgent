@@ -1,31 +1,34 @@
-# Project Sync & Milestone 3 完了報告
+# TDD Integration & Autonomous Workflow Verification
 
-コードベースでの実装状況と GitHub ステータスの乖離を解消するため、Milestone 3 (Automated App Startup Mechanism) の最終検証・クローズ、および Milestone 9 & 10 のドキュメント同期を全て完了しました。これにより、リポジトリの状態とドキュメント上のロードマップが完全に一致しました。
+IronClaw システムに TDD（テスト駆動開発）プロセスを統合し、自律型エージェントが「テストファースト」で開発を行う体制を構築しました。
 
-## 実施内容
+## 実施した主な活動
 
-### 1. GitHub ステータスの完全同期
-以下の Issue およびマイルストーンを、実態に合わせてクローズしました。
-- **#66, #67, #68 (Milestone 9)**: 完了済み。
-- **#19, #78 (Milestone 3)**: Deep Link に関する E2E 検証（DevBroker 連携テスト）および設計書更新を完了。
-- **Milestone 3 (Automated App Startup Mechanism)**: 全 Issue 完了につきクローズ。
-- **Milestone 9 (Alpha Management & Member Control)**: 完了済み。
+### 1. エージェントスキルの刷新
+- `apps_expert`, `platform_shared`, `enabling_quality` の `SKILL.md` を更新。
+- **Red-Green-Refactor** の思考プロセスを定義し、実装コードの前にテストコードを書くことを義務化しました。
 
-### 2. ドキュメントの最新化
-現状のプロジェクトステータスを反映するため、以下のドキュメントを更新しました。
-- **[README.md](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/README.md)**: ロードマップにおいて Milestone 9 および 10 が完了していることを明記。
-- **[docs/registration_flow_design.md](file:///Users/yamakawamakoto/ReactNative_Expo/forAgent/docs/registration_flow_design.md)**: 
-    - 開発フェーズに **Phase 4: Alpha Management & Governance** を追加し、完了としてマーク。
-    - 各ロール（Alpha, Beta, Gamma）の定義、権限、および通知の仕組みが詳細に記載されていることを確認（Section 9.2, 10）。
+### 2. Orchestrator の DAG 計画プロンプトの改修
+- `pm_orchestrator.js` の `planTaskDAG` 関数を修正し、計画に「テスト作成」と「検証」のステップを必ず含めるように強制しました。
+- フォールバック DAG（LLM が計画に失敗した場合）も「設計/テスト → 実装 → 監査」の 3 ステップ構成に刷新しました。
 
-## 確認されたステータス
+### 3. TDD 実証テスト (reverseString Utility)
+- 文字列を反転させる関数 `reverseString` を TDD プロセスで実装しました。
+- **Red**: `shared/common_logic/src/__tests__/stringUtils.test.ts` を作成し、失敗を確認。
+- **Green**: `shared/common_logic/src/stringUtils.ts` を実装し、テストをパス。
+- **Environment**: `shared/common_logic` に Jest/TypeScript 環境を構築しました。
 
-- **法人ロール体系**: 
-    - `corporate-alpha`: 採用管理者（最大3名、ガバナンス責任者）
-    - `corporate-beta`: 採用関係者（実務者）
-    - `corporate-gamma`: 一般社員（非採用関係者）
-- **ガバナンス保護**: 最後1人の Alpha ユーザーの保護（Successor 指定強制）が正常に機能することを確認。
-- **通知システム**: ロール変更時に本人および全 Alpha ユーザーへ「実行者名」を含む通知が送信される設計を確認。
+## 検証結果
 
-## 次のステップ
-Milestone 3, 9, 10 が全てクローズされ、開発環境の自動起動メカニズムとガバナンス基盤が整いました。次は **Milestone 11 (Selection Process & FMJS Integration)** への移行準備が整いました。
+- **DAG Planning**: Qwen2.5:3b が「テスト作成」を含む DAG を自律的に生成できることを確認しました。
+- **Quality Gate**: `enabling_quality` がテスト実行者としての責務を負い、最終的な品質保証を行うフローを確立しました。
+- **Execution Efficiency**: 環境構築（package.json/tsconfig.jsonの整備）が完了していれば、エージェントが自律的に Red-Green のサイクルを回せることを実証しました。
+
+## 完了した Issue (Milestone 15)
+
+以下の TDD 統合に関連する全ての Issue をクローズし、Milestone 15 を完了としました。
+
+- #149: TDD 原則の専門家エージェントへの付与
+- #150: Orchestrator による TDD サイクル（DAG 計画）の強制
+- #151: enabling_quality によるテスト実行監査機能の追加
+- #152: 【TDD 実証】shared/common_logic への reverseString 実装

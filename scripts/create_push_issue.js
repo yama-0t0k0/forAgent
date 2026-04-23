@@ -29,6 +29,8 @@ const CONFIG = {
     prevPushHash: env.PREV_PUSH_HASH,
     currentHash: env.CURRENT_HASH,
     commitMessage: env.COMMIT_MESSAGE || '',
+
+    issueBodyFile: env.ISSUE_BODY_FILE || '',
     
     // User Input Fields
     // ユーザー入力フィールド
@@ -173,6 +175,16 @@ function writeIssueBodyToTempFile(issueBody) {
     throw lastError || new Error('Failed to create temp file for issue body');
 }
 
+function readIssueBodyFileIfProvided() {
+    const filePath = String(CONFIG.issueBodyFile || '').trim();
+    if (!filePath) return null;
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`ISSUE_BODY_FILE not found: ${filePath}`);
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return content;
+}
+
 // --- Main Logic ---
 // --- メインロジック ---
 
@@ -284,7 +296,8 @@ function main() {
 
     // 3. Construct Issue Body
     // 3. Issue本文の構築
-    const issueBody = `## 🤖 AI Development Cycle
+    const externalIssueBody = readIssueBodyFileIfProvided();
+    const issueBody = externalIssueBody ?? `## 🤖 AI Development Cycle
 
 ### 📝 Implementation Details / 実装内容
 ${CONFIG.userPrompt}

@@ -7,6 +7,19 @@
 
 ---
 
+## 用語の定義
+
+> [!IMPORTANT]
+> **「IronClaw Core」は自律サブシステム全体の名称**です。Rust バイナリ単体を指す名前ではありません。内部的には以下の 3 つのコンポーネントで構成されます：
+
+| コンポーネント | 実装 | 役割 |
+| :--- | :--- | :--- |
+| **Orchestrator** | `pm_orchestrator.js` (Node.js) | 計画・ルーティング・LLM呼び出し・失敗分析。ホスト上で直接実行。 |
+| **Safety Guard** | `ironclaw_core` (Rust binary) | 出力検閲フィルタ。LLM出力を stdin で受け取り、機密情報パターンを Regex で検出・遮断する物理的制約レイヤー。 |
+| **Watchdog** | `agent_watchdog.js` (Node.js) | ログのリアルタイム監視と異常検知・アラート。 |
+
+---
+
 ## 1. 概念構成（Conceptual Architecture）
 
 システムは大きく5つのレイヤーに分かれます。
@@ -22,19 +35,19 @@
 
 3. **Autonomous Core / IronClaw（自律システムの中枢 — ルーティング・実行・安全管理）**
    - **本システムの心臓部。** Antigravity が投入した Issue をポーリング検知し、以下を自律的に実行する：
-     - **計画**: Local LLM (Qwen) を呼び出し、Issue をタスクの DAG（有向非巡回グラフ）に分解。
+     - **計画**: Orchestrator が Local LLM (Qwen) を呼び出し、Issue をタスクの DAG（有向非巡回グラフ）に分解。
      - **ルーティング**: DAG の各タスクを、`.agent/skills/*.md` に定義された最適な専門家エージェントに割り当て。
-     - **実行**: 専門家エージェントを Sandbox 内で逐次実行し、前タスクの出力を次タスクに注入する「バケツリレー」を管理。
-     - **安全管理**: `ironclaw_security_policy.md` に基づくコンプライアンス・エンジンとして、全エージェントの動作を監視・制限。
+     - **実行**: Orchestrator 内部の **Action Executor** ループが起動。二段階プロンプト（軽量化されたプロンプトと JSON Schema）を用いてエージェントに指示し、ツール呼び出しを実行。Path Validator と Action Allowlist により安全性を担保。
+     - **安全管理**: Safety Guard (`ironclaw_core` Rust binary) が全 LLM 出력을 Regex で検閲するだけでなく、`serde_json` を用いた**物理的な JSON 構造バリデーション**を実施。スキーマに違反する出力は `exit 1` として弾き、LLM に自己修復ループを強制。
      - **失敗分析**: タスク失敗時に Qwen を再度呼び出し、原因分析と解決策の提示を行う。
-   - **コンテナ基盤**: セキュリティを最優先し、デーモンレスかつ一般ユーザー権限で動作する **Podman (Rootless)** を採用。
-   - **セキュリティ強化 (Zero Trust)**: AI エージェントが万が一暴走しても、ホスト (macOS) のルート権限には物理的にアクセスできない多層防御層（VM 隔離 + 非特権実行）を構築。
-   - **最適化**: Apple Silicon (M4) の VZ 仮想化ドライバと VirtioFS を活用し、安定したファイル共有と実行速度を確保。
+   - **実行環境**: Orchestrator は**ホスト上で直接実行**し、Ollama (LLM) への通信を `127.0.0.1` 直結で安定化。コンテナ (Podman Rootless) は将来のエージェント実行隔離（Sandbox）用途に予約。
+   - **セキュリティ強化 (Zero Trust)**: Rust ベースの Safety Guard による出力検閲と、環境変数のデコンタミネーション（機密除去）を組み合わせた多層防御。
+   - **段階的セキュリティロードマップ**: 現在は Regex + Podman の二重防壁。将来の Phase 2（Dart 移行）時に WASM Capability-based Security を再導入予定。
 
 4. **Cognitive Layer / Local LLM + 専門家エージェント（思考と実装）**
    - **Local LLM (Qwen 2.5 3B等)**: IronClaw Core が呼び出す「思考エンジン」。Issue の分析、DAG 計画の立案、失敗原因の推論を担当。
    - **専門家エージェント**: `.agent/skills/` に定義された 7 つの専門家。IronClaw Core からの指示に基づき、特定領域のコード生成・修正を行う。
-   - 将来的なモデル移行（特定の LLM 非依存）への備えとして、長大なコンテキスト（コード依存関係や過去の経緯）の保全は **GitHub をメインの記憶領域（Single Source of Truth）** として管理します。
+   - **GitHub as SSOT (Memory)**: 文脈飽和を防ぐため、長大な過去の経緯は LLM コンテキストに直接持たせず、**GitHub Milestone および直近の Issue 履歴** を Single Source of Truth (外部記憶) として実行時に動的注入します。
      - https://github.com/yama-0t0k0/forAgent/issues
      - https://github.com/yama-0t0k0/forAgent/milestone
    - **モデル選定基準**: 実行環境のリソースに応じ、以下のモデルを動的に選択します。
@@ -125,11 +138,11 @@ graph TD
 ### 後半：IronClaw Core による自律実行（Autonomous フェーズ）
 8. **Detection (検知)**: IronClaw Core（`pm_orchestrator.js`）が Issue のポーリングで `ready-for-agent` ラベルを検知し、処理を開始する。
 9. **Implementation (自律実行 & トークン消費ゼロ)**:
-    * IronClaw Core が Local LLM (Qwen) に DAG 計画を依頼。
-    * DAG の各タスクを、最適な専門家エージェントに割り当てて Sandbox 内で逐次実行。
-    * **コスト**: 全処理がローカルで完結するため、クラウドトークンの消費は **実質ゼロ**。
-    * 失敗時は Qwen が原因分析を行い、修正タスクを追加して再試行。
-10. **Reporting & Review (報告と確認)**: IronClaw Core が Draft PR を作成し、結果を人間に提示。人間が確認し、納得しなかった場合は Antigravity に伝え、Step 4 からループする。
+    * **Phase 1 (DAG計画)**: IronClaw Core が Local LLM (Qwen) にタスク分割を依頼。
+    * **Phase 2 (Action Executor)**: 各タスクを最適なエージェントに割り当てて逐次実行。プロンプトを軽量化（二段階プロンプト）し、`tool_call_schema.json` を用いた堅牢なツール実行ループを回す。
+    * **Cost**: 全処理がローカル完結のためクラウドトークン消費は **実質ゼロ**。
+    * **Self-Healing**: JSON構造が壊れていた場合は Rust フィルタが即座に弾き、LLM にエラーメッセージを渡して自己修復(Self-correction)させる。
+10. **Reporting & Review (報告と確認)**: Issue 完了時に自動クローズし、結果を人間に提示。人間が確認し、納得しなかった場合は Antigravity に伝え、Step 4 からループする。
 
 ---
 

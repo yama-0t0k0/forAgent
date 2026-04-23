@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "tool_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "write_file",
+              "read_file",
+              "run_command",
+              "github_comment",
+              "github_close_issue"
+            ],
+            "description": "The name of the tool to execute."
+          },
+          "arguments": {
+            "type": "object",
+            "description": "The arguments for the tool."
+          }
+        },
+        "required": ["name", "arguments"]
+      }
+    }
+  },
+  "required": ["tool_calls"]
+}

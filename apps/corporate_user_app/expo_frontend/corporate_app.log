@@ -1,0 +1,69 @@
+env: load .env
+env: export EXPO_PUBLIC_FIREBASE_API_KEY EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN EXPO_PUBLIC_FIREBASE_PROJECT_ID EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID EXPO_PUBLIC_FIREBASE_APP_ID EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID EXPO_PUBLIC_MATCHING_API_URL EXPO_PUBLIC_ADMIN_APP_URL EXPO_PUBLIC_CORPORATE_APP_URL EXPO_PUBLIC_INDIVIDUAL_APP_URL
+Starting project at /Users/yamakawamakoto/ReactNative_Expo/forAgent/apps/corporate_user_app/expo_frontend
+Starting Metro Bundler
+The following packages should be updated for best compatibility with the installed expo version:
+  expo@54.0.30 - expected version: ~54.0.33
+  expo-constants@18.0.12 - expected version: ~18.0.13
+  expo-router@6.0.21 - expected version: ~6.0.23
+  @react-native-async-storage/async-storage@3.0.1 - expected version: 2.2.0
+  react-native-pager-view@8.0.0 - expected version: 6.9.1
+Your project may not work correctly until you install the expected versions of the packages.
+Waiting on http://localhost:8083
+Logs for your project will appear below.
+Web apps/corporate_user_app/expo_frontend/index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundling failed 743ms apps/corporate_user_app/expo_frontend/index.js (654 modules)
+Unable to resolve "../models/MemberRole" from "shared/common_frontend/src/features/company/services/memberService.js"
+[0m [90m  9 |[39m   getDocs
+ [90m 10 |[39m } [36mfrom[39m [32m'firebase/firestore'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 11 |[39m [36mimport[39m { [33mMemberRole[39m } [36mfrom[39m [32m'../models/MemberRole'[39m[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 12 |[39m [36mimport[39m { [33mNotificationService[39m } [36mfrom[39m [32m'@shared/src/features/notification/services/notificationService'[39m[33m;[39m
+ [90m 13 |[39m [36mimport[39m { [33mSYSTEM_USER_ID[39m } [36mfrom[39m [32m'@shared/src/core/constants'[39m[33m;[39m
+ [90m 14 |[39m[0m
+
+Import stack:
+
+ shared/common_frontend/src/features/company/services/memberService.js
+ | import "../models/MemberRole"
+
+ apps/corporate_user_app/expo_frontend/src/features/company_profile/MemberManagementScreen.js
+ | import "../../../../../../shared/common_frontend/src/features/company/services/memberService"
+
+ apps/corporate_user_app/expo_frontend/App.js
+ | import "./src/features/company_profile/MemberManagementScreen"
+
+ apps/corporate_user_app/expo_frontend/index.js
+ | import "./App"
+
+ 
+ | import "./apps/corporate_user_app/expo_frontend/index"
+
+Web apps/corporate_user_app/expo_frontend/index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundling failed 618ms apps/corporate_user_app/expo_frontend/index.js (689 modules)
+Unable to resolve "../models/MemberRole" from "shared/common_frontend/src/features/company/services/memberService.js"
+[0m [90m  9 |[39m   getDocs
+ [90m 10 |[39m } [36mfrom[39m [32m'firebase/firestore'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 11 |[39m [36mimport[39m { [33mMemberRole[39m } [36mfrom[39m [32m'../models/MemberRole'[39m[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 12 |[39m [36mimport[39m { [33mNotificationService[39m } [36mfrom[39m [32m'@shared/src/features/notification/services/notificationService'[39m[33m;[39m
+ [90m 13 |[39m [36mimport[39m { [33mSYSTEM_USER_ID[39m } [36mfrom[39m [32m'@shared/src/core/constants'[39m[33m;[39m
+ [90m 14 |[39m[0m
+
+Import stack:
+
+ shared/common_frontend/src/features/company/services/memberService.js
+ | import "../models/MemberRole"
+
+ apps/corporate_user_app/expo_frontend/src/features/company_profile/MemberManagementScreen.js
+ | import "../../../../../../shared/common_frontend/src/features/company/services/memberService"
+
+ apps/corporate_user_app/expo_frontend/App.js
+ | import "./src/features/company_profile/MemberManagementScreen"
+
+ apps/corporate_user_app/expo_frontend/index.js
+ | import "./App"
+
+ 
+ | import "./apps/corporate_user_app/expo_frontend/index"
+

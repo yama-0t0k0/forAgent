@@ -1,0 +1,44 @@
+appId: host.exp.Exponent
+---
+- openLink: ${EXPO_URL}
+
+- runFlow:
+    when:
+      visible:
+        text: ".*開く.*|.*Open.*"
+    commands:
+      - tapOn:
+          text: "Open"
+          optional: true
+      - tapOn:
+          text: "開く"
+          optional: true
+      - tapOn:
+          text: "Continue"
+          optional: true
+
+- extendedWaitUntil:
+    visible: 
+      text: ".*Career Architecture.*|.*管理画面.*|.*header_title.*"
+    timeout: 30000
+
+- takeScreenshot: "admin_app_launched.png"
+
+# Admin app should read users
+- scrollUntilVisible:
+    element:
+      id: "engineer_item"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    id: "engineer_item"
+    index: 0
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "user_full_name"
+    timeout: 10000
+    optional: true

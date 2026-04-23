@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@shared/src/core/theme/theme';
-import { NotificationService } from '../services/NotificationService';
+import { NotificationService } from '../services/notificationService';
 
 const DEFAULT_NOTIFICATION_TITLE = 'システム通知';
 const DEFAULT_NOTIFICATION_DATE_LABEL = 'Today';

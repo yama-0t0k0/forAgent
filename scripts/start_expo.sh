@@ -1,9 +1,9 @@
 #!/bin/bash
-
 # scripts/start_expo.sh
 # Usage: ./scripts/start_expo.sh <app_name>
 # Supported apps: admin_app, individual_user_app, corporate_user_app, job_description, fmjs, auth_portal, lp_app
 
+export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.maestro/bin:$PATH"
 APP_NAME=$1
 MODE_OVERRIDE=$2
 EXTRA_FLAGS=""

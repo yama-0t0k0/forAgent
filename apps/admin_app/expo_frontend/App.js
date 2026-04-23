@@ -68,9 +68,10 @@ const AdminAppWrapper = () => {
   // Auto-Grant Admin Privileges in Dev Mode & Fetch Data
   useEffect(() => {
     // Immediate sign-in check for development
-    // Note: Temporarily disabled auto-login to allow verifying SignInScreen
-    if (false && __DEV__ && !auth.currentUser) {
-      console.log('⚠️ [Dev Mode] No current user found initially. Attempting Anonymous Sign-In...');
+    // E2Eテスト時は認証をスキップしてダッシュボードを表示できるようにする
+    const skipAuth = process.env.EXPO_PUBLIC_E2E_SKIP_AUTH === 'true';
+    if (skipAuth && __DEV__ && !auth.currentUser) {
+      console.log('⚠️ [E2E Mode] Skipping Auth. Attempting Anonymous Sign-In...');
       const { DeviceEventEmitter } = require('react-native');
       setTimeout(() => {
         DeviceEventEmitter.emit('FIRESTORE_IO_EVENT', `[INIT]|AUTH_MISSING|Attempting Anon Login...`);

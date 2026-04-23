@@ -20,10 +20,10 @@ import { APP_TABS } from '@shared/src/core/constants/ui';
  */
 export const BottomNav = ({ navigation, activeTab = APP_TABS.HOME, userDoc = null }) => {
     const tabs = [
-        { id: APP_TABS.CAREER, label: 'キャリア', icon: 'person-circle-outline' },
-        { id: APP_TABS.CONNECTION, label: 'つながり', icon: 'people-circle-outline' },
         { id: APP_TABS.HOME, label: 'ホーム', icon: 'home-outline', activeIcon: 'home' },
         { id: APP_TABS.SEARCH, label: '探す', icon: 'search-outline', activeIcon: 'search' },
+        { id: APP_TABS.APPLICATIONS, label: '応募履歴', icon: 'briefcase-outline', activeIcon: 'briefcase' },
+        { id: APP_TABS.CONNECTION, label: 'つながり', icon: 'people-circle-outline' },
         { id: APP_TABS.MENU, label: 'メニュー', icon: 'grid-outline', activeIcon: 'grid' },
     ];
 
@@ -38,6 +38,8 @@ export const BottomNav = ({ navigation, activeTab = APP_TABS.HOME, userDoc = nul
             navigation.navigate(ROUTES.INDIVIDUAL_CONNECTION, { userDoc });
         } else if (tabId === APP_TABS.SEARCH) {
             navigation.navigate(ROUTES.INDIVIDUAL_JOB_SEARCH, { userDoc });
+        } else if (tabId === APP_TABS.APPLICATIONS) {
+            navigation.navigate(ROUTES.INDIVIDUAL_APPLICATIONS, { userDoc });
         } else if (tabId === APP_TABS.MENU) {
             navigation.navigate(ROUTES.MENU, { userDoc });
         } else if (tabId === APP_TABS.CAREER) {

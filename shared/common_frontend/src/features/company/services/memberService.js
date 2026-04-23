@@ -8,7 +8,8 @@ import {
   where,
   getDocs
 } from 'firebase/firestore';
-import { NotificationService } from '@shared/src/features/notification/services/NotificationService';
+import { NotificationService } from '../../notification/services/notificationService';
+import { SYSTEM_USER_ID } from '../../../core/constants';
 
 const FIRESTORE_OP_EQUALS = '=' + '=';
 
