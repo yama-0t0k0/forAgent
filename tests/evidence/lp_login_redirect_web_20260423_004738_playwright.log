@@ -1,0 +1,165 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+Opening LP App...
+
+[1A[2K[Browser info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log] HomeScreen mounted
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Home
+
+[1A[2KNavigating to Login via Header...
+
+[1A[2K[Browser log] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Login
+
+[1A[2KEntering Admin credentials...
+
+[1A[2K[Browser log] [Login] handleLogin started {email: e2e-test-A999@lat-inc.com}
+
+[1A[2KWaiting for redirection to Admin App (8081)...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: A999}
+
+[1A[2K[Browser log] 🔄 [AuthContext] Role from UID prefix: admin
+
+[1A[2K[Browser log] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log] [AuthUtils] Resolving role for: A999 (forceRefresh: false)
+
+[1A[2K[Browser log] [AuthUtils] Role found in Custom Claims: admin
+
+[1A[2K[Browser log] [Login] Login successful, resolved role: admin
+
+[1A[2K[Browser log] [Analytics] User ID set: A999
+
+[1A[2K[Browser log] [Analytics] User Properties set: {user_type: admin}
+
+[1A[2K[Browser log] [Analytics] Event: login {method: email, role: admin}
+
+[1A[2K[Browser log] [Redirect] role: admin url: http://localhost:8081
+
+[1A[2K[Browser log] [DevBroker] Signaling auto-start for: admin_app
+
+[1A[2K[Browser log] [Redirect] Waiting for port 8081...
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log] [Redirect] Port 8081 is active!
+
+[1A[2K[Browser error] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156972:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156938:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157449:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158035:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158130:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158117:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157798:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158233:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157730:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172098:35)
+
+[1A[2K[Browser log] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2KVerifying Admin Dashboard...
+
+[1A[2K[Browser log] [DeepLink][admin_app] Initial URL: http://localhost:8081/
+
+[1A[2K[Browser log] [DeepLink][admin_app] Received: http://localhost:8081/
+
+[1A[2K[Browser log] 🔐 [Auth State Changed] User: null
+
+[1A[2K[Browser log] ⚠️ User not signed in.
+
+[1A[2K[Browser warning] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K  1) [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('dashboard_screen')
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 20000ms[22m
+    [2m  - waiting for getByTestId('dashboard_screen')[22m
+
+
+      53 |     // Note: Expo Web では data-testid になる
+      54 |     const dashboard = page.getByTestId('dashboard_screen');
+    > 55 |     await expect(dashboard).toBeVisible({ timeout: 20000 });
+         |                             ^
+      56 |
+      57 |     // エビデンス: 遷移成功
+      58 |     await page.screenshot({ path: path.join(evidenceDir, `lp_app_web_${timestamp}_redirect_success.png`) });
+        at /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/e2e_web/lp_login_redirect.spec.ts:55:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+  Serving HTML report at http://localhost:58257. Press Ctrl+C to quit.

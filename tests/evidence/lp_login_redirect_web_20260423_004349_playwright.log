@@ -1,0 +1,54 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+Opening LP App...
+
+[1A[2KNavigating to Login via Header...
+
+[1A[2KEntering Admin credentials...
+
+[1A[2K  1) [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text=ログイン')[22m
+    [2m    - locator resolved to 8 elements. Proceeding with the first one: <div dir="auto" class="css-text-146c3p1 r-color-jwli3a r-fontSize-1b43r93 r-fontWeight-1kfrs79">ログイン</div>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    34 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not visible[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+
+
+      38 |
+      39 |     // ログイン実行
+    > 40 |     await page.click('text=ログイン');
+         |                ^
+      41 |
+      42 |     // 4. リダイレクト待機
+      43 |     console.log('Waiting for redirection to Admin App (8081)...');
+        at /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/e2e_web/lp_login_redirect.spec.ts:40:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.

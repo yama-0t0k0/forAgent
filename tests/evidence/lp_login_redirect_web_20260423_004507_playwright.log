@@ -1,0 +1,42 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+Opening LP App...
+
+[1A[2KNavigating to Login via Header...
+
+[1A[2KEntering Admin credentials...
+
+[1A[2KWaiting for redirection to Admin App (8081)...
+
+[1A[2K  1) [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForURL: Test timeout of 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/localhost:8081/**" until "load"
+    ============================================================
+
+      43 |     console.log('Waiting for redirection to Admin App (8081)...');
+      44 |     // window.location.href による遷移を待つ
+    > 45 |     await page.waitForURL('**/localhost:8081/**', { timeout: 30000 });
+         |                ^
+      46 |
+      47 |     // 5. Admin App ダッシュボードの表示確認
+      48 |     console.log('Verifying Admin Dashboard...');
+        at /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/e2e_web/lp_login_redirect.spec.ts:45:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+  Serving HTML report at http://localhost:58012. Press Ctrl+C to quit.

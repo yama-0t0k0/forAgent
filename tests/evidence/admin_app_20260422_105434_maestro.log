@@ -11,10 +11,6 @@ WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.oracle.truffl
 WARNING: Please consider reporting this to the maintainers of class com.oracle.truffle.api.dsl.InlineSupport$UnsafeField
 WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
 Run flow when ".*開く.*|.*Open.*" is visible...
-  Tap on (Optional) "Open"... WARNED
-  Tap on (Optional) "開く"...Run flow when ".*開く.*|.*Open.*" is visible... RUNNING
-Run flow when ".*開く.*|.*Open.*" is visible... RUNNING
-Assert that id: header_title is visible... FAILED
 
 Assertion is false: id: header_title is visible
 
@@ -27,4 +23,4 @@ Possible causes:
 
 ==== Debug output (logs & screenshots) ====
 
-/Users/yamakawamakoto/.maestro/tests/2026-04-22_102206
+/Users/yamakawamakoto/.maestro/tests/2026-04-22_105345

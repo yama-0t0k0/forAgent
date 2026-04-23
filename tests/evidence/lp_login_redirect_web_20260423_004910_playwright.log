@@ -1,0 +1,209 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+Opening LP App...
+
+[1A[2K[Browser info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log] HomeScreen mounted
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Home
+
+[1A[2KNavigating to Login via Header...
+
+[1A[2K[Browser log] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Login
+
+[1A[2KEntering Admin credentials...
+
+[1A[2K[Browser log] [Login] handleLogin started {email: e2e-test-A999@lat-inc.com}
+
+[1A[2KWaiting for redirection to Admin App (8081)...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: A999}
+
+[1A[2K[Browser log] 🔄 [AuthContext] Role from UID prefix: admin
+
+[1A[2K[Browser log] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log] [AuthUtils] Resolving role for: A999 (forceRefresh: false)
+
+[1A[2K[Browser log] [AuthUtils] Role found in Custom Claims: admin
+
+[1A[2K[Browser log] [Login] Login successful, resolved role: admin
+
+[1A[2K[Browser log] [Analytics] User ID set: A999
+
+[1A[2K[Browser log] [Analytics] User Properties set: {user_type: admin}
+
+[1A[2K[Browser log] [Analytics] Event: login {method: email, role: admin}
+
+[1A[2K[Browser log] [Redirect] role: admin url: http://localhost:8081
+
+[1A[2K[Browser log] [DevBroker] Signaling auto-start for: admin_app
+
+[1A[2K[Browser log] [Redirect] Waiting for port 8081...
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log] [Redirect] Port 8081 is active!
+
+[1A[2K[Browser error] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156972:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156938:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157449:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158035:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158130:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158117:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157798:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158233:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157730:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172098:35)
+
+[1A[2K[Browser log] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2KVerifying Admin Dashboard...
+
+[1A[2K[Browser log] ⚠️ [E2E Mode] Skipping Auth. Attempting Anonymous Sign-In...
+
+[1A[2K[Browser log] [DeepLink][admin_app] Initial URL: http://localhost:8081/
+
+[1A[2K[Browser log] [DeepLink][admin_app] Received: http://localhost:8081/
+
+[1A[2K[Browser log] 🔐 [Auth State Changed] User: null
+
+[1A[2K[Browser log] ⚠️ User not signed in.
+
+[1A[2K[Browser warning] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log] 🔐 [Auth State Changed] User: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] 🔄 Authenticated. Fetching all data...
+
+[1A[2K[Browser log] [FirestoreDataService] fetchAllIndividuals started
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching public_profile. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching Company. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching company. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching corporate. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] [FirestoreDataService] fetchAllFMJS started
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching FeeMgmtAndJobStatDB. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] [FirestoreDataService] Fetching selection_progress. Auth: ogPtaktiPsSTJb8Kyazaqw62wN92
+
+[1A[2K[Browser log] Rendering OverviewTab, steps: 5
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onStartShouldSetResponder
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onResponderTerminationRequest
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onResponderGrant
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onResponderMove
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onResponderRelease
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onResponderTerminate
+
+[1A[2K[Browser error] Unknown event handler property `%s`. It will be ignored. onPressOut
+
+[1A[2K[Browser warning] TouchableMixin is deprecated. Please use Pressable.
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 27 docs from public_profile
+
+[1A[2K[Browser log] [Debug] fetchAllIndividuals: Fetched 27 public profiles
+
+[1A[2K[Browser log] [Debug] User[0]: id=C000000000000, name=undefined, basicInfo={}
+
+[1A[2K[Browser log] [Debug] User[1]: id=C000000000001, name=undefined, basicInfo={}
+
+[1A[2K[Browser log] [Debug] User[2]: id=C200001010001, name=undefined, basicInfo={}
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 0 docs from Company
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 115 docs from company
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 0 docs from corporate
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 1 docs from FeeMgmtAndJobStatDB
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 0 docs from selection_progress
+
+[1A[2K[Browser log] [FirestoreDataService] Fetched 1 unique docs from FeeMgmtAndJobStatDB/selection_progress
+
+[1A[2K[Browser log] [Debug] First FMJS doc: id=S202412310001, data={"id":"S202412310001","UpdateTimestamp_yyyymmddtttttt":20250114140837,"JobStatID":"S202412310001","入社後サーベイ_PostJoiningSurvey":{"1年":{"D. 自由記述":{"7.会社や仕事に対する不安・懸念点があれば教えてください。":"","9.その他ご意見ご要望。":"","8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":""},"C. 仕事の満足度":{"5.この会社でまだ2年以上は働きたいと考えている。":{"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"6.現在の会社に対して、スキル経験面の成長機会を期待できる。":{"5 とてもそう思う":false,"4 そう思う":false,"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true}},"A. 転職プロセスの満足度":{"2.仕事を通じて、自分のキャリア目標に近づいていると感じる。":{"5 とてもそう思う":false,"4 そう思う":false,"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true},"1.現在の業務にやりがいを感じている。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false}},"B. 入社直後の環境適応":{"4.現在の給与・待遇に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false},"3.自分の成果が適切に評価されていると感じる。":{"5 とてもそう思う":false,"4 そう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true}}},"半年":{"B. 職場環境と人間関係":{"3.チーム内のコミュニケーションは円滑である。":{"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"4.業務上の困りごとを気軽に相談できる環境がある。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false}},"A. 仕事の充実度と成長":{"2.仕事の成果を正当に評価されていると感じる。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false},"1.現在の業務は、自分のスキルアップにつながりそうだと感じている。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false}},"D. 自由記述":{"7.会社や仕事に対する不安・懸念点があれば教えてください。":"","9.その他ご意見ご要望。":"","8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":""},"C. キャリアの見通し":{"6.この会社で3年以上の長期的なキャリアを築けると思う。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false},"5.今後もこの会社で働き続けたいと考えている。":{"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false}}},"3ヶ月":{"C. 転職の総合的な評価":{"7.転職活動をもう一度やり直したとしても、同じ選択をすると思う。":{"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false},"6.この転職は、自身のキャリアにプラスになりそうだと感じている。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false}},"B. 職場環境とカルチャー適応":{"5.会社のカルチャーや働き方は、自分に合っている。":{"5 とてもそう思う":false,"4 そう思う":false,"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true},"4.チームメンバーや上司との関係に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false}},"A. 仕事と成長の実感":{"2仕事を通じて、新しいスキルを習得できそうだと感じている。":{"5 とてもそう思う":false,"4 そう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true},"3.この会社での経験は、自身の市場価値を高めるのに役立ちそうだと感じている。":{"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false},"1.現在の業務は、希望していた内容と一致している。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false}},"D. 自由記述":{"9.入社後、当社(エージェント)に期待したサポートがあれば教えてください。（自由記述）":"","10.その他ご意見ご要望（自由記述）":"","8.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":""}},"2年以降毎年":{"B. 入社直後の環境適応":{"4.ここでの経験で、自身の市場価値を高められていると感じる。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false},"3.この会社で成長し続けられると感じている。":{"5 とてもそう思う":false,"4 そう思う":false,"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true}},"C. 仕事の満足度":{"6.会社の文化や働き方が、自分に合っている。":{"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"5.給与や待遇に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false}},"D. 自由記述":{"8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":"","7.会社や仕事に対する不安・懸念点があれば教えてください。":"","9.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":""},"A. 転職プロセスの満足度":{"2.今後もまだ2年以上はこの会社で働き続けたいと思う。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"1 全くそう思わない":false},"1.この会社での仕事に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true}}},"1ヶ月":{"A. 転職プロセスの満足度":{"1.転職のプロセス（求人紹介、面接対策など）に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false},"2.仕事内容以外の部分について、転職前の期待と実際のギャップは少ない。":{"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"3.転職エージェントのサポートは十分だった。":{"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false}},"D. 自由記述":{"10.入社後、当社(エージェント)に期待したサポートがあれば教えてください。（自由記述）":"","11.その他ご意見ご要望（自由記述）":"","9.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":""},"C. 仕事の満足度":{"8.入社後の研修やサポート体制に満足している。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false},"7.現在の業務は、希望していた内容と一致している。":{"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false}},"B. 入社直後の環境適応":{"4.入社手続きやオンボーディング（研修、説明など）はスムーズだった。":{"5 とてもそう思う":false,"4 そう思う":false,"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true},"5.会社の雰囲気や文化に馴染みやすいと感じている。":{"1 全くそう思わない":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"4 そう思う":false},"6.チームメンバーや上司と円滑にコミュニケーションが取れている。":{"5 とてもそう思う":false,"4 そう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false}}}},"手数料管理簿":{"手数料の算出根拠":{"理論年収":10000000,"Fee":0.4},"徴収(入金)年月日_yyyymmdd":0,"備考":"","手数料の種類":{"求職受付手数料":false,"紹介手数料":false,"求人受付手数料":false,"求職者手数料":false},"入社日_yyyymmdd":0,"手数料の額":4000000,"返金":{"受領済みの売上金額":0,"入社1ヶ月以内退職":false,"入社1年以内退職":false,"返金額":0,"入社2ヶ月以内退職":false,"入社9ヶ月以内退職":false,"入社3ヶ月以内退職":false,"返金率(%)":0,"入社6ヶ月(半年)以内退職":false},"社名_手数料を支払う者の社名又は名称":""},"選考進捗":{"status_ステータス":{"選考中":true},"JD_Number":0,"フィードバック":{"企業へのフィードバック":{"最終面接":{"フィードバック詳細":{"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ポジティブ/良かった点":"","ネガティブ/懸念点":"","その他自由記述":""}}},"1次面接":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","ネガティブ/懸念点":"","その他自由記述":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"オファー面談":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"カジュアル面談":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"内定":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"退職日確定":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"短期離職_返金":{"フィードバック詳細":{"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"2次面接":{"フィードバック詳細":{"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"応募_書類選考":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"その他選考":{"フィードバック詳細":{"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"内定受諾":{"フィードバック詳細":{"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"入社_請求":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}}},"企業からのフィードバック":{"入社_請求":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"内定受諾":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","ネガティブ/懸念点":"","その他自由記述":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"応募_書類選考":{"フィードバック詳細":{"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"その他選考":{"フィードバック詳細":{"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"短期離職_返金":{"フィードバック詳細":{"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ポジティブ/良かった点":"","ネガティブ/懸念点":"","その他自由記述":""}}},"2次面接":{"フィードバック詳細":{"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"退職日確定":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"内定":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"カジュアル面談":{"フィードバック詳細":{"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""}}},"オファー面談":{"フィードバック詳細":{"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"最終面接":{"フィードバック詳細":{"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"1次面接":{"フィードバック詳細":{"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ネガティブ/懸念点":"","ポジティブ/良かった点":""}}}}},"id_individual_個人ID":"","fase_フェイズ":{"オファー面談":false,"カジュアル面談":false,"退職日確定":false,"内定":false,"1次面接":false,"最終面接":false,"内定受諾":false,"入社_請求":false,"短期離職_返金":false,"2次面接":false,"応募_書類選考":false,"その他選考":false},"id_company_法人ID":""}}
+
+[1A[2K[Browser log] ✅ Data fetched successfully.
+
+[1A[2K[Browser log] Rendering OverviewTab, steps: 5
+
+[1A[2K[Browser log] Rendering OverviewTab, steps: 5
+
+[1A[2K✅ Redirection verified successfully!
+
+[1A[2K  1 passed (13.5s)
+
+To open last HTML report run:
+
+  npx playwright show-report
+

@@ -1,0 +1,376 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:13:7 › LP Login and Redirect Verification › should redirect Admin user (A999) to Admin App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:13:7 › LP Login and Redirect Verification › should redirect Admin user (A999) to Admin App
+[Admin] Opening LP App...
+
+[1A[2K[Browser info][Admin] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Admin] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Admin] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Admin] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Admin] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Admin] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Admin] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Admin] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Admin] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Admin] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Admin] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Admin] HomeScreen mounted
+
+[1A[2K[Browser log][Admin] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Admin] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: Home
+
+[1A[2K[Admin] Navigating to Login...
+
+[1A[2K[Browser log][Admin] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Admin] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Admin] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: Login
+
+[1A[2K[Admin] Entering credentials for Admin...
+
+[1A[2K[Browser log][Admin] [Login] handleLogin started {email: e2e-test-A999@lat-inc.com}
+
+[1A[2K[Admin] Waiting for redirection to http://localhost:8081...
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] onAuthStateChanged started {uid: A999}
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Role from UID prefix: admin
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Admin] [AuthUtils] Resolving role for: A999 (forceRefresh: false)
+
+[1A[2K[Browser log][Admin] [AuthUtils] Role found in Custom Claims: admin
+
+[1A[2K[Browser log][Admin] [Login] Login successful, resolved role: admin
+
+[1A[2K[Browser log][Admin] [Analytics] User ID set: A999
+
+[1A[2K[Browser log][Admin] [Analytics] User Properties set: {user_type: admin}
+
+[1A[2K[Browser log][Admin] [Analytics] Event: login {method: email, role: admin}
+
+[1A[2K[Browser log][Admin] [Redirect] role: admin url: http://localhost:8081
+
+[1A[2K[Browser log][Admin] [DevBroker] Signaling auto-start for: admin_app
+
+[1A[2K[Browser log][Admin] [Redirect] Waiting for port 8081...
+
+[1A[2K[Browser error][Admin] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Admin] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Admin] [Redirect] Port 8081 is active!
+
+[1A[2K[Browser error][Admin] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156974:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156940:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157451:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158037:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158132:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158119:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157800:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158235:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157732:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172100:35)
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info][Admin] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Admin] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Admin] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Admin] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning][Admin] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log][Admin] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Admin] Redirection success. Current URL: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] ⚠️ [E2E Mode] Skipping Auth. Attempting Anonymous Sign-In...
+
+[1A[2K[Browser log][Admin] [DeepLink][admin_app] Initial URL: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] [DeepLink][admin_app] Received: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] 🔐 [Auth State Changed] User: null
+
+[1A[2K[Browser log][Admin] ⚠️ User not signed in.
+
+[1A[2K[Browser warning][Admin] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K✅ [Admin] Redirection verified successfully!
+
+[1A[2K[2/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:23:7 › LP Login and Redirect Verification › should redirect Individual user (C000000000001) to Individual App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:23:7 › LP Login and Redirect Verification › should redirect Individual user (C000000000001) to Individual App
+[Individual] Opening LP App...
+
+[1A[2K[Browser info][Individual] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Individual] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Individual] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Individual] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Individual] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Individual] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Individual] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Individual] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Individual] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Individual] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Individual] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Individual] HomeScreen mounted
+
+[1A[2K[Browser log][Individual] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Individual] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: Home
+
+[1A[2K[Individual] Navigating to Login...
+
+[1A[2K[Browser log][Individual] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Individual] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Individual] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: Login
+
+[1A[2K[Individual] Entering credentials for Individual...
+
+[1A[2K[Browser log][Individual] [Login] handleLogin started {email: e2e-test-C000000000001@lat-inc.com}
+
+[1A[2K[Individual] Waiting for redirection to http://localhost:8082...
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] onAuthStateChanged started {uid: C000000000001}
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Role from UID prefix: individual
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Individual] [AuthUtils] Resolving role for: C000000000001 (forceRefresh: false)
+
+[1A[2K[Browser log][Individual] [AuthUtils] Role found in Custom Claims: individual
+
+[1A[2K[Browser log][Individual] [Login] Login successful, resolved role: individual
+
+[1A[2K[Browser log][Individual] [Analytics] User ID set: C000000000001
+
+[1A[2K[Browser log][Individual] [Analytics] User Properties set: {user_type: individual}
+
+[1A[2K[Browser log][Individual] [Analytics] Event: login {method: email, role: individual}
+
+[1A[2K[Browser log][Individual] [Redirect] role: individual url: http://localhost:8082
+
+[1A[2K[Browser log][Individual] [DevBroker] Signaling auto-start for: individual_app
+
+[1A[2K[Browser log][Individual] [Redirect] Waiting for port 8082...
+
+[1A[2K[Browser error][Individual] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Individual] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Individual] [Redirect] Port 8082 is active!
+
+[1A[2K[Browser error][Individual] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156974:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156940:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157451:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158037:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158132:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158119:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157800:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158235:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157732:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172100:35)
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info][Individual] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Individual] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Individual] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Individual] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning][Individual] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log][Individual] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Individual] Redirection success. Current URL: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [DeepLink][individual_user_app] Initial URL: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [DeepLink][individual_user_app] Received: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [LaunchController] Current Mode: default
+
+[1A[2K✅ [Individual] Redirection verified successfully!
+
+[1A[2K[3/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:33:7 › LP Login and Redirect Verification › should redirect Corporate user (B00001) to Corporate App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:33:7 › LP Login and Redirect Verification › should redirect Corporate user (B00001) to Corporate App
+[Corporate] Opening LP App...
+
+[1A[2K[Browser info][Corporate] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Corporate] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Corporate] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Corporate] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Corporate] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Corporate] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Corporate] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Corporate] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Corporate] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Corporate] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Corporate] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Corporate] HomeScreen mounted
+
+[1A[2K[Browser log][Corporate] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Corporate] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: Home
+
+[1A[2K[Corporate] Navigating to Login...
+
+[1A[2K[Browser log][Corporate] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Corporate] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Corporate] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: Login
+
+[1A[2K[Corporate] Entering credentials for Corporate...
+
+[1A[2K[Browser log][Corporate] [Login] handleLogin started {email: e2e-test-B00001@lat-inc.com}
+
+[1A[2K[Corporate] Waiting for redirection to http://localhost:8083...
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] onAuthStateChanged started {uid: B00001}
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Role from UID prefix: corporate
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Corporate] [AuthUtils] Resolving role for: B00001 (forceRefresh: false)
+
+[1A[2K[Browser log][Corporate] [AuthUtils] Role found in Custom Claims: corporate
+
+[1A[2K[Browser log][Corporate] [Login] Login successful, resolved role: corporate
+
+[1A[2K[Browser log][Corporate] [Analytics] User ID set: B00001
+
+[1A[2K[Browser log][Corporate] [Analytics] User Properties set: {user_type: corporate}
+
+[1A[2K[Browser log][Corporate] [Analytics] Event: login {method: email, role: corporate}
+
+[1A[2K[Browser log][Corporate] [Redirect] role: corporate url: http://localhost:8083
+
+[1A[2K[Browser log][Corporate] [DevBroker] Signaling auto-start for: corporate_app
+
+[1A[2K[Browser log][Corporate] [Redirect] Waiting for port 8083...
+
+[1A[2K[Browser error][Corporate] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Corporate] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Corporate] [Redirect] Port 8083 is active!
+
+[1A[2K[Browser error][Corporate] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156974:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156940:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157451:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158037:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158132:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158119:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157800:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158235:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157732:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172100:35)
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser error][Corporate] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+
+[1A[2K[Browser error][Corporate] Refused to execute script from 'http://localhost:8083/apps/corporate_user_app/expo_frontend/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.
+
+[1A[2K[Corporate] Redirection success. Current URL: http://localhost:8083/
+
+[1A[2K✅ [Corporate] Redirection verified successfully!
+
+[1A[2K  3 passed (26.0s)
+
+To open last HTML report run:
+
+  npx playwright show-report
+

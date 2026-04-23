@@ -1,0 +1,205 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard
+Opening LP App...
+
+[1A[2K[Browser info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log] HomeScreen mounted
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Home
+
+[1A[2KNavigating to Login via Header...
+
+[1A[2K[Browser log] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log] [Analytics] Screen View: Login
+
+[1A[2KEntering Admin credentials...
+
+[1A[2K[Browser log] [Login] handleLogin started {email: e2e-test-A999@lat-inc.com}
+
+[1A[2KWaiting for redirection to Admin App (8081)...
+
+[1A[2K[Browser log] 🔄 [AuthContext] onAuthStateChanged started {uid: A999}
+
+[1A[2K[Browser log] 🔄 [AuthContext] Role from UID prefix: admin
+
+[1A[2K[Browser log] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log] [AuthUtils] Resolving role for: A999 (forceRefresh: false)
+
+[1A[2K[Browser log] [AuthUtils] Role found in Custom Claims: admin
+
+[1A[2K[Browser log] [Login] Login successful, resolved role: admin
+
+[1A[2K[Browser log] [Analytics] User ID set: A999
+
+[1A[2K[Browser log] [Analytics] User Properties set: {user_type: admin}
+
+[1A[2K[Browser log] [Analytics] Event: login {method: email, role: admin}
+
+[1A[2K[Browser log] [Redirect] role: admin url: http://localhost:8081
+
+[1A[2K[Browser log] [DevBroker] Signaling auto-start for: admin_app
+
+[1A[2K[Browser log] [Redirect] Waiting for port 8081...
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser log] 🔄 [AuthContext] Role from token claims: admin
+
+[1A[2K[Browser log] ✅ [AuthContext] Final Resolved Role: admin
+
+[1A[2K[Browser log] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser error] Access to fetch at 'http://localhost:8081/' from origin 'http://localhost:8087' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[1A[2K[Browser error] Failed to load resource: net::ERR_FAILED
+
+[1A[2K[Browser warning] [Redirect] Timeout waiting for port 8081
+
+[1A[2K  1) [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForURL: Test timeout of 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/localhost:8081/**" until "load"
+    ============================================================
+
+      46 |     console.log('Waiting for redirection to Admin App (8081)...');
+      47 |     // window.location.href による遷移を待つ
+    > 48 |     await page.waitForURL('**/localhost:8081/**', { timeout: 30000 });
+         |                ^
+      49 |
+      50 |     // 5. Admin App ダッシュボードの表示確認
+      51 |     console.log('Verifying Admin Dashboard...');
+        at /Users/yamakawamakoto/ReactNative_Expo/forAgent/tests/e2e_web/lp_login_redirect.spec.ts:48:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/lp_login_redirect-LP-Login-d6beb-user-to-Admin-App-dashboard-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:12:7 › LP Login and Redirect Verification › should redirect Admin user to Admin App dashboard 
+
+  Serving HTML report at http://localhost:58141. Press Ctrl+C to quit.

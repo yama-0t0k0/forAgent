@@ -1,0 +1,483 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:13:7 › LP Login and Redirect Verification › should redirect Admin user (A999) to Admin App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:13:7 › LP Login and Redirect Verification › should redirect Admin user (A999) to Admin App
+[Admin] Opening LP App...
+
+[1A[2K[Browser info][Admin] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Admin] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Admin] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Admin] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Admin] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Admin] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Admin] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Admin] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Admin] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Admin] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Admin] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Admin] HomeScreen mounted
+
+[1A[2K[Browser log][Admin] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Admin] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: Home
+
+[1A[2K[Admin] Navigating to Login...
+
+[1A[2K[Browser log][Admin] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Admin] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Admin] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Admin] [Analytics] Screen View: Login
+
+[1A[2K[Admin] Entering credentials for Admin...
+
+[1A[2K[Browser log][Admin] [Login] handleLogin started {email: e2e-test-A999@lat-inc.com}
+
+[1A[2K[Admin] Waiting for redirection to http://localhost:8081...
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] onAuthStateChanged started {uid: A999}
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Role from UID prefix: admin
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Admin] [AuthUtils] Resolving role for: A999 (forceRefresh: false)
+
+[1A[2K[Browser log][Admin] [AuthUtils] Role found in Custom Claims: admin
+
+[1A[2K[Browser log][Admin] [Login] Login successful, resolved role: admin
+
+[1A[2K[Browser log][Admin] [Analytics] User ID set: A999
+
+[1A[2K[Browser log][Admin] [Analytics] User Properties set: {user_type: admin}
+
+[1A[2K[Browser log][Admin] [Analytics] Event: login {method: email, role: admin}
+
+[1A[2K[Browser log][Admin] [Redirect] role: admin url: http://localhost:8081
+
+[1A[2K[Browser log][Admin] [DevBroker] Signaling auto-start for: admin_app
+
+[1A[2K[Browser log][Admin] [Redirect] Waiting for port 8081...
+
+[1A[2K[Browser error][Admin] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Admin] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Admin] [Redirect] Port 8081 is active!
+
+[1A[2K[Browser error][Admin] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156972:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156938:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157449:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158035:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158130:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158117:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157798:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158233:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157730:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172098:35)
+
+[1A[2K[Browser log][Admin] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info][Admin] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Admin] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Admin] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Admin] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning][Admin] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log][Admin] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Admin] Redirection success. Current URL: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] ⚠️ [E2E Mode] Skipping Auth. Attempting Anonymous Sign-In...
+
+[1A[2K[Browser log][Admin] [DeepLink][admin_app] Initial URL: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] [DeepLink][admin_app] Received: http://localhost:8081/
+
+[1A[2K[Browser log][Admin] 🔐 [Auth State Changed] User: null
+
+[1A[2K[Browser log][Admin] ⚠️ User not signed in.
+
+[1A[2K[Browser warning][Admin] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Admin] 🔐 [Auth State Changed] User: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] 🔄 Authenticated. Fetching all data...
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] fetchAllIndividuals started
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching public_profile. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching Company. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching company. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching corporate. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] fetchAllFMJS started
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching FeeMgmtAndJobStatDB. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetching selection_progress. Auth: PnlpsGng0LOa2qg6XsQYsXwbZei2
+
+[1A[2K[Browser log][Admin] Rendering OverviewTab, steps: 5
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onStartShouldSetResponder
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onResponderTerminationRequest
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onResponderGrant
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onResponderMove
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onResponderRelease
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onResponderTerminate
+
+[1A[2K[Browser error][Admin] Unknown event handler property `%s`. It will be ignored. onPressOut
+
+[1A[2K[Browser warning][Admin] TouchableMixin is deprecated. Please use Pressable.
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 27 docs from public_profile
+
+[1A[2K[Browser log][Admin] [Debug] fetchAllIndividuals: Fetched 27 public profiles
+
+[1A[2K[Browser log][Admin] [Debug] User[0]: id=C000000000000, name=undefined, basicInfo={}
+
+[1A[2K[Browser log][Admin] [Debug] User[1]: id=C000000000001, name=undefined, basicInfo={}
+
+[1A[2K[Browser log][Admin] [Debug] User[2]: id=C200001010001, name=undefined, basicInfo={}
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 0 docs from Company
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 115 docs from company
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 0 docs from corporate
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 1 docs from FeeMgmtAndJobStatDB
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 0 docs from selection_progress
+
+[1A[2K[Browser log][Admin] [FirestoreDataService] Fetched 1 unique docs from FeeMgmtAndJobStatDB/selection_progress
+
+[1A[2K[Browser log][Admin] [Debug] First FMJS doc: id=S202412310001, data={"id":"S202412310001","UpdateTimestamp_yyyymmddtttttt":20250114140837,"入社後サーベイ_PostJoiningSurvey":{"1年":{"D. 自由記述":{"9.その他ご意見ご要望。":"","7.会社や仕事に対する不安・懸念点があれば教えてください。":"","8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":""},"A. 転職プロセスの満足度":{"2.仕事を通じて、自分のキャリア目標に近づいていると感じる。":{"1 全くそう思わない":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"1.現在の業務にやりがいを感じている。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false}},"C. 仕事の満足度":{"6.現在の会社に対して、スキル経験面の成長機会を期待できる。":{"4 そう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"2 あまりそう思わない":false},"5.この会社でまだ2年以上は働きたいと考えている。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true}},"B. 入社直後の環境適応":{"4.現在の給与・待遇に満足している。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true},"3.自分の成果が適切に評価されていると感じる。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true}}},"1ヶ月":{"C. 仕事の満足度":{"8.入社後の研修やサポート体制に満足している。":{"4 そう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"2 あまりそう思わない":false},"7.現在の業務は、希望していた内容と一致している。":{"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false}},"B. 入社直後の環境適応":{"5.会社の雰囲気や文化に馴染みやすいと感じている。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true},"4.入社手続きやオンボーディング（研修、説明など）はスムーズだった。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true},"6.チームメンバーや上司と円滑にコミュニケーションが取れている。":{"4 そう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"5 とてもそう思う":false,"2 あまりそう思わない":false}},"D. 自由記述":{"10.入社後、当社(エージェント)に期待したサポートがあれば教えてください。（自由記述）":"","9.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":"","11.その他ご意見ご要望（自由記述）":""},"A. 転職プロセスの満足度":{"2.仕事内容以外の部分について、転職前の期待と実際のギャップは少ない。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false},"1.転職のプロセス（求人紹介、面接対策など）に満足している。":{"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"2 あまりそう思わない":false,"4 そう思う":false},"3.転職エージェントのサポートは十分だった。":{"1 全くそう思わない":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false}}},"半年":{"A. 仕事の充実度と成長":{"2.仕事の成果を正当に評価されていると感じる。":{"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false},"1.現在の業務は、自分のスキルアップにつながりそうだと感じている。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true}},"C. キャリアの見通し":{"6.この会社で3年以上の長期的なキャリアを築けると思う。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"4 そう思う":false},"5.今後もこの会社で働き続けたいと考えている。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false}},"B. 職場環境と人間関係":{"4.業務上の困りごとを気軽に相談できる環境がある。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false},"3.チーム内のコミュニケーションは円滑である。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"3 どちらでもない":true,"1 全くそう思わない":false}},"D. 自由記述":{"9.その他ご意見ご要望。":"","7.会社や仕事に対する不安・懸念点があれば教えてください。":"","8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":""}},"2年以降毎年":{"A. 転職プロセスの満足度":{"2.今後もまだ2年以上はこの会社で働き続けたいと思う。":{"3 どちらでもない":true,"1 全くそう思わない":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false},"1.この会社での仕事に満足している。":{"1 全くそう思わない":false,"3 どちらでもない":true,"2 あまりそう思わない":false,"5 とてもそう思う":false,"4 そう思う":false}},"D. 自由記述":{"7.会社や仕事に対する不安・懸念点があれば教えてください。":"","9.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":"","8.今後、当社(エージェント)に期待するサービスがあれば教えてください。":""},"B. 入社直後の環境適応":{"4.ここでの経験で、自身の市場価値を高められていると感じる。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false},"3.この会社で成長し続けられると感じている。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true}},"C. 仕事の満足度":{"5.給与や待遇に満足している。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false},"6.会社の文化や働き方が、自分に合っている。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false}}},"3ヶ月":{"C. 転職の総合的な評価":{"7.転職活動をもう一度やり直したとしても、同じ選択をすると思う。":{"4 そう思う":false,"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true},"6.この転職は、自身のキャリアにプラスになりそうだと感じている。":{"3 どちらでもない":true,"1 全くそう思わない":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"4 そう思う":false}},"B. 職場環境とカルチャー適応":{"5.会社のカルチャーや働き方は、自分に合っている。":{"4 そう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"2 あまりそう思わない":false},"4.チームメンバーや上司との関係に満足している。":{"1 全くそう思わない":false,"3 どちらでもない":true,"5 とてもそう思う":false,"2 あまりそう思わない":false,"4 そう思う":false}},"D. 自由記述":{"10.その他ご意見ご要望（自由記述）":"","9.入社後、当社(エージェント)に期待したサポートがあれば教えてください。（自由記述）":"","8.会社や仕事に対する不安・懸念点があれば教えてください。（自由記述）":""},"A. 仕事と成長の実感":{"1.現在の業務は、希望していた内容と一致している。":{"4 そう思う":false,"5 とてもそう思う":false,"2 あまりそう思わない":false,"1 全くそう思わない":false,"3 どちらでもない":true},"3.この会社での経験は、自身の市場価値を高めるのに役立ちそうだと感じている。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"3 どちらでもない":true,"1 全くそう思わない":false,"4 そう思う":false},"2仕事を通じて、新しいスキルを習得できそうだと感じている。":{"2 あまりそう思わない":false,"5 とてもそう思う":false,"1 全くそう思わない":false,"3 どちらでもない":true,"4 そう思う":false}}}},"選考進捗":{"JD_Number":0,"id_individual_個人ID":"","フィードバック":{"企業へのフィードバック":{"その他選考":{"フィードバック詳細":{"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""}}},"内定受諾":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"1次面接":{"フィードバック詳細":{"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"最終面接":{"フィードバック詳細":{"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"ネガティブ/懸念点":"","その他自由記述":"","ポジティブ/良かった点":""}}},"2次面接":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"内定":{"フィードバック詳細":{"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""}}},"応募_書類選考":{"フィードバック詳細":{"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"短期離職_返金":{"フィードバック詳細":{"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"退職日確定":{"フィードバック詳細":{"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"カジュアル面談":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""},"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"オファー面談":{"フィードバック詳細":{"社風/カルチャー":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"入社_請求":{"フィードバック詳細":{"社風/カルチャー":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"技術面/経験できること":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}}},"企業からのフィードバック":{"入社_請求":{"フィードバック詳細":{"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"オファー面談":{"フィードバック詳細":{"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"短期離職_返金":{"フィードバック詳細":{"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""}}},"退職日確定":{"フィードバック詳細":{"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"その他":{"ネガティブ/懸念点":"","その他自由記述":"","ポジティブ/良かった点":""}}},"カジュアル面談":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"応募_書類選考":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"内定":{"フィードバック詳細":{"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"2次面接":{"フィードバック詳細":{"その他":{"ネガティブ/懸念点":"","その他自由記述":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"1次面接":{"フィードバック詳細":{"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""}}},"内定受諾":{"フィードバック詳細":{"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"スキル/経験":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"その他自由記述":"","ポジティブ/良かった点":"","ネガティブ/懸念点":""}}},"その他選考":{"フィードバック詳細":{"その他":{"ポジティブ/良かった点":"","その他自由記述":"","ネガティブ/懸念点":""},"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""}}},"最終面接":{"フィードバック詳細":{"スキル/経験":{"ネガティブ/懸念点":"","ポジティブ/良かった点":""},"人柄/志向":{"ポジティブ/良かった点":"","ネガティブ/懸念点":""},"その他":{"ネガティブ/懸念点":"","ポジティブ/良かった点":"","その他自由記述":""}}}}},"id_company_法人ID":"","status_ステータス":{"選考中":true},"fase_フェイズ":{"2次面接":false,"内定":false,"最終面接":false,"内定受諾":false,"その他選考":false,"1次面接":false,"入社_請求":false,"オファー面談":false,"退職日確定":false,"カジュアル面談":false,"短期離職_返金":false,"応募_書類選考":false}},"JobStatID":"S202412310001","手数料管理簿":{"手数料の額":4000000,"手数料の算出根拠":{"Fee":0.4,"理論年収":10000000},"備考":"","返金":{"返金額":0,"入社1ヶ月以内退職":false,"入社6ヶ月(半年)以内退職":false,"受領済みの売上金額":0,"返金率(%)":0,"入社9ヶ月以内退職":false,"入社1年以内退職":false,"入社2ヶ月以内退職":false,"入社3ヶ月以内退職":false},"入社日_yyyymmdd":0,"徴収(入金)年月日_yyyymmdd":0,"社名_手数料を支払う者の社名又は名称":"","手数料の種類":{"求職者手数料":false,"紹介手数料":false,"求人受付手数料":false,"求職受付手数料":false}}}
+
+[1A[2K[Browser log][Admin] ✅ Data fetched successfully.
+
+[1A[2K[Browser log][Admin] Rendering OverviewTab, steps: 5
+
+[1A[2K[Browser log][Admin] Rendering OverviewTab, steps: 5
+
+[1A[2K✅ [Admin] Redirection verified successfully!
+
+[1A[2K[2/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:24:7 › LP Login and Redirect Verification › should redirect Individual user (C000000000001) to Individual App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:24:7 › LP Login and Redirect Verification › should redirect Individual user (C000000000001) to Individual App
+[Individual] Opening LP App...
+
+[1A[2K[Browser info][Individual] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Individual] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Individual] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Individual] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Individual] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Individual] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Individual] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Individual] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Individual] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Individual] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Individual] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Individual] HomeScreen mounted
+
+[1A[2K[Browser log][Individual] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Individual] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: Home
+
+[1A[2K[Individual] Navigating to Login...
+
+[1A[2K[Browser log][Individual] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Individual] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Individual] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Individual] [Analytics] Screen View: Login
+
+[1A[2K[Individual] Entering credentials for Individual...
+
+[1A[2K[Browser log][Individual] [Login] handleLogin started {email: e2e-test-C000000000001@lat-inc.com}
+
+[1A[2K[Individual] Waiting for redirection to http://localhost:8082...
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] onAuthStateChanged started {uid: C000000000001}
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Role from UID prefix: individual
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Individual] [AuthUtils] Resolving role for: C000000000001 (forceRefresh: false)
+
+[1A[2K[Browser log][Individual] [AuthUtils] Role found in Custom Claims: individual
+
+[1A[2K[Browser log][Individual] [Login] Login successful, resolved role: individual
+
+[1A[2K[Browser log][Individual] [Analytics] User ID set: C000000000001
+
+[1A[2K[Browser log][Individual] [Analytics] User Properties set: {user_type: individual}
+
+[1A[2K[Browser log][Individual] [Analytics] Event: login {method: email, role: individual}
+
+[1A[2K[Browser log][Individual] [Redirect] role: individual url: http://localhost:8082
+
+[1A[2K[Browser log][Individual] [DevBroker] Signaling auto-start for: individual_app
+
+[1A[2K[Browser log][Individual] [Redirect] Waiting for port 8082...
+
+[1A[2K[Browser error][Individual] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Individual] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Individual] [Redirect] Port 8082 is active!
+
+[1A[2K[Browser error][Individual] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156972:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156938:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157449:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158035:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158130:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158117:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157798:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158233:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157730:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172098:35)
+
+[1A[2K[Browser log][Individual] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info][Individual] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Individual] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Individual] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Individual] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser warning][Individual] "textShadow*" style props are deprecated. Use "textShadow".
+
+[1A[2K[Browser log][Individual] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Individual] [DeepLink][individual_user_app] Initial URL: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [DeepLink][individual_user_app] Received: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [LaunchController] Current Mode: default
+
+[1A[2K[Individual] Redirection success. Current URL: http://localhost:8082/
+
+[1A[2K[Browser log][Individual] [FullApp] Signed in anonymously. UID: g3tJe844uxg8SgrY1d1L4PAejRT2
+
+[1A[2K[Browser log][Individual] [FirestoreDataService] fetchAllIndividuals started
+
+[1A[2K[Browser log][Individual] [FirestoreDataService] Fetching public_profile. Auth: g3tJe844uxg8SgrY1d1L4PAejRT2
+
+[1A[2K[Browser log][Individual] [FirestoreDataService] Fetched 27 docs from public_profile
+
+[1A[2K[Browser log][Individual] [Debug] fetchAllIndividuals: Fetched 27 public profiles
+
+[1A[2K[Browser log][Individual] [Debug] User[0]: id=C000000000000, name=undefined, basicInfo={}
+
+[1A[2K[Browser log][Individual] [Debug] User[1]: id=C000000000001, name=undefined, basicInfo={}
+
+[1A[2K[Browser log][Individual] [Debug] User[2]: id=C200001010001, name=undefined, basicInfo={}
+
+[1A[2K[Browser warning][Individual] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser error][Individual] [NotificationService] Fetch failed: FirebaseError: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/flutter-frontend-21d0a/firestore/indexes?create_composite=Clxwcm9qZWN0cy9mbHV0dGVyLWZyb250ZW5kLTIxZDBhL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9ub3RpZmljYXRpb25zL2luZGV4ZXMvXxABGgcKA3VpZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI
+
+[1A[2K[Browser error][Individual] Error fetching notifications: FirebaseError: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/flutter-frontend-21d0a/firestore/indexes?create_composite=Clxwcm9qZWN0cy9mbHV0dGVyLWZyb250ZW5kLTIxZDBhL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9ub3RpZmljYXRpb25zL2luZGV4ZXMvXxABGgcKA3VpZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI
+
+[1A[2K✅ [Individual] Redirection verified successfully!
+
+[1A[2K[3/3] [chromium] › tests/e2e_web/lp_login_redirect.spec.ts:35:7 › LP Login and Redirect Verification › should redirect Corporate user (B00001) to Corporate App
+[1A[2K[chromium] › tests/e2e_web/lp_login_redirect.spec.ts:35:7 › LP Login and Redirect Verification › should redirect Corporate user (B00001) to Corporate App
+[Corporate] Opening LP App...
+
+[1A[2K[Browser info][Corporate] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Corporate] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Corporate] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Corporate] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Corporate] 🚀 [Index] Registering root component
+
+[1A[2K[Browser log][Corporate] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Browser log][Corporate] 🚀 [App] LP App component mounting...
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] onAuthStateChanged started {uid: undefined}
+
+[1A[2K[Browser log][Corporate] 👤 [AuthContext] No user logged in.
+
+[1A[2K[Browser log][Corporate] 🏁 [AuthContext] Auth state change complete. isLoading=false
+
+[1A[2K[Browser log][Corporate] [Firebase] Analytics initialized via shared app instance
+
+[1A[2K[Browser warning][Corporate] props.pointerEvents is deprecated. Use style.pointerEvents
+
+[1A[2K[Browser log][Corporate] HomeScreen mounted
+
+[1A[2K[Browser log][Corporate] Logo layout: {x: 0, y: 0, width: 148, height: 23, left: 24}
+
+[1A[2K[Browser log][Corporate] Header layout: {x: 0, y: 0, width: 1280, height: 68, left: 0}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: Home
+
+[1A[2K[Corporate] Navigating to Login...
+
+[1A[2K[Browser log][Corporate] [Analytics] Event: click_login {location: header}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: PasskeyLogin
+
+[1A[2K[Browser log][Corporate] Logo layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Corporate] Header layout: {x: 0, y: 0, width: 0, height: 0, left: 0}
+
+[1A[2K[Browser log][Corporate] [Analytics] Screen View: Login
+
+[1A[2K[Corporate] Entering credentials for Corporate...
+
+[1A[2K[Browser log][Corporate] [Login] handleLogin started {email: e2e-test-B00001@lat-inc.com}
+
+[1A[2K[Corporate] Waiting for redirection to http://localhost:8083...
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] onAuthStateChanged started {uid: B00001}
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Role from UID prefix: corporate
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Fetching ID token results...
+
+[1A[2K[Browser log][Corporate] [AuthUtils] Resolving role for: B00001 (forceRefresh: false)
+
+[1A[2K[Browser log][Corporate] [AuthUtils] Role found in Custom Claims: corporate
+
+[1A[2K[Browser log][Corporate] [Login] Login successful, resolved role: corporate
+
+[1A[2K[Browser log][Corporate] [Analytics] User ID set: B00001
+
+[1A[2K[Browser log][Corporate] [Analytics] User Properties set: {user_type: corporate}
+
+[1A[2K[Browser log][Corporate] [Analytics] Event: login {method: email, role: corporate}
+
+[1A[2K[Browser log][Corporate] [Redirect] role: corporate url: http://localhost:8083
+
+[1A[2K[Browser log][Corporate] [DevBroker] Signaling auto-start for: corporate_app
+
+[1A[2K[Browser log][Corporate] [Redirect] Waiting for port 8083...
+
+[1A[2K[Browser error][Corporate] Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+[1A[2K[Browser warning][Corporate] [DevBroker] Signal failed. Is scripts/dev_broker.mjs running? Failed to fetch
+
+[1A[2K[Browser log][Corporate] [Redirect] Port 8083 is active!
+
+[1A[2K[Browser error][Corporate] ❌ [AuthContext] ID Token Result error: FirebaseError: Firebase: Error (auth/network-request-failed).
+    at createErrorInternal (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156972:39)
+    at _fail (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:156938:11)
+    at _performFetchWithErrorHandling (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157449:7)
+    at async requestStsToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158035:22)
+    at async StsTokenManager.refresh (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158130:11)
+    at async StsTokenManager.getToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158117:9)
+    at async _logoutIfInvalidated (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157798:14)
+    at async UserImpl.getIdToken (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:158233:27)
+    at async getIdTokenResult (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:157730:19)
+    at async Object.next (http://localhost:8087/apps/lp_app/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:172098:35)
+
+[1A[2K[Browser log][Corporate] 🔄 [AuthContext] Fetching user doc from Firestore...
+
+[1A[2K[Browser info][Corporate] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+
+[1A[2K[Browser log][Corporate] ✅ [FirebaseConfig] Auth initialized with persistence: web
+
+[1A[2K[Browser log][Corporate] 🔥 [FirebaseConfig] Connected to PRODUCTION Firebase (Dev Mode)
+
+[1A[2K[Browser warning][Corporate] "shadow*" style props are deprecated. Use "boxShadow".
+
+[1A[2K[Browser log][Corporate] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+
+[1A[2K[Corporate] Redirection success. Current URL: http://localhost:8083/
+
+[1A[2K[Browser log][Corporate] [DeepLink][corporate_user_app] Initial URL: http://localhost:8083/
+
+[1A[2K[Browser log][Corporate] [DeepLink][corporate_user_app] Received: http://localhost:8083/
+
+[1A[2K[Browser error][Corporate] [NotificationService] Fetch failed: FirebaseError: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/flutter-frontend-21d0a/firestore/indexes?create_composite=Clxwcm9qZWN0cy9mbHV0dGVyLWZyb250ZW5kLTIxZDBhL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9ub3RpZmljYXRpb25zL2luZGV4ZXMvXxABGgcKA3VpZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI
+
+[1A[2K[Browser error][Corporate] Error fetching notifications: FirebaseError: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/flutter-frontend-21d0a/firestore/indexes?create_composite=Clxwcm9qZWN0cy9mbHV0dGVyLWZyb250ZW5kLTIxZDBhL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9ub3RpZmljYXRpb25zL2luZGV4ZXMvXxABGgcKA3VpZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI
+
+[1A[2K✅ [Corporate] Redirection verified successfully!
+
+[1A[2K  3 passed (25.2s)
+
+To open last HTML report run:
+
+  npx playwright show-report
+
